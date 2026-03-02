@@ -712,7 +712,6 @@ object AutoRoutes : Module( // todo maybe split it in two files // FIXME my scro
         val delay: Int? = null,
         val chain: String? = null,
         val index: Int? = null,
-        val chainProvided: Boolean = false
     )
 
     private fun RouteRing.colour() = if (multicolour) colours[this.action.typeName]?.value ?: Colour.WHITE else colour
