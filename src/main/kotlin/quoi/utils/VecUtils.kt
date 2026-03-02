@@ -75,39 +75,39 @@ fun BlockPos.rotateToNorth(rotation: Rotations): BlockPos =
         else -> this
     }
 
-fun Vec3.rotateAroundNorth(rotation: Rotations): Vec3 =
-    when (rotation) {
-        Rotations.NORTH -> Vec3(-x, y, -z)
-        Rotations.WEST  -> Vec3(-z, y, x)
-        Rotations.SOUTH -> Vec3(x, y, z)
-        Rotations.EAST  -> Vec3(z, y, -x)
-        else -> this
-    }
+//fun Vec3.rotateAroundNorth(rotation: Rotations): Vec3 =
+//    when (rotation) {
+//        Rotations.NORTH -> Vec3(-x, y, -z)
+//        Rotations.WEST  -> Vec3(-z, y, x)
+//        Rotations.SOUTH -> Vec3(x, y, z)
+//        Rotations.EAST  -> Vec3(z, y, -x)
+//        else -> this
+//    }
+//
+//fun Vec3.rotateToNorth(rotation: Rotations): Vec3 =
+//    when (rotation) {
+//        Rotations.NORTH -> Vec3(-x, y, -z)
+//        Rotations.WEST  -> Vec3(z, y, -x)
+//        Rotations.SOUTH -> Vec3(x, y, z)
+//        Rotations.EAST  -> Vec3(-z, y, x)
+//        else -> this
+//    }
 
-fun Vec3.rotateToNorth(rotation: Rotations): Vec3 =
-    when (rotation) {
-        Rotations.NORTH -> Vec3(-x, y, -z)
-        Rotations.WEST  -> Vec3(z, y, -x)
-        Rotations.SOUTH -> Vec3(x, y, z)
-        Rotations.EAST  -> Vec3(-z, y, x)
-        else -> this
-    }
-//
-//fun Vec3.rotateAroundNorth(rotation: Rotations): Vec3 { // fixes my stupidity
-//    val ix = floor(x).toInt()
-//    val iy = floor(y).toInt()
-//    val iz = floor(z).toInt()
-//    val rotatedBlock = BlockPos(ix, iy, iz).rotateAroundNorth(rotation)
-//    return Vec3(rotatedBlock.x + (x - ix), rotatedBlock.y + (y - iy), rotatedBlock.z + (z - iz))
-//}
-//
-//fun Vec3.rotateToNorth(rotation: Rotations): Vec3 {
-//    val ix = floor(x).toInt()
-//    val iy = floor(y).toInt()
-//    val iz = floor(z).toInt()
-//    val rotatedBlock = BlockPos(ix, iy, iz).rotateToNorth(rotation)
-//    return Vec3(rotatedBlock.x + (x - ix), rotatedBlock.y + (y - iy), rotatedBlock.z + (z - iz))
-//}
+fun Vec3.rotateAroundNorth(rotation: Rotations): Vec3 { // fixes my stupidity
+    val ix = floor(x).toInt()
+    val iy = floor(y).toInt()
+    val iz = floor(z).toInt()
+    val rotatedBlock = BlockPos(ix, iy, iz).rotateAroundNorth(rotation)
+    return Vec3(rotatedBlock.x + (x - ix), rotatedBlock.y + (y - iy), rotatedBlock.z + (z - iz))
+}
+
+fun Vec3.rotateToNorth(rotation: Rotations): Vec3 {
+    val ix = floor(x).toInt()
+    val iy = floor(y).toInt()
+    val iz = floor(z).toInt()
+    val rotatedBlock = BlockPos(ix, iy, iz).rotateToNorth(rotation)
+    return Vec3(rotatedBlock.x + (x - ix), rotatedBlock.y + (y - iy), rotatedBlock.z + (z - iz))
+}
 
 /**
  * Multiplies every coordinate of a Vec3 by the given factor.
