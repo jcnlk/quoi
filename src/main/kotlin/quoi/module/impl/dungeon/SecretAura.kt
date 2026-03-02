@@ -31,6 +31,7 @@ import net.minecraft.world.level.block.entity.SkullBlockEntity
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.AABB
 import quoi.api.skyblock.dungeon.Dungeon.currentRoom
+import quoi.module.settings.impl.DropdownSetting
 import java.util.*
 
 // modified https://github.com/Hypericat/NoobRoutes/blob/main/src/main/kotlin/noobroutes/features/dungeon/SecretAura.kt
@@ -49,16 +50,18 @@ object SecretAura : Module(
     private val swing by BooleanSetting("Swing hand", desc = "Makes secret aura swing hand on click.")
     private val dungeonsOnly by BooleanSetting("Dungeons only", true, desc = "Makes secret aura only work in dungeons.")
 //shit
-    private val creeperBeams by BooleanSetting("Creeper Beams", true)
-    private val threeWeirdos by BooleanSetting("Three Weirdos", false)
-    private val ticTacToe by BooleanSetting("Tic-Tac-Toe", true)
-    private val waterBoard by BooleanSetting("Water Board", false)
-    private val teleportMaze by BooleanSetting("Teleport Maze", true)
-    private val higherOrLower by BooleanSetting("Higher or Lower", true)
-    private val boulder by BooleanSetting("Boulder", true)
-    private val iceFill by BooleanSetting("Ice Fill", true)
-    private val icePath by BooleanSetting("Ice Path", true)
-    private val quiz by BooleanSetting("Quiz", true)
+
+    private val roomsDropdown by DropdownSetting("Rooms").collapsible()
+    private val creeperBeams by BooleanSetting("Creeper Beams", true).withDependency(roomsDropdown)
+    private val threeWeirdos by BooleanSetting("Three Weirdos", false).withDependency(roomsDropdown)
+    private val ticTacToe by BooleanSetting("Tic-Tac-Toe", true).withDependency(roomsDropdown)
+    private val waterBoard by BooleanSetting("Water Board", false).withDependency(roomsDropdown)
+    private val teleportMaze by BooleanSetting("Teleport Maze", true).withDependency(roomsDropdown)
+    private val higherOrLower by BooleanSetting("Higher or Lower", true).withDependency(roomsDropdown)
+    private val boulder by BooleanSetting("Boulder", true).withDependency(roomsDropdown)
+    private val iceFill by BooleanSetting("Ice Fill", true).withDependency(roomsDropdown)
+    private val icePath by BooleanSetting("Ice Path", true).withDependency(roomsDropdown)
+    private val quiz by BooleanSetting("Quiz", true).withDependency(roomsDropdown)
 
     private val REDSTONE_KEY = UUID.fromString("fed95410-aba1-39df-9b95-1d4f361eb66e")
     private val WITHER_ESSENCE = UUID.fromString("e0f3e929-869e-3dca-9504-54c666ee6f23")
