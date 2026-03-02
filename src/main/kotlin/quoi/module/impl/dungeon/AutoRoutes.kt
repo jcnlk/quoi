@@ -621,7 +621,6 @@ object AutoRoutes : Module( // todo maybe split it in two files // FIXME my scro
         val chain = if (args.chain.equals("none", true)) null else args.chain ?: currentChain
 
         x = floor(x) + 0.5
-        y = floor(y)
         z = floor(z) + 0.5
 
         val ring = RouteRing(
