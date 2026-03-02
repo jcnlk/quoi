@@ -75,7 +75,7 @@ class DungeonBreakerAction(val blocks: List<BlockPos> = emptyList()) : RingActio
 
             if (!level.isLoaded(realPos) || realPos.state?.isAir == true) continue
 
-            if (realPos.distToCenterSqr(player.x, player.y, player.z) > 25.0) continue
+            if (realPos.distToCenterSqr(player.eyePosition) > 25.0) continue
 
 //            val clipResult = level.clip(
 //                ClipContext(

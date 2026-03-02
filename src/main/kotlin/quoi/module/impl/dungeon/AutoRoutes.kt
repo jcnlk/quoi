@@ -472,7 +472,7 @@ object AutoRoutes : Module( // todo maybe split it in two files // FIXME my scro
 
             val relativePos = room.getRelativeCoords(pos)
 
-            if (relativePos.distToCenterSqr(editing.x, editing.y, editing.z) > 25.0)
+            if (relativePos.distToCenterSqr(editing.x, editing.y + 1.54f, editing.z) > 25.0) // no idea if the user would be sneaking or not tbh...
                 return@on modMessage("&cBlock is too far!")
 
 
