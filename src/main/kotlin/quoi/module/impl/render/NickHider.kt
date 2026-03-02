@@ -11,11 +11,14 @@ import net.minecraft.network.chat.TextColor
 import net.minecraft.util.FormattedCharSequence
 import kotlin.math.min
 
-// https://github.com/Ownwn/Client-Custom-Name
+/**
+ * modified Client-Custom-Name (GPL-3.0) (c) Ownwn
+ * original: https://github.com/Ownwn/Client-Custom-Name
+ */
 object NickHider : Module(
     "Nick Hider",
     desc = "Visually hides player name."
-) { // todo colour setting
+) {
     val customName by StringSetting("Name", "cat", desc = "Player name to display.")
     private val nameColour by ColourSetting("Name colour", Colour.ORANGE, desc = "Colour of the displayed name.")
 
