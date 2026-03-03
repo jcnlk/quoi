@@ -67,6 +67,8 @@ class EtherwarpAction(val yaw: Float = 0f, val pitch: Float = 0f) : RingAction {
 
         } else {
             player.rotate(room.getRealYaw(yaw), pitch)
+
+            AutoRoutes.interactDelay()
             withTimeoutOrNull(500) {
                 while (rayCast() == null) {
                     wait(1)

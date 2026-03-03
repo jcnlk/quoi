@@ -1,17 +1,17 @@
 package quoi.api.autoroutes.actions
 
+import net.minecraft.client.player.LocalPlayer
 import quoi.QuoiMod.mc
+import quoi.api.colour.Colour
+import quoi.api.skyblock.dungeon.Dungeon.currentRoom
 import quoi.config.TypeName
+import quoi.module.impl.dungeon.AutoRoutes
 import quoi.utils.ChatUtils.modMessage
-import quoi.utils.Scheduler.wait
 import quoi.utils.skyblock.player.PlayerUtils
 import quoi.utils.skyblock.player.PlayerUtils.pitch
 import quoi.utils.skyblock.player.PlayerUtils.rotate
 import quoi.utils.skyblock.player.PlayerUtils.yaw
 import quoi.utils.skyblock.player.SwapManager
-import net.minecraft.client.player.LocalPlayer
-import quoi.api.colour.Colour
-import quoi.api.skyblock.dungeon.Dungeon.currentRoom
 
 @TypeName("use_item")
 class UseItemAction(
@@ -37,7 +37,7 @@ class UseItemAction(
 
         if (SwapManager.swapByName(item).success) {
             player.rotate(currentRoom!!.getRealYaw(yaw), pitch)
-            wait(1)
+            AutoRoutes.interactDelay()
             repeat(times ?: 1) {
                 PlayerUtils.interact()
             }

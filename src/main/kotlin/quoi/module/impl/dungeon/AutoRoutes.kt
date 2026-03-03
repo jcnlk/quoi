@@ -1,5 +1,12 @@
 package quoi.module.impl.dungeon
 
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import net.minecraft.core.BlockPos
+import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket
+import net.minecraft.world.phys.AABB
+import net.minecraft.world.phys.Vec3
 import quoi.QuoiMod.scope
 import quoi.api.autoroutes.RouteRing
 import quoi.api.autoroutes.actions.*
@@ -14,47 +21,32 @@ import quoi.api.commands.internal.SubCommand
 import quoi.api.commands.parsers.arg
 import quoi.api.events.*
 import quoi.api.events.core.EventBus
+import quoi.api.skyblock.Island
 import quoi.api.skyblock.dungeon.Dungeon.currentRoom
+import quoi.api.skyblock.dungeon.Dungeon.inClear
 import quoi.api.skyblock.dungeon.Dungeon.isProtectedBlock
 import quoi.api.skyblock.dungeon.map.utils.LegacyIdMapper.legacyBlockIdMap
+import quoi.api.skyblock.invoke
 import quoi.config.ConfigMap
 import quoi.config.configMap
 import quoi.config.typeName
 import quoi.config.typedEntries
 import quoi.module.Module
-import quoi.module.settings.impl.BooleanSetting
-import quoi.module.settings.impl.ColourSetting
-import quoi.module.settings.impl.NumberSetting
-import quoi.module.settings.impl.SelectorSetting
-import quoi.utils.*
-import quoi.utils.ChatUtils.modMessage
-import quoi.utils.WorldUtils.registryName
-import quoi.utils.WorldUtils.state
-import quoi.utils.render.drawCylinder
-import quoi.utils.render.drawFilledBox
-import quoi.utils.render.drawWireFrameBox
-import quoi.utils.skyblock.player.PlayerUtils.pitch
-import quoi.utils.skyblock.player.PlayerUtils.yaw
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import net.minecraft.core.BlockPos
-import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket
-import net.minecraft.world.phys.AABB
-import net.minecraft.world.phys.Vec3
-import quoi.api.skyblock.Island
-import quoi.api.skyblock.dungeon.Dungeon.inClear
-import quoi.api.skyblock.invoke
 import quoi.module.settings.Setting.Companion.json
 import quoi.module.settings.Setting.Companion.withDependency
-import quoi.module.settings.impl.DropdownSetting
+import quoi.module.settings.impl.*
+import quoi.utils.*
 import quoi.utils.ChatUtils.literal
+import quoi.utils.ChatUtils.modMessage
+import quoi.utils.Scheduler.wait
 import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.StringUtils.width
+import quoi.utils.WorldUtils.registryName
+import quoi.utils.WorldUtils.state
+import quoi.utils.render.*
 import quoi.utils.render.DrawContextUtils.drawString
-import quoi.utils.render.drawLine
-import quoi.utils.render.drawStyledBox
-import quoi.utils.render.drawText
+import quoi.utils.skyblock.player.PlayerUtils.pitch
+import quoi.utils.skyblock.player.PlayerUtils.yaw
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.math.floor
 
@@ -88,6 +80,7 @@ object AutoRoutes : Module( // todo maybe split it in two files // FIXME my scro
     }
     private val thickness by NumberSetting("Thickness", 4f, 1f, 8f, 0.5f)
     val height by NumberSetting("Height", 0.1f, 0.1f, 1f, 0.1f)
+    private val interactDelay by NumberSetting("Interact delay", 2, 0, 6, 1, unit = "t")
 
     val routes: ConfigMap<String, MutableList<RouteRing>> by configMap("auto_routes.json")
 
@@ -102,6 +95,7 @@ object AutoRoutes : Module( // todo maybe split it in two files // FIXME my scro
     private val awaitingRings = hashSetOf<RouteRing>()
     val batIds = hashSetOf<Int>()
     var secretsAwaited = 0
+    private var shouldDelay = false
 
     private var currentJob: Job? = null
     private val removedRings = mutableMapOf<String, MutableList<List<Pair<Int, RouteRing>>>>()
@@ -285,17 +279,23 @@ object AutoRoutes : Module( // todo maybe split it in two files // FIXME my scro
         on<WorldEvent.Change> {
             visitedRings.clear()
             completedChainNodes.clear()
-            completedAwaits.clear()
             breakerCache.clear()
             currentJob?.cancel()
             addHistory.clear()
 
+            completedAwaits.clear()
             awaitingRings.clear()
             batIds.clear()
             secretsAwaited = 0
+            shouldDelay = false
         }
 
-        on<DungeonEvent.Secret.Interact> { if (awaitingRings.isNotEmpty()) secretsAwaited++ }
+        on<DungeonEvent.Secret.Interact> {
+            if (awaitingRings.isNotEmpty()) {
+                secretsAwaited++
+                shouldDelay = true
+            }
+        }
         on<DungeonEvent.Secret.Item> { if (awaitingRings.isNotEmpty()) secretsAwaited++ }
     }
 
@@ -307,6 +307,13 @@ object AutoRoutes : Module( // todo maybe split it in two files // FIXME my scro
             batIds.clear()
         }
         awaitingRings.add(ring)
+    }
+
+    suspend fun interactDelay() {
+        if (shouldDelay) {
+            wait(interactDelay)
+            shouldDelay = false
+        }
     }
 
     private fun registerCommands() {
@@ -472,7 +479,11 @@ object AutoRoutes : Module( // todo maybe split it in two files // FIXME my scro
 
             val relativePos = room.getRelativeCoords(pos)
 
-            if (relativePos.distToCenterSqr(editing.x, editing.y + player.eyeHeight, editing.z) > 25.0) // no idea if the user would be sneaking or not tbh...
+            val minY = editing.y + player.eyeHeight
+            val maxY = minY + (editing.height ?: 0.1)
+            val yPos = relativePos.y.toDouble().coerceIn(minY, maxY)
+
+            if (relativePos.distToCenterSqr(editing.x, yPos, editing.z) > 25.0)
                 return@on modMessage("&cBlock is too far!")
 
 
@@ -521,6 +532,7 @@ object AutoRoutes : Module( // todo maybe split it in two files // FIXME my scro
         val updatedRing = ring.copy(
             arguments = newValues.arguments.takeIf { it.isNotEmpty() } ?: ring.arguments,
             radius = if (input?.string?.contains("radius:") == true) newValues.radius else ring.radius,
+            height = if (input?.string?.contains("height:") == true) newValues.height else ring.height,
             delay = if (input?.string?.contains("delay:") == true) newValues.delay else ring.delay,
             chain = chain
         )
@@ -588,6 +600,7 @@ object AutoRoutes : Module( // todo maybe split it in two files // FIXME my scro
         val providers = mapOf(
             "delay" to { listOf("100", "500") },
             "radius" to { listOf("2", "3.5", "4") },
+            "height" to { listOf("0.1, 1, 4.1") },
             "block" to { legacyBlockIdMap.keys.map { it.replace("minecraft:", "") } },
             "await" to { listOf("2", "3", "4") },
             "chain" to {
@@ -630,6 +643,7 @@ object AutoRoutes : Module( // todo maybe split it in two files // FIXME my scro
             action = action,
             arguments = args.arguments,
             radius = args.radius,
+            height = args.height,
             delay = args.delay,
             chain = chain
         )
@@ -679,6 +693,7 @@ object AutoRoutes : Module( // todo maybe split it in two files // FIXME my scro
 
         val arguments = mutableListOf<RingArgument>()
         var radius = 1.0
+        var height: Double? = null
         var delay: Int? = null
         var chain: String? = null
         var index: Int? = null
@@ -690,6 +705,7 @@ object AutoRoutes : Module( // todo maybe split it in two files // FIXME my scro
 
             when (key) {
                 "radius" -> radius = value.toDoubleOrNull() ?: 1.0
+                "height" -> height = value.toDoubleOrNull()
                 "delay" -> delay = value.toIntOrNull()
                 "chain" -> chain = value
                 "index" -> index = value.toIntOrNull()
@@ -702,12 +718,13 @@ object AutoRoutes : Module( // todo maybe split it in two files // FIXME my scro
                 }
             }
         }
-        return RingArgs(arguments, radius, delay, chain, index)
+        return RingArgs(arguments, radius, height, delay, chain, index)
     }
 
     private data class RingArgs(
         val arguments: List<RingArgument> = emptyList(),
         val radius: Double = 1.0,
+        val height: Double? = null,
         val delay: Int? = null,
         val chain: String? = null,
         val index: Int? = null,

@@ -1,24 +1,23 @@
 package quoi.api.autoroutes.actions
 
-import quoi.QuoiMod.mc
-import quoi.api.skyblock.dungeon.Dungeon
-import quoi.config.TypeName
-import quoi.utils.ChatUtils.modMessage
-import quoi.utils.Scheduler.wait
-import quoi.utils.WorldUtils.state
-import quoi.utils.skyblock.player.SwapManager
 import net.minecraft.client.player.LocalPlayer
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.item.ItemStack
-import net.minecraft.world.level.ClipContext
-import net.minecraft.world.phys.Vec3
+import quoi.QuoiMod.mc
 import quoi.api.colour.Colour
+import quoi.api.skyblock.dungeon.Dungeon
+import quoi.config.TypeName
+import quoi.module.impl.dungeon.AutoRoutes
+import quoi.utils.ChatUtils.modMessage
+import quoi.utils.Scheduler.wait
 import quoi.utils.StringUtils.noControlCodes
+import quoi.utils.WorldUtils.state
 import quoi.utils.skyblock.ItemUtils.lore
 import quoi.utils.skyblock.ItemUtils.skyblockId
+import quoi.utils.skyblock.player.SwapManager
 
 @TypeName("dungeon_breaker")
 class DungeonBreakerAction(val blocks: List<BlockPos> = emptyList()) : RingAction {
@@ -32,6 +31,7 @@ class DungeonBreakerAction(val blocks: List<BlockPos> = emptyList()) : RingActio
     override suspend fun execute(player: LocalPlayer) {
         val level = mc.level ?: return
         val room = Dungeon.currentRoom ?: return
+        val ring = AutoRoutes.routes[room.data.name]?.find { it.action == this } ?: return
 
         clearCooldownCache()
 
@@ -65,7 +65,7 @@ class DungeonBreakerAction(val blocks: List<BlockPos> = emptyList()) : RingActio
 
         for (relativePos in blocks) {
             if (chargesUsed >= initialCharges) {
-                modMessage("&eStopping. Out of chargs.")
+                modMessage("&eStopping. Out of charges.")
                 break
             }
 
@@ -75,17 +75,13 @@ class DungeonBreakerAction(val blocks: List<BlockPos> = emptyList()) : RingActio
 
             if (!level.isLoaded(realPos) || realPos.state?.isAir == true) continue
 
-            if (realPos.distToCenterSqr(player.eyePosition) > 25.0) continue
-
-//            val clipResult = level.clip(
-//                ClipContext(
-//                    player.eyePosition,
-//                    Vec3.atCenterOf(realPos),
-//                    ClipContext.Block.COLLIDER,
-//                    ClipContext.Fluid.NONE,
-//                    player
-//                )
-//            )
+//            if (realPos.distToCenterSqr(player.eyePosition) > 25.0) continue
+            var outOfRangeTicks = 0
+            while (realPos.distToCenterSqr(player.eyePosition) > 25.0) {
+                wait(1)
+                outOfRangeTicks++
+                if (!ring.inside(room) || outOfRangeTicks > 40) return modMessage("&cStopping. Out of range.")
+            }
 
             mc.connection?.send(
                 ServerboundPlayerActionPacket(
@@ -98,25 +94,6 @@ class DungeonBreakerAction(val blocks: List<BlockPos> = emptyList()) : RingActio
             recentlyBroken[realPos] = System.currentTimeMillis()
             chargesUsed++
             wait(1)
-
-//            if (/*clipResult.type == HitResult.Type.BLOCK && */clipResult.blockPos == realPos)  {
-//                mc.connection?.send(
-//                    ServerboundPlayerActionPacket(
-//                        ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK,
-//                        realPos,
-//                        clipResult.direction
-//                    )
-//                )
-//
-//                mc.execute {
-//                    player.swing(InteractionHand.MAIN_HAND)
-//                    level.removeBlock(realPos, false)
-//                }
-//
-//                recentlyBroken[realPos] = System.currentTimeMillis()
-//                chargesUsed++
-//                wait(1)
-//            }
         }
     }
 

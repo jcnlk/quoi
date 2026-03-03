@@ -1,16 +1,15 @@
 package quoi.api.autoroutes
 
+import net.minecraft.world.phys.AABB
+import net.minecraft.world.phys.Vec3
 import quoi.QuoiMod.mc
 import quoi.api.autoroutes.actions.RingAction
+import quoi.api.autoroutes.arguments.BlockArgument
 import quoi.api.autoroutes.arguments.RingArgument
-import quoi.api.skyblock.dungeon.components.Room
+import quoi.api.skyblock.dungeon.odonscanning.tiles.OdonRoom
 import quoi.utils.component1
 import quoi.utils.component2
 import quoi.utils.component3
-import net.minecraft.world.phys.AABB
-import net.minecraft.world.phys.Vec3
-import quoi.api.skyblock.dungeon.odonscanning.tiles.OdonRoom
-import quoi.module.impl.dungeon.AutoRoutes
 
 data class RouteRing(
     val x: Double,
@@ -19,6 +18,7 @@ data class RouteRing(
     val action: RingAction,
     val arguments: List<RingArgument>? = null,
     val radius: Double = 1.0,
+    val height: Double? = null,
     val delay: Int? = null,
     val chain: String? = null
 ) {
@@ -28,7 +28,7 @@ data class RouteRing(
         val (x, y, z) = room?.let { room.getRealCoords(Vec3(x, y, z)) } ?: Vec3(x, y, z)
         return AABB(
             x - r, y, z - r,
-            x + r, y + AutoRoutes.height, z + r
+            x + r, y + (height ?: 0.1), z + r
         )
     }
 
@@ -37,5 +37,5 @@ data class RouteRing(
         return boundingBox(room).intersects(player.boundingBox)
     }
 
-    fun checkArgs() = arguments?.all { it.check(this) } ?: true
+    fun checkArgs() = arguments?.sortedBy { it is BlockArgument }?.all { it.check(this) } ?: true
 }
