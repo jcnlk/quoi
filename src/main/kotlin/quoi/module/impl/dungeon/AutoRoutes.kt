@@ -99,7 +99,6 @@ object AutoRoutes : Module(
     internal var breakerRing: RouteRing? = null
     internal var interactListener: EventBus.EventListener? = null
     internal var lastClickedBlock: BlockPos? = null
-    internal var dbLcmMode = false
 
     internal val ar = BaseCommand("route").requires("&cEnable the module and be in a dungeon!") { enabled && inClear && currentRoom != null }
     internal val add = ar.sub("add").description("Adds specified ring.").suggests("add", actionEntries.map { it.first })

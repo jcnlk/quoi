@@ -134,11 +134,6 @@ internal fun AutoRoutes.registerCommands() {
         }
     }.description("Toggles dungeon breaker ring editor.").withEditMode()
 
-    ar.sub("dblcm") {
-        dbLcmMode = !dbLcmMode
-        modMessage("Dungeon breaker left-click editmode ${if (dbLcmMode) "&aenabled" else "&cdisabled"}&r.")
-    }.description("Toggles left-click block add mode.")
-
     "etherwarp".action { EtherwarpAction(yaw, pitch) }
     "rotate".action    { RotateAction(yaw, pitch) }
     "boom".action      { BoomAction(yaw, pitch) }
@@ -171,15 +166,11 @@ private fun AutoRoutes.editDBRing(ring: RouteRing) {
         val editing = breakerRing ?: return@on
         val action = editing.action as? DungeonBreakerAction ?: return@on
 
-        val pos = when (packet) {
-            is ServerboundUseItemOnPacket -> {
-                if (dbLcmMode) return@on
-                packet.hitResult.blockPos
-            }
+        val (pos, adding) = when (packet) {
+            is ServerboundUseItemOnPacket -> packet.hitResult.blockPos to false
             is ServerboundPlayerActionPacket -> {
-                if (!dbLcmMode) return@on
                 if (packet.action != ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK) return@on
-                packet.pos
+                packet.pos to true
             }
             else -> return@on
         }
@@ -198,13 +189,16 @@ private fun AutoRoutes.editDBRing(ring: RouteRing) {
 
 
         val blocks = action.blocks.toMutableList()
-        val isRemoving = blocks.contains(relativePos)
 
-        if (!isRemoving && blocks.size >= 20)
-            return@on modMessage("&cMaximum of 20 blocks reached for this ring!")
+        if (adding) {
+            if (blocks.contains(relativePos)) return@on
+            if (blocks.size >= 20)
+                return@on modMessage("&cMaximum of 20 blocks reached for this ring!")
 
-
-        if (!blocks.remove(relativePos)) blocks.add(relativePos)
+            blocks.add(relativePos)
+        } else {
+            if (!blocks.remove(relativePos)) return@on
+        }
 
         val rings = routes[room.data.name] ?: return@on
         val index = rings.indexOf(editing)
