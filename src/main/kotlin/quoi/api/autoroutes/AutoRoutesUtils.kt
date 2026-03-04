@@ -134,11 +134,6 @@ internal fun AutoRoutes.registerCommands() {
         }
     }.description("Toggles dungeon breaker ring editor.").withEditMode()
 
-    ar.sub("dblcm") {
-        dbLcmMode = !dbLcmMode
-        modMessage("Dungeon breaker left-click editmode ${if (dbLcmMode) "&aenabled" else "&cdisabled"}&r.")
-    }.description("Toggles left-click block add mode.")
-
     "etherwarp".action { EtherwarpAction(yaw, pitch) }
     "rotate".action    { RotateAction(yaw, pitch) }
     "boom".action      { BoomAction(yaw, pitch) }
