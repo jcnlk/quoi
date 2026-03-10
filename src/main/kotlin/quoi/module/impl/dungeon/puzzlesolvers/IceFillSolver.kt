@@ -51,12 +51,12 @@ object IceFillSolver {
     }
 
     fun onRenderWorld(ctx: WorldRenderContext, colour: Colour) {
-        if (!currentPatterns.isEmpty() && Dungeon.currentRoom?.data?.name == "Ice Fill")
+        if (!currentPatterns.isEmpty() && Dungeon.currentRoom?.name == "Ice Fill")
             ctx.drawLine(currentPatterns, colour, true)
     }
 
     fun onRoomEnter(room: OdonRoom?) = with (room) {
-        if (this?.data?.name != "Ice Fill" || currentPatterns.isNotEmpty()) return@with
+        if (this?.name != "Ice Fill" || currentPatterns.isNotEmpty()) return@with
         val patterns = /*if (optimizePatterns) iceFillFloors.hard else */iceFillFloors.easy
 
         repeat(3) { index ->
@@ -82,7 +82,7 @@ object IceFillSolver {
 
     fun onTick(player: LocalPlayer, delay: Int) {
         if (mc.screen != null) return
-        if (currentPatterns.isEmpty() || Dungeon.currentRoom?.data?.name != "Ice Fill") return
+        if (currentPatterns.isEmpty() || Dungeon.currentRoom?.name != "Ice Fill") return
         if (player.mainHandItem.skyblockId?.equalsOneOf("ASPECT_OF_THE_VOID", "ASPECT_OF_THE_END") == false) return
 
         val index = currentPatterns.indexOfFirst {

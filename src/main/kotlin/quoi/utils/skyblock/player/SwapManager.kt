@@ -15,6 +15,7 @@ import quoi.utils.skyblock.ItemUtils.skyblockId
 import kotlinx.coroutines.launch
 import net.minecraft.network.protocol.game.ServerboundSetCarriedItemPacket
 import net.minecraft.world.item.ItemStack
+import quoi.utils.skyblock.ItemUtils.loreString
 
 object SwapManager {
     private var lastKnownServerSlot: Int = -1
@@ -107,6 +108,8 @@ object SwapManager {
     }
 
     fun swapByName(name: String) = findAndSwap(name) { it.displayName.string.noControlCodes.contains(name, true) }
+
+    fun swapByLore(lore: String) = findAndSwap(lore) { it.loreString.noControlCodes.contains(lore, true) }
 
     fun swapById(vararg skyblockIds: String ) = findAndSwap(*skyblockIds) { stack ->
         val id = stack.skyblockId

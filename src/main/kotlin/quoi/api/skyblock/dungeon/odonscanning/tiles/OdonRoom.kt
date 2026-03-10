@@ -20,6 +20,7 @@ data class OdonRoom(
     var clayPos: BlockPos = BlockPos(0, 0, 0),
     val roomComponents: MutableSet<RoomComponent>,
 ) {
+    val name get() = data.name
     fun getRelativeCoords(pos: BlockPos) = pos.subtract(clayPos.atY(0)).rotateToNorth(rotation)
     fun getRelativeCoords(vec: Vec3) = vec.subtract(clayPos.x.toDouble(), 0.0, clayPos.z.toDouble()).rotateToNorth(rotation)
 

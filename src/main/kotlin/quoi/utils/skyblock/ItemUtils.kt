@@ -7,6 +7,7 @@ import net.minecraft.core.component.DataComponents
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.component.CustomData
+import quoi.utils.StringUtils.noControlCodes
 
 object ItemUtils {
     inline val ItemStack?.extraAttributes: CompoundTag?
@@ -29,6 +30,9 @@ object ItemUtils {
     inline val ItemStack?.loreString: String?
         get() = this?.lore?.joinToString("\n")
 
-    val ItemStack.texture: String?
+    inline val ItemStack?.isShortbow: Boolean
+        get() = this?.loreString?.noControlCodes?.contains("Shortbow: Instantly shoots!") == true
+
+    inline val ItemStack.texture: String?
         get() = get(DataComponents.PROFILE)?.partialProfile()?.properties?.get("textures")?.firstOrNull()?.value
 }

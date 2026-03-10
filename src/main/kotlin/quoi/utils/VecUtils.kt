@@ -123,6 +123,9 @@ fun Vec3.multiply(x: Double = 1.0, y: Double = 1.0, z: Double = 1.0): Vec3 =
 fun Vec3.equal(other: Vec3): Boolean =
     this.x == other.x && this.y == other.y && this.z == other.z
 
+fun BlockPos.equal(other: BlockPos): Boolean =
+    this.x == other.x && this.y == other.y && this.z == other.z
+
 /**
  * Returns Triple(distance, yaw, pitch) in minecraft coordinate system to get from x0y0z0 to x1y1z1.
  *

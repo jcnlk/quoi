@@ -111,7 +111,7 @@ fun WorldRenderContext.drawFilledBox(box: AABB, colour: Colour, depth: Boolean =
     bufferSource.endBatch(layer)
 }
 
-fun WorldRenderContext.drawStyledBox(style: String, box: AABB, colour: Colour, fillColour: Colour, thickness: Float, depth: Boolean) {
+fun WorldRenderContext.drawStyledBox(style: String, box: AABB, colour: Colour, fillColour: Colour = colour, thickness: Float = 2.0f, depth: Boolean = false) {
     when (style) {
         "Box" -> drawWireFrameBox(box, colour, thickness, depth)
         "Filled box" -> {
