@@ -39,7 +39,7 @@ public class ScreenMixin {
     }
 
     @Inject(
-            method = "render",
+            method = "renderWithTooltipAndSubtitles",
             at = @At("HEAD"),
             cancellable = true
     )
