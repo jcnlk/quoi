@@ -72,7 +72,7 @@ abstract class Setting<T> (
         fun <K : Setting<T>, T> K.withDependency(dropdown: DropdownSetting? = null, dependency: () -> Boolean = { true }): K {
             if (this is UISetting<*>) dropdown?.children?.add(this)
             parent = dropdown
-            visibilityDependency = dependency
+            visibilityDependency = { (dropdown?.visibilityDependency?.invoke() ?: true) && dependency() }
             return this
         }
 

@@ -1,3 +1,5 @@
+@file:Suppress("UNUSED")
+
 package quoi.module.impl.render
 
 import quoi.api.ServerInfo.averagePing
@@ -5,16 +7,19 @@ import quoi.api.ServerInfo.averageTps
 import quoi.api.ServerInfo.currentPing
 import quoi.api.ServerInfo.currentTps
 import quoi.api.ServerInfo.medianPing
+import quoi.api.abobaui.AbobaUI
 import quoi.api.abobaui.constraints.impl.measurements.Animatable
 import quoi.api.abobaui.constraints.impl.positions.Centre
 import quoi.api.abobaui.constraints.impl.size.Bounding
 import quoi.api.abobaui.constraints.impl.size.Copying
+import quoi.api.abobaui.constraints.impl.size.Fill
 import quoi.api.abobaui.dsl.*
 import quoi.api.abobaui.elements.ElementScope
 import quoi.api.abobaui.elements.Layout.Companion.divider
 import quoi.api.abobaui.elements.impl.Block.Companion.outline
 import quoi.api.abobaui.elements.impl.Popup
 import quoi.api.abobaui.elements.impl.Scrollable.Companion.scroll
+import quoi.api.abobaui.elements.impl.TextInput.Companion.maxWidth
 import quoi.api.abobaui.elements.impl.TextInput.Companion.onTextChanged
 import quoi.api.abobaui.elements.impl.layout.Column
 import quoi.api.abobaui.elements.impl.popup
@@ -23,6 +28,7 @@ import quoi.api.colour.Colour
 import quoi.api.colour.colour
 import quoi.api.colour.withAlpha
 import quoi.api.input.CatKeys
+import quoi.api.input.CursorShape
 import quoi.config.Config
 import quoi.module.Category
 import quoi.module.Module
@@ -37,6 +43,8 @@ import quoi.utils.StringUtils.toFixed
 import quoi.utils.ThemeManager.LightTheme
 import quoi.utils.ThemeManager.theme
 import quoi.utils.WorldUtils.day
+import quoi.utils.ui.cursor
+import quoi.utils.ui.elements.themedInput
 import quoi.utils.ui.hud.HudManager
 import quoi.utils.ui.hud.TextHud
 import quoi.utils.ui.hud.setting
@@ -140,14 +148,14 @@ object ClickGui : Module(
         }.description("Shows ping.")
     }
 
-    val moduleSize = 30.0f
+    private const val MODULE_SIZE = 30.0f
 
-    var clickGui = clickGui()
+    var clickGui: AbobaUI.Instance = clickGui()
         private set
 
     private fun clickGui() = aboba("Quoi! Click Gui") {
         val moduleScopes = arrayListOf<Pair<Module, ElementScope<*>>>()
-
+//        ui.debug = true
         onRemove {
             Config.save()
             HudManager.reinit(immediately = false)
@@ -169,7 +177,7 @@ object ClickGui : Module(
                 }
                 val height = Animatable(from = Bounding, to = 0.px, swapIf = !data.extended)
                 block(
-                    size(260.px, (moduleSize + 5).px),
+                    size(260.px, (MODULE_SIZE + 5).px),
                     colour = theme.background,
                     radius(tl = 10, tr = 10)
                 ) {
@@ -180,7 +188,7 @@ object ClickGui : Module(
                     )
 
                     onClick(button = 1) {
-                        height.animate(0.3.seconds, style = Animation.Style.EaseInOutQuint)
+                        height.animate(0.25.seconds, style = Animation.Style.EaseInOutQuint)
                         redraw()
                         data.extended = !data.extended
                         println(moduleScopes)
@@ -210,38 +218,68 @@ object ClickGui : Module(
                 )
 
                 onScroll { (amount) ->
-                    scrollable.scroll(amount * -moduleSize)
+                    scrollable.scroll(amount * -MODULE_SIZE)
                 }
             }
         }
 
-        block(
-            constrain(x = Centre, y = 90.percent, w = 400.px, h = 40.px),
-            colour = theme.background,
+        themedInput(
+            pos = at(Centre, 90.percent),
+            size = size(375.px, 40.px),
             10.radius()
         ) {
-            outline(theme.accent, thickness = 2.px)
             draggable(button = 1)
-
-            val input = textInput(
-                placeholder = "Search",
+            textInput(
+                placeholder = "Search...",
                 colour = theme.textPrimary,
                 placeHolderColour = theme.textSecondary,
                 caretColour = theme.caretColour,
             ) {
+                maxWidth(Fill - 3.percent)
                 onTextChanged { (string) ->
                     moduleScopes.forEach { (m, element) ->
-                        element.enabled = m.name.contains(string, true) ||
-                                m.desc.contains(string, true) ||
-                                m.settings.any { it.name.contains(string, true) }
+                        element.enabled =
+                            m.name.contains(string, true) ||
+                            m.desc.contains(string, true) ||
+                            m.settings.any { it.name.contains(string, true) }
                     }
                 }
             }
-
-            onClick {
-                ui.focus(input.element)
-            }
         }
+
+        row(at(5.px.alignOpposite, 5.px.alignOpposite)) {
+//            cursor(CursorShape.HAND)
+            block(
+                size(Bounding + 10.percent, 40.px),
+                colour = theme.background,
+                radius = 10.radius()//radius(10, 10, 0, 0)
+            ) {
+                outline(theme.accent, thickness = 2.px)
+                text(
+                    string = "Hud editor",
+                    size = theme.textSize,
+                    colour = theme.textPrimary
+                )
+                onClick {
+                    open(HudManager.editor(fromMain = true))
+                }
+            }
+//            block(
+//                size(Bounding + 10.percent, 40.px),
+//                colour = theme.background,
+//                radius = radius(0, 0, 10, 10)
+//            ) {
+//                outline(theme.accent, thickness = 2.px)
+//                text(
+//                    string = "Custom triggers",
+//                    size = theme.textSize,
+//                    colour = theme.textPrimary
+//                )
+//                onClick {
+//                    modMessage("not impl yet")
+//                }
+//            }
+        }.element.moveToBottom()
     }
 
     private fun ElementScope<*>.module(module: Module) = column(size(Copying)) {
@@ -256,7 +294,7 @@ object ClickGui : Module(
         val height = Animatable(from = 0.px, to = Bounding)
 
         block(
-            size(Copying, moduleSize.px),
+            size(Copying, MODULE_SIZE.px),
             colour = col,
         ) {
             hoverEffect(factor = 1.15f)
@@ -286,7 +324,7 @@ object ClickGui : Module(
             onClick(button = 1) {
                 if (!loaded) {
                     settings.apply {
-                        divider(7.px)
+                        divider(8.px)
                         module.settings.forEach { setting ->
                             if (setting !is UISetting || setting.parent != null) return@forEach
                             setting.render(this).description(setting.description, xOff = 3, yOff = -4)
@@ -301,12 +339,12 @@ object ClickGui : Module(
                     }
                     loaded = true
                 }
-                height.animate(0.3.seconds, style = Animation.Style.EaseInOutQuint)
+                height.animate(0.25.seconds, style = Animation.Style.EaseInOutQuint)
                 element.redraw()
                 true
             }
         }
-        settings = column(constrain(x = 5.px, w = Copying - 10.px, h = height), gap = 7.px) {
+        settings = column(constrain(x = 5.px, w = Copying - 10.px, h = height), gap = 8.px) {
         }
     }
 

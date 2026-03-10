@@ -36,6 +36,8 @@ import quoi.utils.ui.rendering.NVGRenderer
 import quoi.utils.ui.screens.UIContainer
 import quoi.utils.ui.screens.UIOverlay
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
+import quoi.module.impl.render.ClickGui.clickGui
+import quoi.utils.ui.screens.UIScreen.Companion.open
 import kotlin.collections.forEach
 import kotlin.math.abs
 
@@ -98,7 +100,7 @@ object HudManager {
 
     var hudSettings: Popup? = null
 
-    fun editor() = aboba("Quoi! hud editor") {
+    fun editor(fromMain: Boolean = false) = aboba("Quoi! hud editor") {
 
         ui.debug = false
         var hoverInfo: Popup? = null
@@ -117,6 +119,7 @@ object HudManager {
         onRemove {
             scheduleTask { Config.save() }
             reinit(immediately = false)
+            if (fromMain) open(clickGui)
         }
 
         onClick {

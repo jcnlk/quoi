@@ -45,9 +45,9 @@ object DungeonESP : Module(
     private val colourBat by ColourSetting("Bat", Colour.RED, true, "ESP color for bats.").withDependency(colourDropdown) { starEsp }
 
     private val fillDropdown by DropdownSetting("Fill colours").collapsible().withDependency { style.selected == "Filled box" && starEsp }
-    private val colourStarFill by ColourSetting("Star", Colour.RED.withAlpha(60), true, "ESP color for star mobs.").json("Star fill").withDependency(fillDropdown) { style.selected == "Filled box" && starEsp }
-    private val colourSAFill by ColourSetting("Shadow assassin", Colour.RED.withAlpha(60), true, "ESP color for shadow assassins.").json("Shadow assassin fill").withDependency(fillDropdown) { style.selected == "Filled box" && starEsp }
-    private val colourBatFill by ColourSetting("Bat", Colour.RED.withAlpha(60), true, "ESP color for bats.").json("Bat fill").withDependency(fillDropdown) { style.selected == "Filled box" && starEsp }
+    private val colourStarFill by ColourSetting("Star", Colour.RED.withAlpha(60), true, "ESP color for star mobs.").json("Star fill").withDependency(fillDropdown)
+    private val colourSAFill by ColourSetting("Shadow assassin", Colour.RED.withAlpha(60), true, "ESP color for shadow assassins.").json("Shadow assassin fill").withDependency(fillDropdown)
+    private val colourBatFill by ColourSetting("Bat", Colour.RED.withAlpha(60), true, "ESP color for bats.").json("Bat fill").withDependency(fillDropdown)
 
     private var currentEntities = mutableSetOf<EspMob>()
 

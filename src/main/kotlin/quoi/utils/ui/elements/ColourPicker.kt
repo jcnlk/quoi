@@ -143,7 +143,6 @@ fun ElementScope<*>.colourPicker(
             }
 
             group(size(width.px, height.px)) {
-//                cursor(CursorShape.CROSSHAIR)
                 block(
                     copies(),
                     colours = Colour.WHITE to colourOnlyHue,
@@ -160,7 +159,6 @@ fun ElementScope<*>.colourPicker(
                 }
 
                 onMouseDrag { x, y ->
-//                    value = value.copy(saturation = x, brightness = 1f - y)
                     value.saturation = x
                     value.brightness = (1f - y)
                     true
@@ -184,7 +182,7 @@ fun ElementScope<*>.colourPicker(
                     column(constrain(y = Centre, w = w.px), gap = 12.px) {
                         image(
                             image = "HueScale.png".image(),
-                            constraints = size(/*Fill - 18.px*/w.px, 18.px),
+                            constraints = size(w.px, 18.px),
                             8.radius()
                         ) {
                             cursor(CursorShape.HAND)
@@ -194,7 +192,6 @@ fun ElementScope<*>.colourPicker(
                             }
 
                             onMouseDrag { x, _ ->
-//                                value = value.copy(hue = x)
                                 value.hue = x
                                 true
                             }
@@ -202,7 +199,7 @@ fun ElementScope<*>.colourPicker(
 
                         if (allowAlpha) image(
                             "checker-225.svg".image(),
-                            constraints = size(/*Fill - 18.px*/w.px, 18.px),
+                            constraints = size(w.px, 18.px),
                             8.radius()
                         ) {
                             block(
@@ -306,11 +303,10 @@ fun ElementScope<*>.colourPicker(
                                         value.hue = newColour.hue
                                         value.saturation = newColour.saturation
                                         value.brightness = newColour.brightness
-//                                        if (allowAlpha) value.alpha = newColor.alpha
                                     } catch (_: Exception) { }
                                 }
                             }
-                            1, 2 -> { // HSB or RGB // todo fix hsb going sicko mode when switching from rainbow.
+                            1, 2 -> { // HSB or RGB
                                 val isHSB = selected == 1
                                 val props = if (isHSB) {
                                     listOf(value::hue to "°", value::saturation to "%", value::brightness to "%")

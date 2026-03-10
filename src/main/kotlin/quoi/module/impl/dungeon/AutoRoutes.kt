@@ -61,13 +61,13 @@ object AutoRoutes : Module(
 
     private val colourDropdown by DropdownSetting("Colours").collapsible().withDependency { multicolour }
     private val colours = actionEntries.associate { (name, action) ->
-        val set = ColourSetting(name, action().colour).withDependency(colourDropdown) { multicolour }
+        val set = ColourSetting(name, action().colour).withDependency(colourDropdown)
         this.register(set)
         name to set
     }
     private val fillColourDropdown by DropdownSetting("Fill colours").collapsible().withDependency { style.selected == "Filled box" && multicolour }
     private val fillColours = actionEntries.associate { (name, action) ->
-        val set = ColourSetting(name, action().colour.withAlpha(0.5f), allowAlpha = true).json("$name fill").withDependency(fillColourDropdown) { style.selected == "Filled box" && multicolour }
+        val set = ColourSetting(name, action().colour.withAlpha(0.5f), allowAlpha = true).json("$name fill").withDependency(fillColourDropdown)
         this.register(set)
         name to set
     }

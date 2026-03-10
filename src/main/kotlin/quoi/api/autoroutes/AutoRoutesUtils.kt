@@ -26,6 +26,7 @@ import quoi.utils.component1
 import quoi.utils.component2
 import quoi.utils.component3
 import quoi.utils.rayCast
+import quoi.utils.rayCastVec
 import kotlin.math.floor
 
 internal fun AutoRoutes.registerCommands() {
@@ -134,7 +135,7 @@ internal fun AutoRoutes.registerCommands() {
         }
     }.description("Toggles dungeon breaker ring editor.").withEditMode()
 
-    "etherwarp".action { EtherwarpAction(yaw, pitch) }
+    "etherwarp".action { EtherwarpAction(yaw, pitch, rayCastVec()?.let { currentRoom?.getRelativeCoords(it) }) }
     "rotate".action    { RotateAction(yaw, pitch) }
     "boom".action      { BoomAction(yaw, pitch) }
     "start".action     { StartAction() }

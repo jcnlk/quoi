@@ -48,10 +48,10 @@ object CrystalHollowsMap : Module(
     private val drawNames by BooleanSetting("Draw names").withDependency { drawPlayers }
     private val textScale by NumberSetting("Text scale", 2.0f, 0.1f, 5.0f, 0.1f).withDependency { drawPlayers && drawNames }
 
-    private val other by DropdownSetting("Other").collapsible()
-    private val drawChunks by BooleanSetting("Draw loaded chunks").withDependency(other) { chScanner }
-    private val chunksCol by ColourSetting("Loaded chunks colour", Colour.PURPLE.withAlpha(0.33f), allowAlpha = true).withDependency(other) { chScanner && drawChunks }
-    private val drawRouteBlocks by BooleanSetting("Draw route blocks").withDependency(other) { chScanner && routeScanner }
+    private val other by DropdownSetting("Other").collapsible().withDependency { chScanner }
+    private val drawChunks by BooleanSetting("Draw loaded chunks").withDependency(other)
+    private val chunksCol by ColourSetting("Loaded chunks colour", Colour.PURPLE.withAlpha(0.33f), allowAlpha = true).withDependency(other) { drawChunks }
+    private val drawRouteBlocks by BooleanSetting("Draw route blocks").withDependency(other) { routeScanner }
 
     private val hollowsMap by Hud("Hollows map", toggleable = false) { // todo add more stuff
         if (preview) image(

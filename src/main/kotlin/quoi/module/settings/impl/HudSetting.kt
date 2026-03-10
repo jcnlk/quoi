@@ -61,13 +61,10 @@ class HudSetting<T : Hud>(
 
     override fun ElementScope<*>.draw(asSub: Boolean): ElementScope<*> = row(size(w = Copying)) {
         if (!value.toggleable) {
-            column(size(w = Copying), gap = 5.px) {
+            column(size(w = Copying), gap = 7.px) {
                 value.settings.forEach { setting ->
                     if (setting !is UISetting) return@forEach
-                    setting.render(this)/*.onEvent(ValueUpdated()) {
-                        HudManager.reinit()
-                        true
-                    }*/
+                    setting.render(this)
                 }
                 row(size(w = Copying)) {
                     text(
@@ -78,7 +75,7 @@ class HudSetting<T : Hud>(
                     )
                     image(
                         image = theme.moveImage, // looks kinda meh
-                        constraints = constrain(x = 0.px.alignOpposite,w = AspectRatio(1f), h = 24.px),
+                        constraints = constrain(x = 0.px.alignOpposite,w = AspectRatio(1f), h = 20.px),
                     ) {
                         cursor(CursorShape.HAND)
                         onClick(nonSpecific = true) {
@@ -128,7 +125,7 @@ class HudSetting<T : Hud>(
         row(at(x = 0.px.alignOpposite), gap = 5.px) {
             image(
                 image = theme.moveImage, // looks kinda meh
-                constraints = size(w = AspectRatio(1f), h = if (asSub) 15.px else 20.px),
+                constraints = size(w = AspectRatio(1f), h = if (asSub) 16.px else 20.px),
             ) {
                 cursor(CursorShape.HAND)
                 onClick(nonSpecific = true) {
@@ -138,7 +135,7 @@ class HudSetting<T : Hud>(
             }
             image(
                 image = theme.gearImage, // looks kinda meh
-                constraints = size(w = AspectRatio(1f), h = if (asSub) 15.px else 20.px),
+                constraints = size(w = AspectRatio(1f), h = if (asSub) 16.px else 20.px),
             ) {
                 cursor(CursorShape.HAND)
                 onClick(nonSpecific = true) {

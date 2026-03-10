@@ -19,6 +19,7 @@ import quoi.api.colour.multiply
 import quoi.api.input.CursorShape
 import quoi.utils.ThemeManager.theme
 import quoi.utils.ui.cursor
+import quoi.utils.ui.data.Radii
 import quoi.utils.ui.delegateClick
 import quoi.utils.ui.rendering.Font
 import quoi.utils.ui.rendering.NVGRenderer
@@ -172,6 +173,7 @@ fun ElementScope<*>.hexInput(
 fun ElementScope<*>.themedInput(
     pos: Positions = at(),
     size: Sizes = size(w = Fill, h = 25.px),
+    radius: Radii = 5.radius(),
     content: ElementScope<*>.() -> ElementScope<TextInput>
 ): ElementScope<TextInput> {
     val col = Colour.Animated(
@@ -185,7 +187,7 @@ fun ElementScope<*>.themedInput(
     block(
         constrain(x = pos.x, y = pos.y, w = size.width, h = size.height),
         colour = col,
-        5.radius()
+        radius = radius
     ) {
         outline(theme.accent, thickness = thickness)
 

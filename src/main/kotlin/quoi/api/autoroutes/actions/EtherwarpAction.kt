@@ -14,11 +14,12 @@ import quoi.utils.skyblock.player.SwapManager
 import net.minecraft.client.player.LocalPlayer
 import net.minecraft.network.protocol.game.ServerboundUseItemPacket
 import net.minecraft.world.InteractionHand
+import net.minecraft.world.phys.Vec3
 import quoi.api.colour.Colour
 import quoi.utils.rayCast
 
 @TypeName("etherwarp")
-class EtherwarpAction(val yaw: Float = 0f, val pitch: Float = 0f) : RingAction {
+class EtherwarpAction(val yaw: Float = 0f, val pitch: Float = 0f, val vec: Vec3? = null) : RingAction {
 
     override val colour: Colour
         get() = Colour.CYAN

@@ -74,7 +74,7 @@ class NumberSetting<E>(
         }
     }
 
-    override fun ElementScope<*>.draw(asSub: Boolean): ElementScope<*> = column(size(Copying), gap = 2.px) {
+    override fun ElementScope<*>.draw(asSub: Boolean): ElementScope<*> = column(size(Copying), gap = 5.px) {
 
         row(size(w = Copying), gap = 3.px) {
             text(

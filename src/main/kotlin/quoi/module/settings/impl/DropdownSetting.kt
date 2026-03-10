@@ -50,7 +50,7 @@ class DropdownSetting(
 
             image(
                 image = theme.chevronImage,
-                constrain(0.px.alignOpposite, w = 24.px, h = 24.px)
+                constrain(5.px.alignOpposite, w = 16.px, h = 16.px)
             ) {
                 val (from, to) = if (collapsed) 180f to 90f else 90f to 180f
                 val rotation = rotation(from = from, to = to)
