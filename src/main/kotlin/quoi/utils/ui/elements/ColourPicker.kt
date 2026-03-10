@@ -160,7 +160,9 @@ fun ElementScope<*>.colourPicker(
                 }
 
                 onMouseDrag { x, y ->
-                    value = value.copy(saturation = x, brightness = 1f - y)
+//                    value = value.copy(saturation = x, brightness = 1f - y)
+                    value.saturation = x
+                    value.brightness = (1f - y)
                     true
                 }
             }
@@ -192,7 +194,8 @@ fun ElementScope<*>.colourPicker(
                             }
 
                             onMouseDrag { x, _ ->
-                                value = value.copy(hue = x)
+//                                value = value.copy(hue = x)
+                                value.hue = x
                                 true
                             }
                         }
@@ -215,7 +218,10 @@ fun ElementScope<*>.colourPicker(
                                 }
 
                                 onMouseDrag { x, _ ->
-                                    value = value.copy(alpha = x)
+                                    value.alpha = x
+                                    if (isRainbow?.get() == true) {
+                                        ref.set(value.copy(alpha = x))
+                                    }
                                     true
                                 }
                             }
@@ -296,8 +302,10 @@ fun ElementScope<*>.colourPicker(
                                     pos = at(Centre, Centre)
                                 ) {
                                     try {
-                                        val newColor = Colour.RGB(hexToRGBA(it)).toHSB()
-                                        value = newColor.copy(alpha = value.alpha)
+                                        val newColour = Colour.RGB(hexToRGBA(it)).toHSB()
+                                        value.hue = newColour.hue
+                                        value.saturation = newColour.saturation
+                                        value.brightness = newColour.brightness
 //                                        if (allowAlpha) value.alpha = newColor.alpha
                                     } catch (_: Exception) { }
                                 }

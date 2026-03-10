@@ -31,11 +31,6 @@ class ColourSetting(
 
     override var value: Colour.HSB = default.copy()
         set(value) {
-            if (stupid) {
-                field = value
-                return
-            }
-
             if (!rainbow) {
                 storedValue = value.copy()
                 field = value
@@ -50,43 +45,57 @@ class ColourSetting(
     var rainbow: Boolean = false
         private set(enabled) {
             if (field == enabled) return
-            field = enabled
 
-            stupid = true
-            value = if (enabled)
-                hsb { Colour.RAINBOW.withAlpha(storedValue.alpha).toHSB() }
-            else
-                storedValue.copy()
+            if (enabled) {
+                if (!stupid) storedValue = value
 
-            stupid = false
+                field = true
+                value = hsb { Colour.RAINBOW.withAlpha(storedValue.alpha).toHSB() }
+            } else {
+                if (!stupid) storedValue.alpha = value.alpha
+
+                field = false
+                value = storedValue.copy()
+            }
         }
 
-
     override fun reset() {
-        value = default.copy()
+        storedValue = default.copy()
+        rainbow = false
+        value = storedValue.copy()
     }
 
-    override fun write() =
-        if (!rainbow) JsonPrimitive(storedValue.toHexString(allowAlpha))
+    override fun write(): JsonElement {
+        if (!rainbow) {
+            storedValue = value
+        }
+        storedValue.alpha = value.alpha
+        return if (!rainbow) JsonPrimitive(storedValue.toHexString(allowAlpha))
         else JsonObject().apply {
             addProperty("colour", storedValue.toHexString(allowAlpha))
             addProperty("rainbow", true)
         }
+    }
 
     override fun read(element: JsonElement) {
-        if (element.isJsonObject) {
+        val colour = if (element.isJsonObject) {
             val obj = element.asJsonObject
-            storedValue = Colour.RGB(hexToRGBA(obj["colour"].asString)).toHSB()
-            value = storedValue
-            rainbow = obj["rainbow"]?.asBoolean ?: false
-            return
+            Colour.RGB(hexToRGBA(obj["colour"].asString)).toHSB()
+        } else if (element.asString?.startsWith("#") == true) {
+            Colour.RGB(hexToRGBA(element.asString)).toHSB()
+        } else {
+            Colour.RGB(element.asInt).toHSB()
         }
 
-        if (element.asString?.startsWith("#") == true) {
-            value = Colour.RGB(hexToRGBA(element.asString)).toHSB()
-        } else {
-            element.asInt.let { value = Colour.RGB(it).toHSB() }
-        }
+        val isRainbow = if (element.isJsonObject) {
+            element.asJsonObject["rainbow"]?.asBoolean ?: false
+        } else false
+
+        stupid = true
+        storedValue = colour
+        rainbow = isRainbow
+        value = if (isRainbow) hsb { Colour.RAINBOW.withAlpha(storedValue.alpha).toHSB() } else storedValue.copy()
+        stupid = false
     }
 
     private var popup: Popup? = null
