@@ -27,6 +27,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
 import quoi.api.skyblock.SkyblockPlayer
+import quoi.utils.ChatUtils.command
 import quoi.utils.Scheduler.scheduleTask
 import kotlin.coroutines.resume
 
@@ -40,6 +41,7 @@ object AutoMask : Module(
     private val P3Only by BooleanSetting("Phase 3 only")
     private val stopMoving by BooleanSetting("Prevent moving", true)
     private val antiLoop by BooleanSetting("Anti loop")
+    private val announceProc by BooleanSetting("Announce mask proc")
 
     private val phoenix by DropdownSetting("Early enter phoenix/leap").collapsible()
     private val ee3 by BooleanSetting("Rod swap", desc = "Swaps rod and clicks if both masks proc.").withDependency(phoenix)
@@ -158,6 +160,9 @@ object AutoMask : Module(
                     ee3DelayTimer = 0
                     ee3State = EE3State.CLICK_ROD_PHOENIX
                 }
+                if (announceProc) {
+                    command("pc Phoenix Procced!")
+                }
                 return@on
             }
 
@@ -167,6 +172,10 @@ object AutoMask : Module(
             if (bonzoMsg || spiritMsg) {
                 if (antiLoop && isSwapping) return@on
                 handleMaskProc(if (bonzoMsg) "spirit" else "bonzo")
+            }
+            if (announceProc) {
+                if (spiritMsg) { command("pc Spirit Procced!") }
+                if (bonzoMsg) { command("pc Bonzo Procced!") }
             }
         }
     }
