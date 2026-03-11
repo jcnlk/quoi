@@ -146,7 +146,7 @@ object PetKeybinds : Module(
             val command = if (uuid !in petMap) "addfromuuidname" else "removefromuuidname"
             val hoverText = if (uuid !in petMap) "Click to add!" else "Click to remove!"
 
-            result.append(button(symbol, "/petkeybinds $command $source $uuid $name", hoverText))
+            result.append(button(symbol, "/quoi petkeybinds $command $source $uuid $name", hoverText))
             result.append(literal(" "))
 
             val heldStr = if (heldItem != null) " &7($heldItem)" else ""
