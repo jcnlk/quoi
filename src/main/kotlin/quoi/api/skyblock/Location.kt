@@ -13,6 +13,7 @@ import quoi.utils.StringUtils.startsWithOneOf
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket
 import net.minecraft.network.protocol.game.ClientboundSetObjectivePacket
 import net.minecraft.network.protocol.game.ClientboundSetPlayerTeamPacket
+import quoi.module.impl.render.ClickGui
 
 /**
  * modified OdinFabric (BSD 3-Clause)
@@ -60,7 +61,7 @@ object Location {
                 }
 
                 is ClientboundSetObjectivePacket ->
-                    if (!inSkyblock) inSkyblock = onHypixel && packet.objectiveName == "SBScoreboard"
+                    if (!inSkyblock) inSkyblock = onHypixel && packet.objectiveName == "SBScoreboard" || ClickGui.forceSkyblock
 
                 is ClientboundSetPlayerTeamPacket -> {
                     val team = packet.parameters?.orElse(null) ?: return@on

@@ -29,6 +29,8 @@ import quoi.api.colour.colour
 import quoi.api.colour.withAlpha
 import quoi.api.input.CatKeys
 import quoi.api.input.CursorShape
+import quoi.api.skyblock.dungeon.Dungeon
+import quoi.api.skyblock.dungeon.Floor
 import quoi.config.Config
 import quoi.module.Category
 import quoi.module.Module
@@ -58,8 +60,11 @@ object ClickGui : Module(
     "Click GUI",
     key = CatKeys.KEY_RIGHT_SHIFT
 ) {
-
-    val forceDungeons by BooleanSetting("Force dungeons")
+    val forceSkyblock by BooleanSetting("Force skyblock")
+    val forceDungeons by BooleanSetting("Force dungeon")
+    val dungeonFloor by SelectorSetting("Floor", Floor.F7).withDependency { forceDungeons }.onValueChanged { old, new ->
+        if (forceDungeons) Dungeon.setFloor(new.selected)
+    }
     val accentColour by ColourSetting("Colour", Colour.RGB(107, 203, 119))
 
     var rainbowSpeed by NumberSetting("Rainbow colour speed", 1.0f, 0.05f, 5.0f, 0.05f)

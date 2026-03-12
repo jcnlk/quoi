@@ -12,6 +12,7 @@ import quoi.module.Module
 import quoi.utils.ThemeManager.theme
 import quoi.module.settings.Setting.Companion.withDependency
 import quoi.module.settings.impl.BooleanSetting
+import quoi.utils.ChatUtils.modMessage
 import quoi.utils.StringUtils.toFixed
 import quoi.utils.ui.hud.Hud
 import quoi.utils.ui.hud.TextHud
@@ -63,7 +64,6 @@ object TickTimers : Module(
         }
 
         on<TickEvent.Server> {
-            if (!Dungeon.inBoss) return@on
             if (goldorTick == 0 && goldorStart <= 0 && goldorHud.enabled) goldorTick = 60
             if (goldorTick >= 0 && goldorHud.enabled) goldorTick--
             if (goldorStart >= 0 && goldorHud.enabled) goldorStart--

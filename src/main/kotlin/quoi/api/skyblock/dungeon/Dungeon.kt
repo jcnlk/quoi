@@ -23,6 +23,7 @@ import quoi.api.skyblock.dungeon.components.Room
 import quoi.api.skyblock.dungeon.odonscanning.ScanUtils
 import quoi.api.skyblock.dungeon.odonscanning.tiles.OdonRoom
 import quoi.module.impl.dungeon.LeapMenu
+import quoi.module.impl.render.ClickGui
 import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.equalsOneOf
 import quoi.utils.romanToInt
@@ -214,7 +215,7 @@ object Dungeon {
             leapTeammates = emptyList()
             dungeonTeammates.clear()
             puzzles.clear()
-            floor = null
+            floor = if (ClickGui.forceDungeons) ClickGui.dungeonFloor.selected else null
             isPaul = false
 
             inP3 = false
@@ -429,6 +430,10 @@ object Dungeon {
             7 -> x > -7 && z > -7
             else -> false
         }
+    }
+
+    fun setFloor(floor: Floor) {
+        this.floor = floor
     }
 
     private fun processP3Events(msg: String) {
