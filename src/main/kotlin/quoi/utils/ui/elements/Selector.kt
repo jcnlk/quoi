@@ -7,6 +7,7 @@ import quoi.api.abobaui.constraints.impl.size.Bounding
 import quoi.api.abobaui.dsl.*
 import quoi.api.abobaui.elements.ElementScope
 import quoi.api.abobaui.elements.impl.Block.Companion.outline
+import quoi.api.abobaui.elements.impl.Scrollable.Companion.scroll
 import quoi.api.abobaui.elements.impl.popup
 import quoi.api.colour.Colour
 import quoi.api.input.CursorShape
@@ -42,28 +43,38 @@ inline fun <T> ElementScope<*>.selector(
         cursor(CursorShape.HAND)
         onClick { true }
 
-        column {
-            entries.forEachIndexed { i, comp ->
-                val col = if (selected == i) theme.accent else colour
-                block(
-                    size,
-                    colour = col,
-                    3.5.radius()
-                ) {
-                    hoverEffect(1.1f)
+        val height = size.height.calculateSize(element, false)
 
-                    text(
-                        string = displayString(comp),
-                        colour = theme.textPrimary
-                    )
+        val h = (height * entries.size.coerceAtMost(5) + if (entries.size > 5) height * 0.4f else 0f).px
 
-                    onClick {
-                        onSelect(comp)
-                        closePopup()
-                        true
+        val scrollable = scrollable(size(w = size.width, h = h)) {
+            column {
+                entries.forEachIndexed { i, comp ->
+                    val col = if (selected == i) theme.accent else colour
+                    block(
+                        size,
+                        colour = col,
+                        3.5.radius()
+                    ) {
+                        hoverEffect(1.1f)
+
+                        text(
+                            string = displayString(comp),
+                            colour = theme.textPrimary
+                        )
+
+                        onClick {
+                            onSelect(comp)
+                            closePopup()
+                            true
+                        }
                     }
                 }
             }
+        }
+
+        onScroll { (amount) ->
+            scrollable.scroll(amount * -(height * 2f))
         }
     }
 }

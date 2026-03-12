@@ -223,7 +223,7 @@ object ClickGui : Module(
                 )
 
                 onScroll { (amount) ->
-                    scrollable.scroll(amount * -MODULE_SIZE)
+                    scrollable.scroll(amount * -(MODULE_SIZE * 2f))
                 }
             }
         }
