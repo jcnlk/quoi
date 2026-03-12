@@ -20,113 +20,87 @@ import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.Vec3
 
 // Kyleen
-object LeverAura : Module( // todo use block aura
+object LeverAura : Module(
     "Lever Aura",
-    desc = "Automatically flicks levers in goldor fight.",
+    desc = "Automatically flicks levers in Goldor fight.",
     area = Island.Dungeon(7, inBoss = true)
 ) {
 
     private val deviceLevers by BooleanSetting("Lights device")
-    private val sectionLevers by BooleanSetting("S1/2/3/4 levers")
-    private val delay by NumberSetting("Delay", 400, 0, 1000, 10, "Delay Between lever flips")
+    private val sectionLevers by BooleanSetting("S1/2/3/4 levers", desc = "Flips levers on gold pillar things")
+    private val ignorePowered by BooleanSetting("Ignore powered", desc = "Ignores powered lever check")
+    private val delay by NumberSetting("Delay", 400, 0, 1000, 10)
 
     private val leverCooldowns = HashMap<BlockPos, Long>()
-    private val interactedSectionLevers = HashSet<BlockPos>()
-    private val interactedDeviceLevers = HashSet<BlockPos>()
-    private val interactedReflip = HashSet<BlockPos>()
 
-    private val roomLeverPositions = listOf(
-        BlockPos(94, 124, 113),
-        BlockPos(106, 124, 113),
-        BlockPos(27, 124, 127),
-        BlockPos(23, 132, 138),
-        BlockPos(14, 122, 55),
-        BlockPos(2, 122, 55),
-        BlockPos(86, 128, 46),
-        BlockPos(84, 121, 34)
+    private val roomLevers = listOf(
+        BlockPos(94,124,113),
+        BlockPos(106,124,113),
+        BlockPos(27,124,127),
+        BlockPos(23,132,138),
+        BlockPos(14,122,55),
+        BlockPos(2,122,55),
+        BlockPos(86,128,46),
+        BlockPos(84,121,34)
     )
 
-    private val deviceLeverPositions = listOf(
-        BlockPos(60, 134, 142),
-        BlockPos(60, 135, 142),
-        BlockPos(62, 136, 142),
-        BlockPos(62, 133, 142),
-        BlockPos(58, 133, 142),
-        BlockPos(58, 136, 142)
+    private val deviceLeversPos = listOf(
+        BlockPos(60,134,142),
+        BlockPos(60,135,142),
+        BlockPos(62,136,142),
+        BlockPos(62,133,142),
+        BlockPos(58,133,142),
+        BlockPos(58,136,142)
     )
 
-    private val deviceReflipLever = listOf(BlockPos(60, 134, 142))
+    private val deviceReflipLever = BlockPos(60,134,142)
 
     init {
-        on<TickEvent.End> {
+        on<TickEvent.Start> {
             if (Dungeon.isDead) return@on
-
-            if (sectionLevers) {
-                processLevers(
-                    roomLeverPositions,
-                    interactedSectionLevers,
-                    allowPoweredSkip = true
-                )
-            }
-
-            if (deviceLevers) {
-                processLevers(
-                    deviceLeverPositions,
-                    interactedDeviceLevers,
-                    allowPoweredSkip = false
-                )
-            }
-
-            if (deviceLevers && inP3) {
-                processLevers(
-                    deviceReflipLever,
-                    interactedReflip,
-                    allowPoweredSkip = false
-                )
-            }
+            if (sectionLevers) processLevers(roomLevers)
+            if (deviceLevers) processLevers(deviceLeversPos)
+            if (deviceLevers && inP3) processLevers(listOf(deviceReflipLever))
         }
 
-
         on<WorldEvent.Change> {
-            interactedSectionLevers.clear()
-            interactedDeviceLevers.clear()
-            interactedReflip.clear()
+            leverCooldowns.clear()
         }
 
         on<ChatEvent.Packet> {
             if (message.noControlCodes == "[BOSS] Maxor: WELL! WELL! WELL! LOOK WHO'S HERE!") {
-                interactedSectionLevers.clear()
-                interactedDeviceLevers.clear()
-                interactedReflip.clear()
+                leverCooldowns.clear()
             }
         }
     }
 
-    private fun processLevers(
-        positions: List<BlockPos>,
-        interactedSet: HashSet<BlockPos>,
-        allowPoweredSkip: Boolean
-    ) {
+    private fun processLevers(positions: List<BlockPos>) {
         for (pos in positions) {
-            if (interactedSet.contains(pos)) continue
-            if (player.distanceToSqr(Vec3.atCenterOf(pos)) > 25) continue
+            if (player.distanceToSqr(Vec3.atCenterOf(pos)) > 20.25) continue
 
             val state = level.getBlockState(pos)
+
             if (state.block != Blocks.LEVER) continue
 
             val powered = state.getValue(LeverBlock.POWERED)
-            if (powered && allowPoweredSkip) {
-                interactedSet.add(pos)
-                continue
-            }
 
-            if (System.currentTimeMillis() - (leverCooldowns[pos] ?: 0L) < delay) continue
+            if (powered && !ignorePowered) continue
 
-            val hit = BlockHitResult(Vec3.atCenterOf(pos), Direction.NORTH, pos, false)
+            val last = leverCooldowns[pos] ?: 0L
+
+            if (System.currentTimeMillis() - last < delay) continue
+
+            val hit = BlockHitResult(
+                Vec3.atCenterOf(pos),
+                Direction.UP,
+                pos,
+                false
+            )
+
             PlayerUtils.interact(hitResult = hit, swing = true)
 
             leverCooldowns[pos] = System.currentTimeMillis()
-            interactedSet.add(pos)
+
             break
         }
     }
