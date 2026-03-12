@@ -48,9 +48,10 @@ object AutoRoutes : Module(
     desc = "/route",
     area = Island.Dungeon(inClear = true)
 ) {
-    val zeroTick by BooleanSetting("Zero tick").onValueChanged { _, new ->
+    val zeroTick by BooleanSetting("Zero tick etherwarp").onValueChanged { _, new ->
         if (new) modMessage("&cVery buggy.", prefix = "[ZeroTick]")
     }
+    val zeroTickDb by BooleanSetting("Zero tick dungeon breaker")
     private val style by SelectorSetting("Style", "Box", listOf("Box", "Filled box", "Cylinder"))
     private val multicolour by BooleanSetting("Multicolour")
     private val colour by ColourSetting("Colour", Colour.CYAN).withDependency { !multicolour }

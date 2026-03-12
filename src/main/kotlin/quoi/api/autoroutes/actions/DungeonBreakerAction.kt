@@ -41,9 +41,8 @@ class DungeonBreakerAction(val blocks: List<BlockPos> = emptyList()) : RingActio
             val realPos = room.getRealCoords(relativePos)
             !recentlyBroken.containsKey(realPos) &&
             level.isLoaded(realPos) &&
-            realPos.state.isAir
+            !realPos.state.isAir
         }
-
         if (!needsBreaking) return
 
         val breakerSlot = (0..8).find { slot -> // todo make it a util
@@ -93,13 +92,13 @@ class DungeonBreakerAction(val blocks: List<BlockPos> = emptyList()) : RingActio
             player.swing(InteractionHand.MAIN_HAND)
             recentlyBroken[realPos] = System.currentTimeMillis()
             chargesUsed++
-            wait(1)
+            if (!AutoRoutes.zeroTickDb) wait(1)
         }
     }
 
     private fun clearCooldownCache() {
         val now = System.currentTimeMillis()
-        recentlyBroken.entries.removeIf { now - it.value > 10_000 }
+        recentlyBroken.entries.removeIf { (pos, time) -> now - time > 10_000 || !pos.state.isAir }
     }
 
     private fun getBreakerCharges(stack: ItemStack): Int { // todo make it a util
