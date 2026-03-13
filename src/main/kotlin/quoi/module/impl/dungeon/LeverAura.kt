@@ -11,12 +11,11 @@ import quoi.module.Module
 import quoi.module.settings.impl.BooleanSetting
 import quoi.module.settings.impl.NumberSetting
 import quoi.utils.StringUtils.noControlCodes
-import quoi.utils.skyblock.player.PlayerUtils
+import quoi.utils.skyblock.player.AuraManager
 import net.minecraft.core.BlockPos
-import net.minecraft.core.Direction
+import net.minecraft.world.InteractionHand
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.LeverBlock
-import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.Vec3
 
 // Kyleen
@@ -58,9 +57,14 @@ object LeverAura : Module(
     init {
         on<TickEvent.Start> {
             if (Dungeon.isDead) return@on
-            if (sectionLevers) processLevers(roomLevers)
-            if (deviceLevers) processLevers(deviceLeversPos)
-            if (deviceLevers && inP3) processLevers(listOf(deviceReflipLever))
+            if (sectionLevers && inP3) processLevers(roomLevers)
+            if (deviceLevers) {
+                if (inP3) {
+                    processLevers(listOf(deviceReflipLever))
+                } else {
+                    processLevers(deviceLeversPos)
+                }
+            }
         }
 
         on<WorldEvent.Change> {
@@ -76,29 +80,19 @@ object LeverAura : Module(
 
     private fun processLevers(positions: List<BlockPos>) {
         for (pos in positions) {
-            if (player.distanceToSqr(Vec3.atCenterOf(pos)) > 20.25) continue
+            if (player.distanceToSqr(Vec3.atCenterOf(pos)) > 25) continue
 
             val state = level.getBlockState(pos)
-
             if (state.block != Blocks.LEVER) continue
 
             val powered = state.getValue(LeverBlock.POWERED)
-
             if (powered && !ignorePowered) continue
 
             val last = leverCooldowns[pos] ?: 0L
-
             if (System.currentTimeMillis() - last < delay) continue
 
-            val hit = BlockHitResult(
-                Vec3.atCenterOf(pos),
-                Direction.UP,
-                pos,
-                false
-            )
-
-            PlayerUtils.interact(hitResult = hit, swing = true)
-
+            AuraManager.auraBlock(pos)
+            player.swing(InteractionHand.MAIN_HAND)
             leverCooldowns[pos] = System.currentTimeMillis()
 
             break
