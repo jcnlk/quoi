@@ -31,6 +31,7 @@ object LeverAura : Module(
     private val delay by NumberSetting("Delay", 400, 0, 1000, 10)
 
     private val leverCooldowns = HashMap<BlockPos, Long>()
+    private var hasFlippedReflip = false
 
     private val roomLevers = listOf(
         BlockPos(94,124,113),
@@ -60,7 +61,11 @@ object LeverAura : Module(
             if (sectionLevers && inP3) processLevers(roomLevers)
             if (deviceLevers) {
                 if (inP3) {
-                    processLevers(listOf(deviceReflipLever))
+                    if (!hasFlippedReflip) {
+                        if (processLevers(listOf(deviceReflipLever), forceIgnorePowered = true)) {
+                            hasFlippedReflip = true
+                        }
+                    }
                 } else {
                     processLevers(deviceLeversPos)
                 }
@@ -69,16 +74,18 @@ object LeverAura : Module(
 
         on<WorldEvent.Change> {
             leverCooldowns.clear()
+            hasFlippedReflip = false
         }
 
         on<ChatEvent.Packet> {
             if (message.noControlCodes == "[BOSS] Maxor: WELL! WELL! WELL! LOOK WHO'S HERE!") {
                 leverCooldowns.clear()
+                hasFlippedReflip = false
             }
         }
     }
 
-    private fun processLevers(positions: List<BlockPos>) {
+    private fun processLevers(positions: List<BlockPos>, forceIgnorePowered: Boolean = false): Boolean {
         for (pos in positions) {
             if (player.distanceToSqr(Vec3.atCenterOf(pos)) > 25) continue
 
@@ -86,7 +93,7 @@ object LeverAura : Module(
             if (state.block != Blocks.LEVER) continue
 
             val powered = state.getValue(LeverBlock.POWERED)
-            if (powered && !ignorePowered) continue
+            if (powered && !ignorePowered && !forceIgnorePowered) continue
 
             val last = leverCooldowns[pos] ?: 0L
             if (System.currentTimeMillis() - last < delay) continue
@@ -95,7 +102,8 @@ object LeverAura : Module(
             player.swing(InteractionHand.MAIN_HAND)
             leverCooldowns[pos] = System.currentTimeMillis()
 
-            break
+            return true
         }
+        return false
     }
 }
