@@ -158,7 +158,7 @@ object ClickGui : Module(
     var clickGui: AbobaUI.Instance = clickGui()
         private set
 
-    private fun clickGui() = aboba("Quoi! Click Gui") {
+    private fun clickGui() = aboba("Quoi! Click Gui") { // todo redesign
         val moduleScopes = arrayListOf<Pair<Module, ElementScope<*>>>()
 //        ui.debug = true
         onRemove {
@@ -333,12 +333,6 @@ object ClickGui : Module(
                         module.settings.forEach { setting ->
                             if (setting !is UISetting || setting.parent != null) return@forEach
                             setting.render(this).description(setting.description, xOff = 3, yOff = -4)
-
-                            if (setting is DropdownSetting) {
-                                setting.children.forEach { child ->
-                                    child.render(this).description(child.description, xOff = 3, yOff = -2)
-                                }
-                            }
                         }
                         divider(0.px)
                     }

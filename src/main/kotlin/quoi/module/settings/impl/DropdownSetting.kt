@@ -1,10 +1,17 @@
 package quoi.module.settings.impl
 
+import quoi.api.abobaui.constraints.impl.measurements.Animatable
 import quoi.api.abobaui.constraints.impl.positions.Centre
+import quoi.api.abobaui.constraints.impl.size.Bounding
 import quoi.api.abobaui.constraints.impl.size.Copying
+import quoi.api.abobaui.constraints.impl.size.Fill
 import quoi.api.abobaui.dsl.*
 import quoi.api.abobaui.elements.ElementScope
+import quoi.api.abobaui.elements.Layout.Companion.divider
 import quoi.api.animations.Animation
+import quoi.api.colour.Colour
+import quoi.api.colour.withAlpha
+import quoi.module.impl.render.ClickGui.description
 import quoi.utils.ThemeManager.theme
 import quoi.module.settings.UISetting
 
@@ -21,7 +28,9 @@ class DropdownSetting(
     val children: MutableList<UISetting<*>> = mutableListOf()
 
     var collapsed = false
+        private set
     var collapsible = false
+        private set
 
     // makes this dropdown collapsible
     fun collapsible(collapse: Boolean = true): DropdownSetting {
@@ -39,8 +48,9 @@ class DropdownSetting(
     }
 
 
-    override fun ElementScope<*>.draw(asSub: Boolean): ElementScope<*> = column(size(w = Copying)) {
-        row(size(w = Copying)) {
+    override fun ElementScope<*>.draw(asSub: Boolean): ElementScope<*> = column(constrain(x = (-4.5).px, w = Copying)) {
+        val gap = if (collapsed) Animatable(from = 0.px, to = 5.px) else Animatable(from = 5.px, to = 0.px)
+        row(constrain(x = 4.5.px, w = Copying)) {
             text(
                 string = name,
                 size = theme.textSize,
@@ -56,11 +66,28 @@ class DropdownSetting(
                 val rotation = rotation(from = from, to = to)
 
                 onClick {
-                    if (collapsible) value.collapsed = !value.collapsed
+                    if (collapsible) {
+                        value.collapsed = !value.collapsed
+                        gap.animate(0.2.seconds, Animation.Style.EaseInOutQuint)
+                    }
                 }
 
                 onValueChanged {
                     rotation.animate(0.25.seconds, Animation.Style.EaseInOutQuint)
+                }
+            }
+        }
+
+        divider(gap)
+        group(size(w = Copying, h = Bounding)) {
+            block(
+                constrain(x = 0.px, y = (-21).px, w = 2.5.px, h = Copying + 21.px),
+                colour = theme.panel.withAlpha(0.7f),
+                2.radius()
+            )
+            column(constrain(x = 6.px, w = Copying - 1.5.px), gap = 5.px) {
+                children.forEach { child ->
+                    child.render(this).description(child.description, xOff = 3, yOff = -2)
                 }
             }
         }

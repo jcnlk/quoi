@@ -15,7 +15,7 @@ import quoi.module.impl.render.ClickGui.textPrimary
 import quoi.module.impl.render.ClickGui.textSecondary
 import quoi.utils.ui.rendering.NVGRenderer.image
 
-object ThemeManager {
+object ThemeManager { // todo add more colours and shit
 
     val theme get() = when(selectedTheme.selected) {
 //        "Light" -> LightTheme

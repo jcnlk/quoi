@@ -17,6 +17,8 @@ abstract class UISetting<T>(
 
     val isSubsetting get() = parent != null
 
+    val valueUpdated = ValueUpdated()
+
     private var onValueChanged: (old: T, new: T) -> Unit = { _, _ -> }
 
     fun onValueChanged(action: (old: T, new: T) -> Unit): Setting<T> {
@@ -60,7 +62,7 @@ abstract class UISetting<T>(
                 hashCode = value.hashCode()
                 onValueChanged.invoke(oldValue, value)
                 oldValue = value
-                rendering.ui.eventManager.postToAll(ValueUpdated, element)
+                rendering.ui.eventManager.postToAll(valueUpdated, element)
             }
             false
         }
@@ -68,7 +70,7 @@ abstract class UISetting<T>(
     }
 
     inline fun ElementScope<*>.onValueChanged(crossinline block: (ValueUpdated) -> Unit) {
-        element.registerEvent(ValueUpdated) {
+        element.registerEvent(valueUpdated) {
             block(it)
             element.redraw()
 //            true
@@ -76,5 +78,5 @@ abstract class UISetting<T>(
         }
     }
 
-    data object ValueUpdated : AbobaEvent
+    class ValueUpdated : AbobaEvent
 }
