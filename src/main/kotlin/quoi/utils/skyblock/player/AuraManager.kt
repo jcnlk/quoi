@@ -22,7 +22,7 @@ import net.minecraft.world.phys.shapes.Shapes
 
 // modified https://github.com/Hypericat/NoobRoutes/blob/main/src/main/kotlin/noobroutes/utils/AuraManager.kt
 object AuraManager {
-    class EntityAura(val entity: Entity, val action: Action)
+    class EntityAura(val entity: Entity, val action: AuraAction)
     class BlockAura(val pos: BlockPos, val force: Boolean, val callback: () -> Unit)
 
     private val queuedBlocks = mutableListOf<BlockAura>()
@@ -87,7 +87,7 @@ object AuraManager {
         auraBlock(BlockPos(x, y, z), force, callback)
     }
 
-    fun auraEntity(entity: Entity, action: Action) {
+    fun auraEntity(entity: Entity, action: AuraAction) {
         val entityAura = EntityAura(entity, action)
         if (clickEntityCooldown > 0) {
             queuedEntityClicks.add(entityAura)
@@ -137,7 +137,7 @@ object AuraManager {
         val entity = entityAura.entity
         if (player.eyePosition.distanceTo(entity.position()) > 5) return
 
-        if (entityAura.action == Action.INTERACT_AT) {
+        if (entityAura.action == AuraAction.INTERACT_AT) {
             val expand = entity.pickRadius.toDouble()
             val boundingBox = entity.boundingBox.inflate(expand)
 
@@ -184,4 +184,4 @@ object AuraManager {
     }
 }
 
-enum class Action { INTERACT, INTERACT_AT }
+enum class AuraAction { INTERACT, INTERACT_AT }

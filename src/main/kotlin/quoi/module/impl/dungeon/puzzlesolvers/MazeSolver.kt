@@ -13,6 +13,7 @@ import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.odonscanning.tiles.OdonRoom
 import quoi.utils.Scheduler.scheduleTask
 import quoi.utils.aabb
+import quoi.utils.bounds
 import quoi.utils.getDirection
 import quoi.utils.isXZInterceptable
 import quoi.utils.render.drawFilledBox
@@ -60,14 +61,14 @@ object MazeSolver {
                     isXZInterceptable(
                         AABB(it.x.toDouble(), it.y.toDouble(), it.z.toDouble(), it.x + 1.0, it.y + 4.0, it.z + 1.0).inflate(0.75, 0.0, 0.75),
                         32.0, pos, yaw, pitch
-                    ) && !AABB(it).inflate(0.5, 0.0, 0.5).intersects(mc.player?.boundingBox ?: return@filter false)
+                    ) && !it.aabb.inflate(0.5, 0.0, 0.5).intersects(mc.player?.boundingBox ?: return@filter false)
         }
     }
 
     fun onRenderWorld(ctx: WorldRenderContext, mazeColourOne: Colour, mazeColourMultiple: Colour, mazeColourVisited: Colour) {
         if (Dungeon.currentRoom?.name != "Teleport Maze") return
         tpPads.forEach {
-            val aabb = it.aabb.move(it)
+            val aabb = it.bounds?.move(it) ?: it.aabb
             when (it) {
                 in correctPortals -> ctx.drawFilledBox(aabb, if (correctPortals.size == 1) mazeColourOne else mazeColourMultiple, false)
                 in visited -> ctx.drawFilledBox(aabb, mazeColourVisited, true)

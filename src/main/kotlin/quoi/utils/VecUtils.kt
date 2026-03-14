@@ -36,14 +36,16 @@ fun Vec3.addVec(x: Number = 0.0, y: Number = 0.0, z: Number = 0.0): Vec3 =
     Vec3(this.x + x.toDouble(), this.y + y.toDouble(), this.z + z.toDouble())
 
 inline val Vec3.aabb: AABB get() = AABB(x, y, z, x + 1.0, y + 1.0, z + 1.0)
-inline val BlockPos.aabb: AABB get() {
+inline val Vec3.blockPos: BlockPos get() = BlockPos.containing(this)
+
+inline val BlockPos.aabb: AABB get() = AABB(this)
+inline val BlockPos.vec3: Vec3 get() = Vec3(x.toDouble(), y.toDouble(), z.toDouble())
+inline val BlockPos.bounds: AABB? get() {
     return world?.let { level ->
         level.getBlockState(this)?.getShape(level, this)?.singleEncompassing()
             ?.takeIf { !it.isEmpty }?.bounds()
-    } ?: AABB(this)
+    }
 }
-inline val Vec3.blockPos: BlockPos get() = BlockPos.containing(this)
-inline val BlockPos.vec3: Vec3 get() = Vec3(x.toDouble(), y.toDouble(), z.toDouble())
 
 fun Vec3(x: Number, y: Number, z: Number) = Vec3(x.toDouble(), y.toDouble(), z.toDouble())
 

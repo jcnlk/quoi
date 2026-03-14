@@ -1,20 +1,12 @@
 package quoi.module.impl.misc
 
 import quoi.QuoiMod.scope
-import quoi.api.abobaui.constraints.impl.measurements.Pixel
-import quoi.api.abobaui.dsl.px
 import quoi.api.abobaui.dsl.size
-import quoi.api.abobaui.elements.ElementScope
 import quoi.api.abobaui.elements.impl.Block.Companion.outline
 import quoi.api.colour.Colour
-import quoi.api.colour.colour
-import quoi.api.colour.multiply
-import quoi.api.colour.toHSB
 import quoi.api.commands.internal.BaseCommand
 import quoi.api.events.TickEvent
-import quoi.module.Category
 import quoi.module.Module
-import quoi.module.impl.render.ClickGui
 import quoi.module.settings.impl.*
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.EntityUtils
@@ -22,19 +14,22 @@ import quoi.utils.Scheduler.wait
 import quoi.utils.StringUtils.toFixed
 import quoi.utils.Ticker
 import quoi.utils.rayCast
-import quoi.utils.skyblock.player.Action
+import quoi.utils.skyblock.player.AuraAction
 import quoi.utils.skyblock.player.AuraManager
 import quoi.utils.ticker
 import quoi.utils.ui.hud.*
 import quoi.utils.ui.textPair
 import kotlinx.coroutines.launch
 import net.minecraft.world.phys.BlockHitResult
+import quoi.api.skyblock.dungeon.DungeonClass
 import quoi.utils.Scheduler.scheduleTask
 import quoi.utils.skyblock.player.LeapManager
 
 object Test : Module("Test", desc = "Dev module for testing.") {
     val selectedTheme2 by SelectorSetting("Theme2", "Light", listOf("Light", "Dark", "Custom"))
     val selectedTheme by SelectorSetting("Theme", "Light", listOf("Light", "Dark", "Custom"))
+
+    val selectorTest by SelectorSetting("class", DungeonClass.Archer)
 
     private val showX by BooleanSetting("Show X", true)
     private val showY by BooleanSetting("Show Y", true)
@@ -103,7 +98,7 @@ object Test : Module("Test", desc = "Dev module for testing.") {
 
         command.sub("entityaura") {
             val entity = EntityUtils.entities.filter { it != player }.minByOrNull { it.distanceTo(player) } ?: return@sub
-            AuraManager.auraEntity(entity, action = Action.INTERACT_AT)
+            AuraManager.auraEntity(entity, action = AuraAction.INTERACT_AT)
         }
 
 
