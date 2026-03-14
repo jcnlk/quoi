@@ -13,6 +13,7 @@ import quoi.module.settings.impl.NumberSetting
 import quoi.utils.ChatUtils.command
 import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.render.drawFilledBox
+import quoi.utils.skyblock.player.LeapManager
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket
@@ -22,6 +23,11 @@ import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.Vec3
+import quoi.api.skyblock.dungeon.DungeonClass
+import quoi.module.settings.Setting.Companion.withDependency
+import quoi.module.settings.impl.SelectorSetting
+import quoi.module.settings.impl.StringSetting
+import quoi.utils.ChatUtils.modMessage
 import kotlin.random.Random
 
 // Kyleen
@@ -38,6 +44,10 @@ object AutoSS : Module(
     private val disableSolver by BooleanSetting("Disable solver")
     private val startButtonReset by BooleanSetting("Start button reset", desc = "Pressing the SS start button resets autoss.")
     private val announceTime by BooleanSetting("Announce time", desc = "Runs /pc SS Took {time} when finished. (Only works sometimes atm)")
+    private val leapWhenDone by BooleanSetting("Leap when done", desc = "Auto leaps when the SS is done.")
+    private val leapMode by SelectorSetting("Leap mode", "Class", listOf("Name", "Class")).withDependency { leapWhenDone }
+    private val targetName by StringSetting("Target name", "", desc = "Exact name of the player to leap to.").withDependency { leapMode.selected == "Name" && leapWhenDone }
+    private val targetClass by SelectorSetting("Target class", DungeonClass.Mage).withDependency { leapMode.selected == "Class" && leapWhenDone }
 
     private var lastClickTime = 0L
     private var progress = 0
@@ -61,10 +71,37 @@ object AutoSS : Module(
         }
 
         on<ChatEvent.Packet> {
+            val msg = message.noControlCodes
             mc.player?.distanceToSqr(startButton.center)?.let { if (it > 25) return@on }
 
-            if (message.noControlCodes == "[BOSS] Goldor: Who dares trespass into my domain?") {
+            if (msg == "[BOSS] Goldor: Who dares trespass into my domain?") {
                 start()
+            }
+
+            if (leapWhenDone && msg.startsWith("${mc.player?.name?.string} completed a device!")) {
+                val teammates = Dungeon.dungeonTeammatesNoSelf
+                var leaped = false
+
+                if (leapMode.selected == "Name" && targetName.isNotEmpty()) {
+                    val teammate = teammates.firstOrNull { it.name.equals(targetName, ignoreCase = true) }
+                    if (teammate != null) {
+                        LeapManager.leap(teammate.name)
+                        leaped = true
+                    }
+                } else if (leapMode.selected == "Class") {
+                    val selectedClass: DungeonClass = targetClass.selected
+                    val teammate = teammates.firstOrNull { it.clazz == selectedClass }
+
+                    if (teammate != null) {
+                        LeapManager.leap(selectedClass)
+                        leaped = true
+                    }
+                }
+
+                if (!leaped) {
+                    modMessage("§cRetard")
+                    //LeapManager.leap(DungeonClass.Mage) // Fallback
+                }
             }
         }
 
