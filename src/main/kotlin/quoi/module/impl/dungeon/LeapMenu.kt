@@ -1,5 +1,8 @@
 package quoi.module.impl.dungeon
 
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
+import net.minecraft.network.chat.ClickEvent
+import net.minecraft.network.chat.Style
 import quoi.api.abobaui.constraints.impl.size.Fill
 import quoi.api.abobaui.dsl.*
 import quoi.api.abobaui.elements.Layout.Companion.divider
@@ -13,8 +16,8 @@ import quoi.api.colour.withAlpha
 import quoi.api.events.GuiEvent
 import quoi.api.input.CatKeys
 import quoi.api.skyblock.Island
+import quoi.api.skyblock.dungeon.Dungeon.allTeammatesNoSelf
 import quoi.api.skyblock.dungeon.Dungeon.leapTeammates
-import quoi.api.skyblock.dungeon.DungeonClass
 import quoi.api.skyblock.dungeon.DungeonPlayer
 import quoi.config.Config
 import quoi.module.Module
@@ -24,14 +27,9 @@ import quoi.utils.ChatUtils.literal
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.equalsOneOf
-import quoi.utils.skyblock.PartyUtils.membersNoSelf
 import quoi.utils.skyblock.player.PlayerUtils.clickSlot
 import quoi.utils.ui.rendering.NVGRenderer.minecraftFont
 import quoi.utils.ui.screens.UIContainer
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
-import net.minecraft.network.chat.ClickEvent
-import net.minecraft.network.chat.Style
-import net.minecraft.resources.ResourceLocation
 
 object LeapMenu : Module(
     "Leap Menu",
@@ -41,6 +39,7 @@ object LeapMenu : Module(
     val sorting by SelectorSetting("Sorting", "Class", arrayListOf("Class", "Name", "Custom", "No sorting"))
     val fillEmpty by BooleanSetting("Fill empty slots", desc = "Fills empty slots with remaining teammates if possible.").withDependency { sorting.selected == "Custom" }
     val customOrder by ListSetting("Custom sorting", mutableListOf<String>())
+    private val shadow by BooleanSetting("Shadow")
     private val onlyClass by BooleanSetting("Only class", desc = "Renders only classes.")
 //    private val renderHeads by BooleanSetting("Render heads", desc = "Renders teammate heads.")
     private val bgCol by ColourSetting("Background colour", Colour.MINECRAFT_DARK_GRAY.withAlpha(150), allowAlpha = true, desc = "Leap menu background colour.")
@@ -70,10 +69,10 @@ object LeapMenu : Module(
                 chatStyle = Style.EMPTY.withClickEvent(ClickEvent.CopyToClipboard(customOrder.joinToString(" ")))
             )
         }.description("Sets custom leap order.")
-        .suggests("p1") { membersNoSelf }
-        .suggests("p2") { membersNoSelf }
-        .suggests("p3") { membersNoSelf }
-        .suggests("p4") { membersNoSelf }
+        .suggests("p1") { allTeammatesNoSelf }
+        .suggests("p2") { allTeammatesNoSelf }
+        .suggests("p3") { allTeammatesNoSelf }
+        .suggests("p4") { allTeammatesNoSelf }
 
         on<GuiEvent.Open.Post> {
             val chest = (screen as? AbstractContainerScreen<*>) ?: return@on
@@ -111,7 +110,7 @@ object LeapMenu : Module(
                                         colour = teammate.colour,
                                         pos = at(x = 0.px)
                                     ) {
-                                        shadow = true
+                                        shadow = this@LeapMenu.shadow
                                         maxWidth(this@column.element.constraints.width - 2.percent)
                                     }
                                 }
@@ -122,7 +121,7 @@ object LeapMenu : Module(
                                         string = teammate.clazz.name,
                                         size = 100.percent,
                                         colour = teammate.clazz.colour,
-                                    ).shadow = true
+                                    ).shadow = this@LeapMenu.shadow
 
                                     textSupplied(
                                         font = minecraftFont,
