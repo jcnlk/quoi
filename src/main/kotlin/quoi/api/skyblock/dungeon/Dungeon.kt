@@ -2,6 +2,7 @@ package quoi.api.skyblock.dungeon
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import net.minecraft.client.player.LocalPlayer
 import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ClientboundContainerClosePacket
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
@@ -55,9 +56,9 @@ object Dungeon {
         get() = getBoss()
 
     val inP3: Boolean
-        get() = p3Section != P3Section.NONE
+        get() = p3Section != P3Section.Unknown
 
-    var p3Section: P3Section = P3Section.NONE
+    var p3Section: P3Section = P3Section.Unknown
         private set
 
     var inTerminal: Boolean = false
@@ -219,7 +220,7 @@ object Dungeon {
             isPaul = false
 
             P3Section.resetAll()
-            p3Section = P3Section.NONE
+            p3Section = P3Section.Unknown
 
 //            MapItemUtils.reset()
 //            WorldScanner.reset()
@@ -290,7 +291,7 @@ object Dungeon {
 
                         when (message) {
                             "[BOSS] Maxor: WELL! WELL! WELL! LOOK WHO'S HERE!", "The Core entrance is opening!" -> {
-                                p3Section = P3Section.NONE
+                                p3Section = P3Section.Unknown
                                 P3Section.resetAll()
                             }
                             "[BOSS] Goldor: Who dares trespass into my domain?" -> {
@@ -358,6 +359,23 @@ object Dungeon {
                 else -> M7Phases.P5
             }
         }
+    }
+
+    /**
+     * gets the current terminal section based on player **position**
+     */
+    fun getP3Section(player: LocalPlayer = mc.player!!): P3Section {
+        if (getF7Phase() != M7Phases.P3) return P3Section.Unknown
+
+        val x = player.x
+        val z = player.z
+
+        if (x in 89.0..113.0 && z in 30.0..122.0) return P3Section.S1
+        if (x in 19.0..111.0 && z in 121.0..145.0) return P3Section.S2
+        if (x in -6.0..19.0 && z in 51.0..143.0) return P3Section.S3
+        if (x in -2.0..90.0 && z in 27.0..51.0) return P3Section.S4
+
+        return P3Section.Unknown
     }
 
     fun getMageCooldownMultiplier(): Double {

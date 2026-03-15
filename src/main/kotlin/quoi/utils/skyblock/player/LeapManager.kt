@@ -2,6 +2,7 @@ package quoi.utils.skyblock.player
 
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
+import quoi.QuoiMod.mc
 import quoi.api.events.PacketEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.core.EventBus.on
@@ -10,6 +11,7 @@ import quoi.api.skyblock.dungeon.Dungeon.dungeonTeammatesNoSelf
 import quoi.api.skyblock.dungeon.Dungeon.getMageCooldownMultiplier
 import quoi.api.skyblock.dungeon.Dungeon.inDungeons
 import quoi.api.skyblock.dungeon.DungeonClass
+import quoi.api.skyblock.dungeon.DungeonPlayer
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.Scheduler.scheduleTask
 
@@ -17,15 +19,17 @@ object LeapManager { // still schizophrenia
     private var leapQueue = mutableListOf<String>()
     private var menuOpened = false
     private var inProgress = false
-    private var clickedLeap = false
+
+    private var pendingLeap: DungeonPlayer? = null
 
     var lastLeap = 0L
         private set
 
-    private var leapCD = 0.0
+    var leapCD = 0.0
+        private set
 
     private val currentLeap get() = leapQueue[0]
-    private val inQueue get() = leapQueue.isNotEmpty()
+    private val inQueue get() = leapQueue.isNotEmpty() // seems useless
 
     fun init() {
         on<PacketEvent.Received> (EventPriority.LOWEST) {
@@ -52,7 +56,6 @@ object LeapManager { // still schizophrenia
                     if (!inQueue) return@on
                     if (!packet.title.string.contains("Leap")) return@on
                     menuOpened = true
-                    clickedLeap = false
                     cancel()
                 }
             }
@@ -60,38 +63,48 @@ object LeapManager { // still schizophrenia
 
         on<TickEvent.Server> {
             if (leapCD > 0) leapCD -= 1
+
+            if (pendingLeap != null && mc.screen == null && PlayerUtils.containerId == -1) {
+                doLeap(pendingLeap!!)
+                pendingLeap = null
+            }
         }
     }
 
     fun leap(target: Any) {
-        if (!inDungeons || inProgress || target == DungeonClass.Unknown) return
+        if (!inDungeons || target == DungeonClass.Unknown) return
+
+        val teammate = when (target) {
+            is String -> dungeonTeammatesNoSelf.firstOrNull { it.name.equals(target, true) }
+            is DungeonClass -> dungeonTeammatesNoSelf.firstOrNull { it.clazz == target }
+            else -> null
+        } ?: return modMessage("&c Failed to leap! &r$target &cnot found")
+
+//        if (teammate.name !in WorldUtils.players.map { it.profile.name }) return modMessage("&c Failed to leap! &r$target &cnot found")
+
+        if (mc.screen != null || PlayerUtils.containerId != -1) {
+            pendingLeap = teammate
+            modMessage("&eQueued leap to &f${teammate.name}")
+        } else doLeap(teammate)
+    }
+
+    private fun doLeap(target: DungeonPlayer) {
+        if (inProgress) return
         if (leapCD > 0) {
             modMessage("&cFailed to leap! On cooldown: ${"%.1f".format(leapCD / 20.0)}s")
             return
         }
-        val teammate = when (target) {
-            is String -> dungeonTeammatesNoSelf.firstOrNull { it.name == target }
-            is DungeonClass -> dungeonTeammatesNoSelf.firstOrNull { it.clazz == target }
-            else -> return
-        }
 
-        if (teammate != null) {
-            inProgress = true
-            val r = SwapManager.swapById("INFINITE_SPIRIT_LEAP"/*, "SPIRIT_LEAP"*/).success
-            scheduleTask {
-                if (!r) return@scheduleTask
-                PlayerUtils.interact()
-                clickedLeap = true
-                lastLeap = System.currentTimeMillis()
-                leapCD = 48 * getMageCooldownMultiplier()
-
-                modMessage("&аLeaping to $target")
-            }
-            leapQueue.add(teammate.name)
-        } else {
-            inProgress = false
-            modMessage("&cFailed to leap! &r$target &cnot found")
+        inProgress = true
+        val r = SwapManager.swapById("INFINITE_SPIRIT_LEAP").success
+        scheduleTask {
+            if (!r) { inProgress = false; return@scheduleTask }
+            PlayerUtils.interact()
+            lastLeap = System.currentTimeMillis()
+            leapCD = 48 * getMageCooldownMultiplier()
+            modMessage("&aLeaping to &r${target.name}")
         }
+        leapQueue.add(target.name)
     }
 
     private fun reloadGui() {

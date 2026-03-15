@@ -29,6 +29,8 @@ import quoi.utils.Scheduler.scheduleTask
 import quoi.utils.StringUtils.formatTime
 import quoi.utils.WorldUtils
 import quoi.utils.skyblock.player.LeapManager
+import quoi.utils.skyblock.player.PlayerUtils
+import kotlin.text.replace
 
 object Test : Module("Test", desc = "Dev module for testing.") {
     val selectedTheme2 by SelectorSetting("Theme2", "Light", listOf("Light", "Dark", "Custom"))
@@ -69,8 +71,9 @@ object Test : Module("Test", desc = "Dev module for testing.") {
         ).outline(outline, thickness)
     }.setting()
 
-    private val server by BooleanSetting("Server", true)
+    private val hypixel by BooleanSetting("Hypixel", true)
     private val inSB by BooleanSetting("In skyblock", true)
+    private val lobby by BooleanSetting("Lobby", true)
 //    private val inDung by BooleanSetting("In dungeon", true)
     private val area_ by BooleanSetting("Area", true)
     private val subarea_ by BooleanSetting("Subarea", true)
@@ -78,21 +81,24 @@ object Test : Module("Test", desc = "Dev module for testing.") {
     private val floor by BooleanSetting("Floor", true)
     private val p3Section by BooleanSetting("P3 section", true)
     private val p3Players by BooleanSetting("P3 players", true)
+    private val container by BooleanSetting("Container", true)
 
     private val debugData = setOf(
-        Data("Server", { Location.currentServer ?: "None" }, { server }),
+        Data("Hypixel", { Location.onHypixel }, { hypixel }),
         Data("Skyblock", { Location.inSkyblock }, { inSB }),
+        Data("Lobby", { Location.currentServer ?: "None" }, { lobby }),
 //        Data("Dungeon", { Dungeon.inDungeons }, { inDung }),
         Data("Area", { Location.currentArea }, { area_ }),
         Data("Subarea", { Location.subarea ?: "None" }, { subarea_ }),
         Data("Boss", { Dungeon.inBoss }, { boss }),
         Data("Floor", { Dungeon.floor ?: "None" }, { floor }),
-        Data("P3 Section", { Dungeon.p3Section.name }, { p3Section }),
+        Data("P3 Section", { "${Dungeon.p3Section.name} || ${Dungeon.getP3Section().name}" }, { p3Section }),
         Data("   Duration", { "${formatTime(Dungeon.p3Section.getDuration())} | ${formatTime(Dungeon.p3Section.getDurationTicks() * 50)}" }, { p3Section } ),
         Data("   Terminals", { "${Dungeon.p3Section.terminals}/${Dungeon.p3Section.reqTerminals}" }, { p3Section }),
         Data("   Levers", { "${Dungeon.p3Section.levers}/2" }, { p3Section }),
         Data("   Device", { "${Dungeon.p3Section.device}" }, { p3Section }),
         Data("   Gate", { Dungeon.p3Section.gate }, { p3Section }),
+        Data("Container", { "${mc.screen != null} | ${PlayerUtils.containerId}" }, { container })
     )
 
     private val debug by TextHud("debug") {
@@ -106,10 +112,7 @@ object Test : Module("Test", desc = "Dev module for testing.") {
                     valueColour = colour,
                     shadow = shadow
                 )
-            }
-
-            if (p3Players) {
-                Dungeon.dungeonTeammates.forEach { player ->
+                if (name == "   Gate" && p3Players) Dungeon.dungeonTeammates.forEach { player ->
                     textPair(
                         string = "   ${player.name}:",
                         supplier = { "${player.p3Stats.terminals}T | ${player.p3Stats.levers}L | ${player.p3Stats.devices}D" },
@@ -120,7 +123,7 @@ object Test : Module("Test", desc = "Dev module for testing.") {
                 }
             }
         }
-    }.withSettings(::server, ::inSB, /*::inDung,*/ ::area_, ::subarea_, ::boss, ::floor, ::p3Section, ::p3Players
+    }.withSettings(::hypixel, ::inSB, /*::inDung,*/::lobby, ::area_, ::subarea_, ::boss, ::floor, ::p3Section, ::p3Players, ::container
     ).setting()
 
     private data class Data(val name: String, val value: () -> Any?, val enabled: () -> Boolean)
@@ -178,7 +181,7 @@ object Test : Module("Test", desc = "Dev module for testing.") {
         }
 
         command.sub("testleap") { player: String ->
-            scheduleTask(5) {
+            scheduleTask(20) {
                 LeapManager.leap(player)
             }
         }.suggests { WorldUtils.players.map { it.profile.name } }

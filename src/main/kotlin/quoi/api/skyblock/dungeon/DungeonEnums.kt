@@ -9,6 +9,7 @@ import quoi.api.skyblock.dungeon.map.MapItemScanner
 import quoi.utils.equalsOneOf
 import net.minecraft.client.player.LocalPlayer
 import net.minecraft.resources.ResourceLocation
+import quoi.api.events.DungeonEvent
 import quoi.api.events.core.EventBus
 import java.util.*
 
@@ -200,8 +201,8 @@ enum class M7Phases(val displayName: String) {
     P1("P1"), P2("P2"), P3("P3"), P4("P4"), P5("P5"), Unknown("Unknown");
 }
 
-enum class P3Section(val number: Int, val reqTerminals: Int) { // todo maybe track players too
-    NONE(0, 0), S1(1, 4), S2(2, 5), S3(3, 4), S4(4, 4);
+enum class P3Section(val number: Int, val reqTerminals: Int) {
+    Unknown(0, 0), S1(1, 4), S2(2, 5), S3(3, 4), S4(4, 4);
 
     var terminals = 0
         private set
@@ -227,9 +228,9 @@ enum class P3Section(val number: Int, val reqTerminals: Int) { // todo maybe tra
 
     fun process(msg: String, termRegex: Regex, gateRegex: Regex): P3Section {
 
-        termRegex.find(msg)?.destructured?.let { (player, _, type, current, total) ->
-            this.current = current.toIntOrNull() ?: 0
-            this.total = total.toIntOrNull() ?: 0
+        termRegex.find(msg)?.destructured?.let { (player, _, type, currentStr, totalStr) ->
+            current = currentStr.toIntOrNull() ?: 0
+            total = totalStr.toIntOrNull() ?: 0
 
             val player = Dungeon.dungeonTeammates.find { it.name.equals(player, ignoreCase = true) }
 
@@ -247,15 +248,21 @@ enum class P3Section(val number: Int, val reqTerminals: Int) { // todo maybe tra
                     player?.p3Stats?.let { it.devices++ }
                 }
             }
+
+            if (current == total) DungeonEvent.SectionComplete(this).post()
         }
-        if (gateRegex.matches(msg)) _gate = true
+
+        if (gateRegex.matches(msg)) {
+            _gate = true
+            if (current == total) DungeonEvent.SectionComplete.Full(this).post() // idkman
+        }
 
         return if (current == total && gate) {
             endTime = System.currentTimeMillis()
             endTicks = EventBus.totalTicks
 
-            val next = entries.getOrNull(ordinal + 1) ?: NONE
-            if (next != NONE) next.start()
+            val next = entries.getOrNull(ordinal + 1) ?: Unknown
+            if (next != Unknown) next.start()
             next
         } else this
     }

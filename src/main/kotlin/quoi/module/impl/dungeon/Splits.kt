@@ -96,7 +96,7 @@ object Splits : Module( // todo section split info hud, task (terms, levers, dev
                     )
                     if (i == 5 && p3Sections) {
                         P3Section.entries.forEach { section ->
-                            if (section == P3Section.NONE) return@forEach
+                            if (section == P3Section.Unknown) return@forEach
                             textPair(
                                 string = "  S${section.number}:",
                                 supplier = {
