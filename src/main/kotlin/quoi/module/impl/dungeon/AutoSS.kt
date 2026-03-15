@@ -23,6 +23,7 @@ import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.Vec3
+import quoi.api.events.core.EventPriority
 import quoi.api.skyblock.dungeon.DungeonClass
 import quoi.module.settings.Setting.Companion.withDependency
 import quoi.module.settings.impl.SelectorSetting
@@ -44,7 +45,7 @@ object AutoSS : Module(
     private val disableSolver by BooleanSetting("Disable solver")
     private val startButtonReset by BooleanSetting("Start button reset", desc = "Pressing the SS start button resets autoss.")
     private val announceTime by BooleanSetting("Announce time", desc = "Runs /pc SS Took {time} when finished. (Only works sometimes atm)")
-    private val leapWhenDone by BooleanSetting("Leap when done", desc = "Auto leaps when the SS is done.")
+    val leapWhenDone by BooleanSetting("Leap when done", desc = "Auto leaps when the SS is done.")
     private val leapMode by SelectorSetting("Leap mode", "Class", listOf("Name", "Class")).withDependency { leapWhenDone }
     private val targetName by StringSetting("Target name", "", desc = "Exact name of the player to leap to.").withDependency { leapMode.selected == "Name" && leapWhenDone }
     private val targetClass by SelectorSetting("Target class", DungeonClass.Mage).withDependency { leapMode.selected == "Class" && leapWhenDone }
@@ -57,6 +58,7 @@ object AutoSS : Module(
     private var clicks = ArrayList<BlockPos>()
     private var clickedButton: BlockPos? = null
     private var allButtons = ArrayList<BlockPos>()
+    var doneSS = false
     private val startButton = BlockPos(110, 121, 91)
 
     private var startSequenceActive = false
@@ -70,7 +72,7 @@ object AutoSS : Module(
             fullReset()
         }
 
-        on<ChatEvent.Packet> {
+        on<ChatEvent.Packet>(EventPriority.HIGHEST) {
             val msg = message.noControlCodes
             mc.player?.distanceToSqr(startButton.center)?.let { if (it > 25) return@on }
 
@@ -79,6 +81,7 @@ object AutoSS : Module(
             }
 
             if (leapWhenDone && msg.startsWith("${mc.player?.name?.string} completed a device!")) {
+                doneSS = true
                 val teammates = Dungeon.dungeonTeammatesNoSelf
                 var leaped = false
 
@@ -245,6 +248,7 @@ object AutoSS : Module(
     private fun fullReset() {
         startSequenceActive = false
         clearGameData()
+        doneSS = false
     }
 
     private fun clearGameData() {
