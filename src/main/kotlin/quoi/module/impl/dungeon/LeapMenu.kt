@@ -97,7 +97,7 @@ object LeapMenu : Module(
                     val yPos = if (isTop) spacing.alignOpposite else spacing
 
                     if (teammate != DungeonPlayer.EMPTY) {
-                        block(
+                        ctxBlock(
                             constrain(xPos, yPos, w, h),
                             colour = bgCol
                         ) {

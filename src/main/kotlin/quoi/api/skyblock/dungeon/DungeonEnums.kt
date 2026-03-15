@@ -9,6 +9,7 @@ import quoi.api.skyblock.dungeon.map.MapItemScanner
 import quoi.utils.equalsOneOf
 import net.minecraft.client.player.LocalPlayer
 import net.minecraft.resources.ResourceLocation
+import quoi.api.events.core.EventBus
 import java.util.*
 
 /**
@@ -33,6 +34,8 @@ data class DungeonPlayer(
     var isDead: Boolean = false,
     var deaths: Int = 0,
     val colour: Colour = Colour.WHITE,
+
+    val p3Stats: P3Stats = P3Stats(),
 
     var minRooms: Int = 0,
     var maxRooms: Int = 0,
@@ -195,6 +198,119 @@ enum class Floor(val secretPercentage: Float = 1f) {
 
 enum class M7Phases(val displayName: String) {
     P1("P1"), P2("P2"), P3("P3"), P4("P4"), P5("P5"), Unknown("Unknown");
+}
+
+enum class P3Section(val number: Int, val reqTerminals: Int) { // todo maybe track players too
+    NONE(0, 0), S1(1, 4), S2(2, 5), S3(3, 4), S4(4, 4);
+
+    var terminals = 0
+        private set
+    var levers = 0
+        private set
+    var device = false
+        private set
+    private var _gate = false
+    val gate: Boolean get() = this == S4 || _gate
+
+    var startTime: Long = 0L
+        private set
+    var startTicks: Int = 0
+        private set
+
+    var endTime: Long = 0L
+        private set
+    var endTicks: Int = 0
+        private set
+
+    private var current: Int = 0
+    private var total: Int = 0
+
+    fun process(msg: String, termRegex: Regex, gateRegex: Regex): P3Section {
+
+        termRegex.find(msg)?.destructured?.let { (player, _, type, current, total) ->
+            this.current = current.toIntOrNull() ?: 0
+            this.total = total.toIntOrNull() ?: 0
+
+            val player = Dungeon.dungeonTeammates.find { it.name.equals(player, ignoreCase = true) }
+
+            when (type) {
+                "terminal" -> {
+                    terminals++
+                    player?.p3Stats?.let { it.terminals++ }
+                }
+                "lever" -> {
+                    levers++
+                    player?.p3Stats?.let { it.levers++ }
+                }
+                "device" -> {
+                    device = true
+                    player?.p3Stats?.let { it.devices++ }
+                }
+            }
+        }
+        if (gateRegex.matches(msg)) _gate = true
+
+        return if (current == total && gate) {
+            endTime = System.currentTimeMillis()
+            endTicks = EventBus.totalTicks
+
+            val next = entries.getOrNull(ordinal + 1) ?: NONE
+            if (next != NONE) next.start()
+            next
+        } else this
+    }
+
+    fun getDuration(): Long {
+        if (startTime == 0L) return 0L
+        if (endTime != 0L) return endTime - startTime
+        return System.currentTimeMillis() - startTime
+    }
+
+    fun getDurationTicks(): Long {
+        if (startTicks == 0) return 0L
+        if (endTicks != 0) return (endTicks - startTicks).toLong()
+        return (EventBus.totalTicks - startTicks).toLong()
+    }
+
+    fun start() {
+        startTime = System.currentTimeMillis()
+        startTicks = EventBus.totalTicks
+    }
+
+    fun reset() {
+        current = 0
+        total = 0
+
+        terminals = 0
+        levers = 0
+        device = false
+        _gate = false
+
+        startTime = 0L
+        startTicks = 0
+
+        endTime = 0L
+        endTicks = 0
+    }
+
+    companion object {
+        fun resetAll() {
+            entries.forEach { it.reset() }
+            Dungeon.dungeonTeammates.forEach { it.p3Stats.reset() }
+        }
+    }
+}
+
+data class P3Stats(
+    var terminals: Int = 0,
+    var levers: Int = 0,
+    var devices: Int = 0
+) {
+    fun reset() {
+        terminals = 0
+        levers = 0
+        devices = 0
+    }
 }
 
 /**

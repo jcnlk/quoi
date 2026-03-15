@@ -21,8 +21,12 @@ import quoi.utils.ui.hud.*
 import quoi.utils.ui.textPair
 import kotlinx.coroutines.launch
 import net.minecraft.world.phys.BlockHitResult
+import quoi.api.skyblock.Location
+import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.DungeonClass
+import quoi.module.settings.impl.BooleanSetting
 import quoi.utils.Scheduler.scheduleTask
+import quoi.utils.StringUtils.formatTime
 import quoi.utils.skyblock.player.LeapManager
 
 object Test : Module("Test", desc = "Dev module for testing.") {
@@ -35,10 +39,10 @@ object Test : Module("Test", desc = "Dev module for testing.") {
     private val showY by BooleanSetting("Show Y", true)
     private val showZ by BooleanSetting("Show Z", true)
 
-    private val coords = listOf(
-        CoordsData("x:", { mc.player?.x ?: 0.0 }, { showX }),
-        CoordsData("y:", { mc.player?.y ?: 0.0 }, { showY }),
-        CoordsData("z:", { mc.player?.z ?: 0.0 }, { showZ })
+    private val coords = setOf(
+        Data("x:", { (mc.player?.x ?: 0.0).toFixed() }, { showX }),
+        Data("y:", { (mc.player?.y ?: 0.0).toFixed() }, { showY }),
+        Data("z:", { (mc.player?.z ?: 0.0).toFixed() }, { showZ })
     )
 
     private val texthudtest by TextHud("coords") {
@@ -47,7 +51,7 @@ object Test : Module("Test", desc = "Dev module for testing.") {
                 if (!enabled()) return@forEach
                 textPair(
                     string = name,
-                    supplier = { if (preview) 0.0 else coord().toFixed() },
+                    supplier = { if (preview) 0.0 else coord() },
                     labelColour = Colour.WHITE,
                     valueColour = colour,
                     shadow = shadow
@@ -64,7 +68,61 @@ object Test : Module("Test", desc = "Dev module for testing.") {
         ).outline(outline, thickness)
     }.setting()
 
-    private data class CoordsData(val name: String, val coord: () -> Double, val enabled: () -> Boolean)
+    private val server by BooleanSetting("Server", true)
+    private val inSB by BooleanSetting("In skyblock", true)
+//    private val inDung by BooleanSetting("In dungeon", true)
+    private val area_ by BooleanSetting("Area", true)
+    private val subarea_ by BooleanSetting("Subarea", true)
+    private val boss by BooleanSetting("Boss", true)
+    private val floor by BooleanSetting("Floor", true)
+    private val p3Section by BooleanSetting("P3 section", true)
+    private val p3Players by BooleanSetting("P3 players", true)
+
+    private val debugData = setOf(
+        Data("Server", { Location.currentServer ?: "None" }, { server }),
+        Data("Skyblock", { Location.inSkyblock }, { inSB }),
+//        Data("Dungeon", { Dungeon.inDungeons }, { inDung }),
+        Data("Area", { Location.currentArea }, { area_ }),
+        Data("Subarea", { Location.subarea ?: "None" }, { subarea_ }),
+        Data("Boss", { Dungeon.inBoss }, { boss }),
+        Data("Floor", { Dungeon.floor ?: "None" }, { floor }),
+        Data("P3 Section", { Dungeon.p3Section.name }, { p3Section }),
+        Data("   Duration", { "${formatTime(Dungeon.p3Section.getDuration())} | ${formatTime(Dungeon.p3Section.getDurationTicks() * 50)}" }, { p3Section } ),
+        Data("   Terminals", { "${Dungeon.p3Section.terminals}/${Dungeon.p3Section.reqTerminals}" }, { p3Section }),
+        Data("   Levers", { "${Dungeon.p3Section.levers}/2" }, { p3Section }),
+        Data("   Device", { "${Dungeon.p3Section.device}" }, { p3Section }),
+        Data("   Gate", { Dungeon.p3Section.gate }, { p3Section }),
+    )
+
+    private val debug by TextHud("debug") {
+        column {
+            debugData.forEach { (name, value, enabled) ->
+                if (!enabled()) return@forEach
+                textPair(
+                    string = "$name:",
+                    supplier = { value() },
+                    labelColour = Colour.WHITE,
+                    valueColour = colour,
+                    shadow = shadow
+                )
+            }
+
+            if (p3Players) {
+                Dungeon.dungeonTeammates.forEach { player ->
+                    textPair(
+                        string = "   ${player.name}:",
+                        supplier = { "${player.p3Stats.terminals}T | ${player.p3Stats.levers}L | ${player.p3Stats.devices}D" },
+                        labelColour = player.colour,
+                        valueColour = colour,
+                        shadow = shadow
+                    )
+                }
+            }
+        }
+    }.withSettings(::server, ::inSB, /*::inDung,*/ ::area_, ::subarea_, ::boss, ::floor, ::p3Section, ::p3Players
+    ).setting()
+
+    private data class Data(val name: String, val value: () -> Any?, val enabled: () -> Boolean)
 
     private var ticker: Ticker? = null
 

@@ -92,7 +92,7 @@ open class Text(
                             sink.accept(index, style.withColor(dark), codePoint)
                         }
                     }
-                    ctx.drawString(shadowSeq, 2, 2, shadow = false, scale = fontScale)
+                    ctx.drawString(shadowSeq, fontScale, fontScale, shadow = false, scale = fontScale)
                 }
                 ctx.drawString(string, 0, 0, colour, fontScale, false)
             }

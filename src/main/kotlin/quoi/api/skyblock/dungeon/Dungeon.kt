@@ -3,10 +3,13 @@ package quoi.api.skyblock.dungeon
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import net.minecraft.core.BlockPos
+import net.minecraft.network.protocol.game.ClientboundContainerClosePacket
+import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket
 import net.minecraft.network.protocol.game.ClientboundSetPlayerTeamPacket
 import net.minecraft.network.protocol.game.ClientboundSystemChatPacket
 import net.minecraft.network.protocol.game.ClientboundTabListPacket
+import net.minecraft.network.protocol.game.ServerboundContainerClosePacket
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.SkullBlock
 import net.minecraft.world.level.block.entity.SkullBlockEntity
@@ -14,12 +17,12 @@ import net.minecraft.world.level.block.state.BlockState
 import quoi.QuoiMod.mc
 import quoi.QuoiMod.scope
 import quoi.api.colour.Colour
+import quoi.api.colour.withAlpha
 import quoi.api.events.PacketEvent
 import quoi.api.events.WorldEvent
 import quoi.api.events.core.EventBus.on
 import quoi.api.skyblock.Island
 import quoi.api.skyblock.Location
-import quoi.api.skyblock.dungeon.components.Room
 import quoi.api.skyblock.dungeon.odonscanning.ScanUtils
 import quoi.api.skyblock.dungeon.odonscanning.tiles.OdonRoom
 import quoi.module.impl.dungeon.LeapMenu
@@ -51,16 +54,13 @@ object Dungeon {
     inline val inBoss: Boolean
         get() = getBoss()
 
-    var inP3: Boolean = false
+    val inP3: Boolean
+        get() = p3Section != P3Section.NONE
+
+    var p3Section: P3Section = P3Section.NONE
         private set
 
-    var currentP3Section: Int = 0
-        private set
-
-    var p3TermsCompleted: Boolean = false
-        private set
-
-    var p3GateDestroyed: Boolean = false
+    var inTerminal: Boolean = false
         private set
 
     inline val secretCount: Int
@@ -218,10 +218,8 @@ object Dungeon {
             floor = if (ClickGui.forceDungeons) ClickGui.dungeonFloor.selected else null
             isPaul = false
 
-            inP3 = false
-            currentP3Section = 0
-            p3TermsCompleted = false
-            p3GateDestroyed = false
+            P3Section.resetAll()
+            p3Section = P3Section.NONE
 
 //            MapItemUtils.reset()
 //            WorldScanner.reset()
@@ -247,7 +245,7 @@ object Dungeon {
                             ?: return@on
 
                         val stringEntries = tabListEntries.map { it.string }
-                        val colouredEntries = tabListEntries.map { it.string to Colour.RGB(it.style.color?.value ?: Colour.WHITE.rgb) }
+                        val colouredEntries = tabListEntries.map { it.string to Colour.RGB(it.siblings.lastOrNull()?.style?.color?.value ?: Colour.WHITE.rgb).withAlpha(1.0f) }
 
                         updateDungeonTeammates(colouredEntries)
                         updateDungeonStats(stringEntries)
@@ -292,19 +290,18 @@ object Dungeon {
 
                         when (message) {
                             "[BOSS] Maxor: WELL! WELL! WELL! LOOK WHO'S HERE!", "The Core entrance is opening!" -> {
-                                inP3 = false
-                                currentP3Section = 0
-                                resetP3State()
+                                p3Section = P3Section.NONE
+                                P3Section.resetAll()
                             }
                             "[BOSS] Goldor: Who dares trespass into my domain?" -> {
-                                inP3 = true
-                                currentP3Section = 1
-                                resetP3State()
+                                p3Section = P3Section.S1
+                                P3Section.resetAll()
+                                p3Section.start()
                             }
                         }
 
-                        if (inBoss) {
-                            processP3Events(message)
+                        if (inBoss && inP3) {
+                            p3Section = p3Section.process(message, REGEX_TERM_COMPLETED, REGEX_GATE_DESTROYED)
                         }
 
                         when (partyMessageRegex.find(message)?.groupValues?.get(1)?.lowercase() ?: return@on) {
@@ -320,7 +317,16 @@ object Dungeon {
                                 puzzles.find { it == Puzzle.BLAZE }.let { it?.status = PuzzleStatus.Completed }
                         }
                     }
+
+                    is ClientboundOpenScreenPacket -> inTerminal = title.string.noControlCodes in terminalTitles
+                    is ClientboundContainerClosePacket -> inTerminal = false
                 }
+            }
+        }
+
+        on<PacketEvent.Sent> {
+            when (packet) {
+                is ServerboundContainerClosePacket -> inTerminal = false
             }
         }
     }
@@ -436,33 +442,6 @@ object Dungeon {
         this.floor = floor
     }
 
-    private fun processP3Events(msg: String) {
-        val termMatch = REGEX_TERM_COMPLETED.find(msg)
-        if (termMatch != null) {
-            val completed = termMatch.groupValues[4].toIntOrNull() ?: 0
-            val total = termMatch.groupValues[5].toIntOrNull() ?: 0
-            if (completed == total) {
-                if (p3GateDestroyed) advanceP3Section()
-                else p3TermsCompleted = true
-            }
-        }
-
-        if (REGEX_GATE_DESTROYED.matches(msg)) {
-            p3GateDestroyed = true
-            if (p3TermsCompleted) advanceP3Section()
-        }
-    }
-
-    private fun advanceP3Section() {
-        currentP3Section++
-        resetP3State()
-    }
-
-    private fun resetP3State() {
-        p3TermsCompleted = false
-        p3GateDestroyed = false
-    }
-
     private fun getDungeonPuzzles(tabList: List<String>) {
         for (entry in tabList) {
             val (name, status) = puzzleRegex.find(entry)?.destructured ?: continue
@@ -533,6 +512,8 @@ object Dungeon {
         Blocks.PISTON, Blocks.PISTON_HEAD, Blocks.STICKY_PISTON, Blocks.MOVING_PISTON,
         Blocks.LEVER, Blocks.STONE_BUTTON
     )
+
+    val terminalTitles = setOf("Correct all the panes!", "Change all to same color!", "Click in order!", "What starts with:", "Select all the", "Click the button on time!")
 
     private val REGEX_TERM_COMPLETED = Regex("^(.{1,16}) (activated|completed) a (terminal|lever|device)! \\((\\d)/(\\d)\\)$")
     private val REGEX_GATE_DESTROYED = Regex("^The gate has been destroyed!$")

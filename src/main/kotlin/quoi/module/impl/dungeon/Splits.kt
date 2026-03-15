@@ -1,11 +1,15 @@
 package quoi.module.impl.dungeon
 
+import quoi.api.abobaui.dsl.bounds
+import quoi.api.abobaui.elements.impl.RefreshableGroup
+import quoi.api.abobaui.elements.impl.refreshableGroup
 import quoi.api.colour.Colour
 import quoi.api.colour.colour
 import quoi.api.events.AreaEvent
 import quoi.api.events.core.EventPriority
 import quoi.api.skyblock.Island
 import quoi.api.skyblock.dungeon.Dungeon.inDungeons
+import quoi.api.skyblock.dungeon.P3Section
 import quoi.module.Module
 import quoi.module.settings.impl.BooleanSetting
 import quoi.module.settings.impl.NumberSetting
@@ -14,12 +18,11 @@ import quoi.utils.StringUtils.formatTime
 import quoi.utils.StringUtils.toFixed
 import quoi.utils.skyblock.SplitsManager
 import quoi.utils.skyblock.SplitsManager.Split
-import quoi.utils.ui.hud.HudManager
 import quoi.utils.ui.hud.TextHud
 import quoi.utils.ui.hud.setting
 import quoi.utils.ui.textPair
 
-object Splits : Module(
+object Splits : Module( // todo section split info hud, task (terms, levers, devices) times in chat
     "Splits",
     desc = "Shows timers for various phases",
     area = Island.Dungeon
@@ -27,99 +30,110 @@ object Splits : Module(
     private val timeElapsed by BooleanSetting("Time Elapsed split") // todo
     private val bossEntry by BooleanSetting("Boss Entry split")
     private val bossClear by BooleanSetting("Boss Clear split")
+    private val p3Sections by BooleanSetting("Goldor sections")
     private val hideNotStarted by BooleanSetting("Hide not started")
     private val numbersAfterDecimal by NumberSetting("Numbers after decimal", 2, 0, 5, 1, desc = "Numbers after decimal in time.")
     private val showTickTime by BooleanSetting("Show tick time", desc = "Show tick-based time alongside real time.")
 
+    private lateinit var refreshable: RefreshableGroup
+
     private val hud by TextHud("Splits hud", toggleable = false) {
-        visibleIf { inDungeons }
+        refreshable = refreshableGroup(bounds()) {
+            visibleIf { inDungeons }
 
-        val splits = (if (preview) previewSplits else SplitsManager.currentSplits)
+            val splits = (if (preview) previewSplits else SplitsManager.currentSplits)
 
-        var times = listOf<Long>()
-        var tickTimes = listOf<Long>()
+            var times = listOf<Long>()
+            var tickTimes = listOf<Long>()
 
 
-        if (!preview) operation {
-            if (splits.isEmpty()) return@operation false
-            val (t, tt) = SplitsManager.getAndUpdateSplitsTimes(splits)
-            times = t
-            tickTimes = tt
-            false
-        }
-
-        fun getTimeString(index: Int, type: Int = 0): String {
-            val time: Long
-            val ticks: Long
-
-            if (preview) {
-                val dummyTimes = listOf(69_000L, 67_000L, 5_000L, 90_000L, 0L, 0L, 420_000L)
-                val dummyTicks = listOf(6900L, 6700L, 500L, 9000L, 0L, 0L, 42000L)
-                time = dummyTimes.getOrElse(index) { 0L }
-                ticks = dummyTicks.getOrElse(index) { 0L }
-            } else {
-                when (type) {
-                    1 -> { // boss entry
-                        time = times.take(3).sum()
-                        ticks = tickTimes.take(3).sum()
-                    }
-                    2 -> { // boss clear
-                        val bossPassageTimes = times.drop(3).dropLast(1)
-                        val bossPassageTicks = tickTimes.drop(3).dropLast(1)
-                        time = bossPassageTimes.sum()
-                        ticks = bossPassageTicks.sum()
-                    }
-                    else -> { // normal
-                        time = times.getOrElse(index) { 0L }
-                        ticks = tickTimes.getOrElse(index) { 0L }
-                    }
-                }
+            if (!preview) operation {
+                if (splits.isEmpty()) return@operation false
+                val (t, tt) = SplitsManager.getAndUpdateSplitsTimes(splits)
+                times = t
+                tickTimes = tt
+                false
             }
 
-            val formatted = formatTime(time, numbersAfterDecimal)
-            return if (showTickTime) "$formatted §7(§a${(ticks / 20f).toFixed()}§7)" else formatted
-        }
-
-        column {
-            splits.dropLast(1).forEachIndexed { i, split ->
-                textPair(
-                    string = "${split.name}:",
-                    supplier = { getTimeString(i) },
-                    labelColour = split.colour,
-                    valueColour = colour { if (colour.rgb == Colour.WHITE.rgb) split.colour.rgb else colour.rgb },
-                    shadow = shadow
-                ).apply {
-                    operation {
-                        element.enabled = !hideNotStarted || split.time != 0L
-                        false
+            fun getTimeString(index: Int, type: Int = 0): String {
+                val (time, ticks) = if (preview) {
+                    val dummyTimes = listOf(69_000L, 67_000L, 5_000L, 90_000L, 0L, 0L, 420_000L)
+                    val dummyTicks = listOf(6900L, 6700L, 500L, 9000L, 0L, 0L, 42000L)
+                    dummyTimes.getOrElse(index) { 0L } to dummyTicks.getOrElse(index) { 0L }
+                } else {
+                    when (type) {
+                        1 -> times.take(3).sum() to tickTimes.take(3).sum()
+                        2 -> times.drop(3).dropLast(1).sum() to tickTimes.drop(3).dropLast(1).sum()
+                        else -> times.getOrElse(index) { 0L } to tickTimes.getOrElse(index) { 0L }
                     }
                 }
 
-                if (i == 2 && bossEntry) textPair(
-                    string = "Boss Entry:",
-                    supplier = { getTimeString(0, 1) },
+                val formatted = formatTime(time, numbersAfterDecimal)
+                return if (showTickTime) "$formatted §7(§a${(ticks / 20f).toFixed()}§7)" else formatted
+            }
+
+            column {
+                splits.dropLast(1).forEachIndexed { i, split ->
+                    textPair(
+                        string = "${split.name}:",
+                        supplier = { getTimeString(i) },
+                        labelColour = split.colour,
+                        valueColour = colour { if (colour.rgb == Colour.WHITE.rgb) split.colour.rgb else colour.rgb },
+                        shadow = shadow
+                    ).apply {
+                        operation {
+                            element.enabled = !hideNotStarted || split.time != 0L
+                            false
+                        }
+                    }
+
+                    if (i == 2 && bossEntry) textPair(
+                        string = "Boss Entry:",
+                        supplier = { getTimeString(0, 1) },
+                        labelColour = Colour.MINECRAFT_BLUE,
+                        valueColour = colour { if (colour.rgb == Colour.WHITE.rgb) Colour.MINECRAFT_BLUE.rgb else colour.rgb },
+                        shadow = shadow
+                    )
+                    if (i == 5 && p3Sections) {
+                        P3Section.entries.forEach { section ->
+                            if (section == P3Section.NONE) return@forEach
+                            textPair(
+                                string = "  S${section.number}:",
+                                supplier = {
+                                    val time = if (preview) (12_000L * section.number) else section.getDuration()
+                                    val ticks = if (preview) (1200L * section.number) else section.getDurationTicks()
+                                    val formatted = formatTime(time, numbersAfterDecimal)
+                                    if (showTickTime) "$formatted §7(§a${(ticks / 20f).toFixed()}§7)" else formatted
+                                },
+                                labelColour = Colour.MINECRAFT_YELLOW,
+                                valueColour = colour { if (colour.rgb == Colour.WHITE.rgb) Colour.MINECRAFT_YELLOW.rgb else colour.rgb },
+                                shadow = shadow
+                            ).apply {
+                                operation {
+                                    val terms = preview || splits.getOrNull(5)?.time != 0L
+                                    element.enabled = terms && (preview || !hideNotStarted || section.startTime != 0L)
+                                    false
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (bossClear) textPair(
+                    string = "Boss Clear:",
+                    supplier = { getTimeString(0, 2) },
                     labelColour = Colour.MINECRAFT_BLUE,
                     valueColour = colour { if (colour.rgb == Colour.WHITE.rgb) Colour.MINECRAFT_BLUE.rgb else colour.rgb },
                     shadow = shadow
-                )
-            }
-
-            if (bossClear) textPair(
-                string = "Boss Clear:",
-                supplier = { getTimeString(0, 2) },
-                labelColour = Colour.MINECRAFT_BLUE,
-                valueColour = colour { if (colour.rgb == Colour.WHITE.rgb) Colour.MINECRAFT_BLUE.rgb else colour.rgb },
-                shadow = shadow
-            ).apply {
-                operation {
-                    val firstBossSplit = splits.getOrNull(3)
-                    val hasStarted = firstBossSplit != null && firstBossSplit.time != 0L
-                    element.enabled = !hideNotStarted || hasStarted
-                    false
+                ).apply {
+                    operation {
+                        element.enabled = !hideNotStarted || splits.getOrNull(3)?.time != 0L
+                        false
+                    }
                 }
             }
         }
-    }.withSettings(::timeElapsed, ::bossEntry, ::bossClear, ::hideNotStarted, ::numbersAfterDecimal, ::showTickTime).setting()
+    }.withSettings(::timeElapsed, ::bossEntry, ::bossClear, ::p3Sections, ::hideNotStarted, ::numbersAfterDecimal, ::showTickTime).setting()
 
     private val previewSplits = listOf(
         Split(Regex(""), "Blood Open", Colour.MINECRAFT_DARK_RED, 1L),
@@ -134,10 +148,8 @@ object Splits : Module(
     init {
         on<AreaEvent.Main> (EventPriority.LOW) {
             scheduleTask(21) {
-                HudManager.reinit()
+                if (::refreshable.isInitialized) refreshable.refresh()
             }
         }
     }
-
-
 }

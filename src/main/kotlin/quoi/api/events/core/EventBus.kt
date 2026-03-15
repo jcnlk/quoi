@@ -40,7 +40,8 @@ import java.util.concurrent.ConcurrentHashMap
 object EventBus { // todo cleanup
     val events = ConcurrentHashMap<Class<*>, MutableSet<PrioritisedCallback<*>>>()
     data class PrioritisedCallback<T>(val priority: Int, val callback: T.() -> Unit)
-    private var totalTicks = 0
+    var totalTicks = 0
+        private set
 
     private var lastWorld: ClientLevel? = null
     private var tabLoaded = false

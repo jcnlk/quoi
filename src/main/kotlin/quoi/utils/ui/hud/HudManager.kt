@@ -500,7 +500,7 @@ object HudManager {
                             if (setting !is UISetting) return@forEach
 
                             var wasRainbow = (setting as? ColourSetting)?.rainbow ?: false
-                            setting.render(this).onEvent(UISetting.ValueUpdated()) {
+                            setting.render(this).onEvent(setting.valueUpdated) {
                                 val cs = setting as? ColourSetting
                                 if (cs?.rainbow != wasRainbow) onValue()
                                 wasRainbow = cs?.rainbow ?: false

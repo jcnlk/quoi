@@ -128,7 +128,7 @@ object AutoMask : Module(
                     }
                 }
                 EE3State.SWAP_TO_LEAP -> {
-                    if (Dungeon.currentP3Section == 3) {
+                    if (Dungeon.p3Section.number == 3) {
                         resetEE3()
                         return@on
                     }

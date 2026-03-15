@@ -18,7 +18,8 @@ object LeapManager { // still schizophrenia
     private var inProgress = false
     private var clickedLeap = false
 
-    private var lastLeap = 0L
+    var lastLeap = 0L
+        private set
     private val leapCD get() = 2400 * getMageCooldownMultiplier()
 
     private val currentLeap get() = leapQueue[0]

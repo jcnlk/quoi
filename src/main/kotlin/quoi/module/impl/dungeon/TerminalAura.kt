@@ -1,22 +1,17 @@
 package quoi.module.impl.dungeon
 
-import quoi.api.events.PacketEvent
+import net.minecraft.network.protocol.game.ServerboundInteractPacket
+import net.minecraft.world.InteractionHand
+import net.minecraft.world.entity.decoration.ArmorStand
 import quoi.api.events.TickEvent
 import quoi.api.skyblock.Island
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.invoke
 import quoi.module.Module
+import quoi.module.settings.Setting.Companion.withDependency
 import quoi.module.settings.impl.BooleanSetting
 import quoi.module.settings.impl.NumberSetting
-import net.minecraft.network.protocol.game.ClientboundContainerClosePacket
-import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
-import net.minecraft.network.protocol.game.ServerboundContainerClosePacket
-import net.minecraft.network.protocol.game.ServerboundInteractPacket
-import net.minecraft.world.InteractionHand
-import net.minecraft.world.entity.decoration.ArmorStand
-import quoi.api.events.ChatEvent
-import quoi.module.settings.Setting.Companion.withDependency
-import quoi.utils.StringUtils.noControlCodes
+import quoi.utils.skyblock.player.LeapManager
 
 // Kyleen
 object TerminalAura : Module(
@@ -31,41 +26,17 @@ object TerminalAura : Module(
     private val leapDelayEnabled by BooleanSetting("Leap delay", desc = "Delays opening terminals for x seconds after leap")
     private val leapDelay by NumberSetting("Leap delay time", 0.5, 0.1, 5.0, 0.1, unit = "s").withDependency { leapDelayEnabled }
 
-    var inTerminal = false
     private var lastClick = 0L
-    private var lastLeap = 0L
-    private val shutUp = listOf("Correct all the panes!", "Change all to same color!", "Click in order!", "What starts with:", "Select all the", "Click the button on time!")
 
     init {
-        on<PacketEvent.Received> {
-            if (packet is ClientboundOpenScreenPacket) {
-                if (shutUp.any { packet.title.string.contains(it) }) {
-                    inTerminal = true
-                }
-            }
-            if (packet is ClientboundContainerClosePacket) {
-                inTerminal = false
-            }
-        }
-
-        on<ChatEvent.Packet> {
-            val text = message.noControlCodes
-            if (text.startsWith("You have teleported to")) {
-                lastLeap = System.currentTimeMillis()
-            }
-        }
-
-        on<PacketEvent.Sent, ServerboundContainerClosePacket> {
-            inTerminal = false
-        }
 
         on<TickEvent.Start> {
-            if (!Dungeon.inP3 || inTerminal || Dungeon.isDead) return@on
+            if (!Dungeon.inP3 || Dungeon.inTerminal || Dungeon.isDead) return@on
             if (System.currentTimeMillis() - lastClick < auraDelay) return@on
 
             if (leapDelayEnabled) {
                 val delayMs = (leapDelay * 1000.0).toLong()
-                if (System.currentTimeMillis() - lastLeap < delayMs) return@on
+                if (System.currentTimeMillis() - LeapManager.lastLeap < delayMs) return@on
             }
 
             if (groundOnly && !player.onGround()) return@on
