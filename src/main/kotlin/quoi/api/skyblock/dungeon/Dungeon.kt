@@ -31,6 +31,7 @@ import quoi.module.impl.render.ClickGui
 import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.equalsOneOf
 import quoi.utils.romanToInt
+import quoi.utils.skyblock.PartyUtils
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.roundToLong
@@ -111,6 +112,12 @@ object Dungeon {
 
     var dungeonTeammatesNoSelf: List<DungeonPlayer> = ArrayList(4)
         private set
+
+    val allTeammates: List<String>
+        get() = (dungeonTeammates.map { it.name } + PartyUtils.members).distinct()
+
+    val allTeammatesNoSelf: List<String>
+        get() = allTeammates.filter { it != mc.player?.name?.string }
 
     var leapTeammates: List<DungeonPlayer> = ArrayList(4)
         private set

@@ -24,6 +24,7 @@ import net.minecraft.world.phys.BlockHitResult
 import quoi.api.skyblock.Location
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.DungeonClass
+import quoi.api.skyblock.dungeon.map.utils.LegacyIdMapper.legacyBlockIdMap
 import quoi.module.settings.impl.BooleanSetting
 import quoi.utils.Scheduler.scheduleTask
 import quoi.utils.StringUtils.formatTime
@@ -37,6 +38,8 @@ object Test : Module("Test", desc = "Dev module for testing.") {
     val selectedTheme by SelectorSetting("Theme", "Light", listOf("Light", "Dark", "Custom"))
 
     val selectorTest by SelectorSetting("class", DungeonClass.Archer)
+
+    val stringTest by StringSetting("String setting", "shit").suggests(legacyBlockIdMap.keys.map { it.replace("minecraft:", "") })
 
     private val showX by BooleanSetting("Show X", true)
     private val showY by BooleanSetting("Show Y", true)

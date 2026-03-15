@@ -4,6 +4,7 @@ import quoi.api.events.DungeonEvent
 import quoi.api.events.MouseEvent
 import quoi.api.skyblock.Island
 import quoi.api.skyblock.dungeon.Dungeon
+import quoi.api.skyblock.dungeon.Dungeon.allTeammatesNoSelf
 import quoi.api.skyblock.dungeon.DungeonClass
 import quoi.api.skyblock.dungeon.P3Section
 import quoi.module.Module
@@ -27,11 +28,11 @@ object AutoLeap : Module(
     private val whenBlown by BooleanSetting("Only when gate blown", desc = "Only leaps when gate is blown").withDependency { autoLeap }
     private val leapMode by SelectorSetting("Leap mode", "Name", listOf("Name", "Class"), "Leap mode for the module.")
 
-    private val clearName by StringSetting("Clear leap", "Clear").withDependency { leapMode.selected == "Name" }
-    private val s1Name by StringSetting("S1 leap", "S1").withDependency { leapMode.selected == "Name" }
-    private val s2Name by StringSetting("S2 leap", "S2").withDependency { leapMode.selected == "Name" }
-    private val s3Name by StringSetting("S3 leap", "S3").withDependency { leapMode.selected == "Name" }
-    private val s4Name by StringSetting("S4 leap", "S4").withDependency { leapMode.selected == "Name" }
+    private val clearName by StringSetting("Clear leap", "Clear").withDependency { leapMode.selected == "Name" }.suggests { allTeammatesNoSelf }
+    private val s1Name by StringSetting("S1 leap", "S1", length = 16).withDependency { leapMode.selected == "Name" }.suggests { allTeammatesNoSelf }
+    private val s2Name by StringSetting("S2 leap", "S2", length = 16).withDependency { leapMode.selected == "Name" }.suggests { allTeammatesNoSelf }
+    private val s3Name by StringSetting("S3 leap", "S3", length = 16).withDependency { leapMode.selected == "Name" }.suggests { allTeammatesNoSelf }
+    private val s4Name by StringSetting("S4 leap", "S4", length = 16).withDependency { leapMode.selected == "Name" }.suggests { allTeammatesNoSelf }
 
     private val clearClass by SelectorSetting("Clear leap", DungeonClass.Unknown).json("Clear leap class").withDependency { leapMode.selected == "Class" }
     private val s1Class by SelectorSetting("S1 leap", DungeonClass.Healer).json("S1 leap class").withDependency { leapMode.selected == "Class" }

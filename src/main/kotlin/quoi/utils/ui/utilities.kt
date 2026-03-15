@@ -57,15 +57,10 @@ fun ElementScope<*>.cursor(shape: Long) {
 }
 
 fun ElementScope<*>.delegateClick(input: ElementScope<TextInput>) {
-    var focusGained = false
-
-    input.onFocusChanged {
-        focusGained = !focusGained
-    }
-
-    onClick { event ->
-        if (focusGained) focusGained = false
-        else passEvent(event, input)
+    onClick {
+        if (!input.focused()) {
+            ui.focus(input.element)
+        }
         true
     }
 }

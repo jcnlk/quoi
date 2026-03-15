@@ -4,23 +4,32 @@ import quoi.api.abobaui.constraints.Constraint
 import quoi.api.abobaui.constraints.Positions
 import quoi.api.abobaui.constraints.Sizes
 import quoi.api.abobaui.constraints.impl.measurements.Animatable
+import quoi.api.abobaui.constraints.impl.positions.Centre
+import quoi.api.abobaui.constraints.impl.size.Copying
 import quoi.api.abobaui.constraints.impl.size.Fill
 import quoi.api.abobaui.dsl.*
+import quoi.api.abobaui.elements.Element
 import quoi.api.abobaui.elements.ElementScope
+import quoi.api.abobaui.elements.impl.Block
 import quoi.api.abobaui.elements.impl.Block.Companion.outline
+import quoi.api.abobaui.elements.impl.Popup
+import quoi.api.abobaui.elements.impl.Scrollable.Companion.scroll
 import quoi.api.abobaui.elements.impl.Text.Companion.string
 import quoi.api.abobaui.elements.impl.TextInput
 import quoi.api.abobaui.elements.impl.TextInput.Companion.maxWidth
 import quoi.api.abobaui.elements.impl.TextInput.Companion.onTextChanged
+import quoi.api.abobaui.elements.impl.popup
 import quoi.api.animations.Animation
 import quoi.api.colour.Colour
 import quoi.api.colour.colour
 import quoi.api.colour.multiply
+import quoi.api.colour.withAlpha
 import quoi.api.input.CursorShape
 import quoi.utils.ThemeManager.theme
 import quoi.utils.ui.cursor
 import quoi.utils.ui.data.Radii
 import quoi.utils.ui.delegateClick
+import quoi.utils.ui.popupY
 import quoi.utils.ui.rendering.Font
 import quoi.utils.ui.rendering.NVGRenderer
 import quoi.utils.ui.watch
@@ -207,4 +216,168 @@ fun ElementScope<*>.themedInput(
     }
 
     return input
+}
+
+fun ElementScope<*>.lengthInput(
+    ref: KMutableProperty0<String>,
+    pos: Positions = at(),
+    size: Sizes = size(w = Fill, h = 25.px),
+    length: Int,
+    placeholder: String = "",
+): ElementScope<TextInput> {
+    var value by ref
+
+    fun lenCol(string: String) = if (string.length >= length) Colour.RED else theme.textSecondary
+
+    lateinit var input: ElementScope<TextInput>
+
+    group(constrain(x = pos.x, y = pos.y, w = size.width, h = size.height)) {
+
+        val lengthText = text(
+            string = "${value.length}/$length",
+            pos = at(x = 3.percent.alignOpposite),
+            colour = lenCol(value)
+        ).toggle()
+
+        input = textInput(
+            string = value,
+            placeholder = placeholder,
+            pos = at(x = 3.percent),
+            size = theme.textSize,
+            colour = theme.textSecondary,
+            caretColour = theme.caretColour
+        ) {
+            val maxWidth = Animatable(from = 94.percent, to = 75.percent)
+            maxWidth(maxWidth)
+
+            cursor(CursorShape.IBEAM)
+
+            onTextChanged { event ->
+                var str = event.string
+                if (str.length > length) str = str.take(length)
+
+                lengthText.string = "${str.length}/$length"
+                lengthText.element.colour = lenCol(str)
+
+                event.string = str
+                value = str
+            }
+
+            onFocusChanged {
+                lengthText.toggle()
+                maxWidth.swap()
+            }
+        }
+    }
+
+    return input
+}
+
+// use with [themedInput] only for now
+fun ElementScope<*>.suggestionInput( // todo make it not look like shit. also add scrollbar maybe
+    suggestions: () -> List<String>,
+    content: ElementScope<*>.() -> ElementScope<TextInput>
+): ElementScope<TextInput> {
+    var popup: Popup? = null
+    lateinit var mainBlock: ElementScope<Block>
+
+    val items = mutableMapOf<String, ElementScope<Block>>()
+
+    fun update(string: String) {
+        val matching = items.filter { (text, _) ->
+            string.isEmpty() || text.contains(string, true)
+        }
+
+        val hideExact = matching.size == 1 && matching.keys.any { it.equals(string, true) }
+
+        var visible = 0
+        items.forEach { (text, block) ->
+            val match = string.isEmpty() || text.contains(string, true)
+            val exact = text.equals(string, true)
+
+            val show = match && !(exact && hideExact)
+
+            if (block.element.enabled != show) block.toggle()
+            if (show) visible++
+        }
+
+        if ((visible == 0) == mainBlock.element.enabled) mainBlock.toggle()
+
+        mainBlock.element.redraw()
+    }
+
+    return content().apply {
+        onFocus {
+            popup?.closePopup()
+            items.clear()
+
+            val y = popupY(gap = 10f, corner = true)
+            val thickness = 2.px
+
+            val height = object : Constraint.Size {
+                override fun calculateSize(element: Element, horizontal: Boolean): Float {
+                    val count = items.values.count { it.element.enabled }.toFloat()
+                    return (if (count > 4f) 4.5f else count) * 25f
+                }
+            }
+
+            popup = popup(copies(), smooth = false) {
+                onClick {
+                    closePopup()
+                    popup = null
+                    true
+                }
+
+                mainBlock = block(
+                    constrain( // try not to hardcode shit challenge // FIXME
+                        x = this@apply.element.x.px - 5.px,
+                        y = y,
+                        w = this@apply.element.width.px + thickness - 0.5.px + 10.px,
+                        h = height + thickness - 0.5.px
+                    ),
+                    colour = theme.panel,
+                    radius = 5.radius()
+                ) {
+                    outline(theme.border, thickness = thickness)
+                    dropShadow(
+                        colour = Colour.BLACK.withAlpha(0.1f),
+                        blur = 10f,
+                        spread = 5f,
+                        radius = 5.radius()
+                    )
+                    onClick { true }
+
+                    val scrollable = scrollable(constrain(w = Copying - thickness, h = height)) {
+                        column {
+                            suggestions().forEach { suggestion ->
+                                items[suggestion] = block(size(w = Fill, h = 25.px), colour = theme.panel, radius = 3.radius()) {
+                                    hoverEffect(1.1f)
+//                                    cursor(CursorShape.HAND)
+                                    text(
+                                        string = suggestion,
+                                        colour = theme.textPrimary,
+                                        size = 14.px,
+                                        pos = at(x = 5.px, y = Centre)
+                                    )
+
+                                    onClick {
+                                        string = suggestion
+                                        ui.unfocus()
+                                        closePopup()
+                                        true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    onScroll { (amount) -> scrollable.scroll(amount * -50f) }
+                }
+            }
+            update(string)
+        }
+
+        onTextChanged {
+            update(it.string)
+        }
+    }
 }
