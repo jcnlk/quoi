@@ -192,13 +192,13 @@ object BlazeSolver { // todo maybe improve terminator shit some day
     }
 
     private fun getAABB(blaze: ArmorStand, isTarget: Boolean): AABB {
-        val boundsCenter = blaze.boundingBox.center
-        val cx = boundsCenter.x
-        val cy = boundsCenter.y - 1.0
-        val cz = boundsCenter.z
+        val centre = blaze.boundingBox.center
+        val cx = centre.x
+        val cy = centre.y - 1.0
+        val cz = centre.z
 
-        val width = if (isTarget) 0.4 else 0.65
-        val height = if (isTarget) 0.9 else 1.3
+        val width = if (isTarget) 0.35 else 0.75
+        val height = if (isTarget) 0.8 else 1.45
 
         return AABB(
             cx - width, cy - height, cz - width,
