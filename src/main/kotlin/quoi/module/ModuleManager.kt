@@ -25,6 +25,7 @@ object ModuleManager {
             ShadowAssassinAlert,
             LeapMenu,
             AutoAlign,
+            AutoLeap,
             LeverAura,
             AutoCloseChest,
             FullBlockHitboxes,
