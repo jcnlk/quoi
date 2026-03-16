@@ -225,16 +225,20 @@ class TextInput(
                 }
 
                 CatKeys.KEY_RIGHT -> {
-                    if (caret != text.length) {
+                    if (selection != caret && !mods.isShiftDown) {
+                        caret = maxOf(caret, selection)
+                        selection = caret
+                    } else if (caret != text.length) {
                         caret = if (mods.isCtrlDown) getNextWord() else caret + 1
                         if (!mods.isShiftDown) selection = caret
-                    } else {
-                        if (!mods.isShiftDown && selection > 0) selection = caret
                     }
                 }
 
                 CatKeys.KEY_LEFT -> {
-                    if (caret != 0) {
+                    if (selection != caret && !mods.isShiftDown) {
+                        caret = minOf(caret, selection)
+                        selection = caret
+                    } else if (caret != 0) {
                         caret = if (mods.isCtrlDown) getPreviousWord() else caret - 1
                         if (!mods.isShiftDown) selection = caret
                     }

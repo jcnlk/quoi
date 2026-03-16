@@ -5,10 +5,10 @@ import quoi.api.abobaui.constraints.Positions
 import quoi.api.abobaui.constraints.Sizes
 import quoi.api.abobaui.constraints.impl.measurements.Animatable
 import quoi.api.abobaui.constraints.impl.positions.Centre
+import quoi.api.abobaui.constraints.impl.size.Bounding
 import quoi.api.abobaui.constraints.impl.size.Copying
 import quoi.api.abobaui.constraints.impl.size.Fill
 import quoi.api.abobaui.dsl.*
-import quoi.api.abobaui.elements.Element
 import quoi.api.abobaui.elements.ElementScope
 import quoi.api.abobaui.elements.impl.Block
 import quoi.api.abobaui.elements.impl.Block.Companion.outline
@@ -29,14 +29,13 @@ import quoi.utils.ThemeManager.theme
 import quoi.utils.ui.cursor
 import quoi.utils.ui.data.Radii
 import quoi.utils.ui.delegateClick
+import quoi.utils.ui.hud.GroupHeight
 import quoi.utils.ui.popupY
 import quoi.utils.ui.rendering.Font
 import quoi.utils.ui.rendering.NVGRenderer
 import quoi.utils.ui.watch
-import kotlin.getValue
 import kotlin.math.roundToInt
 import kotlin.reflect.KMutableProperty0
-import kotlin.text.isDigit
 
 @Suppress("UNCHECKED_CAST")
 fun <T : Number> ElementScope<*>.numberInput(
@@ -314,13 +313,6 @@ fun ElementScope<*>.suggestionInput( // todo make it not look like shit. also ad
             val y = popupY(gap = 10f, corner = true)
             val thickness = 2.px
 
-            val height = object : Constraint.Size {
-                override fun calculateSize(element: Element, horizontal: Boolean): Float {
-                    val count = items.values.count { it.element.enabled }.toFloat()
-                    return (if (count > 4f) 4.5f else count) * 25f
-                }
-            }
-
             popup = popup(copies(), smooth = false) {
                 onClick {
                     closePopup()
@@ -333,7 +325,7 @@ fun ElementScope<*>.suggestionInput( // todo make it not look like shit. also ad
                         x = this@apply.element.x.px - 5.px,
                         y = y,
                         w = this@apply.element.width.px + thickness - 0.5.px + 10.px,
-                        h = height + thickness - 0.5.px
+                        h = GroupHeight + thickness - 0.5.px
                     ),
                     colour = theme.panel,
                     radius = 5.radius()
@@ -347,7 +339,7 @@ fun ElementScope<*>.suggestionInput( // todo make it not look like shit. also ad
                     )
                     onClick { true }
 
-                    val scrollable = scrollable(constrain(w = Copying - thickness, h = height)) {
+                    val scrollable = scrollable(constrain(w = Copying - thickness, h = Bounding.coerceAtMost(112.5.px))) {
                         column {
                             suggestions().forEach { suggestion ->
                                 items[suggestion] = block(size(w = Fill, h = 25.px), colour = theme.panel, radius = 3.radius()) {
