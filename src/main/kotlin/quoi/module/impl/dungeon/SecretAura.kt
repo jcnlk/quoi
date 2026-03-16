@@ -1,20 +1,5 @@
 package quoi.module.impl.dungeon
 
-import quoi.api.events.PacketEvent
-import quoi.api.events.TickEvent
-import quoi.api.events.WorldEvent
-import quoi.api.skyblock.Location.inSkyblock
-import quoi.api.skyblock.dungeon.Dungeon.inBoss
-import quoi.api.skyblock.dungeon.Dungeon.inDungeons
-import quoi.module.Module
-import quoi.module.settings.Setting.Companion.withDependency
-import quoi.module.settings.impl.BooleanSetting
-import quoi.module.settings.impl.NumberSetting
-import quoi.module.settings.impl.SelectorSetting
-import quoi.utils.equalsOneOf
-import quoi.utils.skyblock.player.AuraManager
-import quoi.utils.skyblock.player.SwapManager
-import quoi.utils.skyblock.player.SwapResult
 import net.minecraft.core.BlockPos
 import net.minecraft.core.component.DataComponents
 import net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket
@@ -30,8 +15,25 @@ import net.minecraft.world.level.block.entity.ChestBlockEntity
 import net.minecraft.world.level.block.entity.SkullBlockEntity
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.phys.AABB
+import quoi.api.events.PacketEvent
+import quoi.api.events.TickEvent
+import quoi.api.events.WorldEvent
+import quoi.api.skyblock.Location.inSkyblock
 import quoi.api.skyblock.dungeon.Dungeon.currentRoom
-import quoi.module.settings.impl.DropdownSetting
+import quoi.api.skyblock.dungeon.Dungeon.inBoss
+import quoi.api.skyblock.dungeon.Dungeon.inDungeons
+import quoi.module.Module
+import quoi.module.settings.Setting.Companion.withDependency
+import quoi.module.settings.impl.BooleanSetting
+import quoi.module.settings.impl.NumberSetting
+import quoi.module.settings.impl.SelectorSetting
+import quoi.utils.Vec3
+import quoi.utils.WorldUtils.state
+import quoi.utils.aabb
+import quoi.utils.equalsOneOf
+import quoi.utils.skyblock.player.AuraManager
+import quoi.utils.skyblock.player.SwapManager
+import quoi.utils.skyblock.player.SwapResult
 import java.util.*
 
 // modified https://github.com/Hypericat/NoobRoutes/blob/main/src/main/kotlin/noobroutes/features/dungeon/SecretAura.kt
@@ -49,19 +51,6 @@ object SecretAura : Module(
 
     private val swing by BooleanSetting("Swing hand", desc = "Makes secret aura swing hand on click.")
     private val dungeonsOnly by BooleanSetting("Dungeons only", true, desc = "Makes secret aura only work in dungeons.")
-//shit
-
-    private val roomsDropdown by DropdownSetting("Rooms").collapsible()
-    private val creeperBeams by BooleanSetting("Creeper Beams", true).withDependency(roomsDropdown)
-    private val threeWeirdos by BooleanSetting("Three Weirdos", false).withDependency(roomsDropdown)
-    private val ticTacToe by BooleanSetting("Tic-Tac-Toe", true).withDependency(roomsDropdown)
-    private val waterBoard by BooleanSetting("Water Board", false).withDependency(roomsDropdown)
-    private val teleportMaze by BooleanSetting("Teleport Maze", true).withDependency(roomsDropdown)
-    private val higherOrLower by BooleanSetting("Higher or Lower", true).withDependency(roomsDropdown)
-    private val boulder by BooleanSetting("Boulder", true).withDependency(roomsDropdown)
-    private val iceFill by BooleanSetting("Ice Fill", true).withDependency(roomsDropdown)
-    private val icePath by BooleanSetting("Ice Path", true).withDependency(roomsDropdown)
-    private val quiz by BooleanSetting("Quiz", true).withDependency(roomsDropdown)
 
     private val REDSTONE_KEY = UUID.fromString("fed95410-aba1-39df-9b95-1d4f361eb66e")
     private val WITHER_ESSENCE = UUID.fromString("e0f3e929-869e-3dca-9504-54c666ee6f23")
@@ -108,7 +97,17 @@ object SecretAura : Module(
             }
 
             currentRoom?.let { room ->
-                if (isPuzzleRoomDisabled(room.data.name)) return@on
+                when (room.name) {
+                    "Three Weirdos" -> return@on
+                    "Ice Path" if (!room.getRealCoords(BlockPos(15, 68, 25)).state.isAir) -> return@on
+                    "Water Board" if ((15..19).any { !room.getRealCoords(BlockPos(15, 57, it)).state.isAir }) -> return@on
+                    "Teleport Maze" -> {
+                        val min = room.getRealCoords(Vec3(12, 68, 14))
+                        val max = room.getRealCoords(Vec3(18, 70, 20))
+                        if (!AABB(min, max).intersects(player.blockPosition().aabb)) return@on
+                    }
+                    "Ice Fill" if (room.getRealCoords(BlockPos(15, 71, 26)).state.block != Blocks.PACKED_ICE) -> return@on
+                }
             }
 
             var blockCandidate = BlockDistance(Blocks.AIR, BlockPos(Int.MAX_VALUE, 69, Int.MIN_VALUE), Double.POSITIVE_INFINITY)
@@ -144,6 +143,20 @@ object SecretAura : Module(
                     blockCandidate = BlockDistance(currentBlock, pos.immutable(), currentDistanceSq)
                 }
             }
+            currentRoom?.let { room ->
+                when (room.name) {
+                    "Water Board", "Tic Tac Toe" -> if (blockCandidate.block == Blocks.LEVER) return@on
+                    "Lower Blaze" -> {
+                        val chest = room.getRealCoords(BlockPos(15, 20, 15))
+                        if (chest.x == blockCandidate.pos.x && chest.state.block != Blocks.CHEST) return@on
+                    }
+                    "Higher Blaze" -> {
+                        val chest = room.getRealCoords(BlockPos(15, 119, 15))
+                        if (chest.x == blockCandidate.pos.x && chest.state.block != Blocks.CHEST) return@on
+                    }
+                }
+            }
+
             if (blockCandidate.block == Blocks.AIR) {
                 if (previousSlot != -1) {
                     SwapManager.swapToSlot(previousSlot)
@@ -241,22 +254,6 @@ object SecretAura : Module(
 
         if (currentBlock === Blocks.REDSTONE_BLOCK) {
             blocksDone.add(pos)
-        }
-    }
-
-    private fun isPuzzleRoomDisabled(roomName: String): Boolean {
-        return when (roomName.lowercase()) {
-            "creeper beams" -> !creeperBeams
-            "three weirdos" -> !threeWeirdos
-            "tic tac toe" -> !ticTacToe
-            "water board" -> !waterBoard
-            "teleport maze" -> !teleportMaze
-            "higher or lower" -> !higherOrLower
-            "boulder" -> !boulder
-            "ice fill" -> !iceFill
-            "ice path" -> !icePath
-            "quiz" -> !quiz
-            else -> false
         }
     }
 
