@@ -9,7 +9,8 @@ import quoi.api.skyblock.dungeon.DungeonClass
 import quoi.api.skyblock.dungeon.P3Section
 import quoi.module.Module
 import quoi.module.settings.Setting.Companion.json
-import quoi.module.settings.Setting.Companion.withDependency
+import quoi.module.settings.UISetting.Companion.childOf
+import quoi.module.settings.UISetting.Companion.visibleIf
 import quoi.module.settings.impl.BooleanSetting
 import quoi.module.settings.impl.NumberSetting
 import quoi.module.settings.impl.SelectorSetting
@@ -23,22 +24,22 @@ object AutoLeap : Module(
     area = Island.Dungeon
 ) {
     private val fastLeap by BooleanSetting("Fast leap", desc = "Leaps to a set player on infinileap left click.")
-    private val fastDelay by NumberSetting("Delay", 250L, 100L, 500L, 50L).withDependency { fastLeap } // to not pull bko
+    private val fastDelay by NumberSetting("Delay", 250L, 100L, 500L, 50L).childOf(::fastLeap) // to not pull bko
     private val autoLeap by BooleanSetting("Auto leap", desc = "Automatically leaps when a section is finished.")
-    private val whenBlown by BooleanSetting("Only when gate blown", desc = "Only leaps when gate is blown").withDependency { autoLeap }
+    private val whenBlown by BooleanSetting("Only when gate blown", desc = "Only leaps when gate is blown").childOf(::autoLeap)
     private val leapMode by SelectorSetting("Leap mode", "Name", listOf("Name", "Class"), "Leap mode for the module.")
 
-    private val clearName by StringSetting("Clear leap", "Clear").withDependency { leapMode.selected == "Name" }.suggests { allTeammatesNoSelf }
-    private val s1Name by StringSetting("S1 leap", "S1", length = 16).withDependency { leapMode.selected == "Name" }.suggests { allTeammatesNoSelf }
-    private val s2Name by StringSetting("S2 leap", "S2", length = 16).withDependency { leapMode.selected == "Name" }.suggests { allTeammatesNoSelf }
-    private val s3Name by StringSetting("S3 leap", "S3", length = 16).withDependency { leapMode.selected == "Name" }.suggests { allTeammatesNoSelf }
-    private val s4Name by StringSetting("S4 leap", "S4", length = 16).withDependency { leapMode.selected == "Name" }.suggests { allTeammatesNoSelf }
+    private val clearName by StringSetting("Clear leap", "Clear").visibleIf { leapMode.selected == "Name" }.suggests { allTeammatesNoSelf }
+    private val s1Name by StringSetting("S1 leap", "S1", length = 16).visibleIf { leapMode.selected == "Name" }.suggests { allTeammatesNoSelf }
+    private val s2Name by StringSetting("S2 leap", "S2", length = 16).visibleIf { leapMode.selected == "Name" }.suggests { allTeammatesNoSelf }
+    private val s3Name by StringSetting("S3 leap", "S3", length = 16).visibleIf { leapMode.selected == "Name" }.suggests { allTeammatesNoSelf }
+    private val s4Name by StringSetting("S4 leap", "S4", length = 16).visibleIf { leapMode.selected == "Name" }.suggests { allTeammatesNoSelf }
 
-    private val clearClass by SelectorSetting("Clear leap", DungeonClass.Unknown).json("Clear leap class").withDependency { leapMode.selected == "Class" }
-    private val s1Class by SelectorSetting("S1 leap", DungeonClass.Healer).json("S1 leap class").withDependency { leapMode.selected == "Class" }
-    private val s2Class by SelectorSetting("S2 leap", DungeonClass.Archer).json("S2 leap class").withDependency { leapMode.selected == "Class" }
-    private val s3Class by SelectorSetting("S3 leap", DungeonClass.Mage).json("S3 leap class").withDependency { leapMode.selected == "Class" }
-    private val s4Class by SelectorSetting("S4 leap", DungeonClass.Mage).json("S4 leap class").withDependency { leapMode.selected == "Class" }
+    private val clearClass by SelectorSetting("Clear leap", DungeonClass.Unknown).json("Clear leap class").visibleIf { leapMode.selected == "Class" }
+    private val s1Class by SelectorSetting("S1 leap", DungeonClass.Healer).json("S1 leap class").visibleIf { leapMode.selected == "Class" }
+    private val s2Class by SelectorSetting("S2 leap", DungeonClass.Archer).json("S2 leap class").visibleIf { leapMode.selected == "Class" }
+    private val s3Class by SelectorSetting("S3 leap", DungeonClass.Mage).json("S3 leap class").visibleIf { leapMode.selected == "Class" }
+    private val s4Class by SelectorSetting("S4 leap", DungeonClass.Mage).json("S4 leap class").visibleIf { leapMode.selected == "Class" }
 
     private var lastClick = 0L
 

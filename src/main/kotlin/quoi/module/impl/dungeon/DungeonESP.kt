@@ -1,5 +1,11 @@
 package quoi.module.impl.dungeon
 
+import net.minecraft.world.entity.Entity
+import net.minecraft.world.entity.LivingEntity
+import net.minecraft.world.entity.ambient.Bat
+import net.minecraft.world.entity.decoration.ArmorStand
+import net.minecraft.world.entity.monster.EnderMan
+import net.minecraft.world.entity.player.Player
 import quoi.api.colour.Colour
 import quoi.api.colour.withAlpha
 import quoi.api.events.EntityEvent
@@ -10,7 +16,8 @@ import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.invoke
 import quoi.module.Module
 import quoi.module.settings.Setting.Companion.json
-import quoi.module.settings.Setting.Companion.withDependency
+import quoi.module.settings.UISetting.Companion.childOf
+import quoi.module.settings.UISetting.Companion.visibleIf
 import quoi.module.settings.impl.*
 import quoi.utils.EntityUtils.entities
 import quoi.utils.EntityUtils.interpolatedBox
@@ -18,13 +25,6 @@ import quoi.utils.Scheduler.scheduleLoop
 import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.equalsOneOf
 import quoi.utils.render.drawStyledBox
-import net.minecraft.world.entity.Entity
-import net.minecraft.world.entity.LivingEntity
-import net.minecraft.world.entity.ambient.Bat
-import net.minecraft.world.entity.decoration.ArmorStand
-import net.minecraft.world.entity.monster.EnderMan
-import net.minecraft.world.entity.player.Player
-import quoi.utils.ChatUtils.modMessage
 
 object DungeonESP : Module(
     "Dungeon ESP",
@@ -34,20 +34,20 @@ object DungeonESP : Module(
     private val teammateClassGlow by BooleanSetting("Teammate class glow", true, desc = "Highlights dungeon teammates based on their class colour.")
     private val starEsp by BooleanSetting("Starred mobs")
 
-    private val depth by BooleanSetting("Depth check").withDependency { starEsp }
-    private val style by SelectorSetting("Style", "Box", arrayListOf("Box", "Filled box", "Glow", "2D"), desc = "Esp render style to be used.").withDependency { starEsp }
-    private val thickness by NumberSetting("Thickness", 4, 1, 8, 1).withDependency { starEsp }
-    private val sizeOffset by NumberSetting("Size offset", 0.0, -1.0, 1.0, 0.05, desc = "Changes box size offset.").withDependency { style.selected.equalsOneOf("Box", "Filled box") && starEsp }
+    private val depth by BooleanSetting("Depth check").visibleIf { starEsp }
+    private val style by SelectorSetting("Style", "Box", arrayListOf("Box", "Filled box", "Glow", "2D"), desc = "Esp render style to be used.").visibleIf { starEsp }
+    private val thickness by NumberSetting("Thickness", 4, 1, 8, 1).visibleIf { starEsp }
+    private val sizeOffset by NumberSetting("Size offset", 0.0, -1.0, 1.0, 0.05, desc = "Changes box size offset.").visibleIf { style.selected.equalsOneOf("Box", "Filled box") && starEsp }
 
-    private val colourDropdown by DropdownSetting("Colours").collapsible()
-    private val colourStar by ColourSetting("Star", Colour.RED, true, "ESP color for star mobs.").withDependency(colourDropdown) { starEsp }
-    private val colourSA by ColourSetting("Shadow assassin", Colour.RED, true, "ESP color for shadow assassins.").withDependency(colourDropdown) { starEsp }
-    private val colourBat by ColourSetting("Bat", Colour.RED, true, "ESP color for bats.").withDependency(colourDropdown) { starEsp }
+    private val colourDropdown by TextSetting("Colours")
+    private val colourStar by ColourSetting("Star", Colour.RED, true, "ESP color for star mobs.").childOf(colourDropdown) { starEsp }
+    private val colourSA by ColourSetting("Shadow assassin", Colour.RED, true, "ESP color for shadow assassins.").childOf(colourDropdown) { starEsp }
+    private val colourBat by ColourSetting("Bat", Colour.RED, true, "ESP color for bats.").childOf(colourDropdown) { starEsp }
 
-    private val fillDropdown by DropdownSetting("Fill colours").collapsible().withDependency { style.selected == "Filled box" && starEsp }
-    private val colourStarFill by ColourSetting("Star", Colour.RED.withAlpha(60), true, "ESP color for star mobs.").json("Star fill").withDependency(fillDropdown)
-    private val colourSAFill by ColourSetting("Shadow assassin", Colour.RED.withAlpha(60), true, "ESP color for shadow assassins.").json("Shadow assassin fill").withDependency(fillDropdown)
-    private val colourBatFill by ColourSetting("Bat", Colour.RED.withAlpha(60), true, "ESP color for bats.").json("Bat fill").withDependency(fillDropdown)
+    private val fillDropdown by TextSetting("Fill colours").visibleIf { style.selected == "Filled box" && starEsp }
+    private val colourStarFill by ColourSetting("Star", Colour.RED.withAlpha(60), true, "ESP color for star mobs.").json("Star fill").childOf(fillDropdown)
+    private val colourSAFill by ColourSetting("Shadow assassin", Colour.RED.withAlpha(60), true, "ESP color for shadow assassins.").json("Shadow assassin fill").childOf(fillDropdown)
+    private val colourBatFill by ColourSetting("Bat", Colour.RED.withAlpha(60), true, "ESP color for bats.").json("Bat fill").childOf(fillDropdown)
 
     private var currentEntities = mutableSetOf<EspMob>()
 

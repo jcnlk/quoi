@@ -64,7 +64,9 @@ class HudSetting<T : Hud>(
             column(size(w = Copying), gap = 7.px) {
                 value.settings.forEach { setting ->
                     if (setting !is UISetting) return@forEach
-                    setting.render(this)
+                    val dummy = value.settings.first() as UISetting<*>
+                    val asSub = setting in dummy.children || setting.children.isNotEmpty()
+                    setting.render(this, asSub)
                 }
                 row(size(w = Copying)) {
                     text(

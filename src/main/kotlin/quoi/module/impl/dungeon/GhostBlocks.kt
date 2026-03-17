@@ -1,5 +1,8 @@
 package quoi.module.impl.dungeon
 
+import net.minecraft.core.BlockPos
+import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket
+import net.minecraft.world.level.block.Blocks
 import quoi.api.commands.internal.BaseCommand
 import quoi.api.events.PacketEvent
 import quoi.api.events.RenderEvent
@@ -8,14 +11,11 @@ import quoi.api.skyblock.dungeon.Dungeon.inBoss
 import quoi.api.skyblock.dungeon.Dungeon.inDungeons
 import quoi.config.configList
 import quoi.module.Module
-import quoi.module.settings.Setting.Companion.withDependency
+import quoi.module.settings.UISetting.Companion.visibleIf
 import quoi.module.settings.impl.BooleanSetting
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.StringUtils.width
 import quoi.utils.render.DrawContextUtils.drawString
-import net.minecraft.core.BlockPos
-import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket
-import net.minecraft.world.level.block.Blocks
 
 // Kyleen
 object GhostBlocks : Module( // this shit seems so fucking useless.
@@ -24,7 +24,7 @@ object GhostBlocks : Module( // this shit seems so fucking useless.
 ) {
 
     private val dungeonsOnly by BooleanSetting("Dungeons only")
-    private val bossOnly by BooleanSetting("Boss only").withDependency { dungeonsOnly }
+    private val bossOnly by BooleanSetting("Boss only").visibleIf { dungeonsOnly }
 
     private val ghostBlocks by configList<BlockPos>("ghostblocks.json")
     private var editMode = false

@@ -1,5 +1,8 @@
 package quoi.utils.ui
 
+import net.minecraft.resources.ResourceLocation
+import net.minecraft.sounds.SoundEvent
+import net.minecraft.sounds.SoundEvents
 import quoi.api.abobaui.constraints.Constraint
 import quoi.api.abobaui.constraints.Positions
 import quoi.api.abobaui.dsl.*
@@ -10,22 +13,15 @@ import quoi.api.abobaui.elements.impl.Text.Companion.textSupplied
 import quoi.api.abobaui.elements.impl.TextInput
 import quoi.api.abobaui.events.Lifetime
 import quoi.api.colour.Colour
+import quoi.api.input.CatMouse
 import quoi.api.input.CursorShape
 import quoi.module.Module
 import quoi.module.settings.Setting.Companion.json
-import quoi.module.settings.Setting.Companion.withDependency
 import quoi.module.settings.UISetting
-import quoi.module.settings.impl.ActionSetting
-import quoi.module.settings.impl.DropdownSetting
-import quoi.module.settings.impl.SelectorSetting
-import quoi.module.settings.impl.NumberSetting
-import quoi.module.settings.impl.StringSetting
+import quoi.module.settings.UISetting.Companion.childOf
+import quoi.module.settings.impl.*
 import quoi.utils.skyblock.player.PlayerUtils
 import quoi.utils.ui.rendering.NVGRenderer.minecraftFont
-import net.minecraft.resources.ResourceLocation
-import net.minecraft.sounds.SoundEvent
-import net.minecraft.sounds.SoundEvents
-import quoi.api.input.CatMouse
 import kotlin.reflect.KProperty0
 import kotlin.reflect.jvm.isAccessible
 
@@ -158,13 +154,13 @@ private enum class Sound(val sound: SoundEvent) {
 
 fun Module.createSoundSettings(
     name: String,
-    parent: DropdownSetting? = null,
+    parent: TextSetting? = null,
     dependencies: () -> Boolean,
 ): () -> Triple<SoundEvent, Float, Float> {
-    val sound = +SelectorSetting("$name sound", Sound.BlazeHurt).withDependency(parent) { dependencies() }
-    val customSound = +StringSetting("Custom sound", "entity.blaze.hurt", length = 64).json("$name custom sound").withDependency(parent) { dependencies() && sound.selected == Sound.Custom }
-    val soundVolume = +NumberSetting("Volume", 1.0f, 0.1f, 2.0f, 0.01f, desc = "Volume of the sound to play.").json("$name volume").withDependency(parent) { dependencies() }
-    val soundPitch = +NumberSetting("Pitch", 1.0f, 0.1f, 2.0f, 0.01f, desc = "Pitch of the sound to play.").json("$name pitch").withDependency(parent) { dependencies() }
+    val sound = +SelectorSetting("$name sound", Sound.BlazeHurt).childOf(parent) { dependencies() }
+    val customSound = +StringSetting("Custom sound", "entity.blaze.hurt", length = 64).json("$name custom sound").childOf(parent) { dependencies() && sound.selected == Sound.Custom }
+    val soundVolume = +NumberSetting("Volume", 1.0f, 0.1f, 2.0f, 0.01f, desc = "Volume of the sound to play.").json("$name volume").childOf(parent) { dependencies() }
+    val soundPitch = +NumberSetting("Pitch", 1.0f, 0.1f, 2.0f, 0.01f, desc = "Pitch of the sound to play.").json("$name pitch").childOf(parent) { dependencies() }
     val soundSettings = {
         val soundEvent =
             if (sound.selected == Sound.BlazeHurt)
@@ -175,6 +171,6 @@ fun Module.createSoundSettings(
     }
     +ActionSetting("Test sound") {
         PlayerUtils.playSound(soundSettings)
-    }.withDependency(parent) { dependencies() }
+    }.childOf(parent) { dependencies() }
     return soundSettings
 }

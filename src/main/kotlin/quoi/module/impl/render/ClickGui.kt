@@ -29,23 +29,24 @@ import quoi.api.colour.Colour
 import quoi.api.colour.colour
 import quoi.api.colour.withAlpha
 import quoi.api.input.CatKeys
-import quoi.api.input.CursorShape
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.Floor
 import quoi.config.Config
 import quoi.module.Category
 import quoi.module.Module
 import quoi.module.ModuleManager.modules
-import quoi.module.settings.Setting.Companion.withDependency
+import quoi.module.impl.misc.Test
 import quoi.module.settings.UISetting
+import quoi.module.settings.UISetting.Companion.childOf
+import quoi.module.settings.UISetting.Companion.visibleIf
 import quoi.module.settings.impl.*
 import quoi.utils.ChatUtils.modMessage
+import quoi.utils.StringUtils.capitaliseFirst
 import quoi.utils.StringUtils.percentColour
 import quoi.utils.StringUtils.toFixed
 import quoi.utils.ThemeManager.LightTheme
 import quoi.utils.ThemeManager.theme
 import quoi.utils.WorldUtils.day
-import quoi.utils.ui.cursor
 import quoi.utils.ui.elements.themedInput
 import quoi.utils.ui.hud.HudManager
 import quoi.utils.ui.hud.TextHud
@@ -62,7 +63,7 @@ object ClickGui : Module(
 ) {
     val forceSkyblock by BooleanSetting("Force skyblock")
     val forceDungeons by BooleanSetting("Force dungeon")
-    val dungeonFloor by SelectorSetting("Floor", Floor.F7).withDependency { forceDungeons }.onValueChanged { old, new ->
+    val dungeonFloor by SelectorSetting("Floor", Floor.F7).visibleIf { forceDungeons }.onValueChanged { old, new ->
         if (forceDungeons) Dungeon.setFloor(new.selected)
     }
     val accentColour by ColourSetting("Colour", Colour.RGB(107, 203, 119))
@@ -74,22 +75,22 @@ object ClickGui : Module(
     }
 
     private inline val isCustom get() = selectedTheme.selected == "Custom"
-    private val themeColours by DropdownSetting("Custom theme colours").collapsible().withDependency { isCustom }
-    val background by ColourSetting("Background", LightTheme.background).withDependency(themeColours) { isCustom }
-    val panel by ColourSetting("Panel", LightTheme.panel).withDependency(themeColours) { isCustom }
-    val textPrimary by ColourSetting("Primary text", LightTheme.textPrimary).withDependency(themeColours) { isCustom }
-    val textSecondary by ColourSetting("Secondary text", LightTheme.textSecondary).withDependency(themeColours) { isCustom }
-    val border by ColourSetting("Border", LightTheme.border).withDependency(themeColours) { isCustom }
+    private val themeColours by TextSetting("Custom theme colours").visibleIf { isCustom }
+    val background by ColourSetting("Background", LightTheme.background).childOf(themeColours) { isCustom }
+    val panel by ColourSetting("Panel", LightTheme.panel).childOf(themeColours) { isCustom }
+    val textPrimary by ColourSetting("Primary text", LightTheme.textPrimary).childOf(themeColours) { isCustom }
+    val textSecondary by ColourSetting("Secondary text", LightTheme.textSecondary).childOf(themeColours) { isCustom }
+    val border by ColourSetting("Border", LightTheme.border).childOf(themeColours) { isCustom }
     private val reset by ActionSetting("Reset") {
         setOf(::background, ::panel, ::textPrimary, ::textSecondary, ::border).forEach { property ->
             settingFromK0(property).reset()
         }
-    }.withDependency(themeColours) { isCustom }
+    }.childOf(themeColours) { isCustom }
     
-    private val prefixDropdown by DropdownSetting("Prefix settings").collapsible()
-    val prefixText by StringSetting("Prefix", "quoi!").withDependency(prefixDropdown)
-    val prefixColour by ColourSetting("Prefix colour", Colour.GREEN).withDependency(prefixDropdown)
-    val bracketsColour by ColourSetting("Brackets colour", Colour.WHITE).withDependency(prefixDropdown)
+    private val prefixDropdown by TextSetting("Prefix settings")
+    val prefixText by StringSetting("Prefix", "quoi!").childOf(prefixDropdown)
+    val prefixColour by ColourSetting("Prefix colour", Colour.GREEN).childOf(prefixDropdown)
+    val bracketsColour by ColourSetting("Brackets colour", Colour.WHITE).childOf(prefixDropdown)
 
     private val fpsHud by TextHud("Fps display") {
         textPair(
@@ -160,7 +161,7 @@ object ClickGui : Module(
 
     private fun clickGui() = aboba("Quoi! Click Gui") { // todo redesign
         val moduleScopes = arrayListOf<Pair<Module, ElementScope<*>>>()
-//        ui.debug = true
+        ui.debug = Test.uiDebug
         onRemove {
             Config.save()
             HudManager.reinit(immediately = false)
@@ -174,7 +175,7 @@ object ClickGui : Module(
                     colour = Colour.BLACK.withAlpha(0.25f),
                     blur = 10f,
                     spread = 5f,
-                    radius = 10.radius()
+                    radius = 6.radius()
                 )
                 onRemove {
                     data.x = element.x
@@ -184,10 +185,10 @@ object ClickGui : Module(
                 block(
                     size(260.px, (MODULE_SIZE + 5).px),
                     colour = theme.background,
-                    radius(tl = 10, tr = 10)
+                    radius(tl = 6, tr = 6)
                 ) {
                     text(
-                        string = category.name,
+                        string = category.name.capitaliseFirst(),
                         size = 70.percent,
                         colour = theme.textPrimary
                     )
@@ -219,7 +220,7 @@ object ClickGui : Module(
                 block(
                     size(260.px, 10.px),
                     colour = theme.background,
-                    radius(bl = 10, br = 10)
+                    radius(bl = 6, br = 6)
                 )
 
                 onScroll { (amount) ->
@@ -329,7 +330,25 @@ object ClickGui : Module(
             onClick(button = 1) {
                 if (!loaded) {
                     settings.apply {
-                        divider(8.px)
+//                        row(size(w = Copying, h = Bounding)) {
+//
+//                            block(
+//                                constrain(w = 4.px, h = Copying),
+//                                colour = theme.accent,
+////                        2.radius()
+//                            )
+//                            divider(7.px)
+//                            column(size(w = Copying - 21.px), gap = 8.px) {
+//                                divider(8.px)
+//                                module.settings.forEach { setting ->
+//                                    if (setting !is UISetting || setting.parent != null) return@forEach
+//                                    setting.render(this).description(setting.description, xOff = 3, yOff = -4)
+//                                }
+//                                divider(0.px)
+//                            }
+//                            divider(7.px)
+//                        }
+
                         module.settings.forEach { setting ->
                             if (setting !is UISetting || setting.parent != null) return@forEach
                             setting.render(this).description(setting.description, xOff = 3, yOff = -4)
@@ -343,7 +362,8 @@ object ClickGui : Module(
                 true
             }
         }
-        settings = column(constrain(x = 5.px, w = Copying - 10.px, h = height), gap = 8.px) {
+        settings = column(constrain(x = 7.px, w = Copying - 14.px, h = height), gap = 9.px) {
+            divider(9.px)
         }
     }
 
@@ -397,7 +417,7 @@ object ClickGui : Module(
 
     private fun Float.formatTps(decimals: Int = 0) = (this - 15).percentColour(5.0) + this.toFixed(decimals)
 
-    private fun reopen() {
+    fun reopen() {
         mc.setScreen(null)
         clickGui = clickGui()
         open(clickGui)

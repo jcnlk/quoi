@@ -9,9 +9,9 @@ import quoi.api.abobaui.elements.impl.Group
 import quoi.api.abobaui.transforms.impl.Scale
 import quoi.module.Module
 import quoi.module.settings.Setting
-import quoi.module.settings.Setting.Companion.withDependency
 import quoi.module.settings.UISetting
-import quoi.module.settings.impl.DropdownSetting
+import quoi.module.settings.UISetting.Companion.childOf
+import quoi.module.settings.impl.TextSetting
 import quoi.module.settings.impl.NumberSetting
 import quoi.utils.ui.settingFromK0
 import kotlin.reflect.KProperty0
@@ -28,7 +28,7 @@ open class Hud(
     val y = NumberSetting("y", 0.0f, 0.0f, 100.0f).hide()
     var scale = NumberSetting("scale", 1.0f, 0.3f, 5f, 0.1f).hide()
 
-    private val dummy = DropdownSetting("dummy").hide()
+    private val dummy = TextSetting("dummy").hide()
 
     val settings = arrayListOf<Setting<*>>(dummy, x, y, scale)
 
@@ -76,12 +76,9 @@ open class Hud(
 
     private fun addSetting(setting: UISetting<*>) {
         if (setting in module.settings) {
-            setting.parent?.children?.remove(setting)
-            val prevDependency = setting.visibilityDependency
-            val parent = setting.parent ?: dummy.value
-            setting.withDependency(parent) { prevDependency?.invoke() == true || prevDependency == null }
-
-            if (toggleable) module.settings.remove(setting)
+//            setting.parent?.children?.remove(setting)
+            dummy.childOf(setting)
+            /*if (toggleable) */module.settings.remove(setting)
         }
 
         settings.add(setting)

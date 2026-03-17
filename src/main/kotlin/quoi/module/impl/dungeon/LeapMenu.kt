@@ -21,7 +21,7 @@ import quoi.api.skyblock.dungeon.Dungeon.leapTeammates
 import quoi.api.skyblock.dungeon.DungeonPlayer
 import quoi.config.Config
 import quoi.module.Module
-import quoi.module.settings.Setting.Companion.withDependency
+import quoi.module.settings.UISetting.Companion.visibleIf
 import quoi.module.settings.impl.*
 import quoi.utils.ChatUtils.literal
 import quoi.utils.ChatUtils.modMessage
@@ -37,7 +37,7 @@ object LeapMenu : Module(
     desc = "Adds a custom leap menu."
 ) {
     val sorting by SelectorSetting("Sorting", "Class", arrayListOf("Class", "Name", "Custom", "No sorting"))
-    val fillEmpty by BooleanSetting("Fill empty slots", desc = "Fills empty slots with remaining teammates if possible.").withDependency { sorting.selected == "Custom" }
+    val fillEmpty by BooleanSetting("Fill empty slots", desc = "Fills empty slots with remaining teammates if possible.").visibleIf { sorting.selected == "Custom" }
     val customOrder by ListSetting("Custom sorting", mutableListOf<String>())
     private val shadow by BooleanSetting("Shadow")
     private val onlyClass by BooleanSetting("Only class", desc = "Renders only classes.")

@@ -1,20 +1,27 @@
 package quoi.module.impl.dungeon
 
+import net.minecraft.core.BlockPos
+import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket
+import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket
+import net.minecraft.world.InteractionHand
+import net.minecraft.world.effect.MobEffects
+import net.minecraft.world.item.ItemStack
+import net.minecraft.world.level.ClipContext
+import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.phys.AABB
+import net.minecraft.world.phys.HitResult
+import net.minecraft.world.phys.Vec3
 import quoi.api.colour.Colour
 import quoi.api.colour.withAlpha
 import quoi.api.commands.internal.BaseCommand
-import quoi.api.events.ChatEvent
-import quoi.api.events.PacketEvent
-import quoi.api.events.RenderEvent
-import quoi.api.events.TickEvent
-import quoi.api.events.WorldEvent
+import quoi.api.events.*
 import quoi.api.skyblock.Island
 import quoi.api.skyblock.dungeon.Dungeon.inBoss
 import quoi.api.skyblock.dungeon.Dungeon.inDungeons
 import quoi.api.skyblock.dungeon.Dungeon.isProtectedBlock
 import quoi.config.configList
 import quoi.module.Module
-import quoi.module.settings.Setting.Companion.withDependency
+import quoi.module.settings.UISetting.Companion.visibleIf
 import quoi.module.settings.impl.BooleanSetting
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.StringUtils.noControlCodes
@@ -28,17 +35,6 @@ import quoi.utils.skyblock.player.SwapResult
 import quoi.utils.ui.hud.TextHud
 import quoi.utils.ui.hud.setting
 import quoi.utils.ui.textPair
-import net.minecraft.core.BlockPos
-import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket
-import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket
-import net.minecraft.world.InteractionHand
-import net.minecraft.world.level.ClipContext
-import net.minecraft.world.level.block.Blocks
-import net.minecraft.world.phys.AABB
-import net.minecraft.world.phys.HitResult
-import net.minecraft.world.phys.Vec3
-import net.minecraft.world.effect.MobEffects
-import net.minecraft.world.item.ItemStack
 import java.util.concurrent.ConcurrentHashMap
 
 // Kyleen
@@ -48,7 +44,7 @@ object DungeonBreaker : Module(
 ) {
 
     private val zeroPingDungeonBreaker by BooleanSetting("Zero ping", desc = "Insta-mine blocks.")
-    private val onlyWhenFatigue by BooleanSetting("Only insta-mine with fatigue", desc = "Only insta-mine blocks when mining fatigue is applied.").withDependency { zeroPingDungeonBreaker }
+    private val onlyWhenFatigue by BooleanSetting("Only insta-mine with fatigue", desc = "Only insta-mine blocks when mining fatigue is applied.").visibleIf { zeroPingDungeonBreaker }
     private val autoDungeonBreaker by BooleanSetting("Auto dungeon breaker", desc = "Automatically mines preset route when in boss. /db help")
     private val breakerBlocks by configList<BlockPos>("dungeonbreaker_blocks.json")
 

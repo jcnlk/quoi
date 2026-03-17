@@ -1,19 +1,5 @@
 package quoi.module.impl.dungeon
 
-import quoi.api.colour.Colour
-import quoi.api.colour.withAlpha
-import quoi.api.events.*
-import quoi.api.skyblock.Island
-import quoi.api.skyblock.dungeon.Dungeon
-import quoi.api.skyblock.invoke
-import quoi.module.Module
-import quoi.module.settings.impl.ActionSetting
-import quoi.module.settings.impl.BooleanSetting
-import quoi.module.settings.impl.NumberSetting
-import quoi.utils.ChatUtils.command
-import quoi.utils.StringUtils.noControlCodes
-import quoi.utils.render.drawFilledBox
-import quoi.utils.skyblock.player.LeapManager
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket
@@ -23,12 +9,22 @@ import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.Vec3
+import quoi.api.colour.Colour
+import quoi.api.colour.withAlpha
+import quoi.api.events.*
 import quoi.api.events.core.Priority
+import quoi.api.skyblock.Island
+import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.DungeonClass
-import quoi.module.settings.Setting.Companion.withDependency
-import quoi.module.settings.impl.SelectorSetting
-import quoi.module.settings.impl.StringSetting
+import quoi.api.skyblock.invoke
+import quoi.module.Module
+import quoi.module.settings.UISetting.Companion.visibleIf
+import quoi.module.settings.impl.*
+import quoi.utils.ChatUtils.command
 import quoi.utils.ChatUtils.modMessage
+import quoi.utils.StringUtils.noControlCodes
+import quoi.utils.render.drawFilledBox
+import quoi.utils.skyblock.player.LeapManager
 import kotlin.random.Random
 
 // Kyleen
@@ -46,9 +42,9 @@ object AutoSS : Module(
     private val startButtonReset by BooleanSetting("Start button reset", desc = "Pressing the SS start button resets autoss.")
     private val announceTime by BooleanSetting("Announce time", desc = "Runs /pc SS Took {time} when finished. (Only works sometimes atm)")
     val leapWhenDone by BooleanSetting("Leap when done", desc = "Auto leaps when the SS is done.")
-    private val leapMode by SelectorSetting("Leap mode", "Class", listOf("Name", "Class")).withDependency { leapWhenDone }
-    private val targetName by StringSetting("Target name", "", desc = "Exact name of the player to leap to.").withDependency { leapMode.selected == "Name" && leapWhenDone }
-    private val targetClass by SelectorSetting("Target class", DungeonClass.Mage).withDependency { leapMode.selected == "Class" && leapWhenDone }
+    private val leapMode by SelectorSetting("Leap mode", "Class", listOf("Name", "Class")).visibleIf { leapWhenDone }
+    private val targetName by StringSetting("Target name", "", desc = "Exact name of the player to leap to.").visibleIf { leapMode.selected == "Name" && leapWhenDone }
+    private val targetClass by SelectorSetting("Target class", DungeonClass.Mage).visibleIf { leapMode.selected == "Class" && leapWhenDone }
 
     private var lastClickTime = 0L
     private var progress = 0

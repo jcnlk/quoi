@@ -25,7 +25,8 @@ import quoi.config.typeName
 import quoi.config.typedEntries
 import quoi.module.Module
 import quoi.module.settings.Setting.Companion.json
-import quoi.module.settings.Setting.Companion.withDependency
+import quoi.module.settings.UISetting.Companion.childOf
+import quoi.module.settings.UISetting.Companion.visibleIf
 import quoi.module.settings.impl.*
 import quoi.utils.ChatUtils
 import quoi.utils.ChatUtils.literal
@@ -54,21 +55,21 @@ object AutoRoutes : Module(
     val zeroTickDb by BooleanSetting("Zero tick dungeon breaker")
     private val style by SelectorSetting("Style", "Box", listOf("Box", "Filled box", "Cylinder"))
     private val multicolour by BooleanSetting("Multicolour")
-    private val colour by ColourSetting("Colour", Colour.CYAN).withDependency { !multicolour }
-    private val fillColour by ColourSetting("Fill colour", Colour.CYAN.withAlpha(0.5f), allowAlpha = true).withDependency { style.selected == "Filled box" && !multicolour }
+    private val colour by ColourSetting("Colour", Colour.CYAN).visibleIf { !multicolour }
+    private val fillColour by ColourSetting("Fill colour", Colour.CYAN.withAlpha(0.5f), allowAlpha = true).visibleIf { style.selected == "Filled box" && !multicolour }
     private val activeCol by ColourSetting("Active colour", Colour.WHITE)
 
     val actionEntries by lazy { typedEntries<RingAction>() }
 
-    private val colourDropdown by DropdownSetting("Colours").collapsible().withDependency { multicolour }
+    private val colourDropdown by TextSetting("Colours").visibleIf { multicolour }
     private val colours = actionEntries.associate { (name, action) ->
-        val set = ColourSetting(name, action().colour).withDependency(colourDropdown)
+        val set = ColourSetting(name, action().colour).childOf(::colourDropdown)
         this.register(set)
         name to set
     }
-    private val fillColourDropdown by DropdownSetting("Fill colours").collapsible().withDependency { style.selected == "Filled box" && multicolour }
+    private val fillColourDropdown by TextSetting("Fill colours").visibleIf { style.selected == "Filled box" && multicolour }
     private val fillColours = actionEntries.associate { (name, action) ->
-        val set = ColourSetting(name, action().colour.withAlpha(0.5f), allowAlpha = true).json("$name fill").withDependency(fillColourDropdown)
+        val set = ColourSetting(name, action().colour.withAlpha(0.5f), allowAlpha = true).json("$name fill").childOf(::fillColourDropdown)
         this.register(set)
         name to set
     }

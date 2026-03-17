@@ -7,6 +7,7 @@ import net.minecraft.client.Minecraft
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import quoi.annotations.AnnotationLoader
+import quoi.api.commands.QuoiCommand
 import quoi.api.events.GameEvent
 import quoi.api.events.core.EventBus
 import quoi.config.Config
@@ -34,6 +35,7 @@ object QuoiMod : ClientModInitializer {
             HudManager.init()
             schizophrenia?.remove()
         }
+        QuoiCommand.init()
         Config.load()
     }
 }

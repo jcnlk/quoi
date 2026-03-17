@@ -4,9 +4,9 @@ import quoi.api.events.ChatEvent
 import quoi.api.skyblock.SkyblockPlayer.AUTOPET_REGEX
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.module.Module
-import quoi.module.settings.Setting.Companion.withDependency
+import quoi.module.settings.UISetting.Companion.childOf
 import quoi.module.settings.impl.BooleanSetting
-import quoi.module.settings.impl.DropdownSetting
+import quoi.module.settings.impl.TextSetting
 import quoi.module.settings.impl.NumberSetting
 import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.skyblock.player.PlayerUtils
@@ -19,13 +19,13 @@ object Titles : Module("Titles", desc = "temp module") {
     private val autoPet by BooleanSetting("Petrules", desc = "Show title upon petrule chat message")
     private val invincibilityProc by BooleanSetting("Invincibility", desc = "Show title upon bonzo/spirit/phoenix proc")
 
-    private val titleSettings by DropdownSetting("Settings").collapsible()
-    private val dungeonsOnly by BooleanSetting("Dungeons only").withDependency(titleSettings)
-    private val bossOnly by BooleanSetting("Boss only").withDependency(titleSettings)
-    private val asSubtitle by BooleanSetting("Use subtitles", true, desc = "Shows the text as a subtitle instead of the main title.").withDependency(titleSettings)
-    private val titleDuration by NumberSetting("Title duration", 2.0, 0.5, 5.0, 0.1, desc = "How long the title stays on screen.", "s").withDependency(titleSettings)
+    private val titleSettings by TextSetting("Settings")
+    private val dungeonsOnly by BooleanSetting("Dungeons only").childOf(titleSettings)
+    private val bossOnly by BooleanSetting("Boss only").childOf(titleSettings)
+    private val asSubtitle by BooleanSetting("Use subtitles", true, desc = "Shows the text as a subtitle instead of the main title.").childOf(titleSettings)
+    private val titleDuration by NumberSetting("Title duration", 2.0, 0.5, 5.0, 0.1, desc = "How long the title stays on screen.", "s").childOf(titleSettings)
 
-    private val playSound by BooleanSetting("Play sound", desc = "Plays a sound when title pops up").withDependency(titleSettings)
+    private val playSound by BooleanSetting("Play sound", desc = "Plays a sound when title pops up").childOf(titleSettings)
     private val soundSettings = createSoundSettings("Title", titleSettings) { playSound }
 
     init {

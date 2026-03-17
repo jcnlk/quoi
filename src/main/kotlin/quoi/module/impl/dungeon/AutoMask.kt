@@ -1,5 +1,9 @@
 package quoi.module.impl.dungeon
 
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket
+import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
 import quoi.QuoiMod.scope
 import quoi.api.commands.internal.GreedyString
 import quoi.api.events.ChatEvent
@@ -8,28 +12,23 @@ import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
 import quoi.api.events.core.EventBus
 import quoi.api.events.core.Priority
+import quoi.api.skyblock.SkyblockPlayer
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.DungeonClass
 import quoi.module.Module
-import quoi.module.settings.Setting.Companion.withDependency
+import quoi.module.settings.UISetting.Companion.childOf
 import quoi.module.settings.impl.BooleanSetting
-import quoi.module.settings.impl.DropdownSetting
+import quoi.module.settings.impl.TextSetting
 import quoi.module.settings.impl.NumberSetting
 import quoi.module.settings.impl.SelectorSetting
+import quoi.utils.ChatUtils.command
 import quoi.utils.ChatUtils.modMessage
+import quoi.utils.Scheduler.scheduleTask
 import quoi.utils.StringUtils.noControlCodes
-import quoi.utils.skyblock.player.PlayerUtils
+import quoi.utils.skyblock.player.ContainerUtils
 import quoi.utils.skyblock.player.PlayerUtils.interact
 import quoi.utils.skyblock.player.SwapManager
 import quoi.utils.skyblock.player.SwapResult
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
-import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket
-import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
-import quoi.api.skyblock.SkyblockPlayer
-import quoi.utils.ChatUtils.command
-import quoi.utils.Scheduler.scheduleTask
-import quoi.utils.skyblock.player.ContainerUtils
 import kotlin.coroutines.resume
 
 // Kyleen
@@ -44,12 +43,12 @@ object AutoMask : Module(
     private val antiLoop by BooleanSetting("Anti loop")
     private val announceProc by BooleanSetting("Announce mask proc")
 
-    private val phoenix by DropdownSetting("Early enter phoenix/leap").collapsible()
-    private val ee3 by BooleanSetting("Rod swap", desc = "Swaps rod and clicks if both masks proc.").withDependency(phoenix)
-    private val ee3Delay by NumberSetting("Rod click delay", 2, 0, 10, 1, "Ticks between rod clicks.").withDependency(phoenix) { ee3 }
-    private val swapBack by BooleanSetting("Rod swap back", desc = "Swaps back to original slot after rodding.").withDependency(phoenix) { ee3 }
-    private val ee3LeapBack by BooleanSetting("Leap back", desc = "Leaps 3s after phoenix proc message.").withDependency(phoenix)
-    private val leapClass by SelectorSetting("Leap target class", "Berserk", listOf("Any", "Berserk", "Healer", "Tank", "Mage", "Archer")).withDependency(phoenix) { ee3LeapBack }
+    private val phoenix by TextSetting("Early enter phoenix/leap")
+    private val ee3 by BooleanSetting("Rod swap", desc = "Swaps rod and clicks if both masks proc.").childOf(phoenix)
+    private val ee3Delay by NumberSetting("Rod click delay", 2, 0, 10, 1, "Ticks between rod clicks.").childOf(phoenix) { ee3 }
+    private val swapBack by BooleanSetting("Rod swap back", desc = "Swaps back to original slot after rodding.").childOf(phoenix) { ee3 }
+    private val ee3LeapBack by BooleanSetting("Leap back", desc = "Leaps 3s after phoenix proc message.").childOf(phoenix)
+    private val leapClass by SelectorSetting("Leap target class", "Berserk", listOf("Any", "Berserk", "Healer", "Tank", "Mage", "Archer")).childOf(phoenix) { ee3LeapBack }
     //private val app by BooleanSetting("Use APP", desc = "Uses APP to swap to phoenix and back.").withDependency(phoenix)
 
     val isSwapping: Boolean get() = _isSwapping

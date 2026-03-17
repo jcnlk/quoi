@@ -1,6 +1,6 @@
 package quoi.module.impl.mining
 
-import quoi.api.abobaui.dsl.*
+import quoi.api.abobaui.dsl.px
 import quoi.api.abobaui.elements.ElementScope
 import quoi.api.abobaui.elements.impl.Text.Companion.shadow
 import quoi.api.abobaui.elements.impl.Text.Companion.textSupplied
@@ -15,7 +15,7 @@ import quoi.api.skyblock.Location.currentServer
 import quoi.config.Config
 import quoi.config.configList
 import quoi.module.Module
-import quoi.module.settings.Setting.Companion.withDependency
+import quoi.module.settings.UISetting.Companion.visibleIf
 import quoi.module.settings.impl.BooleanSetting
 import quoi.module.settings.impl.ListSetting
 import quoi.utils.ChatUtils.modMessage
@@ -37,11 +37,11 @@ object GrieferTracker : Module(
     private val chatBorder by BooleanSetting("Use chat border", desc = "Enables the border around tracker messages.")
 
     private val extraInfo by BooleanSetting("Show extra info", desc = "Shows more information in the hud.")
-    private val showMet by BooleanSetting("Show times met").withDependency { extraInfo }
-    private val showTime by BooleanSetting("Show time").withDependency { extraInfo }
-    private val showServer by BooleanSetting("Show server").withDependency { extraInfo }
-    private val showMacro by BooleanSetting("Show macro").withDependency { extraInfo }
-    private val showPaid by BooleanSetting("Show paid amount").withDependency { extraInfo }
+    private val showMet by BooleanSetting("Show times met").visibleIf { extraInfo }
+    private val showTime by BooleanSetting("Show time").visibleIf { extraInfo }
+    private val showServer by BooleanSetting("Show server").visibleIf { extraInfo }
+    private val showMacro by BooleanSetting("Show macro").visibleIf { extraInfo }
+    private val showPaid by BooleanSetting("Show paid amount").visibleIf { extraInfo }
 
     private val griefedPlayersTemp by ListSetting("Griefed players", mutableListOf<GriefedPlayer>()) // todo remove later
     private val griefedPlayers by configList<GriefedPlayer>("griefed_players.json")

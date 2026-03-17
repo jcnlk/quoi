@@ -23,24 +23,41 @@ import kotlinx.coroutines.launch
 import net.minecraft.world.phys.BlockHitResult
 import quoi.api.skyblock.Location
 import quoi.api.skyblock.dungeon.Dungeon
-import quoi.api.skyblock.dungeon.DungeonClass
-import quoi.api.skyblock.dungeon.map.utils.LegacyIdMapper.legacyBlockIdMap
+import quoi.module.impl.render.ClickGui
+import quoi.module.settings.UISetting.Companion.childOf
+import quoi.module.settings.UISetting.Companion.visibleIf
 import quoi.module.settings.impl.BooleanSetting
 import quoi.utils.Scheduler.scheduleTask
 import quoi.utils.StringUtils.formatTime
 import quoi.utils.WorldUtils
 import quoi.utils.skyblock.player.ContainerUtils
 import quoi.utils.skyblock.player.LeapManager
-import quoi.utils.skyblock.player.PlayerUtils
-import kotlin.text.replace
 
 object Test : Module("Test", desc = "Dev module for testing.") {
-    val selectedTheme2 by SelectorSetting("Theme2", "Light", listOf("Light", "Dark", "Custom"))
-    val selectedTheme by SelectorSetting("Theme", "Light", listOf("Light", "Dark", "Custom"))
 
-    val selectorTest by SelectorSetting("class", DungeonClass.Archer)
+    val boolBigP by BooleanSetting("Bool big P")
 
-    val stringTest by StringSetting("String setting", "shit").suggests(legacyBlockIdMap.keys.map { it.replace("minecraft:", "") })
+    val boolGranny by BooleanSetting("Bool granny").visibleIf { boolBigP }
+    val bool1 by BooleanSetting("Bool papa").childOf(::boolGranny)
+    val boolMama by BooleanSetting("Bool mama").childOf(::boolGranny)
+    val bool2 by BooleanSetting("Bool kid").childOf(::boolMama)
+
+    val style by SelectorSetting("Style", "Box", listOf("Box", "Filled box"))
+    val outline by BooleanSetting("Outline").childOf(::style) { it.index == 1 }
+    val colour by ColourSetting("Colour2", Colour.WHITE, true).childOf(::style) { it.index == 0 || (outline && it.index != 0) }
+    val fillColour by ColourSetting("Fill colour", Colour.WHITE, true).childOf(::style) { it.index == 1 }
+
+    val uiDebug by BooleanSetting("UI debug").onValueChanged { old, new -> ClickGui.reopen() }
+    val reopen by ActionSetting("Reopen") { ClickGui.reopen() }
+
+
+
+//    val selectedTheme2 by SelectorSetting("Theme2", "Light", listOf("Light", "Dark", "Custom"))
+//    val selectedTheme by SelectorSetting("Theme", "Light", listOf("Light", "Dark", "Custom"))
+//
+//    val selectorTest by SelectorSetting("class", DungeonClass.Archer)
+//
+//    val stringTest by StringSetting("String setting", "shit").suggests(legacyBlockIdMap.keys.map { it.replace("minecraft:", "") })
 
     private val showX by BooleanSetting("Show X", true)
     private val showY by BooleanSetting("Show Y", true)

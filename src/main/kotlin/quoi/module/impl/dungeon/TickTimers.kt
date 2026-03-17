@@ -6,14 +6,12 @@ import quoi.api.events.ChatEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
 import quoi.api.skyblock.Island
-import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.invoke
 import quoi.module.Module
-import quoi.utils.ThemeManager.theme
-import quoi.module.settings.Setting.Companion.withDependency
+import quoi.module.settings.UISetting.Companion.visibleIf
 import quoi.module.settings.impl.BooleanSetting
-import quoi.utils.ChatUtils.modMessage
 import quoi.utils.StringUtils.toFixed
+import quoi.utils.ThemeManager.theme
 import quoi.utils.ui.hud.Hud
 import quoi.utils.ui.hud.TextHud
 import quoi.utils.ui.hud.setting
@@ -46,7 +44,7 @@ object TickTimers : Module(
         ).shadow = shadow
     }.setting()
 
-    private val startTimer by BooleanSetting("Goldor start timer").withDependency { goldorHud.enabled }
+    private val startTimer by BooleanSetting("Goldor start timer").visibleIf { goldorHud.enabled }
 
     private var goldorTick = -1
     private var goldorStart = -1

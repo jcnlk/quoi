@@ -30,14 +30,11 @@ import quoi.utils.ui.screens.UIScreen.Companion.open
 import net.minecraft.network.protocol.game.ClientboundSystemChatPacket
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.Vec3
-import quoi.annotations.Init
-import quoi.api.events.core.Priority
 import quoi.api.skyblock.dungeon.Dungeon.currentRoom
 import quoi.utils.StringUtils.capitaliseFirst
 import quoi.utils.ui.rendering.NVGRenderer
 import kotlin.collections.sortedBy
 
-@Init(Priority.LOWEST)
 object QuoiCommand {
     val command = BaseCommand("quoi", "requise") {
         open(clickGui)
@@ -199,7 +196,7 @@ object QuoiCommand {
         }.description("Prevents afk kick.").suggests("delay", "40")
     }
 
-    init {
+    fun init() {
         command.register()
         devCommand.register()
 

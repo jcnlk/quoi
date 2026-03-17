@@ -28,6 +28,8 @@ abstract class Element(
 
     inline val ctx get() = ui.ctx
 
+    var usingCtx = false
+
     var parent: Element? = null
 
     var children: ArrayList<Element>? = null
@@ -90,7 +92,7 @@ abstract class Element(
             clip()
         }
         if (renders) {
-            ctx.pose().pushMatrix()
+            if (usingCtx) ctx.pose().pushMatrix()
             NVGRenderer.push()
             if (scissors) {
                 ctx.pushScissor(x.toInt(), y.toInt(), width.toInt(), height.toInt())
@@ -122,7 +124,7 @@ abstract class Element(
                 ctx.disableScissor()
                 NVGRenderer.popScissor()
             }
-            ctx.pose().popMatrix()
+            if (usingCtx) ctx.pose().popMatrix()
             NVGRenderer.pop()
         }
     }

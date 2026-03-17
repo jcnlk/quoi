@@ -1,29 +1,29 @@
 package quoi.module.impl.render
 
+import net.minecraft.world.InteractionHand
+import net.minecraft.world.item.Items
+import net.minecraft.world.phys.AABB
+import net.minecraft.world.phys.BlockHitResult
+import net.minecraft.world.phys.HitResult
+import net.minecraft.world.phys.Vec3
 import quoi.api.colour.Colour
 import quoi.api.colour.withAlpha
 import quoi.api.events.RenderEvent
-import quoi.module.Module
 import quoi.api.events.TickEvent
-import quoi.utils.skyblock.ItemUtils.extraAttributes
-import quoi.utils.skyblock.ItemUtils.skyblockId
 import quoi.mixins.accessors.LocalPlayerAccessor
+import quoi.module.Module
 import quoi.module.settings.Setting.Companion.json
-import quoi.module.settings.Setting.Companion.withDependency
+import quoi.module.settings.UISetting.Companion.visibleIf
 import quoi.module.settings.impl.BooleanSetting
 import quoi.module.settings.impl.ColourSetting
 import quoi.module.settings.impl.NumberSetting
 import quoi.utils.BlockTypes
 import quoi.utils.rayCast
-import net.minecraft.world.InteractionHand
-import net.minecraft.world.item.Items
-import net.minecraft.world.phys.Vec3
-import kotlin.math.hypot
 import quoi.utils.render.drawFilledBox
 import quoi.utils.render.drawWireFrameBox
-import net.minecraft.world.phys.AABB
-import net.minecraft.world.phys.BlockHitResult
-import net.minecraft.world.phys.HitResult
+import quoi.utils.skyblock.ItemUtils.extraAttributes
+import quoi.utils.skyblock.ItemUtils.skyblockId
+import kotlin.math.hypot
 
 // Kyleen
 
@@ -40,9 +40,9 @@ object EtherwarpOverlay : Module (
     private val validColour by ColourSetting("Valid colour", Colour.GREEN.withAlpha(60), true)
     private val invalidColour by ColourSetting("Invalid colour", Colour.RED.withAlpha(60), true)
     private val wireframe by BooleanSetting("Show outline")
-    private val validLineColour by ColourSetting("Valid colour", Colour.GREEN.withAlpha(60), true).json("Valid outline colour").withDependency { wireframe }
-    private val invalidLineColour by ColourSetting("Invalid colour", Colour.RED.withAlpha(60), true).json("Invalid outline colour").withDependency { wireframe }
-    private val lineWidth by NumberSetting("Outline width", 2.0, 0.1, 10.0, 0.1).withDependency { wireframe }
+    private val validLineColour by ColourSetting("Valid colour", Colour.GREEN.withAlpha(60), true).json("Valid outline colour").visibleIf { wireframe }
+    private val invalidLineColour by ColourSetting("Invalid colour", Colour.RED.withAlpha(60), true).json("Invalid outline colour").visibleIf { wireframe }
+    private val lineWidth by NumberSetting("Outline width", 2.0, 0.1, 10.0, 0.1).visibleIf { wireframe }
     private val depth by BooleanSetting("Depth check")
     private val cancelInteract by BooleanSetting("Cancel interact", desc = "Enables even when looking at an interactable block. (Use with CancelInteract feature)")
     private val tooFar by BooleanSetting("Stop rendering when too far")

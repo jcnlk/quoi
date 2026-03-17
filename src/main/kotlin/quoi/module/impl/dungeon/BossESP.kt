@@ -1,5 +1,7 @@
 package quoi.module.impl.dungeon
 
+import net.minecraft.world.entity.Entity
+import net.minecraft.world.entity.boss.wither.WitherBoss
 import quoi.api.colour.Colour
 import quoi.api.colour.withAlpha
 import quoi.api.events.ChatEvent
@@ -8,7 +10,7 @@ import quoi.api.events.RenderEvent
 import quoi.api.skyblock.Island
 import quoi.api.skyblock.invoke
 import quoi.module.Module
-import quoi.module.settings.Setting.Companion.withDependency
+import quoi.module.settings.UISetting.Companion.visibleIf
 import quoi.module.settings.impl.BooleanSetting
 import quoi.module.settings.impl.ColourSetting
 import quoi.module.settings.impl.NumberSetting
@@ -18,8 +20,6 @@ import quoi.utils.EntityUtils.interpolatedBox
 import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.equalsOneOf
 import quoi.utils.render.drawStyledBox
-import net.minecraft.world.entity.Entity
-import net.minecraft.world.entity.boss.wither.WitherBoss
 
 // Kyleen
 object BossESP : Module( // todo move to dungeon esp
@@ -30,9 +30,9 @@ object BossESP : Module( // todo move to dungeon esp
     private val depth by BooleanSetting("Depth check")
     private val style by SelectorSetting("Style", "Box", arrayListOf("Box", "Filled box", "Glow", "2D"), desc = "Esp render style to be used.")
     private val colour by ColourSetting("Colour", Colour.WHITE, desc = "Colour for the Boss ESP")
-    private val fillColour by ColourSetting("Fill colour", Colour.WHITE.withAlpha(60), allowAlpha = true, desc = "Fill colour for the Boss ESP").withDependency { style.selected == "Filled box" }
+    private val fillColour by ColourSetting("Fill colour", Colour.WHITE.withAlpha(60), allowAlpha = true, desc = "Fill colour for the Boss ESP").visibleIf { style.selected == "Filled box" }
     private val thickness by NumberSetting("Thickness", 4, 1, 8, 1)
-    private val sizeOffset by NumberSetting("Size offset", 0.0, -1.0, 1.0, 0.05, desc = "Changes box size offset.").withDependency { style.selected.equalsOneOf("Box", "Filled box") }
+    private val sizeOffset by NumberSetting("Size offset", 0.0, -1.0, 1.0, 0.05, desc = "Changes box size offset.").visibleIf { style.selected.equalsOneOf("Box", "Filled box") }
 
     private var showWitherEsp = false
 

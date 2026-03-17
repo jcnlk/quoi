@@ -23,7 +23,7 @@ import quoi.api.skyblock.dungeon.Dungeon.currentRoom
 import quoi.api.skyblock.dungeon.Dungeon.inBoss
 import quoi.api.skyblock.dungeon.Dungeon.inDungeons
 import quoi.module.Module
-import quoi.module.settings.Setting.Companion.withDependency
+import quoi.module.settings.UISetting.Companion.visibleIf
 import quoi.module.settings.impl.BooleanSetting
 import quoi.module.settings.impl.NumberSetting
 import quoi.module.settings.impl.SelectorSetting
@@ -46,8 +46,8 @@ object SecretAura : Module(
     private val clickDelay by NumberSetting("Click delay", 150, 100, 4000, 50, desc = "Delay before clicking a block.") // this shit doesn't seem to be making any difference tbh...
 
     private val swapOn by SelectorSetting("Swap on", "Skulls", arrayListOf("None", "Skulls", "All"), desc = "Makes secret aura swap")
-    private val swapBack by BooleanSetting("Swap back", true, desc = "Makes secret aura swap back to previous item after swapping.").withDependency { swapOn.index >= 1 }
-    private val swapSlot by NumberSetting("Swap item slot", 1, 1, 9, 1, desc = "Slot for secret aura to swap to.").withDependency { swapOn.index >= 1 }
+    private val swapBack by BooleanSetting("Swap back", true, desc = "Makes secret aura swap back to previous item after swapping.").visibleIf { swapOn.index >= 1 }
+    private val swapSlot by NumberSetting("Swap item slot", 1, 1, 9, 1, desc = "Slot for secret aura to swap to.").visibleIf { swapOn.index >= 1 }
 
     private val swing by BooleanSetting("Swing hand", desc = "Makes secret aura swing hand on click.")
     private val dungeonsOnly by BooleanSetting("Dungeons only", true, desc = "Makes secret aura only work in dungeons.")

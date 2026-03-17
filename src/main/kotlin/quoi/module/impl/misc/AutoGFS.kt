@@ -4,9 +4,10 @@ import quoi.api.events.TickEvent
 import quoi.api.skyblock.Location
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.module.Module
-import quoi.module.settings.Setting.Companion.withDependency
+import quoi.module.settings.UISetting.Companion.childOf
+import quoi.module.settings.UISetting.Companion.visibleIf
 import quoi.module.settings.impl.BooleanSetting
-import quoi.module.settings.impl.DropdownSetting
+import quoi.module.settings.impl.TextSetting
 import quoi.module.settings.impl.NumberSetting
 import quoi.module.settings.impl.SelectorSetting
 import quoi.utils.skyblock.player.PlayerUtils
@@ -15,15 +16,15 @@ object AutoGFS : Module( // untested
     "Auto GFS",
     desc = "Automatically refills certain items from your sacks."
 ) {
-    private val itemsDropdown by DropdownSetting("Items to refill").collapsible()
-    private val pearls by BooleanSetting("Pearls").withDependency(itemsDropdown)
-    private val booms by BooleanSetting("Super booms").withDependency(itemsDropdown)
-    private val jerries by BooleanSetting("Inflatable Jerries").withDependency(itemsDropdown)
-    private val leaps by BooleanSetting("Spirit Leaps").withDependency(itemsDropdown)
+    private val itemsDropdown by TextSetting("Items to refill")
+    private val pearls by BooleanSetting("Pearls").childOf(itemsDropdown)
+    private val booms by BooleanSetting("Super booms").childOf(itemsDropdown)
+    private val jerries by BooleanSetting("Inflatable Jerries").childOf(itemsDropdown)
+    private val leaps by BooleanSetting("Spirit Leaps").childOf(itemsDropdown)
 
     private val mode by SelectorSetting("Mode", "Amount", arrayListOf("Amount", "Time"))
-    private val amount by NumberSetting("Amount", 50, 5, 95, 5, unit = "%").withDependency { mode.selected == "Amount" }
-    private val time by NumberSetting("Time", 5, 1, 60, 1, unit = "s").withDependency { mode.selected == "Time" }
+    private val amount by NumberSetting("Amount", 50, 5, 95, 5, unit = "%").visibleIf { mode.selected == "Amount" }
+    private val time by NumberSetting("Time", 5, 1, 60, 1, unit = "s").visibleIf { mode.selected == "Time" }
 
     private val dungeonsOnly by BooleanSetting("Dungeons only", desc = "Only refill items when in dungeons.")
 

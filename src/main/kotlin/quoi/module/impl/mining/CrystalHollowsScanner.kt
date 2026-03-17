@@ -1,5 +1,11 @@
 package quoi.module.impl.mining
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction
+import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.level.chunk.LevelChunk
 import quoi.QuoiMod.scope
 import quoi.api.colour.Colour
 import quoi.api.colour.withAlpha
@@ -13,7 +19,7 @@ import quoi.module.impl.mining.CrystalHollowsMap.Z_MAX
 import quoi.module.impl.mining.CrystalHollowsMap.Z_MIN
 import quoi.module.impl.mining.CrystalHollowsMap.isDirty
 import quoi.module.impl.mining.enums.Structure
-import quoi.module.settings.Setting.Companion.withDependency
+import quoi.module.settings.UISetting.Companion.visibleIf
 import quoi.module.settings.impl.BooleanSetting
 import quoi.module.settings.impl.ColourSetting
 import quoi.module.settings.impl.NumberSetting
@@ -29,12 +35,6 @@ import quoi.utils.render.drawFilledBox
 import quoi.utils.render.drawStyledBox
 import quoi.utils.render.drawText
 import quoi.utils.vec3
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import net.minecraft.core.BlockPos
-import net.minecraft.core.Direction
-import net.minecraft.world.level.block.Blocks
-import net.minecraft.world.level.chunk.LevelChunk
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.absoluteValue
 import kotlin.math.pow
@@ -47,12 +47,12 @@ object CrystalHollowsScanner : Module(
 ) {
     private val structureScanner by BooleanSetting("Structure scanner")
     val routeScanner by BooleanSetting("Route scanner")
-    private val style by SelectorSetting("Style", "Box", arrayListOf("Box", "Filled box"), desc = "Esp render style to be used.").withDependency { routeScanner }
-    private val distCols by BooleanSetting("Distance colours").withDependency { routeScanner }
-    val colour by ColourSetting("Colour", Colour.WHITE, allowAlpha = true).withDependency { routeScanner && !distCols }
-    private val fillDistCols by BooleanSetting("Fill distance colours").withDependency { style.selected == "Filled box" && routeScanner }
-    private val fillColour by ColourSetting("Fill colour", Colour.WHITE.withAlpha(0.33f), allowAlpha = true).withDependency { style.selected == "Filled box" && routeScanner && !fillDistCols }
-    private val thickness by NumberSetting("Thickness", 4f, 1f, 8f, 1f).withDependency { routeScanner }
+    private val style by SelectorSetting("Style", "Box", arrayListOf("Box", "Filled box"), desc = "Esp render style to be used.").visibleIf { routeScanner }
+    private val distCols by BooleanSetting("Distance colours").visibleIf { routeScanner }
+    val colour by ColourSetting("Colour", Colour.WHITE, allowAlpha = true).visibleIf { routeScanner && !distCols }
+    private val fillDistCols by BooleanSetting("Fill distance colours").visibleIf { style.selected == "Filled box" && routeScanner }
+    private val fillColour by ColourSetting("Fill colour", Colour.WHITE.withAlpha(0.33f), allowAlpha = true).visibleIf { style.selected == "Filled box" && routeScanner && !fillDistCols }
+    private val thickness by NumberSetting("Thickness", 4f, 1f, 8f, 1f).visibleIf { routeScanner }
 
     val scannedChunks = HashSet<Long>()
     private val foundStructures = ConcurrentHashMap<Structure, MutableList<BlockPos>>()

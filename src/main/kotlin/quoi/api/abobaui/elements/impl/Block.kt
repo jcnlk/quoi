@@ -63,6 +63,9 @@ open class Block(
         constraints: Constraints,
         colour: Colour
     ): Block(constraints, colour, null) {
+        init {
+            usingCtx = true
+        }
         override fun draw() {
             withScale {
                 val w = width.toInt()

@@ -1,5 +1,7 @@
 package quoi.module.impl.mining
 
+import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.resources.ResourceLocation
 import quoi.QuoiMod.MOD_ID
 import quoi.api.abobaui.dsl.px
 import quoi.api.abobaui.dsl.size
@@ -13,10 +15,11 @@ import quoi.module.Module
 import quoi.module.impl.mining.CrystalHollowsScanner.foundRouteBlocks
 import quoi.module.impl.mining.CrystalHollowsScanner.routeScanner
 import quoi.module.impl.mining.CrystalHollowsScanner.scannedChunks
-import quoi.module.settings.Setting.Companion.withDependency
+import quoi.module.settings.UISetting.Companion.childOf
+import quoi.module.settings.UISetting.Companion.visibleIf
 import quoi.module.settings.impl.BooleanSetting
 import quoi.module.settings.impl.ColourSetting
-import quoi.module.settings.impl.DropdownSetting
+import quoi.module.settings.impl.TextSetting
 import quoi.module.settings.impl.NumberSetting
 import quoi.utils.EntityUtils.playerEntities
 import quoi.utils.StringUtils.width
@@ -32,8 +35,6 @@ import quoi.utils.ui.hud.Hud
 import quoi.utils.ui.hud.setting
 import quoi.utils.ui.hud.withTransform
 import quoi.utils.ui.rendering.NVGRenderer.image
-import net.minecraft.client.gui.GuiGraphics
-import net.minecraft.resources.ResourceLocation
 import java.util.*
 import quoi.module.impl.mining.CrystalHollowsScanner.enabled as chScanner
 
@@ -43,15 +44,15 @@ object CrystalHollowsMap : Module(
 ) {
     private val iconScale by NumberSetting("Icon scale", 2.0f, 0.1f, 5.0f, 0.1f)
     private val drawPlayers by BooleanSetting("Draw players")
-    private val onlyGriefed by BooleanSetting("Only griefed").withDependency { drawPlayers && GrieferTracker.enabled }
-    private val drawOutOfRange by BooleanSetting("Draw out of range").withDependency { drawPlayers }
-    private val drawNames by BooleanSetting("Draw names").withDependency { drawPlayers }
-    private val textScale by NumberSetting("Text scale", 2.0f, 0.1f, 5.0f, 0.1f).withDependency { drawPlayers && drawNames }
+    private val onlyGriefed by BooleanSetting("Only griefed").visibleIf { drawPlayers && GrieferTracker.enabled }
+    private val drawOutOfRange by BooleanSetting("Draw out of range").visibleIf { drawPlayers }
+    private val drawNames by BooleanSetting("Draw names").visibleIf { drawPlayers }
+    private val textScale by NumberSetting("Text scale", 2.0f, 0.1f, 5.0f, 0.1f).visibleIf { drawPlayers && drawNames }
 
-    private val other by DropdownSetting("Other").collapsible().withDependency { chScanner }
-    private val drawChunks by BooleanSetting("Draw loaded chunks").withDependency(other)
-    private val chunksCol by ColourSetting("Loaded chunks colour", Colour.PURPLE.withAlpha(0.33f), allowAlpha = true).withDependency(other) { drawChunks }
-    private val drawRouteBlocks by BooleanSetting("Draw route blocks").withDependency(other) { routeScanner }
+    private val other by TextSetting("Other").visibleIf { chScanner }
+    private val drawChunks by BooleanSetting("Draw loaded chunks").childOf(other)
+    private val chunksCol by ColourSetting("Loaded chunks colour", Colour.PURPLE.withAlpha(0.33f), allowAlpha = true).childOf(other) { drawChunks }
+    private val drawRouteBlocks by BooleanSetting("Draw route blocks").childOf(other) { routeScanner }
 
     private val hollowsMap by Hud("Hollows map", toggleable = false) { // todo add more stuff
         if (preview) image(

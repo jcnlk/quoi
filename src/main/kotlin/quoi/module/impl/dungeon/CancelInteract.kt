@@ -1,21 +1,21 @@
 package quoi.module.impl.dungeon
 
-import quoi.api.skyblock.dungeon.Dungeon.inDungeons
-import quoi.module.Module
-import quoi.module.settings.Setting.Companion.withDependency
-import quoi.module.settings.impl.BooleanSetting
-import quoi.module.settings.impl.SelectorSetting
-import quoi.utils.skyblock.ItemUtils.skyblockId
 import net.minecraft.core.BlockPos
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
+import quoi.api.skyblock.dungeon.Dungeon.inDungeons
+import quoi.module.Module
+import quoi.module.settings.UISetting.Companion.visibleIf
+import quoi.module.settings.impl.BooleanSetting
+import quoi.module.settings.impl.SelectorSetting
+import quoi.utils.skyblock.ItemUtils.skyblockId
 
 // Kyleen
 object CancelInteract : Module("Cancel Interact") {
 
-    private val dungeonsOnly by BooleanSetting("Dungeons only").withDependency { whitelistMode.selected != "Outside Dungeons" }
+    private val dungeonsOnly by BooleanSetting("Dungeons only").visibleIf { whitelistMode.selected != "Outside Dungeons" }
     private val whitelistMode by SelectorSetting("Ignore whitelist", "Never", arrayListOf("Never", "Always", "Outside Dungeons"))
     private val sneakMode by BooleanSetting("Sneaking only", desc = "for etherwarp/aote only")
 

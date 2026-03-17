@@ -1,14 +1,21 @@
 package quoi.module.impl.misc
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
+import net.minecraft.network.chat.HoverEvent
+import net.minecraft.network.chat.MutableComponent
+import net.minecraft.network.chat.Style
+import net.minecraft.world.item.ItemStack
 import quoi.QuoiMod.scope
 import quoi.api.commands.internal.GreedyString
 import quoi.api.events.GuiEvent
 import quoi.api.input.CatKeys
 import quoi.config.Config
 import quoi.module.Module
-import quoi.module.settings.Setting.Companion.withDependency
+import quoi.module.settings.UISetting.Companion.childOf
 import quoi.module.settings.impl.BooleanSetting
-import quoi.module.settings.impl.DropdownSetting
+import quoi.module.settings.impl.TextSetting
 import quoi.module.settings.impl.KeybindSetting
 import quoi.module.settings.impl.MapSetting
 import quoi.utils.ChatUtils.button
@@ -19,17 +26,9 @@ import quoi.utils.skyblock.ItemUtils.loreString
 import quoi.utils.skyblock.ItemUtils.petHeldItem
 import quoi.utils.skyblock.ItemUtils.skyblockId
 import quoi.utils.skyblock.ItemUtils.skyblockUuid
-import quoi.utils.skyblock.player.PlayerUtils
+import quoi.utils.skyblock.player.ContainerUtils
 import quoi.utils.skyblock.player.ContainerUtils.clickSlot
 import quoi.utils.skyblock.player.ContainerUtils.getContainerItemsClose
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
-import net.minecraft.network.chat.HoverEvent
-import net.minecraft.network.chat.MutableComponent
-import net.minecraft.network.chat.Style
-import net.minecraft.world.item.ItemStack
-import quoi.utils.skyblock.player.ContainerUtils
 
 object PetKeybinds : Module(
     name = "Pet Keybinds",
@@ -41,9 +40,9 @@ object PetKeybinds : Module(
     private val noUnequip by BooleanSetting("Disable unequip", desc = "Prevents using a pets keybind to unequip a pet. Does not prevent unequip keybind or normal clicking.")
     private val closeIfAlreadyEquipped by BooleanSetting("Close if already equipped", desc = "If the pet is already equipped, closes the Pets menu instead.")
 
-    private val advanced by DropdownSetting("Keybinds").collapsible()
+    private val advanced by TextSetting("Keybinds")
     private val petKeys = (1..9).map { i ->
-        KeybindSetting("Pet $i", CatKeys.KEY_0 + i, "Pet $i on the list.").withDependency(advanced).value
+        KeybindSetting("Pet $i", CatKeys.KEY_0 + i, "Pet $i on the list.").childOf(advanced).value
     }
 
 

@@ -1,5 +1,6 @@
 package quoi.module.impl.dungeon
 
+import net.minecraft.world.phys.AABB
 import quoi.api.colour.Colour
 import quoi.api.colour.withAlpha
 import quoi.api.events.ChatEvent
@@ -7,14 +8,13 @@ import quoi.api.events.RenderEvent
 import quoi.api.skyblock.Island
 import quoi.api.skyblock.invoke
 import quoi.module.Module
-import quoi.module.settings.Setting.Companion.withDependency
+import quoi.module.settings.UISetting.Companion.visibleIf
 import quoi.module.settings.impl.BooleanSetting
 import quoi.module.settings.impl.ColourSetting
 import quoi.module.settings.impl.NumberSetting
 import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.render.drawFilledBox
 import quoi.utils.render.drawWireFrameBox
-import net.minecraft.world.phys.AABB
 
 // Kyleen
 object NecronPlatformHighlight : Module(
@@ -25,8 +25,8 @@ object NecronPlatformHighlight : Module(
 
     private val colour by ColourSetting("Colour", Colour.GREEN.withAlpha(60), true)
     private val wireframe by BooleanSetting("Show outline")
-    private val lineColour by ColourSetting("Outline colour", Colour.GREEN.withAlpha(255), true).withDependency { wireframe }
-    private val lineWidth by NumberSetting("Outline width", 2.0, 0.1, 10.0, 0.1).withDependency { wireframe }
+    private val lineColour by ColourSetting("Outline colour", Colour.GREEN.withAlpha(255), true).visibleIf { wireframe }
+    private val lineWidth by NumberSetting("Outline width", 2.0, 0.1, 10.0, 0.1).visibleIf { wireframe }
     private val depth by BooleanSetting("Depth check")
 
     private var shouldHighlightBlocks = false

@@ -1,12 +1,15 @@
 package quoi.module.impl.misc
 
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import quoi.QuoiMod.scope
 import quoi.api.events.MouseEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
 import quoi.config.Config
 import quoi.module.Module
-import quoi.module.settings.Setting.Companion.withDependency
+import quoi.module.settings.UISetting.Companion.visibleIf
 import quoi.module.settings.impl.BooleanSetting
 import quoi.module.settings.impl.ListSetting
 import quoi.module.settings.impl.NumberRangeSetting
@@ -16,9 +19,6 @@ import quoi.utils.skyblock.ItemUtils.skyblockUuid
 import quoi.utils.skyblock.player.PlayerUtils.isLookingAtBreakable
 import quoi.utils.skyblock.player.PlayerUtils.leftClick
 import quoi.utils.skyblock.player.PlayerUtils.rightClick
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlin.random.Random
 
 // https://github.com/Noamm9/CatgirlAddons/blob/main/src/main/kotlin/catgirlroutes/module/impl/misc/AutoClicker.kt
@@ -33,10 +33,10 @@ object AutoClicker: Module(
     private val favRight by ListSetting("FAVOURITE_ITEMS_RIGHT", mutableListOf<String>())
 
     private val leftClick by BooleanSetting("Left Click", desc = "Toggles the auto clicker for left click.")
-    private val leftCps by NumberRangeSetting("Left CPS", 10 to 12, 1, 20).withDependency { leftClick }
+    private val leftCps by NumberRangeSetting("Left CPS", 10 to 12, 1, 20).visibleIf { leftClick }
 
     private val rightClick by BooleanSetting("Right Click", desc = "Toggles the auto clicker for right click.")
-    private val rightCps by NumberRangeSetting("Right CPS", 10 to 12, 1, 20).withDependency { rightClick }
+    private val rightCps by NumberRangeSetting("Right CPS", 10 to 12, 1, 20).visibleIf { rightClick }
 
     private var leftJob: Job? = null
     private var rightJob: Job? = null

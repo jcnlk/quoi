@@ -45,7 +45,6 @@ object AuraManager {
         }
 
         on<TickEvent.Start> {
-            println("TEST")
             if (clickBlockCooldown == 0) {
                 queuedBlocks.firstOrNull()?.let { clickBlock(it, true) }
             }

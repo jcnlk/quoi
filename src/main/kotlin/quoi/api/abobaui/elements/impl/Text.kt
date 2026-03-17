@@ -32,6 +32,7 @@ open class Text(
 
     init {
         constraints.height = size
+        usingCtx = font.name == "Minecraft"
     }
 
     open var text: String = string

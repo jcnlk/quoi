@@ -474,13 +474,13 @@ object HudManager {
                     colour = Colour.BLACK.withAlpha(0.25f),
                     blur = 10f,
                     spread = 5f,
-                    radius = 10.radius()
+                    radius = 6.radius()
                 )
 
                 block(
                     size(260.px, 35.px),
                     colour = theme.background,
-                    radius(tl = 10, tr = 10)
+                    radius(tl = 6, tr = 6)
                 ) {
                     text(
                         string = hud.name,
@@ -500,7 +500,10 @@ object HudManager {
                             if (setting !is UISetting) return@forEach
 
                             var wasRainbow = (setting as? ColourSetting)?.rainbow ?: false
-                            setting.render(this).onEvent(setting.valueUpdated) {
+
+                            val dummy = hud.settings.first() as UISetting<*>
+                            val asSub = setting in dummy.children || setting.children.isNotEmpty()
+                            setting.render(this, asSub).onEvent(setting.valueUpdated) {
                                 val cs = setting as? ColourSetting
                                 if (cs?.rainbow != wasRainbow) onValue()
                                 wasRainbow = cs?.rainbow ?: false
@@ -545,7 +548,7 @@ object HudManager {
                 block(
                     size(260.px, 10.px),
                     colour = theme.background,
-                    radius(bl = 10, br = 10)
+                    radius(bl = 6, br = 6)
                 )
             }
         }

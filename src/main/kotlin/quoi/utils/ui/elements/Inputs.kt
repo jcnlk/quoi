@@ -184,20 +184,17 @@ fun ElementScope<*>.themedInput(
     radius: Radii = 5.radius(),
     content: ElementScope<*>.() -> ElementScope<TextInput>
 ): ElementScope<TextInput> {
-    val col = Colour.Animated(
-        from = theme.panel,
-        to = colour { theme.panel.rgb.multiply(1.2f) }
-    )
     val thickness = Animatable(2.px, 3.px)
 
     lateinit var input: ElementScope<TextInput>
 
     block(
         constrain(x = pos.x, y = pos.y, w = size.width, h = size.height),
-        colour = col,
+        colour = theme.panel,
         radius = radius
     ) {
         outline(theme.accent, thickness = thickness)
+        hoverEffect(factor = 1.15f)
 
         input = content().apply {
             cursor(CursorShape.IBEAM)
@@ -205,10 +202,6 @@ fun ElementScope<*>.themedInput(
             onFocusChanged {
                 thickness.animate(0.25.seconds, style = Animation.Style.EaseInOutQuint)
             }
-        }
-
-        onMouseEnterExit {
-            col.animate(0.25.seconds, style = Animation.Style.EaseInOutQuint)
         }
 
         delegateClick(input)

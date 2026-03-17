@@ -1,16 +1,16 @@
 package quoi.module.impl.misc
 
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import quoi.api.events.GuiEvent
 import quoi.api.input.CatKeys
 import quoi.module.Module
-import quoi.module.settings.Setting.Companion.withDependency
+import quoi.module.settings.UISetting.Companion.childOf
 import quoi.module.settings.impl.BooleanSetting
-import quoi.module.settings.impl.DropdownSetting
+import quoi.module.settings.impl.TextSetting
 import quoi.module.settings.impl.KeybindSetting
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.skyblock.ItemUtils.loreString
 import quoi.utils.skyblock.player.ContainerUtils.clickSlot
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 
 object WardrobeKeybinds : Module(
     "Wardrobe Keybinds",
@@ -21,9 +21,9 @@ object WardrobeKeybinds : Module(
     private val previousPageKeybind by KeybindSetting("Previous page", desc = "Goes to the previous page.")
     private val noUnequip by BooleanSetting("Disable unequip", desc = "Prevents using a wardrobe keybind to unequip a wardrobe. Does not prevent unequip keybind or normal clicking.")
 
-    private val advanced by DropdownSetting("Keybinds").collapsible()
+    private val advanced by TextSetting("Keybinds")
     private val wardrobeKeys = (1..9).map { i ->
-        KeybindSetting("Slot $i", CatKeys.KEY_0 + i, "Slot $i on the menu.").withDependency(advanced).value
+        KeybindSetting("Slot $i", CatKeys.KEY_0 + i, "Slot $i on the menu.").childOf(advanced).value
     }
 
     private val wardrobeRegex = Regex("Wardrobe \\((\\d)/(\\d)\\)")
