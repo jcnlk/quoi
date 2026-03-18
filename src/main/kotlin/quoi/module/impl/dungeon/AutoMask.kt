@@ -35,6 +35,7 @@ object AutoMask : Module(
 ) {
 
     private val dungeonsOnly by switch("Dungeons only")
+    private val bossOnly by switch("Boss only")
     private val P3Only by switch("Phase 3 only")
     private val stopMoving by switch("Prevent moving", true)
     private val antiLoop by switch("Anti loop")
@@ -148,6 +149,7 @@ object AutoMask : Module(
             val messageRaw = message.noControlCodes
 
             if (dungeonsOnly && !Dungeon.inDungeons) return@on
+            if (bossOnly && !Dungeon.inBoss) return@on
             if (P3Only && !Dungeon.inP3) return@on
 
             if (messageRaw == "Your Phoenix Pet saved you from certain death!") {

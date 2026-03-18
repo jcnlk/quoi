@@ -80,7 +80,7 @@ object LeapManager { // still schizophrenia
             is String -> dungeonTeammatesNoSelf.firstOrNull { it.name.equals(target, true) }
             is DungeonClass -> dungeonTeammatesNoSelf.firstOrNull { it.clazz == target }
             else -> null
-        } ?: return modMessage("&c Failed to leap! &r$target &cnot found")
+        } ?: return modMessage("&cFailed to leap! &r$target &cnot found")
 
 //        if (teammate.name !in WorldUtils.players.map { it.profile.name }) return modMessage("&c Failed to leap! &r$target &cnot found")
 
