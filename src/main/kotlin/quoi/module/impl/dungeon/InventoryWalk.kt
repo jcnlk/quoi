@@ -20,8 +20,8 @@ object InventoryWalk : Module(
     desc = "Allows movement in containers."
 ) {
 
-    private val clickDelay = SliderComponent("Click Delay", 6.0, 3.0, 12.0, 1.0)
-    private val blacklist = SwitchComponent("Blacklist", desc = "Stops movement in sell guis + terminals.")
+    private val clickDelay by SliderComponent("Click delay", 6.0, 3.0, 12.0, 1.0)
+    private val blacklist by SwitchComponent("Blacklist", true, desc = "Stops movement in sell guis + terminals.")
 
     private var delay = 0
     private val blacklistedTitles = listOf("Trades", "Booster Cookie", "Farm Merchant", "Ophelia", "Correct all the panes!", "Change all to same color!", "Click in order!", "What starts with:", "Select all the", "Click the button on time!")
@@ -37,12 +37,10 @@ object InventoryWalk : Module(
         )
 
     init {
-        addSettings(clickDelay, blacklist)
-
         on<TickEvent.Start> {
             val screen = mc.screen ?: return@on
 
-            if (isTyping(screen) || blacklist.value && isBlacklisted(screen)) {
+            if (isTyping(screen) || blacklist && isBlacklisted(screen)) {
                 movementKeys.forEach { it.isDown = false }
                 return@on
             }
@@ -63,7 +61,7 @@ object InventoryWalk : Module(
         on<GuiEvent.Slot.Click> {
             mc.screen ?: return@on
             movementKeys.forEach { it.isDown = false }
-            delay = clickDelay.value.toInt()
+            delay = clickDelay.toInt()
         }
     }
 
