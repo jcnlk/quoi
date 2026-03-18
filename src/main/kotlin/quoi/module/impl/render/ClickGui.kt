@@ -52,6 +52,8 @@ import quoi.utils.ui.hud.HudManager
 import quoi.utils.ui.hud.TextHud
 import quoi.utils.ui.hud.setting
 import quoi.utils.ui.onHover
+import quoi.utils.ui.rendering.NVGRenderer
+import quoi.utils.ui.rendering.NVGRenderer.defaultFont
 import quoi.utils.ui.screens.UIScreen.Companion.open
 import quoi.utils.ui.textPair
 import java.net.URI
@@ -345,8 +347,15 @@ object ClickGui : Module(
         onHover(duration = 0.5.seconds) {
             if (popup != null) return@onHover
 
-            val x = (element.x + element.width + 10).px
+            val x =
+                    if (element.x >= ui.main.width / 2)
+                        (element.x - 8).px.alignRight
+                    else
+                        (element.x + element.width + 8).px
+
             val y = (element.y + 7 / 2).px
+
+            val lines = NVGRenderer.wrapText(desc, 200f, 14f, defaultFont)
 
             popup = popup(constrain(x, y, Bounding, Bounding), smooth = false) {
                 block(
@@ -355,11 +364,15 @@ object ClickGui : Module(
                     5.radius()
                 ) {
                     outline(theme.outline, thickness = 2.px)
-                    text(
-                        string = desc, // maybe should wrap
-                        size = theme.textSize - 2.px,
-                        colour = theme.onSurface
-                    )
+                    column {
+                        lines.forEach {
+                            text(
+                                string = it,
+                                size = theme.textSize - 2.px,
+                                colour = theme.onSurface
+                            )
+                        }
+                    }
                 }
             }
         }

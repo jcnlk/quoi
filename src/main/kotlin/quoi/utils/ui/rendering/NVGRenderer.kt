@@ -308,6 +308,24 @@ object NVGRenderer {
         return bounds // [minX, minY, maxX, maxY]
     }
 
+    fun wrapText(text: String, maxWidth: Float, size: Float, font: Font): List<String> {
+        val lines = mutableListOf<String>()
+        var currentLine = ""
+
+        text.split(" ").forEach { word ->
+            val line = if (currentLine.isEmpty()) word else "$currentLine $word"
+            if (textWidth(line, size, font) <= maxWidth) {
+                currentLine = line
+            } else {
+                lines.add(currentLine)
+                currentLine = word
+            }
+        }
+
+        if (currentLine.isNotEmpty()) lines.add(currentLine)
+        return lines
+    }
+
     fun createNVGImage(textureId: Int, textureWidth: Int, textureHeight: Int): Int {
         val key = textureId to (textureWidth to textureHeight)
         return nvgImages.getOrPut(key) {
