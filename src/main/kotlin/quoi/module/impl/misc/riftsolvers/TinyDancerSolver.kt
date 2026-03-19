@@ -8,7 +8,6 @@ import net.minecraft.sounds.SoundEvents
 import quoi.QuoiMod.mc
 import quoi.utils.ChatUtils
 import quoi.utils.Scheduler
-import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.skyblock.player.PlayerUtils.hold
 import quoi.utils.skyblock.player.PlayerUtils.leftClick
 import quoi.utils.skyblock.player.PlayerUtils.pitch
@@ -60,7 +59,7 @@ object TinyDancerSolver {
     fun onScreen() = if (isActive) reset() else null
 
     fun onSubTitle(packet: ClientboundSetSubtitleTextPacket) {
-        if (!isActive && packet.text.noControlCodes.contains("Move!")) start()
+        if (!isActive && packet.text.string.contains("Move!")) start()
     }
 
     fun onSound(packet: ClientboundSoundPacket) {

@@ -12,7 +12,6 @@ import quoi.api.events.GameEvent
 import quoi.api.events.core.EventBus
 import quoi.config.Config
 import quoi.module.ModuleManager
-import quoi.utils.SoundRegistry
 import quoi.utils.ui.hud.HudManager
 import quoi.utils.ui.rendering.NVGSpecialRenderer
 import kotlin.coroutines.EmptyCoroutineContext
@@ -26,7 +25,6 @@ object QuoiMod : ClientModInitializer {
 
     override fun onInitializeClient() {
         ModuleManager.initialise()
-        SoundRegistry.initialize()
         AnnotationLoader.load()
         SpecialGuiElementRegistry.register { context ->
             NVGSpecialRenderer(context.vertexConsumers())

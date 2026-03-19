@@ -105,7 +105,7 @@ object DungeonESP : Module(
 
     private fun getColour(entity: Entity) = when (entity) {
         is Bat if (entity.maxHealth.equalsOneOf(100f, 200f, 400f, 800f)) -> colourBat to colourBatFill
-        is EnderMan if (entity.name.string.noControlCodes == "Dinnerbone") -> {
+        is EnderMan if (entity.name.string == "Dinnerbone") -> {
             colourStar to colourStarFill
         }
         is ArmorStand -> {

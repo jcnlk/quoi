@@ -1,16 +1,15 @@
 package quoi.utils
 
-import quoi.QuoiMod.mc
 import net.minecraft.ChatFormatting
 import net.minecraft.client.gui.Font
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.MutableComponent
 import net.minecraft.network.chat.Style
 import net.minecraft.network.chat.contents.PlainTextContents
+import quoi.QuoiMod.mc
 import java.util.*
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.text.uppercaseChar
 
 object StringUtils {
 
@@ -22,9 +21,6 @@ object StringUtils {
 
     val String?.noControlCodes: String
         get() = this?.let { FORMATTING_CODE_PATTERN.replace(it, "") } ?: ""
-
-    val Component.noControlCodes: String
-        get() = this.string.noControlCodes
 
     val Component.formattedString: String get() = buildString {
         val rgbMap = ChatFormatting.entries

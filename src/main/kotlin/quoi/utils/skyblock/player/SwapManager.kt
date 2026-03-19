@@ -1,18 +1,18 @@
 package quoi.utils.skyblock.player
 
+import net.minecraft.network.protocol.game.ServerboundSetCarriedItemPacket
+import net.minecraft.world.item.ItemStack
 import quoi.QuoiMod.mc
-import quoi.api.events.core.EventBus.on
-import quoi.api.events.core.Priority
+import quoi.annotations.Init
 import quoi.api.events.PacketEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
+import quoi.api.events.core.EventBus.on
+import quoi.api.events.core.Priority
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.StringUtils.noControlCodes
-import quoi.utils.skyblock.ItemUtils.skyblockId
-import net.minecraft.network.protocol.game.ServerboundSetCarriedItemPacket
-import net.minecraft.world.item.ItemStack
-import quoi.annotations.Init
 import quoi.utils.skyblock.ItemUtils.loreString
+import quoi.utils.skyblock.ItemUtils.skyblockId
 
 @Init
 object SwapManager {
@@ -105,7 +105,7 @@ object SwapManager {
         }
     }
 
-    fun swapByName(name: String) = findAndSwap(name) { it.displayName.string.noControlCodes.contains(name, true) }
+    fun swapByName(name: String) = findAndSwap(name) { it.displayName.string.contains(name, true) }
 
     fun swapByLore(lore: String) = findAndSwap(lore) { it.loreString.noControlCodes.contains(lore, true) }
 

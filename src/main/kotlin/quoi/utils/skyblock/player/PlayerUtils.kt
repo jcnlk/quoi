@@ -19,20 +19,13 @@ import quoi.utils.ChatUtils
 import quoi.utils.ChatUtils.literal
 import quoi.utils.Direction
 import quoi.utils.Scheduler.scheduleTask
+import quoi.utils.SoundUtils
 import quoi.utils.key
 import quoi.utils.skyblock.ItemUtils.skyblockId
 import java.nio.charset.StandardCharsets
 import java.util.*
 
 object PlayerUtils {
-    fun playSound(soundSettings: () -> Triple<SoundEvent, Float, Float>) {
-        val (sound, volume, pitch) = soundSettings()
-        playSound(sound, volume, pitch)
-    }
-
-    fun playSound(sound: SoundEvent, volume: Float = 1.0f, pitch: Float = 1.0f) = mc.execute {
-        mc.player?.playSound(sound, volume, pitch)
-    }
 
     fun setTitle(
         title: String,
@@ -49,7 +42,7 @@ object PlayerUtils {
         mc.gui.setTitle(literal(title))
         mc.gui.setSubtitle(literal(subtitle))
         if (playSound) {
-            playSound(sound, volume, pitch)
+            SoundUtils.play(sound, volume, pitch)
         }
     }
 

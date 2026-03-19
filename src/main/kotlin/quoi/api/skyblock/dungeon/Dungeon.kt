@@ -4,13 +4,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import net.minecraft.client.player.LocalPlayer
 import net.minecraft.core.BlockPos
-import net.minecraft.network.protocol.game.ClientboundContainerClosePacket
-import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
-import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket
-import net.minecraft.network.protocol.game.ClientboundSetPlayerTeamPacket
-import net.minecraft.network.protocol.game.ClientboundSystemChatPacket
-import net.minecraft.network.protocol.game.ClientboundTabListPacket
-import net.minecraft.network.protocol.game.ServerboundContainerClosePacket
+import net.minecraft.network.protocol.game.*
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.SkullBlock
 import net.minecraft.world.level.block.entity.SkullBlockEntity
@@ -328,7 +322,7 @@ object Dungeon {
                         }
                     }
 
-                    is ClientboundOpenScreenPacket -> { inTerminal = terminalTitles.any { title.string.noControlCodes.contains(it) } }
+                    is ClientboundOpenScreenPacket -> { inTerminal = terminalTitles.any { title.string.contains(it) } }
                     is ClientboundContainerClosePacket -> inTerminal = false
                 }
             }

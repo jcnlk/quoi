@@ -3,11 +3,7 @@ package quoi.utils.skyblock.player
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps
 import net.minecraft.client.player.LocalPlayer
 import net.minecraft.network.HashedStack
-import net.minecraft.network.protocol.game.ClientboundContainerClosePacket
-import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket
-import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
-import net.minecraft.network.protocol.game.ServerboundContainerClickPacket
-import net.minecraft.network.protocol.game.ServerboundContainerClosePacket
+import net.minecraft.network.protocol.game.*
 import net.minecraft.world.inventory.ClickType
 import net.minecraft.world.item.ItemStack
 import quoi.QuoiMod.mc
@@ -18,15 +14,18 @@ import quoi.api.events.core.EventBus
 import quoi.api.events.core.EventBus.on
 import quoi.api.events.core.Priority
 import quoi.mixins.accessors.InventoryAccessor
+import quoi.module.impl.misc.PetKeybinds
 import quoi.utils.ChatUtils
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.Scheduler.scheduleTask
 import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.skyblock.ItemUtils.loreString
 import quoi.utils.skyblock.ItemUtils.skyblockUuid
+import quoi.utils.skyblock.player.ContainerUtils.closeContainer
+import quoi.utils.skyblock.player.ContainerUtils.getContainerItems
+import quoi.utils.skyblock.player.ContainerUtils.getContainerItemsClose
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
-import quoi.module.impl.misc.PetKeybinds
 
 @Init
 object ContainerUtils {
@@ -42,7 +41,7 @@ object ContainerUtils {
                 is ClientboundOpenScreenPacket -> {
                     containerId = packet.containerId
                     lastStateId = 0
-                    if (nextToCancel != null && packet.title.string.noControlCodes.contains(nextToCancel!!, ignoreCase = true)) {
+                    if (nextToCancel != null && packet.title.string.contains(nextToCancel!!, ignoreCase = true)) {
                         nextToCancel = null
                         cancel()
                     }

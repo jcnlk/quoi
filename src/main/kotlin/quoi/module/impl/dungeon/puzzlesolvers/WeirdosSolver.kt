@@ -11,10 +11,10 @@ import quoi.api.colour.Colour
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.odonscanning.tiles.OdonRoom
 import quoi.utils.EntityUtils
+import quoi.utils.SoundUtils
 import quoi.utils.render.drawStyledBox
 import quoi.utils.skyblock.player.AuraAction
 import quoi.utils.skyblock.player.AuraManager
-import quoi.utils.skyblock.player.PlayerUtils
 import quoi.utils.vec3
 import java.util.concurrent.CopyOnWriteArraySet
 
@@ -44,7 +44,7 @@ object WeirdosSolver {
 
         if (solutions.any { it.matches(msg) }) {
             correctPos = pos
-            PlayerUtils.playSound(SoundEvents.FIREWORK_ROCKET_LARGE_BLAST, 2f, 1f)
+            SoundUtils.play(SoundEvents.FIREWORK_ROCKET_LARGE_BLAST, 2f, 1f)
         } else wrongPositions.add(pos)
     }
 

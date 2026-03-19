@@ -6,7 +6,6 @@ import net.minecraft.world.inventory.MenuType
 import quoi.api.events.PacketEvent
 import quoi.api.skyblock.Island
 import quoi.module.Module
-import quoi.utils.StringUtils.noControlCodes
 
 // Kyleen
 object AutoCloseChest : Module(
@@ -28,7 +27,7 @@ object AutoCloseChest : Module(
 
     init {
         on<PacketEvent.Received, ClientboundOpenScreenPacket> {
-            if (packet.type !in chestMenuTypes || packet.title.string.noControlCodes.trim() !in secretChestTitles) return@on
+            if (packet.type !in chestMenuTypes || packet.title.string.trim() !in secretChestTitles) return@on
 
             SecretAura.lastClickedPos?.let { pos ->
                 SecretAura.blocksDone.add(pos)

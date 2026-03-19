@@ -76,10 +76,10 @@
 //        on<PacketEvent.Received> {
 ////            if (tickerThing == null) return@on
 //            if (tpsAmount == 0) return@on
-//            if (!player.mainHandItem.displayName.string.noControlCodes.contains("aspect of the void", true)) return@on
+//            if (!player.mainHandItem.displayName.string.contains("aspect of the void", true)) return@on
 //
 //            val flag = when (packet) {
-//                is ClientboundSystemChatPacket -> packet.content.string.noControlCodes == "There are blocks in the way!" // if it goes in the bedrock
+//                is ClientboundSystemChatPacket -> packet.content.string == "There are blocks in the way!" // if it goes in the bedrock
 //                is ClientboundPlayerPositionPacket -> true
 //                else -> false
 //            }

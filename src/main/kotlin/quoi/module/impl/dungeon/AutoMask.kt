@@ -207,7 +207,7 @@ object AutoMask : Module(
 
         val player = mc.player ?: return
         val currentHelmet = player.inventory.getItem(39)
-        val helmetName = currentHelmet.displayName.string.noControlCodes
+        val helmetName = currentHelmet.displayName.string
 
         if (helmetName.contains(maskName, ignoreCase = true)) return
 
@@ -324,7 +324,7 @@ object AutoMask : Module(
 
             openListener = EventBus.on<PacketEvent.Received>(Priority.LOWEST) {
                 if (packet is ClientboundOpenScreenPacket) {
-                    val title = packet.title.string.noControlCodes
+                    val title = packet.title.string
                     if (title.contains("Spirit Leap", ignoreCase = true)) {
                         windowId = packet.containerId
                         cancel()
@@ -338,7 +338,7 @@ object AutoMask : Module(
                         val stack = packet.item
 
                         if (!stack.isEmpty) {
-                            val name = stack.displayName.string.noControlCodes
+                            val name = stack.displayName.string
                             if (name.contains(targetName, ignoreCase = true)) {
                                 val slot = packet.slot
 

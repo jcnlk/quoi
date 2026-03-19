@@ -14,12 +14,12 @@ import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.utils.EntityUtils.interpolatedBox
 import quoi.utils.Scheduler.scheduleTask
+import quoi.utils.SoundUtils
 import quoi.utils.StringUtils.containsOneOf
 import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.aabb
 import quoi.utils.render.drawFilledBox
 import quoi.utils.render.drawWireFrameBox
-import quoi.utils.skyblock.player.PlayerUtils
 import java.util.concurrent.CopyOnWriteArrayList
 
 // https://github.com/Noamm9/CatgirlAddons/blob/main/src/main/kotlin/catgirlroutes/module/impl/dungeons/Secrets.kt
@@ -81,7 +81,7 @@ object Secrets : Module(
                 var colour = farColour
 
                 if (item.distanceTo(player) <= 3.5) {
-                    if (playSound) PlayerUtils.playSound(itemSound)
+                    if (playSound) SoundUtils.play(itemSound)
                     colour = closeColour
                 }
                 ctx.drawFilledBox(item.interpolatedBox.inflate(sizeOffset), colour)
@@ -106,7 +106,7 @@ object Secrets : Module(
 
     private fun playSecretSound(sound: () -> Triple<SoundEvent, Float, Float>) {
         if (System.currentTimeMillis() - lastPlayed > 10 && secretChime) {
-            PlayerUtils.playSound(sound)
+            SoundUtils.play(sound)
             lastPlayed = System.currentTimeMillis()
         }
     }

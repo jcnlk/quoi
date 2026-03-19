@@ -282,7 +282,7 @@ object ClickGui : Module(
         lateinit var settings: ElementScope<Column>
 
         val col = Colour.Animated(
-            from = theme.surfaceContainer,
+            from = theme.surfaceContainerLow,
             to = theme.primaryContainer,
             swapIf = module.enabled
         )

@@ -1,5 +1,6 @@
 package quoi.module.settings
 
+import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.sounds.SoundEvent
 import net.minecraft.sounds.SoundEvents
@@ -9,7 +10,7 @@ import quoi.module.settings.Setting.Companion.json
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.module.settings.UIComponent.Companion.visibleIf
 import quoi.module.settings.impl.*
-import quoi.utils.skyblock.player.PlayerUtils
+import quoi.utils.SoundUtils
 import kotlin.reflect.KProperty0
 
 abstract class SettingsDsl {
@@ -65,11 +66,11 @@ abstract class SettingsDsl {
         SliderComponent(name, value, min, max, increment, desc, unit)
 
     fun sound(name: String, ): SoundSetting {
-        val sound = +selector("$name sound", Sound.BlazeHurt)
+        val sound = +selector("$name sound", SoundUtils.SoundSetting.BlazeHurt)
 
         val customSound = +textInput("Custom sound", "entity.blaze.hurt", length = 64)
             .json("$name custom sound")
-            .childOf(sound) { sound.selected == Sound.Custom }
+            .childOf(sound) { sound.selected == SoundUtils.SoundSetting.Custom }
 
         val soundVolume = +slider("Volume", 1.0f, 0.1f, 2.0f, 0.01f, desc = "Volume of the sound to play.")
             .json("$name volume")
@@ -81,29 +82,19 @@ abstract class SettingsDsl {
 
         val settings = {
             val soundEvent =
-                if (sound.selected == Sound.Custom)
-                    SoundEvent.createVariableRangeEvent(ResourceLocation.parse(customSound.value))
+                if (sound.selected == SoundUtils.SoundSetting.Custom)
+                    BuiltInRegistries.SOUND_EVENT.getOptional(ResourceLocation.parse(customSound.value)).orElse(null)
+                        ?: SoundEvent.createVariableRangeEvent(ResourceLocation.parse(customSound.value))
                 else
                     sound.selected.sound
             Triple(soundEvent ?: SoundEvents.BLAZE_HURT, soundVolume.value, soundPitch.value)
         }
 
-        +button("Test sound") { PlayerUtils.playSound(settings) }
+        +button("Test sound") { SoundUtils.play(settings) }
             .childOf(sound)
 
         return SoundSetting(sound, settings)
     }
-}
-
-private enum class Sound(val sound: SoundEvent) { // todo move idk
-    BlazeHurt(SoundEvents.BLAZE_HURT),
-    Pling(SoundEvents.NOTE_BLOCK_PLING.value()),
-    OrbPickup(SoundEvents.EXPERIENCE_ORB_PICKUP),
-    LevelUp(SoundEvents.PLAYER_LEVELUP),
-    AnvilLand(SoundEvents.ANVIL_LAND),
-    WitherSpawn(SoundEvents.WITHER_SPAWN),
-    Explosion(SoundEvents.GENERIC_EXPLODE.value()),
-    Custom(SoundEvents.BLAZE_HURT)
 }
 
 class SoundSetting(
