@@ -66,6 +66,7 @@ object ModuleManager {
             AutoClicker,
             Inventory,
             ItemAnimations,
+            Sweet,
 //            CustomTriggers,
 
             // PLAYER
