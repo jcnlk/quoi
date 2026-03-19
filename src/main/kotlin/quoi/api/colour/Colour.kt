@@ -259,7 +259,7 @@ interface Colour {
         val LIME: RGB = RGB(50, 205, 50)
 
         @JvmField
-        val BROWN: RGB = RGB(165, 42, 42)
+        val BROWN: RGB = RGB(102, 76, 51)
 
         @JvmField
         val RAINBOW: Colour = colour {

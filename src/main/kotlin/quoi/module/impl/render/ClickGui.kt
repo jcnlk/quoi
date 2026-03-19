@@ -223,11 +223,12 @@ object ClickGui : Module(
             constrain(
                 x = Centre, y = 90.percent,
                 w = 375.px, h = Bounding
-            )
+            ),
+            gap = 10.px
         ) {
             draggable(button = 1)
 
-            row(at(x = Centre), gap = 15.px) {
+            row(at(x = Centre), gap = 10.px) {
 
                 mapOf(
                     "Hud editor" to { open(HudManager.editor(fromMain = true)) },
@@ -251,8 +252,6 @@ object ClickGui : Module(
                     }
                 }
             }
-
-            divider(15.px)
 
             themedInput(
                 size = size(Copying, 40.px),

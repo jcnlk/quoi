@@ -23,6 +23,9 @@ object StringUtils {
     val String?.noControlCodes: String
         get() = this?.let { FORMATTING_CODE_PATTERN.replace(it, "") } ?: ""
 
+    val Component.noControlCodes: String
+        get() = this.string.noControlCodes
+
     val Component.formattedString: String get() = buildString {
         val rgbMap = ChatFormatting.entries
             .mapNotNull { it.color?.let { color -> color to it } }

@@ -48,6 +48,12 @@ inline val BlockPos.bounds: AABB? get() {
 }
 
 fun Vec3(x: Number, y: Number, z: Number) = Vec3(x.toDouble(), y.toDouble(), z.toDouble())
+fun BlockPos(x: Number, y: Number, z: Number) =
+    BlockPos(
+        floor(x.toDouble()).toInt(),
+        floor(y.toDouble()).toInt(),
+        floor(z.toDouble()).toInt(),
+    )
 
 fun Vec3.rotate(rotation: Int): Vec3 =
     when ((rotation % 360 + 360) % 360) {

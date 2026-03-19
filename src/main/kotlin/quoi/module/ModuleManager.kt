@@ -6,13 +6,10 @@ import quoi.api.events.core.EventBus
 import quoi.api.input.CatKeys
 import quoi.module.impl.dungeon.*
 import quoi.module.impl.dungeon.puzzlesolvers.PuzzleSolvers
-import quoi.module.impl.mining.CrystalHollowsMap
-import quoi.module.impl.mining.CrystalHollowsScanner
-import quoi.module.impl.mining.GrieferTracker
+import quoi.module.impl.mining.*
 import quoi.module.impl.misc.*
-import quoi.module.impl.player.AutoSprint
-import quoi.module.impl.player.PlayerDisplay
-import quoi.module.impl.player.Tweaks
+import quoi.module.impl.misc.riftsolvers.MirrorverseSolvers
+import quoi.module.impl.player.*
 import quoi.module.impl.render.*
 import quoi.module.settings.impl.KeybindComponent
 
@@ -68,6 +65,7 @@ object ModuleManager {
             ItemAnimations,
             Sweet,
 //            CustomTriggers,
+            MirrorverseSolvers,
 
             // PLAYER
             AutoSprint,
