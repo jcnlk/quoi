@@ -63,7 +63,9 @@ object IceFillSolver {
     }
 
     fun onRoomEnter(room: OdonRoom?) = with (room) {
-        if (this?.name != "Ice Fill" || currentPatterns.isNotEmpty()) return@with
+        if (this?.name != "Ice Fill") return@with
+        repositionTicker = null
+        if (currentPatterns.isNotEmpty()) return@with
         val patterns = /*if (optimizePatterns) iceFillFloors.hard else */iceFillFloors.easy
 
         repeat(3) { index ->
@@ -97,8 +99,7 @@ object IceFillSolver {
             return
         }
 
-        if (reposition && player.y !in (69.5..72.5)) { // untested
-            player.stop()
+        if (reposition && player.y !in (69.5..72.5) ) { // untested
             if (player.isMoving) return
             val spot = getBlock()
             if (spot != null) {
@@ -154,7 +155,7 @@ object IceFillSolver {
 
         val dir = getEtherwarpDirection(spot)
 
-        if (dir == null) {
+        if (dir == null || player.isMoving) {
             repositionTicker = null
             return
         }
@@ -167,6 +168,7 @@ object IceFillSolver {
                 }
                 delay(2)
             }
+            await { !player.isMoving }
             await {
                 if (r) return@await true
                 else return@await false.also {

@@ -15,6 +15,9 @@ import quoi.api.skyblock.dungeon.odonscanning.tiles.OdonRoom
 import quoi.utils.*
 import quoi.utils.EntityUtils.renderPos
 import quoi.utils.Scheduler.scheduleTask
+import quoi.utils.component1
+import quoi.utils.component2
+import quoi.utils.component3
 import quoi.utils.render.drawFilledBox
 import quoi.utils.render.drawLine
 import quoi.utils.render.drawStyledBox
@@ -44,8 +47,8 @@ object BlazeSolver { // todo maybe improve terminator shit some day
     private var repositionTicker: Ticker? = null
     private var currentSpot = 0
 
-    private val higherSpots = listOf(BlockPos(10, 94, 19), BlockPos(22, 88, 17), BlockPos(10, 118, 23))
-    private val lowerSpots = listOf(BlockPos(24, 62, 14), BlockPos(9, 45, 18), BlockPos(10, 68, 23), BlockPos(24, 29, 16), BlockPos(13, 50, 8))
+    private val higherSpots = listOf(BlockPos(10, 94, 19), BlockPos(22, 88, 17), BlockPos(10, 118, 23), BlockPos(20, 85, 11))
+    private val lowerSpots = listOf(BlockPos(24, 62, 14), BlockPos(9, 45, 18), BlockPos(10, 68, 23), BlockPos(24, 29, 16), BlockPos(13, 50, 8), BlockPos(24, 48, 17))
 
     fun getBlaze() {
         if (!Dungeon.inDungeons || Dungeon.currentRoom?.name?.equalsOneOf("Lower Blaze", "Higher Blaze") == false) return
@@ -66,7 +69,7 @@ object BlazeSolver { // todo maybe improve terminator shit some day
     }
 
     fun onRenderWorld(ctx: WorldRenderContext, blazeLineNext: Boolean, blazeLineAmount: Int, blazeStyle: String, blazeFirstColour: Colour, blazeSecondColour: Colour, blazeAllColour: Colour, blazeAnnounce: Boolean, blazeLineWidth: Float, autoReposition: Boolean) {
-        if (!Dungeon.currentRoom?.name.equalsOneOf("Lower Blaze", "Higher Blaze")) return
+        if (!Dungeon.currentRoom?.name.equalsOneOf("Lower Blaze", "Higher Blaze") || blazes.isEmpty()) return
 
         if (autoReposition) {
             val spots = if (Dungeon.currentRoom?.name == "Higher Blaze") higherSpots else lowerSpots
@@ -75,13 +78,12 @@ object BlazeSolver { // todo maybe improve terminator shit some day
             }
         }
 
-        if (blazes.isEmpty()) return
-
         blazes.removeAll { mc.level?.getEntity(it.id) == null }
 
         if (blazes.isEmpty() && lastBlazeCount == 1) {
             Dungeon.puzzles.find { it == Puzzle.BLAZE }?.status = PuzzleStatus.Completed
             if (blazeAnnounce) ChatUtils.command("pc Blaze done!")
+            if (autoReposition) mc.options.keyShift.isDown = false
             lastBlazeCount = 0
             return
         }
@@ -136,7 +138,29 @@ object BlazeSolver { // todo maybe improve terminator shit some day
 
         val blaze = blazes.firstOrNull() ?: return
         val hitboxes = blazes.map { BlazeHitbox(getAABB(it, it == blaze), it == blaze) }
-        val (cx, cy, cz) = blaze.boundingBox.move(0.0, -1.0, 0.0).center
+
+        val hitDir = canHit(player.eyePosition, hitboxes, player.hasTerminator)
+
+        if (hitDir == null) {
+            if (autoReposition) cyclePosition(player, room)
+            return
+        }
+
+        if (!player.mainHandItem.isShortbow) return
+        if (currentTime - lastShotTime < shootCd) return
+
+        val finalTarget = player.eyePosition.add(hitDir.toVec().scale(10.0))
+        val dir = getDirection(player.eyePosition, finalTarget)
+        player.useItem(dir)
+
+        lastShotTime = currentTime
+        waitingForUpdate = true
+        currentTarget = blaze
+    }
+
+    private fun canHit(eyePos: Vec3, hitboxes: List<BlazeHitbox>, isTerminator: Boolean): Direction? {
+        val target = hitboxes.firstOrNull { it.isTarget } ?: return null
+        val (cx, cy, cz) = target.aabb.center
 
         val testPoints = listOf(
             Vec3(cx, cy, cz),
@@ -148,48 +172,19 @@ object BlazeSolver { // todo maybe improve terminator shit some day
             Vec3(cx, cy, cz - 0.2)
         )
 
-        var finalYaw: Float? = null
-        var finalPitch: Float? = null
-        val isTerminator = player.hasTerminator
-
         for (point in testPoints) {
-            val (yaw, pitch) = getArrowDirection(point, isTerminator)
-            val origin = getArrowOrigin(player.eyePosition, yaw, isTerminator)
+            val dir = getArrowDirection(eyePos, point, isTerminator)
+            val (yaw, pitch) = dir
+            val origin = getArrowOrigin(eyePos, yaw, isTerminator)
 
             if (isSafe(origin, yaw, pitch, hitboxes, false)) {
 
                 if (!isTerminator || (isSafe(origin, yaw + 5f, pitch, hitboxes, true) && isSafe(origin, yaw - 5f, pitch, hitboxes, true))) {
-                    finalYaw = yaw
-                    finalPitch = pitch
-                    break
+                    return dir
                 }
             }
         }
-
-        if (finalYaw == null || finalPitch == null) {
-            if (autoReposition) cyclePosition(player, room)
-            return
-        }
-
-        if (!player.mainHandItem.isShortbow) return
-        if (currentTime - lastShotTime < shootCd) return
-
-        val (y, p) = finalYaw.rad to finalPitch.rad
-
-        val vec = Vec3(
-            -sin(y) * cos(p),
-            -sin(p),
-            cos(y) * cos(p)
-        )
-
-        val finalTarget = player.eyePosition.add(vec.scale(10.0))
-        val dir = getDirection(player.eyePosition, finalTarget)
-
-        player.useItem(dir)
-
-        lastShotTime = currentTime
-        waitingForUpdate = true
-        currentTarget = blaze
+        return null
     }
 
     private fun getAABB(blaze: ArmorStand, isTarget: Boolean): AABB {
@@ -249,12 +244,45 @@ object BlazeSolver { // todo maybe improve terminator shit some day
         return sideArrow
     }
 
-    private fun cyclePosition(player: LocalPlayer, room: OdonRoom) { // todo fix
+    private fun cyclePosition(player: LocalPlayer, room: OdonRoom) {
         if (repositionTicker != null) return
+        val blaze = blazes.firstOrNull() ?: return
         val spots = if (room.name == "Higher Blaze") higherSpots else lowerSpots
-        currentSpot = (currentSpot + 1) % spots.size
-        val nextSpot = room.getRealCoords(spots[currentSpot])
-        reposition(player, nextSpot)
+        val hitboxes = blazes.map { BlazeHitbox(getAABB(it, it == blaze), it == blaze) }
+        val isTerm = player.hasTerminator
+
+        var fallback: BlockPos? = null
+
+        for (j in spots.indices) {
+            val i = (currentSpot + j + 1) % spots.size
+            val realSpot = room.getRealCoords(spots[i])
+            val spotEye = realSpot.vec3.add(0.5, 1.62, 0.5)
+
+            if (fallback == null && getEtherwarpDirection(realSpot) != null) {
+                fallback = realSpot
+            }
+
+            if (canHit(spotEye, hitboxes, isTerm) == null) continue
+
+            if (getEtherwarpDirection(realSpot) != null) {
+                currentSpot = i
+                reposition(player, realSpot)
+                return
+            }
+
+            for (link in spots) {
+                val realLink = room.getRealCoords(link)
+                if (getEtherwarpDirection(realLink) == null) continue
+
+                val linkEye = realLink.vec3.add(0.5, 1.62, 0.5)
+                if (getEtherwarpDirection(linkEye, realSpot) != null) {
+                    currentSpot = i
+                    reposition(player, realLink)
+                    return
+                }
+            }
+        }
+        fallback?.let { reposition(player, it) }
     }
 
     private fun reposition(player: LocalPlayer, spot: BlockPos) {

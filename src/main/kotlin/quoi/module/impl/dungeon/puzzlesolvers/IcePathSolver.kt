@@ -212,13 +212,6 @@ object IcePathSolver { // todo add pre fire maybe
     private fun reposition(player: LocalPlayer, spot: BlockPos) {
         if (repositionTicker != null) return
 
-        val dir = getEtherwarpDirection(spot)
-
-        if (dir == null) {
-            repositionTicker = null
-            return
-        }
-
         repositionTicker = ticker {
             val r = SwapManager.swapById("ASPECT_OF_THE_VOID", "ASPECT_OF_THE_END").success
             if (!mc.options.keyShift.isDown) {
@@ -233,7 +226,14 @@ object IcePathSolver { // todo add pre fire maybe
                     repositionTicker = null
                 }
             }
-            action { player.useItem(dir) }
+            action {
+                val dir = getEtherwarpDirection(spot)
+                if (dir == null) {
+                    repositionTicker = null
+                    return@action
+                }
+                player.useItem(dir)
+            }
             await { player.at(spot) }
             action {
                 SwapManager.swapByLore("Shortbow: Instantly shoots!")

@@ -1,5 +1,6 @@
 package quoi.utils
 
+import net.minecraft.client.player.LocalPlayer
 import net.minecraft.core.BlockPos
 import net.minecraft.util.Mth.wrapDegrees
 import net.minecraft.world.entity.Entity
@@ -8,6 +9,7 @@ import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
 import quoi.QuoiMod.mc
+import quoi.api.skyblock.Location
 import quoi.api.skyblock.dungeon.odonscanning.tiles.Rotations
 import quoi.utils.WorldUtils.world
 import kotlin.math.*
@@ -19,7 +21,23 @@ import kotlin.math.*
  */
 
 data class Vec2(val x: Int, val z: Int)
-data class Direction(val yaw: Float, val pitch: Float, val distance: Double = 0.0)
+data class Direction(val yaw: Float, val pitch: Float, val distance: Double = 0.0) {
+    fun toVec(): Vec3 {
+        val f2 = -cos(-pitch * 0.017453292f).toDouble()
+        return Vec3(
+            sin(-yaw * 0.017453292f - 3.1415927f) * f2,
+            sin(-pitch * 0.017453292f).toDouble(),
+            cos(-yaw * 0.017453292f - 3.1415927f) * f2
+        )
+    }
+}
+
+fun LocalPlayer.eyeHeight(forceSneak: Boolean = false): Float {
+    val s = if (Location.onModernIsland) 1.27f else 1.54f
+    return if (isCrouching || forceSneak) s else 1.62f
+}
+
+fun LocalPlayer.eyePosition(forceSneak: Boolean = false) = Vec3(x, y + eyeHeight(forceSneak), z)
 
 operator fun Vec3.component1(): Double = x
 operator fun Vec3.component2(): Double = y
@@ -169,6 +187,8 @@ fun getDirection(from: Vec3, to: Vec3): Direction {
     return Direction(wrapDegrees(yaw), wrapDegrees(pitch), dist)
 }
 
+fun getDirection(to: Vec3) = getDirection(mc.player!!.eyePosition(), to)
+
 /**
  * Returns a triple of distance, yaw, pitch to rotate to the given position with etherwarp physics, or null if etherwarp is not possible.
  *
@@ -177,17 +197,18 @@ fun getDirection(from: Vec3, to: Vec3): Direction {
  * @see getDirection
  * @author Aton
  */
-fun getEtherwarpDirection(to: BlockPos, dist: Double = 61.0): Direction? {
-    val player = mc.player ?: return null
+fun getEtherwarpDirection(from: Vec3, to: BlockPos, dist: Double = 61.0): Direction? {
+    if (from.distanceToSqr(to.vec3) > (dist + 2) * (dist + 2)) return null
 
-    if (player.distanceToSqr(to.vec3) > (dist + 2) * (dist + 2)) return null
+    val visibleVec = getVisiblePoint(from, to) ?: return null
 
-    val visibleVec = getVisiblePoint(to) ?: return null
-
-    return getDirection(player.eyePosition, visibleVec)
+    return getDirection(from, visibleVec)
 }
 
+fun getEtherwarpDirection(to: BlockPos, dist: Double = 61.0) = getEtherwarpDirection(mc.player!!.eyePosition(true), to, dist)
+
 fun getArrowDirection(from: Vec3, to: Vec3, isTerminator: Boolean = false): Direction {
+
     var yaw = atan2(to.z - from.z, to.x - from.x).deg - 90.0f
 
     if (!isTerminator) {
@@ -234,8 +255,69 @@ fun getArrowDirection(from: Vec3, to: Vec3, isTerminator: Boolean = false): Dire
 
 fun getArrowDirection(to: Vec3, isTerminator: Boolean = false): Direction {
     val player = mc.player ?: return Direction(0f, 0f)
-    return getArrowDirection(player.eyePosition, to, isTerminator)
+    return getArrowDirection(player.eyePosition(), to, isTerminator)
 }
+
+fun getArrowDirection(from: Vec3, to: BlockPos, isTerminator: Boolean = false): Direction? {
+    val c = to.vec3.add(0.5, 0.5, 0.5)
+    val o = 0.25
+
+    val testPoints = listOf(
+        c,                                        // centxe
+        c.add(0.0, o, 0.0),  c.add(0.0, -o, 0.0), // top bot
+        c.add(o, 0.0, 0.0),  c.add(-o, 0.0, 0.0), // left right
+        c.add(0.0, 0.0, o),  c.add(0.0, 0.0, -o)  // front back
+    )
+
+    for (point in testPoints) {
+        val dir = getArrowDirection(from, point, isTerminator)
+        val yawRad = dir.yaw.rad
+        val pitchRad = dir.pitch.rad
+        val origin = getArrowOrigin(from, dir.yaw, isTerminator)
+        val dist = (to.x - origin.x) * (to.x - origin.x) + (to.z - origin.z) * (to.z - origin.z)
+
+        var px = origin.x
+        var py = origin.y
+        var pz = origin.z
+
+        var mx = -sin(yawRad) * cos(pitchRad) * 3.0
+        var my = -sin(pitchRad) * 3.0
+        var mz = cos(yawRad) * cos(pitchRad) * 3.0
+
+        var good = false
+
+        for (tick in 0..100) {
+
+            val hit = rayCast(px, py, pz, mx, my, mz)
+
+            if (hit != null) {
+                if (hit == to) {
+                    good = true
+                    break
+                }
+                break
+            }
+
+            px = mx
+            py = my
+            pz = mz
+
+            val currDist = (px - origin.x) * (px - origin.x) + (pz - origin.z) * (pz - origin.z)
+            if (currDist >= dist) {
+                good = true
+                break
+            }
+
+            mx *= 0.99
+            my = my * 0.99 - 0.05
+            mz *= 0.99
+        }
+        if (good) return dir
+    }
+    return null
+}
+
+fun getArrowDirection(to: BlockPos, isTerminator: Boolean = false) = getArrowDirection(mc.player!!.eyePosition(), to, isTerminator)
 
 fun getArrowOrigin(from: Vec3, yaw: Float, isTerminator: Boolean): Vec3 {
     return if (isTerminator) {
@@ -264,52 +346,58 @@ fun isPathClear(from: Vec3, target: Vec3): Boolean {
     return result.type == HitResult.Type.MISS
 }
 
-fun getVisiblePoint(to: BlockPos): Vec3? {
-    val eyeVec = mc.player?.eyePosition ?: return null
-
+fun getVisiblePoint(from: Vec3, to: BlockPos): Vec3? {
+    val t = to.vec3
     val targets = listOf(
         // centre
-        Vec3(to).add(Vec3(0.5, 1.0, 0.5)),
+        t.add(0.5, 1.0, 0.5),
+        t.add(0.0, 0.5, 0.5), // left
+        t.add(1.0, 0.5, 0.5), // right
+        t.add(0.5, 0.5, 0.0), // front
+        t.add(0.5, 0.5, 1.0), // back
+        t.add(0.5, 0.0, 0.5), // bottom
         // left
-        Vec3(to).add(Vec3(0.0, 0.001, 0.001)),
-        Vec3(to).add(Vec3(0.0, 0.001, 0.999)),
-        Vec3(to).add(Vec3(0.0, 0.999, 0.001)),
-        Vec3(to).add(Vec3(0.0, 0.999, 0.999)),
+        t.add(0.0, 0.001, 0.001),
+        t.add(0.0, 0.001, 0.999),
+        t.add(0.0, 0.999, 0.001),
+        t.add(0.0, 0.999, 0.999),
         // right
-        Vec3(to).add(Vec3(1.0, 0.001, 0.001)),
-        Vec3(to).add(Vec3(1.0, 0.001, 0.999)),
-        Vec3(to).add(Vec3(1.0, 0.999, 0.001)),
-        Vec3(to).add(Vec3(1.0, 0.999, 0.999)),
+        t.add(1.0, 0.001, 0.001),
+        t.add(1.0, 0.001, 0.999),
+        t.add(1.0, 0.999, 0.001),
+        t.add(1.0, 0.999, 0.999),
         // front
-        Vec3(to).add(Vec3(0.001, 0.001, 0.0)),
-        Vec3(to).add(Vec3(0.001, 0.999, 0.0)),
-        Vec3(to).add(Vec3(0.999, 0.001, 0.0)),
-        Vec3(to).add(Vec3(0.999, 0.999, 0.0)),
+        t.add(0.001, 0.001, 0.0),
+        t.add(0.001, 0.999, 0.0),
+        t.add(0.999, 0.001, 0.0),
+        t.add(0.999, 0.999, 0.0),
         // back
-        Vec3(to).add(Vec3(0.001, 0.001, 1.0)),
-        Vec3(to).add(Vec3(0.001, 0.999, 1.0)),
-        Vec3(to).add(Vec3(0.999, 0.001, 1.0)),
-        Vec3(to).add(Vec3(0.999, 0.999, 1.0)),
+        t.add(0.001, 0.001, 1.0),
+        t.add(0.001, 0.999, 1.0),
+        t.add(0.999, 0.001, 1.0),
+        t.add(0.999, 0.999, 1.0),
         // bottom
-        Vec3(to).add(Vec3(0.001, 0.0, 0.001)),
-        Vec3(to).add(Vec3(0.001, 0.0, 0.999)),
-        Vec3(to).add(Vec3(0.999, 0.0, 0.001)),
-        Vec3(to).add(Vec3(0.999, 0.0, 0.999)),
+        t.add(0.001, 0.0, 0.001),
+        t.add(0.001, 0.0, 0.999),
+        t.add(0.999, 0.0, 0.001),
+        t.add(0.999, 0.0, 0.999),
         // top
-        Vec3(to).add(Vec3(0.001, 1.0, 0.001)),
-        Vec3(to).add(Vec3(0.001, 1.0, 0.999)),
-        Vec3(to).add(Vec3(0.999, 1.0, 0.001)),
-        Vec3(to).add(Vec3(0.999, 1.0, 0.999))
+        t.add(0.001, 1.0, 0.001),
+        t.add(0.001, 1.0, 0.999),
+        t.add(0.999, 1.0, 0.001),
+        t.add(0.999, 1.0, 0.999)
     )
 
     for (targetVec in targets) {
-        val hitPos = rayCast(eyeVec, targetVec.subtract(eyeVec))
+        val hitPos = rayCast(from, targetVec.subtract(from))
         if (hitPos == to) {
             return targetVec
         }
     }
     return null
 }
+
+fun getVisiblePoint(to: BlockPos) = getVisiblePoint(mc.player!!.eyePosition(), to)
 
 fun rayCast(
     x: Double, y: Double, z: Double,
