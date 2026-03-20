@@ -19,6 +19,7 @@ import quoi.utils.StringUtils.noControlCodes
 
 object PuzzleSolvers : Module(
     "Puzzle Solvers",
+    desc = "Displays solutions and automatically completes dungeon puzzles: Ice Fill, Teleport Maze, Quiz, Three Weirdos, Tic Tac Toe, Water Board, Creeper Beams, Blaze, and Ice Path.",
     area = Island.Dungeon(inClear = true)
 ) {
     private val fillDropdown by text("Ice fill")

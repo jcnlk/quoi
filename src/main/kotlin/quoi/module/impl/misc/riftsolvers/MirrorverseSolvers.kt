@@ -9,6 +9,7 @@ import quoi.module.settings.UIComponent.Companion.childOf
 
 object MirrorverseSolvers : Module(
     "Mirrorverse Solvers",
+    desc = "Automatically completes Mirrorverse puzzles: Lava Maze, Lava Parkour, Craft Room, Red Green, Tiny Dancer, and Tubulator.",
     subarea = "Mirrorverse"
 ) {
     private val lavaMaze by switch("Lava maze")

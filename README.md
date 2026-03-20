@@ -11,6 +11,8 @@
   - Automatically completes arrows align device.
 - **Auto Close Chest**
   - Automatically closes secret chests.
+- **Auto Leap**
+  - Automatically leaps to predefined targets.
 - **Auto Mask**
   - Automatically swaps to invincibility item.
 - **Auto Routes**
@@ -40,9 +42,11 @@
 - **Leap Menu**
   - Adds a custom leap menu.
 - **Lever Aura**
-  - Automatically flicks levers in goldor fight.
+  - Automatically flicks levers in Goldor fight.
 - **Necron Platform Highlight**
   - Highlights 3x3 area to mine after Goldor dies.
+- **Puzzle Solvers**
+  - Displays solutions and automatically completes dungeon puzzles: Ice Fill, Teleport Maze, Quiz, Three Weirdos, Tic Tac Toe, Water Board, Creeper Beams, Blaze, and Ice Path.
 - **Secret Aura**
   - Automatically collects secrets.
 - **Secret TriggerBot**
@@ -79,8 +83,11 @@
   - Various quality of life features for inventory GUIs
 - **Item Animations**
   - Changes how the held item looks on screen
+- **Mirrorverse Solvers**
+  - Automatically completes Mirrorverse puzzles: Lava Maze, Lava Parkour, Craft Room, Red Green, Tiny Dancer, and Tubulator.
 - **Pet Keybinds**
   - Keybinds for the pets menu.
+- **Sweet**
 - **Test**
   - Dev module for testing.
 - **Titles**
