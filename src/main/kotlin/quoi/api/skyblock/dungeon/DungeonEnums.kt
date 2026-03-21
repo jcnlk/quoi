@@ -11,7 +11,6 @@ import net.minecraft.client.player.LocalPlayer
 import net.minecraft.resources.ResourceLocation
 import quoi.api.events.DungeonEvent
 import quoi.api.events.core.EventBus
-import quoi.utils.ChatUtils.modMessage
 import java.util.*
 
 /**
