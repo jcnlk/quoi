@@ -25,7 +25,7 @@ import quoi.utils.Vec2
 import quoi.utils.equalsOneOf
 
 /**
- * from OdinFabric (BSD 3-Clause)
+ * modified OdinFabric (BSD 3-Clause)
  * copyright (c) 2025-2026 odtheking
  * original: https://github.com/odtheking/OdinFabric/blob/main/src/main/kotlin/com/odtheking/odin/utils/skyblock/dungeon/ScanUtils.kt
  */
@@ -44,6 +44,8 @@ object ScanUtils {
     var currentRoom: OdonRoom? = null
         private set
     var passedRooms: MutableSet<OdonRoom> = mutableSetOf()
+        private set
+    var scannedRooms: MutableSet<OdonRoom> = mutableSetOf()
         private set
 
     private fun loadRoomData(): Set<RoomData> {
@@ -72,6 +74,8 @@ object ScanUtils {
                 return@on
             } // We want the current room to register as null if we are not in a dungeon
 
+            scanAllRooms()
+
             val roomCenter = getRoomCenter(mc.player?.x?.toInt() ?: return@on, mc.player?.z?.toInt() ?: return@on)
             if (roomCenter == lastRoomPos && Location.currentArea.isArea(Island.SinglePlayer)) return@on // extra SinglePlayer caching for invalid placed rooms
             lastRoomPos = roomCenter
@@ -95,6 +99,7 @@ object ScanUtils {
 
         on<WorldEvent.Change> {
             passedRooms.clear()
+            scannedRooms.clear()
             currentRoom = null
             lastRoomPos = Vec2(0, 0)
         }
@@ -119,6 +124,25 @@ object ScanUtils {
                 }
             }
         } ?: Rotations.NONE // Rotation isn't found if we can't find the clay block
+    }
+
+    private fun scanAllRooms() {
+        for (x in 0..5) {
+            for (z in 0..5) {
+                val x = START + (x shl ROOM_SIZE_SHIFT)
+                val z = START + (z shl ROOM_SIZE_SHIFT)
+                val centre = Vec2(x, z)
+
+                if (scannedRooms.any { room -> room.roomComponents.any { it.vec2 == centre } }) continue
+
+                val room = scanRoom(centre) ?: continue
+
+                if (room.rotation != Rotations.NONE) {
+                    scannedRooms.add(room)
+                    DungeonEvent.Room.Scan(room).post()
+                }
+            }
+        }
     }
 
     fun scanRoom(vec2: Vec2): OdonRoom? {

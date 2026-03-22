@@ -171,6 +171,12 @@ fun Vec3.equal(other: Vec3): Boolean =
 fun BlockPos.equal(other: BlockPos): Boolean =
     this.x == other.x && this.y == other.y && this.z == other.z
 
+fun Vec3.distanceTo2D(to: Vec3): Double {
+    val dx = this.x - to.x
+    val dz = this.z - to.z
+    return sqrt(dx * dx + dz * dz)
+}
+
 /**
  * Returns Triple(distance, yaw, pitch) in minecraft coordinate system to get from x0y0z0 to x1y1z1.
  *

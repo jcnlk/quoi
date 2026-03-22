@@ -10,6 +10,7 @@ import quoi.api.abobaui.elements.impl.Block.Companion.outline
 import quoi.api.colour.Colour
 import quoi.api.colour.withAlpha
 import quoi.api.commands.internal.BaseCommand
+import quoi.api.events.DungeonEvent
 import quoi.api.events.RenderEvent
 import quoi.api.events.TickEvent
 import quoi.api.skyblock.Location
