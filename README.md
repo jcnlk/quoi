@@ -146,4 +146,3 @@ GPL-3.0, but I don't give a single fuck if you use the code without crediting. D
 - [Zen](https://github.com/StellariumMC/zen) - Event manager inspiration
 - [devonian](https://github.com/Synnerz/devonian) - Commands api inspiration
 - [Stivias](https://github.com/Stivais/) - AuroraUI ui library
-- [Stella](https://github.com/Eclipse-5214/stella) - Dungeon scanner

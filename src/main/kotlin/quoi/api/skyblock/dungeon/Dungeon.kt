@@ -6,6 +6,8 @@ import net.minecraft.client.player.LocalPlayer
 import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.common.ClientboundPingPacket
 import net.minecraft.network.protocol.game.*
+import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.SkullBlock
 import net.minecraft.world.level.block.entity.SkullBlockEntity
@@ -53,7 +55,7 @@ object Dungeon {
     inline val inBoss: Boolean
         get() = getBoss()
 
-    val inP3: Boolean
+    inline val inP3: Boolean
         get() = p3Section != P3Section.Unknown
 
     var p3Section: P3Section = P3Section.Unknown
@@ -138,24 +140,6 @@ object Dungeon {
     inline val currentRoom: OdonRoom?
         get() = ScanUtils.currentRoom
 
-//    inline val rooms: Array<Room?>
-//        get() = ScanUtils.rooms
-//
-//    inline val discoveredRooms: MutableMap<String, DiscoveredRoom>
-//        get() = ScanUtils.discoveredRooms
-//
-//    inline val uniqueRooms: MutableSet<Room>
-//        get() = ScanUtils.uniqueRooms
-//
-//    inline val doors: Array<Door?>
-//        get() = ScanUtils.doors
-//
-//    inline val uniqueDoors: MutableSet<Door>
-//        get() = ScanUtils.uniqueDoors
-//
-//    inline val passedRooms: Set<Room>
-//        get() = DungeonListener.passedRooms
-
     var isPaul: Boolean = false
         private set
 
@@ -211,9 +195,6 @@ object Dungeon {
     private var expectingBloodUpdate = false
 
     init {
-//        RoomRegistry.loadRooms()
-//        WorldScanner.init()
-//        MapItemUtils.init()
         ScanUtils.init()
 
         on<WorldEvent.Change> {
@@ -231,10 +212,6 @@ object Dungeon {
             p3Section = P3Section.Unknown
 
             deathTick = -1
-
-//            MapItemUtils.reset()
-//            WorldScanner.reset()
-//            ScanUtils.reset()
         }
 
 //        on<RoomEnterEvent>(priority = 100) {
@@ -349,6 +326,19 @@ object Dungeon {
 
                     }
 
+                    is ClientboundRemoveEntitiesPacket -> {
+                        dungeonTeammates.forEach {
+                            val id = it.entity?.id ?: return@forEach
+                            if (entityIds.contains(id)) it.entity = null
+                        }
+                    }
+
+                    is ClientboundAddEntityPacket -> {
+                        if (type == EntityType.PLAYER)
+                            dungeonTeammates.find { it.entity == null && it.name == mc.level?.getEntity(id)?.name?.string }?.entity =
+                                mc.level?.getEntity(id) as? Player
+                    }
+
                 }
             }
         }
@@ -427,15 +417,19 @@ object Dungeon {
             val (_, name, clazz, clazzLevel) = tablistRegex.find(line)?.destructured ?: continue
 
             previousTeammates.find { it.name == name }?.let { player -> player.isDead = clazz == "DEAD" }
-                ?: previousTeammates.add(
-                    DungeonPlayer(
-                        name,
-                        DungeonClass.entries.find { it.name == clazz } ?: continue,
-                        romanToInt(clazzLevel),
-                        mc.connection?.getPlayerInfo(name)?.skin?.body?.texturePath(),
-                        colour = colour
+                ?: run {
+                    val player = mc.connection?.getPlayerInfo(name) ?: continue
+                    previousTeammates.add(
+                        DungeonPlayer(
+                            name = name,
+                            clazz = DungeonClass.entries.find { it.name == clazz } ?: continue,
+                            clazzLvl = romanToInt(clazzLevel),
+                            playerSkin = player.skin,
+                            entity = mc.level?.getPlayerByUUID(player.profile.id),
+                            colour = colour
+                        )
                     )
-                )
+                }
         }
         return previousTeammates
     }

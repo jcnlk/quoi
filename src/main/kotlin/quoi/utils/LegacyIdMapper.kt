@@ -1,12 +1,12 @@
-package quoi.api.skyblock.dungeon.map.utils
+package quoi.utils
 
-import quoi.QuoiMod.logger
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.tags.FluidTags
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.Property
+import quoi.QuoiMod
 import kotlin.jvm.optionals.getOrNull
 
 /**
@@ -567,7 +567,7 @@ object LegacyIdMapper {
             }
         }?.legacyId?.let { return it }
 
-        logger.warn("[LegacyID] Unmatched state: ${state.block} → ${state.values}")
+        QuoiMod.logger.warn("[LegacyID] Unmatched state: ${state.block} → ${state.values}")
         return -1
     }
 

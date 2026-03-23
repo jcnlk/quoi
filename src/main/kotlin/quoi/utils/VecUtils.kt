@@ -11,7 +11,6 @@ import net.minecraft.world.phys.Vec3
 import quoi.QuoiMod.mc
 import quoi.api.skyblock.Location
 import quoi.api.skyblock.dungeon.odonscanning.tiles.Rotations
-import quoi.utils.WorldUtils.world
 import kotlin.math.*
 
 /**
@@ -67,7 +66,7 @@ inline val Vec3.blockPos: BlockPos get() = BlockPos.containing(this)
 inline val BlockPos.aabb: AABB get() = AABB(this)
 inline val BlockPos.vec3: Vec3 get() = Vec3(x.toDouble(), y.toDouble(), z.toDouble())
 inline val BlockPos.bounds: AABB? get() {
-    return world?.let { level ->
+    return mc.level?.let { level ->
         level.getBlockState(this)?.getShape(level, this)?.singleEncompassing()
             ?.takeIf { !it.isEmpty }?.bounds()
     }
@@ -347,7 +346,7 @@ fun getArrowOrigin(from: Vec3, yaw: Float, isTerminator: Boolean): Vec3 {
 }
 
 fun isPathClear(from: Vec3, target: Vec3): Boolean {
-    val level = world ?: return false
+    val level = mc.level ?: return false
     val result = level.clip(
         ClipContext(
             from,
@@ -418,7 +417,7 @@ fun rayCast(
     dx: Double, dy: Double, dz: Double,
     firstBlock: Boolean = false,
 ): BlockPos? {
-    val w = world ?: return null
+    val w = mc.level ?: return null
 
     for (bp in DDA(x, y, z, dx, dy, dz)) {
         val bs = w.getBlockState(bp)
@@ -455,7 +454,7 @@ fun rayCastVec(
     dx: Double, dy: Double, dz: Double,
     firstBlock: Boolean = false
 ): Vec3? {
-    val w = world ?: return null
+    val w = mc.level ?: return null
 
     val startVec = Vec3(x, y, z)
     val endVec = Vec3(x + dx, y + dy, z + dz)

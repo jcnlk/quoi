@@ -1,7 +1,7 @@
 package quoi.utils
 
 import quoi.QuoiMod.mc
-import quoi.api.skyblock.dungeon.map.utils.LegacyIdMapper
+import quoi.utils.LegacyIdMapper
 import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.client.multiplayer.PlayerInfo
 import net.minecraft.core.BlockPos
@@ -16,23 +16,7 @@ import net.minecraft.world.level.block.state.BlockState
  * original: https://github.com/Eclipse-5214/stella/blob/main/src/main/kotlin/co/stellarskys/stella/utils/WorldUtils.kt
  */
 object WorldUtils {
-    val world: ClientLevel? get() = mc.level
-
-    val BlockPos.state: BlockState get() = world?.getBlockState(this) ?: Blocks.AIR.defaultBlockState()
-
-    fun getBlockStateAt(x: Int, y: Int, z: Int) = mc.level?.getBlockState(BlockPos(x, y, z))
-
-    fun getBlockNumericId(x: Int, y: Int, z: Int): Int {
-        val state = getBlockStateAt(x, y, z)?: return -1
-        return LegacyIdMapper.getId(state)
-    }
-
-    fun checkIfAir(x: Int, y: Int, z: Int): Int {
-        val state = getBlockStateAt(x, y, z)?: return -1
-        if (state.isAir) return 0
-
-        return LegacyIdMapper.getId(state)
-    }
+    val BlockPos.state: BlockState get() = mc.level?.getBlockState(this) ?: Blocks.AIR.defaultBlockState()
 
     val Block.registryName: String get() {
         val registry = BuiltInRegistries.BLOCK.getKey(this)

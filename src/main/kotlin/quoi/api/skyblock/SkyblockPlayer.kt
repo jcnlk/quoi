@@ -60,10 +60,10 @@ object SkyblockPlayer {
     var currentMask: Mask = Mask.NONE
         private set
 
-    var currentPet get() = currentPet()
+    inline var currentPet get() = currentPet()
         set(v) { updateCurrentPet(v) }
 
-    val canUseCommands get() = commandsTick <= 0
+    inline val canUseCommands get() = commandsTick <= 0
 
     var commandsTick = -1
         private set

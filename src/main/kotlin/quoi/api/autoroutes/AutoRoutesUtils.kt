@@ -13,7 +13,7 @@ import quoi.api.events.PacketEvent
 import quoi.api.events.core.EventBus
 import quoi.api.skyblock.dungeon.Dungeon.currentRoom
 import quoi.api.skyblock.dungeon.Dungeon.isProtectedBlock
-import quoi.api.skyblock.dungeon.map.utils.LegacyIdMapper.legacyBlockIdMap
+import quoi.utils.LegacyIdMapper.legacyBlockIdMap
 import quoi.config.typeName
 import quoi.module.impl.dungeon.AutoRoutes
 import quoi.module.impl.dungeon.AutoRoutes.add

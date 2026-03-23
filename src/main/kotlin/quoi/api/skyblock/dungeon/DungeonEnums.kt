@@ -1,17 +1,11 @@
 package quoi.api.skyblock.dungeon
 
-import quoi.QuoiMod.mc
 import quoi.api.colour.Colour
-import quoi.api.skyblock.PlayerPosition
-import quoi.api.skyblock.dungeon.components.Room
-import quoi.api.skyblock.dungeon.map.MapItemScanner
-//import quoi.module.impl.dungeon.DungeonMap
-import quoi.utils.equalsOneOf
-import net.minecraft.client.player.LocalPlayer
 import net.minecraft.resources.ResourceLocation
+import net.minecraft.world.entity.player.Player
+import net.minecraft.world.entity.player.PlayerSkin
 import quoi.api.events.DungeonEvent
 import quoi.api.events.core.EventBus
-import java.util.*
 
 /**
  * from OdinFabric (BSD 3-Clause)
@@ -24,42 +18,20 @@ import java.util.*
  *
  * @property name The name of the player.
  * @property clazz The player's class, defined by the [DungeonClass] enum.
- * @property locationSkin The resource location of the player's skin.
+ * @property playerSkin The resource location of the player's skin.
  * @property isDead The player's death status. Defaults to `false`.
  */
 data class DungeonPlayer(
     val name: String,
     val clazz: DungeonClass,
     val clazzLvl: Int,
-    val locationSkin: ResourceLocation?,
+    val playerSkin: PlayerSkin?,
+    var entity: Player? = null,
     var isDead: Boolean = false,
     var deaths: Int = 0,
     val colour: Colour = Colour.WHITE,
-
     val p3Stats: P3Stats = P3Stats(),
-
-    var minRooms: Int = 0,
-    var maxRooms: Int = 0,
-    var inRender: Boolean = false,
-    var currRoom: Room? = null,
-    var lastRoom: Room? = null,
-    var pos: PlayerPosition = PlayerPosition(),
-
-    val clearedRooms: MutableMap<String, MutableMap<String, MapItemScanner.RoomClearInfo>> = mutableMapOf(
-        "WHITE" to mutableMapOf(),
-        "GREEN" to mutableMapOf()
-    )
 ) {
-    val entity: LocalPlayer? =
-        mc.level?.entitiesForRendering()
-            ?.filterIsInstance<LocalPlayer>()
-            ?.find { it.gameProfile.name == name }
-
-    val uuid: UUID? get() = entity?.uuid
-
-    fun getGreenChecks() = clearedRooms["GREEN"] ?: mutableMapOf()
-    fun getWhiteChecks() = clearedRooms["WHITE"] ?: mutableMapOf()
-
     companion object {
         val EMPTY = DungeonPlayer("Empty", DungeonClass.Unknown, 0, null)
     }
@@ -319,48 +291,3 @@ data class P3Stats(
         devices = 0
     }
 }
-
-/**
- * from Stella (LGPL-3.0) (c) Eclipse-5214
- * original: https://github.com/Eclipse-5214/stella/blob/main/src/main/kotlin/co/stellarskys/stella/utils/skyblock/dungeons/utils/Enums.kt
- */
-enum class Checkmark(
-    val texture: ResourceLocation?,
-    val colorCode: String
-) {
-    NONE(null, "§7"),
-    WHITE(ResourceLocation.fromNamespaceAndPath("quoi", "stellanav/clear/bloommapwhitecheck"), "§f"), // todo impl some day
-    GREEN(ResourceLocation.fromNamespaceAndPath("quoi", "stellanav/clear/bloommapgreencheck"), "§a"),
-    FAILED(ResourceLocation.fromNamespaceAndPath("quoi", "stellanav/clear/bloommapfailedroom"), "§c"),
-    UNEXPLORED(ResourceLocation.fromNamespaceAndPath("quoi", "stellanav/clear/bloommapquestionmark"), "§7"),
-    UNDISCOVERED(null, "§7");
-}
-
-enum class RoomType(
-    val displayName: String,
-    val colour: Colour = Colour.WHITE
-) {
-    NORMAL("Normal", /*DungeonMap.normalRoom*/),
-    PUZZLE("Puzzle", /*DungeonMap.puzzleRoom*/),
-    TRAP("Trap", /*DungeonMap.trapRoom*/),
-    YELLOW("Yellow", /*DungeonMap.miniRoom*/),
-    BLOOD("Blood", /*DungeonMap.bloodRoom*/),
-    FAIRY("Fairy", /*DungeonMap.fairyRoom*/),
-    RARE("Rare", /*DungeonMap.rareRoom*/),
-    ENTRANCE("Entrance", /*DungeonMap.entranceRoom*/),
-    UNKNOWN("Unknown", /*DungeonMap.unknownRoom*/);
-
-    fun isNormal() = !this.equalsOneOf(PUZZLE, UNKNOWN)
-}
-
-enum class DoorType(
-    val displayName: String,
-    val colour: Colour = Colour.WHITE
-) {
-    NORMAL("Normal", /*DungeonMap.normalDoor*/),
-    WITHER("Wither", /*DungeonMap.witherDoor*/),
-    BLOOD("Blood", /*DungeonMap.bloodDoor*/),
-    ENTRANCE("Entrance", /*DungeonMap.entranceDoor*/);
-}
-
-enum class DoorState { UNDISCOVERED, DISCOVERED }
