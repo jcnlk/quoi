@@ -333,19 +333,19 @@ object Dungeon {
                     is ClientboundContainerClosePacket -> inTerminal = false
 
                     is ClientboundPingPacket -> {
-                        if (!inDungeons) return@on
+                        if (!inClear) return@on
                         if (deathTick == 0) deathTick = 40
                         if (deathTick >= 0) deathTick--
                     }
 
                     is ClientboundSetTimePacket -> {
-                        if (!inDungeons) return@on
+                        if (!inClear) return@on
                         val gameTime = mc.level?.gameTime ?: -1
-                        deathTick =
-                            if (openRoomCount == 0)
-                                40 - (gameTime % 40).toInt()
-                            else
-                                -1
+                        deathTick = 40 - (gameTime % 40).toInt()
+//                            if (openRoomCount == 0)
+//                                40 - (gameTime % 40).toInt()
+//                            else
+//                                -1
 
                     }
 

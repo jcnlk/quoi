@@ -8,6 +8,10 @@ import quoi.module.impl.dungeon.SecretTriggerBot
  * [SecretTriggerBot.triggerBotTicker]
  */
 
+class TickerCancelledException : Exception("ticker cancelled") {
+    override fun fillInStackTrace(): Throwable = this
+}
+
 sealed interface TickerStep {
     data class WaitTicks(val ticks: Int) : TickerStep
     data class WaitUntil(val condition: () -> Boolean) : TickerStep
@@ -20,35 +24,41 @@ class Ticker(private val steps: ArrayDeque<TickerStep>) {
     internal fun copy(): List<TickerStep> = steps.toList()
 
     fun tick(): Boolean {
-        if (currentWaitTicks > 0) {
-            currentWaitTicks--
-            return false
-        }
+        try {
+            if (currentWaitTicks > 0) {
+                currentWaitTicks--
+                return false
+            }
 
-        while (steps.isNotEmpty()) {
-            when (val step = steps.first()) {
-                is TickerStep.WaitTicks -> {
-                    steps.removeFirst()
+            while (steps.isNotEmpty()) {
+                when (val step = steps.first()) {
+                    is TickerStep.WaitTicks -> {
+                        steps.removeFirst()
 
-                    currentWaitTicks = step.ticks
-                    if (currentWaitTicks > 0) {
-                        currentWaitTicks--
+                        currentWaitTicks = step.ticks
+                        if (currentWaitTicks > 0) {
+                            currentWaitTicks--
+                            return false
+                        }
+                    }
+                    is TickerStep.WaitUntil -> {
+                        if (step.condition()) {
+                            steps.removeFirst()
+                            continue
+                        }
+                        return false
+                    }
+                    is TickerStep.Action -> {
+                        step.action()
+                        steps.removeFirst()
                         return false
                     }
                 }
-                is TickerStep.WaitUntil -> {
-                    if (step.condition()) {
-                        steps.removeFirst()
-                        continue
-                    }
-                    return false
-                }
-                is TickerStep.Action -> {
-                    step.action()
-                    steps.removeFirst()
-                    return false
-                }
             }
+        } catch (_: TickerCancelledException) {
+            steps.clear()
+            currentWaitTicks = 0
+            return true
         }
         return true
     }
@@ -69,6 +79,10 @@ class TickerScope {
     fun action(ticks: Int = 0, block: () -> Unit) {
         delay(ticks)
         steps.add(TickerStep.Action(block))
+    }
+
+    fun cancel(): Nothing {
+        throw TickerCancelledException()
     }
 
     fun addSteps(other: Ticker) {

@@ -19,6 +19,7 @@ import quoi.api.skyblock.dungeon.odonscanning.tiles.RoomType
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.Scheduler.scheduleTask
 import quoi.utils.StringUtils.noControlCodes
+import quoi.utils.TickerScope
 import quoi.utils.Vec2
 import quoi.utils.distanceTo2D
 import quoi.utils.getEtherwarpDirection
@@ -26,8 +27,9 @@ import quoi.utils.skyblock.player.PlayerUtils
 import quoi.utils.skyblock.player.PlayerUtils.at
 import quoi.utils.skyblock.player.PlayerUtils.rotate
 import quoi.utils.skyblock.player.PlayerUtils.useItem
+import kotlin.math.roundToInt
 
-object AutoBloodRush : Module( // inconsis
+object AutoBloodRush : Module( // maybe consis now
     "Auto Blood Rush",
     desc = "Automatically blood rushes.",
     area = Island.Dungeon
@@ -65,8 +67,8 @@ object AutoBloodRush : Module( // inconsis
     init {
 //        command.sub("br") { stage: Int ->
 //            val a = when (stage) {
-//                1 -> position()
-//                2 -> roof()
+//                1 -> ticker { position() }
+//                2 -> ticker { roof() }
 //                3 -> br()
 //                else -> return@sub
 //            }
@@ -84,7 +86,7 @@ object AutoBloodRush : Module( // inconsis
         on<ChatEvent.Packet> {
             if (debug) return@on
             if (currentRoom?.name != "Entrance") return@on
-            if (bloodCoords == null || player.y != 99.0) return@on
+            if (bloodCoords == null || player.y < 98.0) return@on
             when (message.noControlCodes) {
 //                "Starting in 4 seconds." -> tickerThing = leaf()
                 "[NPC] Mort: Here, I found this map when I first entered the dungeon." -> tickerThing = br()
@@ -95,10 +97,10 @@ object AutoBloodRush : Module( // inconsis
             if (goingMid) {
                 if (packet.change.position.y in 75.0..77.0) {
                     goingMid = false
-                    scheduleTask(3) {
+                    scheduleTask(2) {
                         tickerThing = ticker {
-                            addSteps(position())
-                            addSteps(roof())
+                            position()
+                            roof()
                             delay(10)
                         }
                     }
@@ -121,12 +123,12 @@ object AutoBloodRush : Module( // inconsis
 
             if (debug || !firstScan) return@on
 
-            if (!player.onGround()) return@on
+            if (currentRoom == null) return@on
 
             firstScan = false
             tickerThing = ticker {
-                addSteps(position())
-                addSteps(roof())
+                position()
+                roof()
                 delay(10)
                 action {
                     if (bloodCoords == null) {
@@ -150,22 +152,20 @@ object AutoBloodRush : Module( // inconsis
         }
     }
 
-    private fun position() = ticker {
+    private fun TickerScope.position() {
         val spot = etherBlock
+        await { player.onGround() }
         action {
-            if (currentRoom?.name != "Entrance" || !SwapManager.swapById("ASPECT_OF_THE_VOID").success) {
-                tickerThing = null
+            val swap = SwapManager.swapById("ASPECT_OF_THE_VOID")
+            if (currentRoom?.name != "Entrance" || !swap.success) {
+                cancel()
             }
 
             mc.options.keyShift.isDown = true
         }
         delay(1) // idk
         action {
-            val dir = getEtherwarpDirection(spot)
-            if (dir == null) {
-                tickerThing = null
-                return@action
-            }
+            val dir = getEtherwarpDirection(spot) ?: cancel()
             player.useItem(dir)
         }
         await {
@@ -177,15 +177,13 @@ object AutoBloodRush : Module( // inconsis
         }
     }
 
-    private fun roof() = ticker {
+    private fun TickerScope.roof() {
         action {
-            if (!SwapManager.swapByName("pearl").success) {
-                tickerThing = null
-            } else {
+            if (SwapManager.swapByName("pearl").success) {
                 tpsReceived = 0
                 tpsAmount = 4
                 doneTeleporting = false
-            }
+            } else cancel()
         }
         repeat(4) { // split otherwise it gets fucked
             action { PlayerUtils.interact() }
@@ -205,7 +203,7 @@ object AutoBloodRush : Module( // inconsis
 
         await { doneTeleporting() }
 
-        await {
+        await { // todo find out if this shit works properly
             if (player.blockPosition().above(1).state.isAir) {
                 SwapManager.swapById("ASPECT_OF_THE_VOID").success
                 return@await true
@@ -227,26 +225,33 @@ object AutoBloodRush : Module( // inconsis
     private fun br() = ticker {
         action {
             if (player.y < 95 || !SwapManager.swapById("ASPECT_OF_THE_VOID").success) {
-                tickerThing = null
-                return@action
+                cancel()
             }
             mc.options.keyShift.isDown = false
         }
 
         action(1) {
-            val yaw = getFreeDirection(currentRoom!!)
-                ?: run { tickerThing = null; return@action }
+            val yaw = getFreeDirection(currentRoom!!) ?: cancel()
 
             val target = bloodCoords ?: mid
 
             val edgeTimes = 4
             val moved = edgeTimes * 12.0
-            val tx = player.x + if (yaw == 90f) -moved else if (yaw == -90f) moved else 0.0
-            val tz = player.z + if (yaw == 180f) -moved else if (yaw == 0f) moved else 0.0
-            val theoreticalPos = Vec3(tx, player.y, tz)
+            val px = player.x + when (yaw) {
+                90f -> -moved
+                -90f -> moved
+                else -> 0.0
+            }
 
-            val bloodDir = getDirection(theoreticalPos, target)
-            val bloodTimes = (theoreticalPos.distanceTo2D(target) / 12).toInt()
+            val pz = player.z + when (yaw) {
+                180f -> -moved
+                0f -> moved
+                else -> 0.0
+            }
+            val predictedPos = Vec3(px, player.y, pz)
+
+            val bloodDir = getDirection(predictedPos, target)
+            val bloodTimes = (predictedPos.distanceTo2D(target) / 12).roundToInt()
 
             tpsReceived = 0
             tpsAmount = 3
@@ -259,11 +264,11 @@ object AutoBloodRush : Module( // inconsis
             if (bloodCoords != null) {
                 repeat(7) { player.useItem(0, -90) }
             } else {
-                tickerThing = null
+                cancel()
             }
         }
 
-        await { doneTeleporting() } // idk
+        await { doneTeleporting() }
 
         action {
             SwapManager.swapByName("pearl")

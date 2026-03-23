@@ -46,10 +46,10 @@ object TickTimers : Module(
 
     private val startTimer by switch("Goldor start timer").visibleIf { goldorHud.enabled }
 
-    private val deathTickHud by TextHud("Death tick") {
+    private val deathTickHud by TextHud("Death tick") { // maybe make an option to show it before dung start only
         visibleIf { deathTick >= 0 }
         textSupplied(
-            supplier = { formatTime(if (preview) 15 else deathTick, 20) },
+            supplier = { formatTime(if (preview) 15 else deathTick, 40) },
             size = theme.textSize,
             font = font,
             colour = colour
