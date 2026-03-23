@@ -27,9 +27,7 @@ import quoi.utils.render.DrawContextUtils.drawPlayerHead
 import quoi.utils.render.DrawContextUtils.drawText
 import quoi.utils.render.DrawContextUtils.rect
 import quoi.utils.render.DrawContextUtils.withMatrix
-import quoi.utils.ui.hud.Hud
-import quoi.utils.ui.hud.setting
-import quoi.utils.ui.hud.withTransform
+import quoi.utils.ui.rendering.NVGRenderer.createImage
 import quoi.utils.ui.rendering.NVGRenderer.image
 import java.util.*
 import quoi.module.impl.mining.CrystalHollowsScanner.enabled as chScanner
@@ -50,7 +48,7 @@ object CrystalHollowsMap : Module(
     private val chunksCol by colourPicker("Loaded chunks colour", Colour.PURPLE.withAlpha(0.33f), allowAlpha = true).childOf(::other) { drawChunks }
     private val drawRouteBlocks by switch("Draw route blocks").childOf(::other) { routeScanner }
 
-    private val hollowsMap by Hud("Hollows map", toggleable = false) { // todo add more stuff
+    private val hollowsMap by hud("Hollows map", toggleable = false) { // todo add more stuff
         if (preview) image(
             "crystalhollowsmap.png".image(),
             size(MAP_SIZE.px, MAP_SIZE.px)
@@ -68,7 +66,7 @@ object CrystalHollowsMap : Module(
 
     private val GREEN_MARKER = ResourceLocation.fromNamespaceAndPath(MOD_ID, "green_marker.png")
     private val WHITE_MARKER = ResourceLocation.fromNamespaceAndPath(MOD_ID, "white_marker.png")
-    private val MAP_IMAGE = ResourceLocation.fromNamespaceAndPath(MOD_ID, "crystalhollowsmap.png")
+    private val MAP_IMAGE = ResourceLocation.fromNamespaceAndPath(MOD_ID, "ui/images/crystalhollowsmap.png")
 
     private val Number.mapX get() = worldToMap(this, X_MIN, X_MAX, 0, MAP_SIZE).toFloat()
     private val Number.mapZ get() = worldToMap(this, Z_MIN, Z_MAX, 0, MAP_SIZE).toFloat()

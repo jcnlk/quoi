@@ -23,8 +23,6 @@ import quoi.utils.StringUtils.formatTime
 import quoi.utils.StringUtils.parseNumber
 import quoi.utils.WorldUtils
 import quoi.utils.ui.hud.HudManager
-import quoi.utils.ui.hud.TextHud
-import quoi.utils.ui.hud.setting
 import quoi.utils.ui.rendering.NVGRenderer.minecraftFont
 import quoi.utils.ui.textPair
 
@@ -42,11 +40,10 @@ object GrieferTracker : Module(
     private val showMacro by switch("Show macro").visibleIf { extraInfo }
     private val showPaid by switch("Show paid amount").visibleIf { extraInfo }
 
-    private val griefedPlayersTemp by ListSetting("Griefed players", mutableListOf<GriefedPlayer>()) // todo remove later
     private val griefedPlayers by configList<GriefedPlayer>("griefed_players.json")
     private val dontGrief by ListSetting("Do not grief", mutableListOf("Morph213", "UgduBugdu", "ShortNotice"))
 
-    private val hud by TextHud("Tracker hud", toggleable = false) {
+    private val hud by textHud("Tracker hud", toggleable = false) {
         visibleIf { currentArea == Island.CrystalHollows }
         column {
             stupid.forEach { (text, supplier) ->

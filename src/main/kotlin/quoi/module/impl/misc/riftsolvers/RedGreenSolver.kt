@@ -9,19 +9,14 @@ import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.Vec3
 import quoi.QuoiMod.mc
 import quoi.api.colour.Colour
-import quoi.utils.BlockPos
+import quoi.utils.*
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.WorldUtils.state
-import quoi.utils.aabb
-import quoi.utils.blockPos
-import quoi.utils.getDirection
-import quoi.utils.getEtherwarpDirection
 import quoi.utils.render.drawFilledBox
 import quoi.utils.skyblock.player.AuraManager
 import quoi.utils.skyblock.player.PlayerUtils.at
 import quoi.utils.skyblock.player.PlayerUtils.rotate
 import quoi.utils.skyblock.player.PlayerUtils.stop
-import quoi.utils.vec3
 
 object RedGreenSolver {
     private var isActive = false

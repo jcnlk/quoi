@@ -15,9 +15,6 @@ import quoi.api.skyblock.dungeon.odonscanning.tiles.OdonRoom
 import quoi.utils.*
 import quoi.utils.EntityUtils.renderPos
 import quoi.utils.Scheduler.scheduleTask
-import quoi.utils.component1
-import quoi.utils.component2
-import quoi.utils.component3
 import quoi.utils.render.drawFilledBox
 import quoi.utils.render.drawLine
 import quoi.utils.render.drawStyledBox
@@ -296,18 +293,9 @@ object BlazeSolver { // todo maybe improve terminator shit some day
                 }
                 delay(2)
             }
-            await {
-                if (r) return@await true
-                else return@await false.also {
-                    repositionTicker = null
-                }
-            }
             action {
-                val dir = getEtherwarpDirection(spot)
-                if (dir == null) {
-                    repositionTicker = null
-                    return@action
-                }
+                if (!r) cancel()
+                val dir = getEtherwarpDirection(spot) ?: cancel()
                 player.useItem(dir)
             }
             await { player.at(spot) }

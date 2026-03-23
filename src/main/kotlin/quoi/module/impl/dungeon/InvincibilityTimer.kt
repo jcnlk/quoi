@@ -11,9 +11,6 @@ import quoi.api.skyblock.SkyblockPlayer
 import quoi.api.skyblock.dungeon.Dungeon.inBoss
 import quoi.api.skyblock.dungeon.Dungeon.inDungeons
 import quoi.module.Module
-import quoi.utils.ui.hud.TextHud
-import quoi.utils.ui.hud.setting
-import quoi.utils.ui.rendering.NVGRenderer.minecraftFont
 import quoi.utils.ui.textPair
 
 object InvincibilityTimer : Module(
@@ -26,7 +23,7 @@ object InvincibilityTimer : Module(
     val mageReduction by switch("Mage reduction", desc = "Accounts for mage cooldown reduction.")
     val cataLevel by slider("Catacombs level", 0, 0, 50, desc = "Catacombs level for Bonzo's mask ability.")
 
-    private val hud by TextHud("Invincibility timer", Colour.PINK, toggleable = false) {
+    private val hud by textHud("Invincibility timer", Colour.PINK, toggleable = false) {
         visibleIf { this@InvincibilityTimer.enabled && inSkyblock && (!bossOnly || inBoss) && (!dungeonOnly || inDungeons || bossOnly) }
         column {
             SkyblockPlayer.InvincibilityType.entries.forEach { type ->

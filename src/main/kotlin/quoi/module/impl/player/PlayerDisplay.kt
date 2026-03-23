@@ -4,15 +4,9 @@ import net.minecraft.network.chat.Component
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.block.Blocks
 import quoi.api.abobaui.constraints.impl.positions.Centre
-import quoi.api.abobaui.dsl.at
-import quoi.api.abobaui.dsl.outlineBlock
-import quoi.api.abobaui.dsl.px
-import quoi.api.abobaui.dsl.radius
-import quoi.api.abobaui.dsl.size
-import quoi.api.abobaui.dsl.withScale
+import quoi.api.abobaui.dsl.*
 import quoi.api.abobaui.elements.Element
 import quoi.api.abobaui.elements.impl.Block
-import quoi.api.abobaui.elements.impl.Block.Companion.outline
 import quoi.api.abobaui.elements.impl.Text.Companion.shadow
 import quoi.api.abobaui.elements.impl.Text.Companion.textSupplied
 import quoi.api.colour.Colour
@@ -33,9 +27,6 @@ import quoi.module.Module
 import quoi.module.settings.Setting.Companion.json
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.utils.commas
-import quoi.utils.ui.hud.ResizableHud
-import quoi.utils.ui.hud.TextHud
-import quoi.utils.ui.hud.setting
 import quoi.utils.ui.rendering.NVGRenderer.minecraftFont
 import kotlin.reflect.KProperty0
 
@@ -142,7 +133,7 @@ object PlayerDisplay : Module(
     ).childOf(::otherDropdown)
 
     private val sbaStyle: Boolean by switch("SBA secrets style").childOf(::otherDropdown)
-    private val secrets by TextHud("Secret display", Colour.MINECRAFT_GRAY) {
+    private val secrets by textHud("Secret display", Colour.MINECRAFT_GRAY) {
         visibleIf { inDungeons }
 
         val displayText = {
@@ -161,7 +152,7 @@ object PlayerDisplay : Module(
                 font = minecraftFont,
                 size = 18.px,
             ).shadow = shadow
-            return@TextHud
+            return@textHud
         }
 
         row {
@@ -266,7 +257,7 @@ object PlayerDisplay : Module(
       defaultColour: Colour,
       current: () -> Int,
       max: () -> Int
-    ) = ResizableHud(name, BAR_WIDTH, BAR_HEIGHT, defaultColour, Colour.RGB(208, 208, 208), 1f) {
+    ) = resizableHud(name, BAR_WIDTH, BAR_HEIGHT, defaultColour, Colour.RGB(208, 208, 208), 1f) {
         visibleIf { inSkyblock }
         block(
             size(width, height),
@@ -310,7 +301,7 @@ object PlayerDisplay : Module(
         previewText: () -> String,
         visibility: () -> Boolean = { true },
         settings: List<KProperty0<*>> = emptyList()
-    ) = TextHud(name, defaultColour) {
+    ) = textHud(name, defaultColour) {
         visibleIf { inSkyblock && visibility() }
         textSupplied(
             supplier = if (preview) previewText else text,

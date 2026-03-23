@@ -1,41 +1,29 @@
 package quoi.module.impl.misc
 
 import kotlinx.coroutines.launch
-import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.world.phys.BlockHitResult
 import quoi.QuoiMod.scope
 import quoi.api.abobaui.dsl.radius
 import quoi.api.abobaui.dsl.size
 import quoi.api.abobaui.elements.impl.Block.Companion.outline
 import quoi.api.colour.Colour
-import quoi.api.colour.withAlpha
 import quoi.api.commands.internal.BaseCommand
-import quoi.api.events.DungeonEvent
-import quoi.api.events.RenderEvent
 import quoi.api.events.TickEvent
 import quoi.api.skyblock.Location
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.module.Module
 import quoi.module.impl.render.ClickGui
-import quoi.module.settings.UIComponent.Companion.childOf
-import quoi.module.settings.UIComponent.Companion.visibleIf
 import quoi.utils.*
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.Scheduler.scheduleTask
 import quoi.utils.Scheduler.wait
 import quoi.utils.StringUtils.formatTime
 import quoi.utils.StringUtils.toFixed
-import quoi.utils.render.DrawContextUtils.drawText
 import quoi.utils.skyblock.player.AuraAction
 import quoi.utils.skyblock.player.AuraManager
 import quoi.utils.skyblock.player.ContainerUtils
 import quoi.utils.skyblock.player.LeapManager
-import quoi.utils.ui.hud.ResizableHud
-import quoi.utils.ui.hud.TextHud
 import quoi.utils.ui.hud.impl.TextHud
-import quoi.utils.ui.hud.setting
-import quoi.utils.ui.rendering.NVGRenderer
-import quoi.utils.ui.rendering.NVGSpecialRenderer
 import quoi.utils.ui.textPair
 
 object Test : Module("Test", desc = "Dev module for testing.") {
@@ -77,7 +65,7 @@ object Test : Module("Test", desc = "Dev module for testing.") {
         Data("z:", { (mc.player?.z ?: 0.0).toFixed() }, { showZ })
     )
 
-    private val texthudtest by TextHud("coords") {
+    private val texthudtest by textHud("coords") {
         column {
             coords.forEach { (name, coord, enabled) ->
                 if (!enabled()) return@forEach
@@ -94,7 +82,7 @@ object Test : Module("Test", desc = "Dev module for testing.") {
     }.withSettings(::showX, ::showY, ::showZ)
     .setting()
 
-    private val resizableTest by ResizableHud("resizable2", 75f, 7f, outline = Colour.RED) {
+    private val resizableTest by resizableHud("resizable2", 75f, 7f, outline = Colour.RED) {
         block(
             size(width, height),
             colour = colour,
@@ -123,7 +111,7 @@ object Test : Module("Test", desc = "Dev module for testing.") {
         Data("Subarea", { Location.subarea ?: "None" }, { subarea_ }),
         Data("Boss", { Dungeon.inBoss }, { boss }),
         Data("Floor", { Dungeon.floor ?: "None" }, { floor }),
-        Data("P3 Section", { "${Dungeon.p3Section.name} || ${Dungeon.getP3Section().name}" }, { p3Section }),
+        Data("P3 Section", { "${Dungeon.p3Section.name} || ${mc.player?.let { Dungeon.getP3Section().name} }" }, { p3Section }),
         Data("   Duration", { "${formatTime(Dungeon.p3Section.getDuration())} | ${formatTime(Dungeon.p3Section.getDurationTicks() * 50)}" }, { p3Section } ),
         Data("   Terminals", { "${Dungeon.p3Section.terminals}/${Dungeon.p3Section.reqTerminals}" }, { p3Section }),
         Data("   Levers", { "${Dungeon.p3Section.levers}/2" }, { p3Section }),
@@ -132,7 +120,7 @@ object Test : Module("Test", desc = "Dev module for testing.") {
         Data("Container", { "${mc.screen != null} | ${ContainerUtils.containerId}" }, { container })
     )
 
-    private val debug by TextHud("debug") {
+    private val debug by textHud("debug") {
         column {
             debugData.forEach { (name, value, enabled) ->
                 if (!enabled()) return@forEach

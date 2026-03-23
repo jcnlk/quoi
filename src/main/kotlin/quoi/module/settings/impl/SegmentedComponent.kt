@@ -151,7 +151,7 @@ class SegmentedComponent<T>(
             swapIf = isSelected
         )
         val text = Colour.Animated(
-            from = colour { theme.onSurfaceVariant.rgb },
+            from = colour { theme.onSurface.rgb },
             to = colour { theme.onPrimary.rgb },
             swapIf = isSelected
         )

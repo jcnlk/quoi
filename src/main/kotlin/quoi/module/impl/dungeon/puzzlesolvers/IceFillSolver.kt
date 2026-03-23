@@ -21,7 +21,6 @@ import quoi.utils.render.drawLine
 import quoi.utils.skyblock.ItemUtils.skyblockId
 import quoi.utils.skyblock.player.PlayerUtils.at
 import quoi.utils.skyblock.player.PlayerUtils.isMoving
-import quoi.utils.skyblock.player.PlayerUtils.stop
 import quoi.utils.skyblock.player.PlayerUtils.useItem
 import quoi.utils.skyblock.player.SwapManager
 import java.io.InputStreamReader
@@ -169,13 +168,10 @@ object IceFillSolver {
                 delay(2)
             }
             await { !player.isMoving }
-            await {
-                if (r) return@await true
-                else return@await false.also {
-                    repositionTicker = null
-                }
+            action {
+                if (!r) cancel()
+                player.useItem(dir)
             }
-            action { player.useItem(dir) }
             await { player.at(spot) }
             action {
                 mc.options.keyShift.isDown = false

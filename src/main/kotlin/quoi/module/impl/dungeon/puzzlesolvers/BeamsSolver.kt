@@ -225,18 +225,9 @@ object BeamsSolver {
                 }
                 delay(2)
             }
-            await {
-                if (r) return@await true
-                else return@await false.also {
-                    repositionTicker = null
-                }
-            }
             action {
-                val dir = getEtherwarpDirection(spot)
-                if (dir == null) {
-                    repositionTicker = null
-                    return@action
-                }
+                if (!r) cancel()
+                val dir = getEtherwarpDirection(spot) ?: cancel()
                 player.useItem(dir)
             }
             await { player.at(spot) }

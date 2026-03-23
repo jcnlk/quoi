@@ -1,18 +1,12 @@
 package quoi.module.impl.misc
 
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
-import net.minecraft.world.item.ItemStack
-import net.minecraft.world.level.block.Blocks
-import quoi.api.abobaui.constraints.impl.positions.Centre
 import quoi.api.abobaui.dsl.*
-import quoi.api.abobaui.elements.Element
 import quoi.api.abobaui.elements.impl.Block.Companion.outline
-import quoi.api.abobaui.elements.impl.RefreshableGroup
 import quoi.api.abobaui.elements.impl.Text.Companion.shadow
 import quoi.api.abobaui.elements.impl.Text.Companion.string
 import quoi.api.abobaui.elements.impl.TextInput.Companion.maxWidth
 import quoi.api.abobaui.elements.impl.TextInput.Companion.onTextChanged
-import quoi.api.abobaui.elements.impl.refreshableGroup
 import quoi.api.colour.*
 import quoi.api.events.GuiEvent
 import quoi.api.events.TickEvent
@@ -24,9 +18,6 @@ import quoi.utils.render.DrawContextUtils.rect
 import quoi.utils.skyblock.ItemUtils.loreString
 import quoi.utils.ui.cursor
 import quoi.utils.ui.delegateClick
-import quoi.utils.ui.hud.Hud
-import quoi.utils.ui.hud.TextHud
-import quoi.utils.ui.hud.setting
 import quoi.utils.ui.inHudEditor
 import kotlin.math.pow
 
@@ -40,7 +31,7 @@ object Inventory : Module(
     private val nameColour by colourPicker("Name match", Colour.WHITE.withAlpha(200), allowAlpha = true)
     private val loreColour by colourPicker("Lore colour", Colour.MAGENTA.withAlpha(200), allowAlpha = true)
 
-    private val searchBar by TextHud("Search bar") {
+    private val searchBar by textHud("Search bar", font = null, anchor = null) {
         block(
             constrain(w = 360.px, h = 40.px),
             colour = bgColour,
@@ -63,7 +54,7 @@ object Inventory : Module(
                 pos = at(x = 3.percent)
             ) {
 
-                shadow = this@TextHud.shadow
+                shadow = this@textHud.shadow
 
                 onTextChanged { (string) ->
                     searchText = string

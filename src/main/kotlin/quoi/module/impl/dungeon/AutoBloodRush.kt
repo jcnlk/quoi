@@ -1,35 +1,29 @@
 package quoi.module.impl.dungeon
 
+import net.minecraft.core.BlockPos
+import net.minecraft.network.protocol.game.ClientboundPlayerPositionPacket
+import net.minecraft.world.phys.Vec3
 import quoi.api.events.*
 import quoi.api.skyblock.Island
 import quoi.api.skyblock.dungeon.Dungeon.currentRoom
 import quoi.api.skyblock.dungeon.Dungeon.isDead
-import quoi.module.Module
-import quoi.utils.Ticker
-import quoi.utils.WorldUtils.state
-import quoi.utils.getDirection
-import quoi.utils.skyblock.player.SwapManager
-import quoi.utils.ticker
-import net.minecraft.core.BlockPos
-import net.minecraft.network.protocol.game.ClientboundPlayerPositionPacket
-import net.minecraft.world.phys.Vec3
 import quoi.api.skyblock.dungeon.odonscanning.ScanUtils
 import quoi.api.skyblock.dungeon.odonscanning.tiles.OdonRoom
 import quoi.api.skyblock.dungeon.odonscanning.tiles.RoomType
+import quoi.module.Module
+import quoi.utils.*
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.Scheduler.scheduleTask
 import quoi.utils.StringUtils.noControlCodes
-import quoi.utils.TickerScope
-import quoi.utils.Vec2
-import quoi.utils.distanceTo2D
-import quoi.utils.getEtherwarpDirection
+import quoi.utils.WorldUtils.state
 import quoi.utils.skyblock.player.PlayerUtils
 import quoi.utils.skyblock.player.PlayerUtils.at
 import quoi.utils.skyblock.player.PlayerUtils.rotate
 import quoi.utils.skyblock.player.PlayerUtils.useItem
+import quoi.utils.skyblock.player.SwapManager
 import kotlin.math.roundToInt
 
-object AutoBloodRush : Module( // maybe consis now
+object AutoBloodRush : Module( // inconsistent
     "Auto Blood Rush",
     desc = "Automatically blood rushes.",
     area = Island.Dungeon
@@ -86,7 +80,7 @@ object AutoBloodRush : Module( // maybe consis now
         on<ChatEvent.Packet> {
             if (debug) return@on
             if (currentRoom?.name != "Entrance") return@on
-            if (bloodCoords == null || player.y < 98.0) return@on
+            if (bloodCoords == null || player.y < 95.0) return@on
             when (message.noControlCodes) {
 //                "Starting in 4 seconds." -> tickerThing = leaf()
                 "[NPC] Mort: Here, I found this map when I first entered the dungeon." -> tickerThing = br()
@@ -203,13 +197,13 @@ object AutoBloodRush : Module( // maybe consis now
 
         await { doneTeleporting() }
 
-        await { // todo find out if this shit works properly
+        await {
             if (player.blockPosition().above(1).state.isAir) {
                 SwapManager.swapById("ASPECT_OF_THE_VOID").success
                 return@await true
             }
 
-            if (tpsAmount == 0 || doneTeleporting()) {
+            if (tpsAmount == 0 || doneTeleporting()) { // todo fix
 //                modMessage("I AM A NI")
                 tpsReceived = 0
                 tpsAmount = 1
@@ -223,6 +217,9 @@ object AutoBloodRush : Module( // maybe consis now
     }
 
     private fun br() = ticker {
+
+//        await { Dungeon.deathTick > 30 }
+
         action {
             if (player.y < 95 || !SwapManager.swapById("ASPECT_OF_THE_VOID").success) {
                 cancel()
@@ -258,11 +255,11 @@ object AutoBloodRush : Module( // maybe consis now
             doneTeleporting = false
 
             repeat(edgeTimes) { player.useItem(yaw, 0) }
-            repeat(8) { player.useItem(0, 90) }
+            repeat(9) { player.useItem(0, 90) }
             repeat(bloodTimes) { player.useItem(bloodDir.yaw, 0) }
 
             if (bloodCoords != null) {
-                repeat(7) { player.useItem(0, -90) }
+                repeat(8) { player.useItem(0, -90) }
             } else {
                 cancel()
             }
@@ -270,6 +267,8 @@ object AutoBloodRush : Module( // maybe consis now
 
         await { doneTeleporting() }
 
+
+        // todo find a way to make this part consistent
         action {
             SwapManager.swapByName("pearl")
             player.rotate(0, -90)

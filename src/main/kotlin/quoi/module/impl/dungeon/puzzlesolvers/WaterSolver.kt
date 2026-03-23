@@ -223,13 +223,10 @@ object WaterSolver {
                 }
                 delay(2)
             }
-            await {
-                if (r) return@await true
-                else return@await false.also {
-                    repositionTicker = null
-                }
+            action {
+                if (!r) cancel()
+                player.useItem(dir)
             }
-            action { player.useItem(dir) }
             await { player.at(spot) }
         }
     }

@@ -16,8 +16,6 @@ import quoi.utils.StringUtils.formatTime
 import quoi.utils.StringUtils.toFixed
 import quoi.utils.skyblock.SplitsManager
 import quoi.utils.skyblock.SplitsManager.Split
-import quoi.utils.ui.hud.TextHud
-import quoi.utils.ui.hud.setting
 import quoi.utils.ui.textPair
 
 object Splits : Module( // todo section split info hud, task (terms, levers, devices) times in chat
@@ -35,7 +33,7 @@ object Splits : Module( // todo section split info hud, task (terms, levers, dev
 
     private lateinit var refreshable: RefreshableGroup
 
-    private val hud by TextHud("Splits hud", toggleable = false) {
+    private val hud by textHud("Splits hud", toggleable = false) {
         refreshable = refreshableGroup(bounds()) {
             visibleIf { inDungeons }
 

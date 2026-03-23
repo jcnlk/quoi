@@ -13,43 +13,43 @@ import quoi.module.settings.impl.*
 import quoi.utils.SoundUtils
 import kotlin.reflect.KProperty0
 
-abstract class SettingsDsl {
+abstract class SettingsDSL {
 
     abstract fun <K : Setting<*>> register(setting: K): K
 
     protected operator fun <K : Setting<*>> K.unaryPlus(): K = register(this)
 
-    fun switch(name: String, enabled: Boolean = false, desc: String = "") =
+    protected fun switch(name: String, enabled: Boolean = false, desc: String = "") =
         SwitchComponent(name, enabled, desc)
 
-    fun colourPicker(name: String, colour: Colour, allowAlpha: Boolean = false, desc: String = "") =
+    protected fun colourPicker(name: String, colour: Colour, allowAlpha: Boolean = false, desc: String = "") =
         ColourPickerComponent(name, colour, allowAlpha, desc)
 
-    fun keybind(name: String, key: Int = CatKeys.KEY_NONE, desc: String = "") =
+    protected fun keybind(name: String, key: Int = CatKeys.KEY_NONE, desc: String = "") =
         KeybindComponent(name, key, desc)
 
-    fun <T> selector(name: String, default: T, options: List<T>, desc: String = "") =
+    protected fun <T> selector(name: String, default: T, options: List<T>, desc: String = "") =
         SelectorComponent(name, default, options, desc)
 
-    fun <E : Enum<E>> selector(name: String, default: E, desc: String = "") =
+    protected fun <E : Enum<E>> selector(name: String, default: E, desc: String = "") =
         SelectorComponent(name, default, default.declaringJavaClass.enumConstants.toList(), desc)
 
-    fun <T> segmented(name: String, default: T, options: List<T>, desc: String = "") =
+    protected fun <T> segmented(name: String, default: T, options: List<T>, desc: String = "") =
         SegmentedComponent(name, default, options, desc)
 
-    fun <E : Enum<E>> segmented(name: String, default: E, desc: String = "") =
+    protected fun <E : Enum<E>> segmented(name: String, default: E, desc: String = "") =
         SegmentedComponent(name, default, default.declaringJavaClass.enumConstants.toList(), desc)
 
-    fun text(value: String, desc: String = "") =
+    protected fun text(value: String, desc: String = "") =
         TextComponent(value, desc)
 
-    fun textInput(name: String, default: String = "", length: Int = 20, desc: String = "", placeholder: String = "") =
+    protected fun textInput(name: String, default: String = "", length: Int = 20, desc: String = "", placeholder: String = "") =
         TextInputComponent(name ,default, length, desc, placeholder)
 
-    fun button(name: String, desc: String = "", block: () -> Unit = {}) =
+    protected fun button(name: String, desc: String = "", block: () -> Unit = {}) =
         ButtonComponent(name, desc, block)
 
-    fun <E> rangeSlider(
+    protected fun <E> rangeSlider(
         name: String,
         value: Pair<E, E>,
         min: E,
@@ -60,7 +60,7 @@ abstract class SettingsDsl {
     ): RangeSliderComponent<E> where E : Number, E : Comparable<E> =
         RangeSliderComponent(name, value, min, max, increment, desc, unit)
 
-    fun <E> slider(
+    protected fun <E> slider(
         name: String,
         value: E,
         min: E,
@@ -71,7 +71,7 @@ abstract class SettingsDsl {
     ): SliderComponent<E> where E : Number, E : Comparable<E> =
         SliderComponent(name, value, min, max, increment, desc, unit)
 
-    fun sound(name: String, ): SoundSetting {
+    protected fun sound(name: String, ): SoundSetting {
         val sound = +selector("$name sound", SoundUtils.SoundSetting.BlazeHurt)
 
         val customSound = +textInput("Custom sound", "entity.blaze.hurt", length = 64)

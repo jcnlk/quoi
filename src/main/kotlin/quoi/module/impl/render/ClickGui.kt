@@ -49,8 +49,6 @@ import quoi.utils.ThemeManager.theme
 import quoi.utils.WorldUtils.day
 import quoi.utils.ui.elements.themedInput
 import quoi.utils.ui.hud.HudManager
-import quoi.utils.ui.hud.TextHud
-import quoi.utils.ui.hud.setting
 import quoi.utils.ui.onHover
 import quoi.utils.ui.rendering.NVGRenderer
 import quoi.utils.ui.rendering.NVGRenderer.defaultFont
@@ -82,7 +80,7 @@ object ClickGui : Module(
     val prefixColour by colourPicker("Colour", Colour.GREEN).json("Prefix colour").childOf(::prefixDropdown)
     val bracketsColour by colourPicker("Brackets", Colour.WHITE).json("Brackets colour").childOf(::prefixDropdown)
 
-    private val fpsHud by TextHud("Fps display") {
+    private val fpsHud by textHud("Fps display") {
         textPair(
             string = "Fps:",
             supplier = { mc.fps },
@@ -93,7 +91,7 @@ object ClickGui : Module(
     }.setting()
 
     private val pingType by selector("Ping type", PingType.Average)
-    private val pingHud by TextHud("Ping display") {
+    private val pingHud by textHud("Ping display") {
         visibleIf { !mc.isSingleplayer }
         textPair(
             string = "Ping:",
@@ -105,7 +103,7 @@ object ClickGui : Module(
     }.withSettings(::pingType).setting()
 
     private val tpsType by selector("Tps type", TpsType.Average)
-    private val tpsHud by TextHud("Tps display") {
+    private val tpsHud by textHud("Tps display") {
         visibleIf { !mc.isSingleplayer }
         textPair(
             string = "Tps:",
@@ -116,7 +114,7 @@ object ClickGui : Module(
         )
     }.withSettings(::tpsType).setting()
 
-    private val dayHud by TextHud("Day display") {
+    private val dayHud by textHud("Day display") {
         textPair(
             string = "Day:",
             supplier = { mc.level?.day },

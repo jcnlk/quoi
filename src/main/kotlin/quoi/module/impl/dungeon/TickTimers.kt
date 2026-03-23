@@ -14,8 +14,6 @@ import quoi.module.settings.UIComponent.Companion.visibleIf
 import quoi.utils.StringUtils.toFixed
 import quoi.utils.ThemeManager.theme
 import quoi.utils.ui.hud.Hud
-import quoi.utils.ui.hud.TextHud
-import quoi.utils.ui.hud.setting
 
 object TickTimers : Module(
     "Tick Timers",
@@ -24,7 +22,7 @@ object TickTimers : Module(
 ) {
     private val showInTicks by switch("Show in ticks")
 
-    private val padHud by TextHud("Pad tick") {
+    private val padHud by textHud("Pad tick") {
         visibleIf { padTick >= 0 }
         textSupplied(
             supplier = { formatTime(if (preview) 15 else padTick, 20) },
@@ -34,7 +32,7 @@ object TickTimers : Module(
         ).shadow = shadow
     }.setting()
 
-    private val goldorHud: Hud by TextHud("Goldor death tick") {
+    private val goldorHud: Hud by textHud("Goldor death tick") {
         visibleIf { goldorStart >= 0 || goldorTick >= 0 }
         textSupplied(
             supplier = { if (goldorStart >= 0 && startTimer) formatTime(goldorStart, 104) else formatTime(if (preview) 40 else goldorTick, 60) },
@@ -46,7 +44,7 @@ object TickTimers : Module(
 
     private val startTimer by switch("Goldor start timer").visibleIf { goldorHud.enabled }
 
-    private val deathTickHud by TextHud("Death tick") { // maybe make an option to show it before dung start only
+    private val deathTickHud by textHud("Death tick") { // maybe make an option to show it before dung start only
         visibleIf { deathTick >= 0 }
         textSupplied(
             supplier = { formatTime(if (preview) 15 else deathTick, 40) },

@@ -32,8 +32,6 @@ import quoi.utils.skyblock.ItemUtils.lore
 import quoi.utils.skyblock.ItemUtils.skyblockId
 import quoi.utils.skyblock.player.SwapManager
 import quoi.utils.skyblock.player.SwapResult
-import quoi.utils.ui.hud.TextHud
-import quoi.utils.ui.hud.setting
 import quoi.utils.ui.textPair
 import java.util.concurrent.ConcurrentHashMap
 
@@ -78,7 +76,7 @@ object DungeonBreaker : Module(
 
     private val dungeonBreakerCommand = BaseCommand("dungeonbreaker", "db").requires("&cDungeon Breaker module is disabled!") { enabled }
 
-    private val chargesHud by TextHud("Charges display") {
+    private val chargesHud by textHud("Charges display") {
         visibleIf { mc.player != null && inDungeons && getBreakerCharges(player.mainHandItem) > 0 }
         textPair(
             string = "Charges:",
