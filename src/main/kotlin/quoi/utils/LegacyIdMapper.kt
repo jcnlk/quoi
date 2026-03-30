@@ -1,7 +1,7 @@
 package quoi.utils
 
 import net.minecraft.core.registries.BuiltInRegistries
-import net.minecraft.resources.ResourceLocation
+import net.minecraft.resources.Identifier
 import net.minecraft.tags.FluidTags
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.state.BlockState
@@ -518,7 +518,7 @@ object LegacyIdMapper {
             }
 
             val rawKey = key.substringBefore('[')
-            val block = BuiltInRegistries.BLOCK.getOptional(ResourceLocation.parse(rawKey)).getOrNull() ?: return@forEach
+            val block = BuiltInRegistries.BLOCK.getOptional(Identifier.parse(rawKey)).getOrNull() ?: return@forEach
 
             if ('[' !in key) {
                 block2Legacy[block] = legacyId
@@ -528,7 +528,7 @@ object LegacyIdMapper {
             val rawProperties = key.substringAfter('[').substringBefore(']')
             val propMap = rawProperties.split(',').associate { entry ->
                 val (name, value) = entry.split('=')
-                val prop = block.stateDefinition.getProperty(name) ?: return@forEach
+                val prop = block.getStateDefinition().getProperty(name) ?: return@forEach
                 val parsed = prop.getValue(value).getOrNull() ?: return@forEach
                 prop to parsed
             }

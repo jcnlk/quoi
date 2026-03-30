@@ -1,47 +1,15 @@
 package quoi.utils.render
 
-import net.minecraft.client.renderer.RenderType
+import net.minecraft.client.renderer.rendertype.RenderType
+import net.minecraft.client.renderer.rendertype.RenderTypes
 
 /**
- * from OdinFabric (BSD 3-Clause)
- * copyright (c) 2025-2026 odtheking
- * original: https://github.com/odtheking/OdinFabric/blob/main/src/main/kotlin/com/odtheking/odin/utils/render/CustomRenderLayer.kt
+ * 1.21.11 no longer exposes RenderType.create publicly, so use the closest
+ * public vanilla render types for the existing debug geometry paths.
  */
 object CustomRenderLayer {
-
-    val LINE_LIST: RenderType.CompositeRenderType = RenderType.create(
-        "line-list",
-        RenderType.TRANSIENT_BUFFER_SIZE,
-        CustomRenderPipelines.LINE_LIST,
-        RenderType.CompositeState.builder()
-            .setLayeringState(RenderType.VIEW_OFFSET_Z_LAYERING)
-            .createCompositeState(false)
-    )
-
-    val LINE_LIST_ESP: RenderType.CompositeRenderType = RenderType.create(
-        "line-list-esp",
-        RenderType.TRANSIENT_BUFFER_SIZE,
-        CustomRenderPipelines.LINE_LIST_ESP,
-        RenderType.CompositeState.builder().createCompositeState(false)
-    )
-
-    val TRIANGLE_STRIP: RenderType.CompositeRenderType = RenderType.create(
-        "triangle_strip",
-        RenderType.TRANSIENT_BUFFER_SIZE,
-        false,
-        true,
-        CustomRenderPipelines.TRIANGLE_STRIP,
-        RenderType.CompositeState.builder()
-            .setLayeringState(RenderType.VIEW_OFFSET_Z_LAYERING)
-            .createCompositeState(false)
-    )
-
-    val TRIANGLE_STRIP_ESP: RenderType.CompositeRenderType = RenderType.create(
-        "triangle_strip_esp",
-        RenderType.TRANSIENT_BUFFER_SIZE,
-        false,
-        true,
-        CustomRenderPipelines.TRIANGLE_STRIP_ESP,
-        RenderType.CompositeState.builder().createCompositeState(false)
-    )
+    val LINE_LIST: RenderType = RenderTypes.lines()
+    val LINE_LIST_ESP: RenderType = RenderTypes.linesTranslucent()
+    val TRIANGLE_STRIP: RenderType = RenderTypes.debugFilledBox()
+    val TRIANGLE_STRIP_ESP: RenderType = RenderTypes.debugQuads()
 }

@@ -5,6 +5,7 @@ import net.minecraft.client.gui.screens.ChatScreen
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.HoverEvent
 import net.minecraft.network.chat.Style
+import net.minecraft.util.Mth
 import quoi.api.events.ChatEvent
 import quoi.api.events.GuiEvent
 import quoi.api.events.core.Priority
@@ -111,11 +112,11 @@ object Chat : Module(
             if (!isCopyBtn && !isCodeBtn) return@on
             cancel()
 
-            val dx = chatHudAccessor.toChatLineMX(mx)
-            val dy = chatHudAccessor.toChatLineMY(my)
-            val idx = chatHudAccessor.getMessageLineIdx(dx, dy)
+            val dx = chatHudAccessor.screenToChatX(mx)
+            val dy = chatHudAccessor.screenToChatY(my)
+            val idx = chatHudAccessor.getMessageLineIndexAt(dx, dy)
             if (idx !in chatHudAccessor.visibleMessages.indices) return@on
-            if (idx == 0 && dy !in 0.0..1.0 || dx >= chatGui!!.width.plus(10)) return@on
+            if (idx == 0 && dy !in 0.0..1.0 || dx >= ChatComponent.getWidth(mc.options.chatWidth().get()).plus(10)) return@on
 
             val fullText = chatGui?.getFullText(idx)?.string ?: return@on
             val finalText = if (isCodeBtn) fullText else fullText.noControlCodes
@@ -187,5 +188,25 @@ object Chat : Module(
         }
 
         return messages.getOrNull(fullIndex)?.content
+    }
+
+    private fun ChatComponentAccessor.screenToChatX(x: Double): Double {
+        return x / `quoi$getChatScale`() - 4.0
+    }
+
+    private fun ChatComponentAccessor.screenToChatY(y: Double): Double {
+        val chatBottom = mc.window.guiScaledHeight - y - 40.0
+        return chatBottom / (`quoi$getChatScale`() * `quoi$getChatLineHeight`())
+    }
+
+    private fun ChatComponentAccessor.getMessageLineIndexAt(chatLineX: Double, chatLineY: Double): Int {
+        if (!chatGui!!.isChatFocused || `quoi$isChatHidden`()) return -1
+        if (chatLineX < -4.0 || chatLineX > Mth.floor(`quoi$getChatWidth`().toDouble() / `quoi$getChatScale`())) return -1
+
+        val lineCount = minOf(chatGui!!.linesPerPage, visibleMessages.size)
+        if (chatLineY < 0.0 || chatLineY >= lineCount) return -1
+
+        val idx = Mth.floor(chatLineY + scrolledLines.toDouble())
+        return idx.takeIf { it in visibleMessages.indices } ?: -1
     }
 }

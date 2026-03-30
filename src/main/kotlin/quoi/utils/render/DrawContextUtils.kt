@@ -11,7 +11,7 @@ import net.minecraft.client.gui.components.PlayerFaceRenderer
 import net.minecraft.client.renderer.RenderPipelines
 import net.minecraft.client.resources.DefaultPlayerSkin
 import net.minecraft.network.chat.Component
-import net.minecraft.resources.ResourceLocation
+import net.minecraft.resources.Identifier
 import net.minecraft.util.FormattedCharSequence
 import net.minecraft.world.entity.player.PlayerSkin
 import org.joml.Matrix3x2f
@@ -189,7 +189,7 @@ object DrawContextUtils {
         }
     }
 
-    fun GuiGraphics.drawImage(image: ResourceLocation, x: Int, y: Int, width: Int, height: Int) {
+    fun GuiGraphics.drawImage(image: Identifier, x: Int, y: Int, width: Int, height: Int) {
 //        blitSprite(RenderPipelines.GUI_TEXTURED, image, x, y, width, height)
         blit(RenderPipelines.GUI_TEXTURED, image, x, y, 0f, 0f, width, height, width, height)
     }

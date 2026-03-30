@@ -8,6 +8,9 @@ plugins {
 
 version = property("mod_version") as String
 
+fun optionalBoolProperty(name: String): Boolean =
+    providers.gradleProperty(name).orNull?.toBooleanStrictOrNull() == true
+
 repositories {
     mavenCentral()
     maven("https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1")
@@ -21,7 +24,9 @@ dependencies {
     modImplementation("net.fabricmc:fabric-loader:${property("loader_version")}")
     modImplementation("net.fabricmc:fabric-language-kotlin:${property("fabric_kotlin_version")}")
     modImplementation("net.fabricmc.fabric-api:fabric-api:${property("fabric_api_version")}")
-    modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.1")
+    if (optionalBoolProperty("quoi.enableDevAuth")) {
+        modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.1")
+    }
 
     modImplementation("io.github.classgraph:classgraph:4.8.184")
     include("io.github.classgraph:classgraph:4.8.184")
@@ -41,14 +46,20 @@ dependencies {
 loom {
     runConfigs.named("client") {
         isIdeConfigGenerated = true
-        vmArgs.addAll(
-            arrayOf(
-                "-Dmixin.debug.export=true",
-                "-Ddevauth.enabled=true",
-                "-Ddevauth.account=main",
-                "-XX:+AllowEnhancedClassRedefinition"
+        vmArgs.add("-Dmixin.debug.export=true")
+
+        if (optionalBoolProperty("quoi.enableDevAuth")) {
+            vmArgs.addAll(
+                arrayOf(
+                    "-Ddevauth.enabled=true",
+                    "-Ddevauth.account=main"
+                )
             )
-        )
+        }
+
+        if (optionalBoolProperty("quoi.enableEnhancedClassRedefinition")) {
+            vmArgs.add("-XX:+AllowEnhancedClassRedefinition")
+        }
     }
 
     runConfigs.named("server") {

@@ -1,11 +1,7 @@
 package quoi.utils.render
 
-import quoi.QuoiMod.mc
-import quoi.api.colour.*
-import quoi.utils.EntityUtils.renderPos
-import quoi.utils.unaryMinus
-import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.ByteBufferBuilder
+import com.mojang.blaze3d.vertex.VertexConsumer
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext
 import net.minecraft.client.gui.Font
 import net.minecraft.client.renderer.LightTexture
@@ -14,8 +10,14 @@ import net.minecraft.client.renderer.ShapeRenderer
 import net.minecraft.network.chat.Component
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
+import net.minecraft.world.phys.shapes.Shapes
 import org.joml.Vector3f
+import quoi.QuoiMod.mc
+import quoi.api.colour.*
+import quoi.utils.EntityUtils.renderPos
+import quoi.utils.unaryMinus
 import kotlin.math.pow
+import kotlin.math.sqrt
 
 /**
  * from OdinFabric (BSD 3-Clause)
@@ -26,32 +28,61 @@ private val ALLOCATOR = ByteBufferBuilder(1536)
 
 private fun camera() = mc.gameRenderer.mainCamera
 
+private fun VertexConsumer.addLine(
+    pose: com.mojang.blaze3d.vertex.PoseStack.Pose,
+    start: Vec3,
+    end: Vec3,
+    colour: Colour,
+    thickness: Float
+) {
+    val dx = (end.x - start.x).toFloat()
+    val dy = (end.y - start.y).toFloat()
+    val dz = (end.z - start.z).toFloat()
+    val len = sqrt(dx * dx + dy * dy + dz * dz).takeIf { it > 0f } ?: 1f
+    val nx = dx / len
+    val ny = dy / len
+    val nz = dz / len
+
+    addVertex(pose, start.x.toFloat(), start.y.toFloat(), start.z.toFloat())
+        .setColor(colour.rgb)
+        .setNormal(pose, nx, ny, nz)
+        .setLineWidth(thickness)
+    addVertex(pose, end.x.toFloat(), end.y.toFloat(), end.z.toFloat())
+        .setColor(colour.rgb)
+        .setNormal(pose, nx, ny, nz)
+        .setLineWidth(thickness)
+}
+
+private fun VertexConsumer.addQuad(
+    pose: com.mojang.blaze3d.vertex.PoseStack.Pose,
+    a: Vec3,
+    b: Vec3,
+    c: Vec3,
+    d: Vec3,
+    colour: Colour
+) {
+    addVertex(pose, a.x.toFloat(), a.y.toFloat(), a.z.toFloat()).setColor(colour.rgb)
+    addVertex(pose, b.x.toFloat(), b.y.toFloat(), b.z.toFloat()).setColor(colour.rgb)
+    addVertex(pose, c.x.toFloat(), c.y.toFloat(), c.z.toFloat()).setColor(colour.rgb)
+    addVertex(pose, d.x.toFloat(), d.y.toFloat(), d.z.toFloat()).setColor(colour.rgb)
+}
+
 fun WorldRenderContext.drawLine(points: Collection<Vec3>, colour: Colour, depth: Boolean, thickness: Float = 3f) {
     if (points.size < 2) return
     val matrix = matrices() ?: return
     val bufferSource = consumers() as? MultiBufferSource.BufferSource ?: return
     val layer = if (depth) CustomRenderLayer.LINE_LIST else CustomRenderLayer.LINE_LIST_ESP
-    RenderSystem.lineWidth(thickness)
-
-    matrix.pushPose()
-    with(camera().position) { matrix.translate(-x, -y, -z) }
-
+    val cameraPos = camera().position()
+    val pose = matrix.last()
+    val buffer = bufferSource.getBuffer(layer)
     val pointList = points.toList()
+
     for (i in 0 until pointList.size - 1) {
-        val start = pointList[i]
-        val end = pointList[i + 1]
-        val startOffset = Vector3f(start.x.toFloat(), start.y.toFloat(), start.z.toFloat())
-        val direction = end.subtract(start)
-        ShapeRenderer.renderVector(
-            matrix,
-            bufferSource.getBuffer(layer),
-            startOffset,
-            direction,
-            colour.rgb
-        )
+        val start = pointList[i].subtract(cameraPos)
+        val end = pointList[i + 1].subtract(cameraPos)
+        buffer.addLine(pose, start, end, colour, thickness)
     }
 
-    matrix.popPose()
     bufferSource.endBatch(layer)
 }
 
@@ -66,22 +97,19 @@ fun WorldRenderContext.drawWireFrameBox(aabb: AABB, colour: Colour, thickness: F
     val matrix = matrices() ?: return
     val bufferSource = consumers() as? MultiBufferSource.BufferSource ?: return
     val layer = if (depth) CustomRenderLayer.LINE_LIST else CustomRenderLayer.LINE_LIST_ESP
-    val camera = camera() ?: return
-    RenderSystem.lineWidth((thickness / camera.position.distanceToSqr(aabb.center).pow(0.15)).toFloat())
+    val cameraPos = camera().position()
 
-    matrix.pushPose()
-    with(camera.position) { matrix.translate(-x, -y, -z) }
-    ShapeRenderer.renderLineBox(
-        matrix.last(),
+    ShapeRenderer.renderShape(
+        matrix,
         bufferSource.getBuffer(layer),
-        aabb,
-        colour.redFloat,
-        colour.greenFloat,
-        colour.blueFloat,
+        Shapes.create(aabb),
+        -cameraPos.x,
+        -cameraPos.y,
+        -cameraPos.z,
+        colour.rgb,
         colour.alphaFloat
     )
 
-    matrix.popPose()
     bufferSource.endBatch(layer)
 }
 
@@ -89,25 +117,33 @@ fun WorldRenderContext.drawFilledBox(box: AABB, colour: Colour, depth: Boolean =
     val matrix = matrices() ?: return
     val bufferSource = consumers() as? MultiBufferSource.BufferSource ?: return
     val layer = if (depth) CustomRenderLayer.TRIANGLE_STRIP else CustomRenderLayer.TRIANGLE_STRIP_ESP
+    val cameraPos = camera().position()
+    val pose = matrix.last()
+    val buffer = bufferSource.getBuffer(layer)
 
-    matrix.pushPose()
-    with(camera().position) { matrix.translate(-x, -y, -z) }
-    ShapeRenderer.addChainedFilledBoxVertices(
-        matrix,
-        bufferSource.getBuffer(layer),
-        box.minX,
-        box.minY,
-        box.minZ,
-        box.maxX,
-        box.maxY,
-        box.maxZ,
-        colour.redFloat,
-        colour.greenFloat,
-        colour.blueFloat,
-        colour.alphaFloat
-    )
+    val minX = box.minX - cameraPos.x
+    val minY = box.minY - cameraPos.y
+    val minZ = box.minZ - cameraPos.z
+    val maxX = box.maxX - cameraPos.x
+    val maxY = box.maxY - cameraPos.y
+    val maxZ = box.maxZ - cameraPos.z
 
-    matrix.popPose()
+    val x0y0z0 = Vec3(minX, minY, minZ)
+    val x0y0z1 = Vec3(minX, minY, maxZ)
+    val x0y1z0 = Vec3(minX, maxY, minZ)
+    val x0y1z1 = Vec3(minX, maxY, maxZ)
+    val x1y0z0 = Vec3(maxX, minY, minZ)
+    val x1y0z1 = Vec3(maxX, minY, maxZ)
+    val x1y1z0 = Vec3(maxX, maxY, minZ)
+    val x1y1z1 = Vec3(maxX, maxY, maxZ)
+
+    buffer.addQuad(pose, x0y0z0, x0y1z0, x1y1z0, x1y0z0, colour)
+    buffer.addQuad(pose, x1y0z1, x1y1z1, x0y1z1, x0y0z1, colour)
+    buffer.addQuad(pose, x0y0z1, x0y1z1, x0y1z0, x0y0z0, colour)
+    buffer.addQuad(pose, x1y0z0, x1y1z0, x1y1z1, x1y0z1, colour)
+    buffer.addQuad(pose, x0y1z0, x0y1z1, x1y1z1, x1y1z0, colour)
+    buffer.addQuad(pose, x0y0z1, x0y0z0, x1y0z0, x1y0z1, colour)
+
     bufferSource.endBatch(layer)
 }
 
@@ -121,31 +157,14 @@ fun WorldRenderContext.drawStyledBox(style: String, box: AABB, colour: Colour, f
     }
 }
 
-//fun WorldRenderContext.drawBeaconBeam(position: BlockPos, colour: Colour) {
-//    val matrix = matrices() ?: return
-//    val bufferSource = consumers() as? MultiBufferSource.BufferSource ?: return
-//    val camera = camera()?.position ?: return
-//
-//    matrix.pushPose()
-//    matrix.translate(position.x - camera.x, position.y - camera.y, position.z - camera.z)
-//    val length = camera.subtract(position.center).horizontalDistance().toFloat()
-//    val scale = if (mc.player != null && mc.player?.isScoping == true) 1.0f else maxOf(1.0f, length / 96.0f)
-//
-//    BeaconRenderer.renderBeaconBeam(
-//        matrix, bufferSource, BeaconRenderer.BEAM_LOCATION,
-//        tickCounter().getGameTimeDeltaPartialTick(true), scale, world().gameTime, 0, 319, colour.rgba, 0.2f * scale, 0.25f * scale
-//    )
-//    matrix.popPose()
-//}
-
 fun WorldRenderContext.drawText(text: Component, pos: Vec3, colour: Colour = Colour.TRANSPARENT, shadow: Boolean = true, scale: Float = 0.5f, depth: Boolean = false) {
     val stack = matrices() ?: return
 
     stack.pushPose()
     val matrix = stack.last().pose()
     with(scale * 0.025f) {
-        val cameraPos = -camera().position
-        matrix.translate(pos.toVector3f()).translate(cameraPos.x.toFloat() , cameraPos.y.toFloat(), cameraPos.z.toFloat()).rotate(camera().rotation()).scale(this, -this, this)
+        val cameraPos = -camera().position()
+        matrix.translate(pos.toVector3f()).translate(cameraPos.x.toFloat(), cameraPos.y.toFloat(), cameraPos.z.toFloat()).rotate(camera().rotation()).scale(this, -this, this)
     }
 
     val consumers = MultiBufferSource.immediate(ALLOCATOR)
@@ -174,30 +193,31 @@ fun WorldRenderContext.drawCylinder(
     val matrix = matrices() ?: return
     val bufferSource = consumers() as? MultiBufferSource.BufferSource ?: return
     val layer = if (depth) CustomRenderLayer.LINE_LIST else CustomRenderLayer.LINE_LIST_ESP
-    val camera = camera()?.position ?: return
-
-    matrix.pushPose()
-    matrix.translate(center.x - camera.x, center.y - camera.y, center.z - camera.z)
-    RenderSystem.lineWidth((thickness / camera.distanceToSqr(center).pow(0.15)).toFloat())
-
-    val angleStep = 2.0 * Math.PI / segments
+    val cameraPos = camera().position()
+    val pose = matrix.last()
     val buffer = bufferSource.getBuffer(layer)
+    val translatedCenter = center.subtract(cameraPos)
+    val angleStep = 2.0 * Math.PI / segments
 
     for (i in 0 until segments) {
         val angle1 = i * angleStep
         val angle2 = (i + 1) * angleStep
 
-        val x1 = (radius * kotlin.math.cos(angle1)).toFloat()
-        val z1 = (radius * kotlin.math.sin(angle1)).toFloat()
-        val x2 = (radius * kotlin.math.cos(angle2)).toFloat()
-        val z2 = (radius * kotlin.math.sin(angle2)).toFloat()
+        val x1 = translatedCenter.x + radius * kotlin.math.cos(angle1)
+        val z1 = translatedCenter.z + radius * kotlin.math.sin(angle1)
+        val x2 = translatedCenter.x + radius * kotlin.math.cos(angle2)
+        val z2 = translatedCenter.z + radius * kotlin.math.sin(angle2)
+        val topY = translatedCenter.y + height
 
-        ShapeRenderer.renderVector(matrix, buffer, Vector3f(x1, height, z1), Vec3((x2 - x1).toDouble(), 0.0, (z2 - z1).toDouble()), colour.rgb)
-        ShapeRenderer.renderVector(matrix, buffer, Vector3f(x1, 0f, z1), Vec3((x2 - x1).toDouble(), 0.0, (z2 - z1).toDouble()), colour.rgb)
-        ShapeRenderer.renderVector(matrix, buffer, Vector3f(x1, 0f, z1), Vec3(0.0, height.toDouble(), 0.0), colour.rgb)
+        val topStart = Vec3(x1, topY, z1)
+        val topEnd = Vec3(x2, topY, z2)
+        val bottomStart = Vec3(x1, translatedCenter.y, z1)
+        val bottomEnd = Vec3(x2, translatedCenter.y, z2)
+
+        buffer.addLine(pose, topStart, topEnd, colour, thickness)
+        buffer.addLine(pose, bottomStart, bottomEnd, colour, thickness)
+        buffer.addLine(pose, bottomStart, topStart, colour, thickness)
     }
 
-
-    matrix.popPose()
-    bufferSource.endBatch()
+    bufferSource.endBatch(layer)
 }

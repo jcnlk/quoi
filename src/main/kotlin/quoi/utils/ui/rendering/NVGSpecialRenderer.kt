@@ -13,6 +13,7 @@ import net.minecraft.client.gui.render.pip.PictureInPictureRenderer
 import net.minecraft.client.gui.render.state.pip.PictureInPictureRenderState
 import net.minecraft.client.renderer.MultiBufferSource
 import org.joml.Matrix3x2f
+import org.lwjgl.opengl.GL33C
 
 /**
  * from OdinFabric (BSD 3-Clause)
@@ -33,6 +34,7 @@ class NVGSpecialRenderer(vertexConsumers: MultiBufferSource.BufferSource)
             GlStateManager._viewport(0, 0, colorTex.getWidth(0), colorTex.getHeight(0))
         }
 
+        GL33C.glBindSampler(0, 0)
         NVGRenderer.beginFrame(mc.window.width.toFloat(), mc.window.height.toFloat())
         state.renderContent()
         NVGRenderer.endFrame()

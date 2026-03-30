@@ -4,7 +4,6 @@ import quoi.QuoiMod.mc
 import quoi.api.colour.*
 import quoi.utils.ui.data.Gradient
 import quoi.utils.ui.data.Radii
-import net.minecraft.resources.ResourceLocation
 import org.lwjgl.nanovg.NVGColor
 import org.lwjgl.nanovg.NVGPaint
 import org.lwjgl.nanovg.NanoSVG.*
@@ -29,7 +28,7 @@ object NVGRenderer {
     private val nvgColor = NVGColor.malloc()
     private val nvgColor2: NVGColor = NVGColor.malloc()
 
-    val defaultFont = Font("Default", mc.resourceManager.getResource(ResourceLocation.parse("quoi:font.ttf")).get().open())
+    val defaultFont = Font("Default", "/assets/quoi/font.ttf")
     val minecraftFont = Font("Minecraft")
 
     private val fontMap = HashMap<Font, NVGFont>()
@@ -51,11 +50,15 @@ object NVGRenderer {
         require(vg != -1L) { "Failed to initialize NanoVG" }
     }
 
+    private fun devicePixelRatio(): Float =
+        if (mc.window.screenWidth == 0) 1f else (mc.window.width / mc.window.screenWidth).toFloat()
+
     fun beginFrame(width: Float = mc.window.width.toFloat(), height: Float = mc.window.height.toFloat()) {
         if (drawing) throw IllegalStateException("[NVGRenderer] Already drawing, but called beginFrame")
 
-//
-        nvgBeginFrame(vg, width, height, 1f)
+        val dpr = devicePixelRatio()
+
+        nvgBeginFrame(vg, width / dpr, height / dpr, dpr)
         nvgTextAlign(vg, NVG_ALIGN_LEFT or NVG_ALIGN_TOP)
         drawing = true
     }
@@ -456,7 +459,9 @@ object NVGRenderer {
     private fun getFontID(font: Font): Int {
         return fontMap.getOrPut(font) {
             val buffer = font.buffer()
-            NVGFont(nvgCreateFontMem(vg, font.name, buffer, false), buffer)
+            val id = nvgCreateFontMem(vg, "quoi_${font.name}_${fontMap.size}", buffer, false)
+            require(id != -1) { "Failed to create NanoVG font ${font.name}" }
+            NVGFont(id, buffer)
         }.id
     }
 

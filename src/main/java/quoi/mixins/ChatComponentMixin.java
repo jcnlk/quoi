@@ -117,7 +117,8 @@ public abstract class ChatComponentMixin implements IChatComponent {
     @ModifyVariable(
             method = "render",
             at = @At("HEAD"),
-            argsOnly = true
+            argsOnly = true,
+            ordinal = 0
     )
     private boolean renderFocused(boolean focused) {
         return focused || Chat.INSTANCE.isDown();
