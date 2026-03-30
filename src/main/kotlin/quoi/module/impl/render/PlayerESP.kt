@@ -13,6 +13,7 @@ import quoi.utils.EntityUtils.distanceToCamera
 import quoi.utils.EntityUtils.interpolatedBox
 import quoi.utils.EntityUtils.playerEntitiesNoSelf
 import quoi.utils.EntityUtils.renderPos
+import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.equalsOneOf
 import quoi.utils.render.drawStyledBox
 import quoi.utils.render.drawTracer
@@ -30,6 +31,10 @@ object PlayerESP : Module(
 
     // todo figure what's going on here. I'm lazy right now
     private val ironmenOnly by switch("Ir*nmen only")
+    private var specificPlayer by switch("Specific player").json("Specific player toggle")
+    private var specificPlayerName by textInput("Player name", length = 16, desc = "Only ESP this player.", placeholder = "Player name")
+        .json("Specific player name")
+        .childOf(::specificPlayer)
     private val depth by switch("Depth check")
     private val style by selector("Style", "Box", arrayListOf("Box", "Filled box", "Glow", "2D"), desc = "Esp render style to be used.")
     private val customCol by switch("Custom colour").json("Box custom colour").visibleIf { !style.selected.equalsOneOf("Glow", "2D") }
@@ -39,10 +44,30 @@ object PlayerESP : Module(
     private val thickness by slider("Thickness", 4f, 1f, 8f, 1f)
     private val sizeOffset by slider("Size offset", 0.0, -1.0, 1.0, 0.05, desc = "Changes box size offset.").visibleIf { style.selected.equalsOneOf("Box", "Filled box") }
 
+    val targetedPlayerName: String
+        get() = specificPlayerName.trim()
+
+    fun setTargetedPlayer(name: String) {
+        specificPlayer = true
+        specificPlayerName = name.trim()
+    }
+
+    private fun matchesFilters(entityName: String?, displayName: String?): Boolean {
+        if (ironmenOnly && displayName?.contains("♲") == false) return false
+        if (!specificPlayer) return true
+
+        val target = targetedPlayerName
+        if (target.isBlank()) return false
+
+        val cleanedEntityName = entityName.noControlCodes.trim()
+        val cleanedDisplayName = displayName.noControlCodes.trim()
+        return cleanedEntityName.equals(target, true) || cleanedDisplayName.equals(target, true)
+    }
+
     init {
         on<RenderEvent.World> {
             playerEntitiesNoSelf.forEach { entity ->
-                if (ironmenOnly && entity.displayName?.string?.contains("♲") == false) return@forEach
+                if (!matchesFilters(entity.name?.string, entity.displayName?.string)) return@forEach
                 val aabb = entity.interpolatedBox.inflate(sizeOffset, 0.0, sizeOffset)
                 val c = if (customCol) colour else entity.colourFromDistance
                 val fc = if (fillCustomCol) fillColour else entity.colourFromDistance.withAlpha(fillColour.alpha)
@@ -59,8 +84,8 @@ object PlayerESP : Module(
 
         on<EntityEvent.ForceGlow> {
             if (style.selected != "Glow") return@on
-            if (ironmenOnly && entity.displayName?.string?.contains("♲") == false) return@on
             if (entity !in playerEntitiesNoSelf) return@on
+            if (!matchesFilters(entity.name?.string, entity.displayName?.string)) return@on
             glowColour = colour
         }
     }

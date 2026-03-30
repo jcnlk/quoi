@@ -16,6 +16,7 @@ import quoi.api.skyblock.dungeon.Dungeon
 import quoi.module.ModuleManager
 import quoi.module.impl.misc.Chat
 import quoi.module.impl.render.ClickGui.clickGui
+import quoi.module.impl.render.PlayerESP
 import quoi.utils.ChatUtils.command
 import quoi.utils.ChatUtils.literal
 import quoi.utils.ChatUtils.modMessage
@@ -36,7 +37,7 @@ import quoi.utils.ui.rendering.NVGRenderer
 import kotlin.collections.sortedBy
 
 object QuoiCommand {
-    val command = BaseCommand("quoi", "requise") {
+    val command = BaseCommand("quoi", "requise", "quio") {
         open(clickGui)
     }
 
@@ -135,6 +136,14 @@ object QuoiCommand {
             }.suggests { ModuleManager.modules.map { it.name } }.description("Toggles specified module.")
 
             "hud" { open(HudManager.editor()) }.description("Opens Hud editor.")
+
+            "playeresp" { name: String ->
+                PlayerESP.setTargetedPlayer(name)
+                if (!PlayerESP.enabled) PlayerESP.toggle()
+
+                modMessage("Player ESP now targets §b" + PlayerESP.targetedPlayerName + "§r.")
+            }.description("Targets Player ESP to a specific player and enables it.")
+                .suggests("name") { WorldUtils.players.map { it.profile.name } }
         }
 
         command.sub("findlobby") { area: String, criteria: String, value: String ->
