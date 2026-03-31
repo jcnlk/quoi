@@ -6,11 +6,9 @@ import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext
 import net.minecraft.client.gui.Font
 import net.minecraft.client.renderer.LightTexture
 import net.minecraft.client.renderer.MultiBufferSource
-import net.minecraft.client.renderer.ShapeRenderer
 import net.minecraft.network.chat.Component
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
-import net.minecraft.world.phys.shapes.Shapes
 import org.joml.Vector3f
 import quoi.QuoiMod.mc
 import quoi.api.colour.*
@@ -67,6 +65,31 @@ private fun VertexConsumer.addQuad(
     addVertex(pose, d.x.toFloat(), d.y.toFloat(), d.z.toFloat()).setColor(colour.rgb)
 }
 
+private fun addFilledBox(buffer: VertexConsumer, pose: com.mojang.blaze3d.vertex.PoseStack.Pose, box: AABB, cameraPos: Vec3, colour: Colour) {
+    val minX = box.minX - cameraPos.x
+    val minY = box.minY - cameraPos.y
+    val minZ = box.minZ - cameraPos.z
+    val maxX = box.maxX - cameraPos.x
+    val maxY = box.maxY - cameraPos.y
+    val maxZ = box.maxZ - cameraPos.z
+
+    val x0y0z0 = Vec3(minX, minY, minZ)
+    val x0y0z1 = Vec3(minX, minY, maxZ)
+    val x0y1z0 = Vec3(minX, maxY, minZ)
+    val x0y1z1 = Vec3(minX, maxY, maxZ)
+    val x1y0z0 = Vec3(maxX, minY, minZ)
+    val x1y0z1 = Vec3(maxX, minY, maxZ)
+    val x1y1z0 = Vec3(maxX, maxY, minZ)
+    val x1y1z1 = Vec3(maxX, maxY, maxZ)
+
+    buffer.addQuad(pose, x0y0z0, x0y1z0, x1y1z0, x1y0z0, colour)
+    buffer.addQuad(pose, x1y0z1, x1y1z1, x0y1z1, x0y0z1, colour)
+    buffer.addQuad(pose, x0y0z1, x0y1z1, x0y1z0, x0y0z0, colour)
+    buffer.addQuad(pose, x1y0z0, x1y1z0, x1y1z1, x1y0z1, colour)
+    buffer.addQuad(pose, x0y1z0, x0y1z1, x1y1z1, x1y1z0, colour)
+    buffer.addQuad(pose, x0y0z1, x0y0z0, x1y0z0, x1y0z1, colour)
+}
+
 fun WorldRenderContext.drawLine(points: Collection<Vec3>, colour: Colour, depth: Boolean, thickness: Float = 3f) {
     if (points.size < 2) return
     val matrix = matrices() ?: return
@@ -96,19 +119,40 @@ fun WorldRenderContext.drawTracer(to: Vec3, colour: Colour, thickness: Float = 6
 fun WorldRenderContext.drawWireFrameBox(aabb: AABB, colour: Colour, thickness: Float = 6f, depth: Boolean = false) {
     val matrix = matrices() ?: return
     val bufferSource = consumers() as? MultiBufferSource.BufferSource ?: return
-    val layer = if (depth) CustomRenderLayer.LINE_LIST else CustomRenderLayer.LINE_LIST_ESP
+    val layer = if (depth) CustomRenderLayer.TRIANGLE_STRIP else CustomRenderLayer.TRIANGLE_STRIP_ESP
     val cameraPos = camera().position()
+    val pose = matrix.last()
+    val buffer = bufferSource.getBuffer(layer)
+    val distance = cameraPos.distanceTo(aabb.center)
+    val half = (distance * thickness * 0.0013 / 2.0).coerceAtLeast(0.0015)
 
-    ShapeRenderer.renderShape(
-        matrix,
-        bufferSource.getBuffer(layer),
-        Shapes.create(aabb),
-        -cameraPos.x,
-        -cameraPos.y,
-        -cameraPos.z,
-        colour.rgb,
-        colour.alphaFloat
-    )
+    val minX = aabb.minX
+    val minY = aabb.minY
+    val minZ = aabb.minZ
+    val maxX = aabb.maxX
+    val maxY = aabb.maxY
+    val maxZ = aabb.maxZ
+
+    fun edgeX(y: Double, z: Double) = AABB(minX, y - half, z - half, maxX, y + half, z + half)
+    fun edgeY(x: Double, z: Double) = AABB(x - half, minY, z - half, x + half, maxY, z + half)
+    fun edgeZ(x: Double, y: Double) = AABB(x - half, y - half, minZ, x + half, y + half, maxZ)
+
+    listOf(
+        edgeX(minY, minZ),
+        edgeX(minY, maxZ),
+        edgeX(maxY, minZ),
+        edgeX(maxY, maxZ),
+        edgeY(minX, minZ),
+        edgeY(minX, maxZ),
+        edgeY(maxX, minZ),
+        edgeY(maxX, maxZ),
+        edgeZ(minX, minY),
+        edgeZ(minX, maxY),
+        edgeZ(maxX, minY),
+        edgeZ(maxX, maxY)
+    ).forEach { edge ->
+        addFilledBox(buffer, pose, edge, cameraPos, colour)
+    }
 
     bufferSource.endBatch(layer)
 }
@@ -120,29 +164,7 @@ fun WorldRenderContext.drawFilledBox(box: AABB, colour: Colour, depth: Boolean =
     val cameraPos = camera().position()
     val pose = matrix.last()
     val buffer = bufferSource.getBuffer(layer)
-
-    val minX = box.minX - cameraPos.x
-    val minY = box.minY - cameraPos.y
-    val minZ = box.minZ - cameraPos.z
-    val maxX = box.maxX - cameraPos.x
-    val maxY = box.maxY - cameraPos.y
-    val maxZ = box.maxZ - cameraPos.z
-
-    val x0y0z0 = Vec3(minX, minY, minZ)
-    val x0y0z1 = Vec3(minX, minY, maxZ)
-    val x0y1z0 = Vec3(minX, maxY, minZ)
-    val x0y1z1 = Vec3(minX, maxY, maxZ)
-    val x1y0z0 = Vec3(maxX, minY, minZ)
-    val x1y0z1 = Vec3(maxX, minY, maxZ)
-    val x1y1z0 = Vec3(maxX, maxY, minZ)
-    val x1y1z1 = Vec3(maxX, maxY, maxZ)
-
-    buffer.addQuad(pose, x0y0z0, x0y1z0, x1y1z0, x1y0z0, colour)
-    buffer.addQuad(pose, x1y0z1, x1y1z1, x0y1z1, x0y0z1, colour)
-    buffer.addQuad(pose, x0y0z1, x0y1z1, x0y1z0, x0y0z0, colour)
-    buffer.addQuad(pose, x1y0z0, x1y1z0, x1y1z1, x1y0z1, colour)
-    buffer.addQuad(pose, x0y1z0, x0y1z1, x1y1z1, x1y1z0, colour)
-    buffer.addQuad(pose, x0y0z1, x0y0z0, x1y0z0, x1y0z1, colour)
+    addFilledBox(buffer, pose, box, cameraPos, colour)
 
     bufferSource.endBatch(layer)
 }

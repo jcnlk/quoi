@@ -16,7 +16,7 @@ object CustomRenderPipelines {
 
     val LINE_LIST: RenderPipeline = RenderPipelines.register(
         RenderPipeline.builder(RenderPipelines.LINES_SNIPPET)
-            .withLocation("pipeline/lines")
+            .withLocation("quoi/pipeline/lines")
             .withVertexFormat(DefaultVertexFormat.POSITION_COLOR_NORMAL, VertexFormat.Mode.LINES)
             .withCull(false)
             .withBlend(BlendFunction.TRANSLUCENT)
@@ -27,7 +27,7 @@ object CustomRenderPipelines {
 
     val LINE_LIST_ESP: RenderPipeline = RenderPipelines.register(
         RenderPipeline.builder(RenderPipelines.LINES_SNIPPET)
-            .withLocation("pipeline/lines")
+            .withLocation("quoi/pipeline/lines_esp")
             .withVertexFormat(DefaultVertexFormat.POSITION_COLOR_NORMAL, VertexFormat.Mode.LINES)
             .withCull(false)
             .withBlend(BlendFunction.TRANSLUCENT)
@@ -38,7 +38,7 @@ object CustomRenderPipelines {
 
     val TRIANGLE_STRIP: RenderPipeline = RenderPipelines.register(
         RenderPipeline.builder(RenderPipelines.DEBUG_FILLED_SNIPPET)
-            .withLocation("pipeline/debug_filled_box")
+            .withLocation("quoi/pipeline/debug_filled_box")
             .withCull(false)
             .withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS)
             .withDepthWrite(true)
@@ -49,7 +49,7 @@ object CustomRenderPipelines {
 
     val TRIANGLE_STRIP_ESP: RenderPipeline = RenderPipelines.register(
         RenderPipeline.builder(RenderPipelines.DEBUG_FILLED_SNIPPET)
-            .withLocation("pipeline/debug_filled_box")
+            .withLocation("quoi/pipeline/debug_filled_box_esp")
             .withCull(false)
             .withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS)
             .withDepthWrite(false)
