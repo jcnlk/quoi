@@ -141,17 +141,17 @@ object QuoiCommand {
             "hud" { open(HudManager.editor()) }.description("Opens Hud editor.")
 
             "playeresp" { name: String ->
-                PlayerESP.setTargetedPlayer(name)
-                if (!PlayerESP.enabled) PlayerESP.toggle()
+                if (name.equals("clear", true)) {
+                    PlayerESP.clearTargetedPlayer()
+                    modMessage("Player ESP target cleared.")
+                } else {
+                    PlayerESP.setTargetedPlayer(name)
+                    if (!PlayerESP.enabled) PlayerESP.toggle()
 
-                modMessage("Player ESP now targets §b" + PlayerESP.targetedPlayerName + "§r.")
+                    modMessage("Player ESP now targets §b" + PlayerESP.targetedPlayerName + "§r.")
+                }
             }.description("Targets Player ESP to a specific player and enables it.")
                 .suggests("name") { WorldUtils.players.map { it.profile.name } }
-
-            sub("playeresp").sub("clear") {
-                PlayerESP.clearTargetedPlayer()
-                modMessage("Player ESP target cleared.")
-            }.description("Clears the specific player target for Player ESP.")
 
             val chatFilter = sub("chatfilter").description("Manages custom chat filters for Chat Replacements.")
 
