@@ -15,6 +15,7 @@ import quoi.api.colour.multiply
 import quoi.api.input.CursorShape
 import quoi.utils.ThemeManager.theme
 import quoi.utils.ui.cursor
+import quoi.utils.ui.watch
 import kotlin.getValue
 import kotlin.reflect.KMutableProperty0
 import kotlin.setValue
@@ -29,6 +30,7 @@ inline fun ElementScope<*>.switch(
 ): ElementScope<*> {
 
     var value by ref
+    var renderedValue = value
 
     val trackCol = Colour.Animated(
         from = theme.surfaceContainerHighest,
@@ -52,9 +54,20 @@ inline fun ElementScope<*>.switch(
     )
     val handleSize = Animatable(
         from = 50.percent,
-        to = 75.percent,
-        swapIf = value
-    )
+       to = 75.percent,
+       swapIf = value
+   )
+
+    val syncState: (Boolean) -> Unit = { target ->
+        if (renderedValue != target) {
+            renderedValue = target
+            trackCol.animate(0.35.seconds, Animation.Style.EaseInOutQuint)
+            outlineCol.animate(0.35.seconds, Animation.Style.EaseInOutQuint)
+            handleCol.animate(0.35.seconds, Animation.Style.EaseInOutQuint)
+            handlePos.animate(0.35.seconds, Animation.Style.EaseInOutQuint)
+            handleSize.animate(0.35.seconds, Animation.Style.EaseInOutQuint)
+        }
+    }
 
     return block(
         constrain(x = pos.x, y = pos.y, w = AspectRatio(1.625f), h = size),
@@ -74,14 +87,16 @@ inline fun ElementScope<*>.switch(
             colour = handleCol,
             (size.pixels * 0.375f).radius()
         )
+
+        watch(ref) {
+            syncState(it)
+            redraw()
+        }
+
         onClick {
             onToggle()
             value = !value
-            trackCol.animate(0.35.seconds, Animation.Style.EaseInOutQuint)
-            outlineCol.animate(0.35.seconds, Animation.Style.EaseInOutQuint)
-            handleCol.animate(0.35.seconds, Animation.Style.EaseInOutQuint)
-            handlePos.animate(0.35.seconds, Animation.Style.EaseInOutQuint)
-            handleSize.animate(0.35.seconds, Animation.Style.EaseInOutQuint)
+            syncState(value)
             redraw()
             true
         }

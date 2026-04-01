@@ -266,6 +266,14 @@ fun ElementScope<*>.lengthInput(
                 maxWidth.swap()
             }
         }
+
+        watch(ref) { current ->
+            value = current
+            input.string = current
+            lengthText.string = "${current.length}/$length"
+            lengthText.element.colour = lenCol(current)
+            element.parent?.positionChildren()
+        }
     }
 
     return input

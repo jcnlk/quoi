@@ -52,11 +52,6 @@ object PlayerESP : Module(
         specificPlayerName = name.trim()
     }
 
-    fun clearTargetedPlayer() {
-        specificPlayer = false
-        specificPlayerName = ""
-    }
-
     private fun matchesFilters(entityName: String?, displayName: String?): Boolean {
         if (ironmenOnly && displayName?.contains("♲") == false) return false
         if (!specificPlayer) return true

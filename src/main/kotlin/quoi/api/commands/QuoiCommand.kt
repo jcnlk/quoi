@@ -142,7 +142,7 @@ object QuoiCommand {
 
             "playeresp" { name: String ->
                 if (name.equals("clear", true)) {
-                    PlayerESP.clearTargetedPlayer()
+                    PlayerESP.setTargetedPlayer("")
                     modMessage("Player ESP target cleared.")
                 } else {
                     PlayerESP.setTargetedPlayer(name)
