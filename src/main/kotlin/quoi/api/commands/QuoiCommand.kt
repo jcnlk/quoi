@@ -15,6 +15,7 @@ import quoi.api.skyblock.dungeon.Dungeon
 //import quoi.api.skyblock.dungeon.map.utils.ScanUtils.currentRoom
 import quoi.module.ModuleManager
 import quoi.module.impl.misc.Chat
+import quoi.module.impl.misc.ChatReplacements
 import quoi.module.impl.render.ClickGui.clickGui
 import quoi.module.impl.render.PlayerESP
 import quoi.utils.ChatUtils.command
@@ -60,6 +61,7 @@ object QuoiCommand {
         with(devCommand) {
             "copy" { string: GreedyString ->
                 mc.keyboardHandler.clipboard = string.string
+                modMessage("Copied text to clipboard.")
             }
 
             "simulate" { message: GreedyString ->
@@ -123,6 +125,7 @@ object QuoiCommand {
                 }
 
                 mc.keyboardHandler.clipboard = featureList.toString()
+                modMessage("Copied feature list to clipboard.")
             }
         }
 
@@ -144,6 +147,36 @@ object QuoiCommand {
                 modMessage("Player ESP now targets §b" + PlayerESP.targetedPlayerName + "§r.")
             }.description("Targets Player ESP to a specific player and enables it.")
                 .suggests("name") { WorldUtils.players.map { it.profile.name } }
+
+            val chatFilter = sub("chatfilter").description("Manages custom chat filters for Chat Replacements.")
+
+            chatFilter.sub("add") { mode: String, pattern: GreedyString ->
+                modMessage(ChatReplacements.addCustomFilter(mode, pattern.string))
+            }.description("Adds a custom chat filter.").suggests("mode", "clean", "regex")
+
+            chatFilter.sub("remove") { index: Int ->
+                modMessage(ChatReplacements.removeCustomFilter(index))
+            }.description("Removes a custom chat filter by index.")
+
+            chatFilter.sub("remove") { mode: String, pattern: GreedyString ->
+                modMessage(ChatReplacements.removeCustomFilter(mode, pattern.string))
+            }.description("Removes a custom chat filter by mode and exact message.").suggests("mode", "clean", "regex")
+
+            chatFilter.sub("list") {
+                modMessage(ChatReplacements.listCustomFilters(), id = "chatfilter".hashCode())
+            }.description("Shows all saved custom chat filters.")
+
+            chatFilter.sub("show") {
+                modMessage(ChatReplacements.listCustomFilters(), id = "chatfilter".hashCode())
+            }.description("Shows all saved custom chat filters.")
+
+            chatFilter.sub("status") {
+                modMessage(ChatReplacements.customFilterStatus())
+            }.description("Shows the current custom chat filter status.")
+
+            chatFilter.sub("clear") {
+                modMessage(ChatReplacements.clearCustomFilters())
+            }.description("Clears all saved custom chat filters.")
         }
 
         command.sub("findlobby") { area: String, criteria: String, value: String ->
@@ -209,11 +242,16 @@ object QuoiCommand {
         command.register()
         devCommand.register()
 
-        BaseCommand("clearchat") { mc.gui.chat.clearMessages(false); Chat.chatList.clear() }.register()
+        BaseCommand("clearchat") {
+            mc.gui.chat.clearMessages(false)
+            Chat.chatList.clear()
+            modMessage("Cleared chat.")
+        }.register()
 
         Floors.entries.forEach { floor ->
             BaseCommand(floor.name.lowercase()) {
                 command("joininstance ${floor.instance()}")
+                modMessage("Joining ${floor.name}.")
             }.requires("&cYou are not in skyblock!") { inSkyblock }.register()
         }
     }

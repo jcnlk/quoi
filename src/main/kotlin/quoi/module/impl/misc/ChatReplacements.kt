@@ -1,8 +1,14 @@
 package quoi.module.impl.misc
 
+import net.minecraft.network.chat.Component
+import net.minecraft.network.chat.MutableComponent
 import quoi.api.events.ChatEvent
+import quoi.config.Config
 import quoi.module.Module
+import quoi.module.settings.impl.ListSetting
 import quoi.module.impl.misc.Chat.socialCommands
+import quoi.utils.ChatUtils.button
+import quoi.utils.ChatUtils.literal
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.ChatUtils.say
 import quoi.utils.StringUtils.noControlCodes
@@ -20,6 +26,8 @@ object ChatReplacements : Module("Chat Replacements", desc = "temp") { // THIS I
     private val hideActionbar by switch("Hide actionbar", desc = "Hides ALL actionbar messages/contents.")
     private val hideScoreboardShit by switch("Hide scoreboard shit", desc = "Hides the Server ID and www.hypixel.net")
     private val hideEmptyChats by switch("Hide empty chat messages", desc = "Hides chat messages with no text.")
+    private val customFiltersEnabled by switch("Custom filters", desc = "Hides messages added with /quio chatfilter.")
+    private val customFilters by ListSetting("custom filters", mutableListOf<CustomChatFilter>())
 
     @JvmStatic val shouldHideServerId get() = this.enabled && hideScoreboardShit
 
@@ -57,6 +65,114 @@ object ChatReplacements : Module("Chat Replacements", desc = "temp") { // THIS I
     val shouldHideActionBar get() = this.enabled && hideActionbar
 
     data class Replacement(val pattern: Regex, val replacement: String)
+    data class CustomChatFilter(val mode: String = CustomFilterMode.CLEAN.command, val pattern: String = "")
+
+    enum class CustomFilterMode(val command: String) {
+        CLEAN("clean"),
+        REGEX("regex");
+
+        companion object {
+            fun fromInput(input: String): CustomFilterMode? =
+                entries.firstOrNull { it.command.equals(input.trim(), true) }
+        }
+    }
+
+    fun addCustomFilter(modeInput: String, pattern: String): Component {
+        val mode = CustomFilterMode.fromInput(modeInput)
+            ?: return literal("&cInvalid filter mode. Use &eclean &cor &eregex&c.")
+
+        val cleanedPattern = pattern.trim()
+        if (cleanedPattern.isEmpty()) return literal("&cFilter message cannot be empty.")
+
+        if (mode == CustomFilterMode.REGEX) {
+            val error = runCatching { Regex(cleanedPattern) }.exceptionOrNull()
+            if (error != null) {
+                return literal("&cInvalid regex: ${error.message ?: "unknown error"}")
+            }
+        }
+
+        val entry = CustomChatFilter(mode.command, cleanedPattern)
+        if (customFilters.any { it.mode.equals(entry.mode, true) && it.pattern == entry.pattern }) {
+            return literal("&cThat custom filter already exists.")
+        }
+
+        customFilters.add(entry)
+        Config.save()
+        return buildFilterActionMessage("&aAdded", entry)
+    }
+
+    fun removeCustomFilter(index: Int): Component {
+        if (index !in 1..customFilters.size) {
+            return literal("&cInvalid filter index. Use &e/quio chatfilter list &cto see saved filters.")
+        }
+
+        val removed = customFilters.removeAt(index - 1)
+        Config.save()
+        return buildFilterActionMessage("&aRemoved", removed)
+    }
+
+    fun removeCustomFilter(modeInput: String, pattern: String): Component {
+        val mode = CustomFilterMode.fromInput(modeInput)
+            ?: return literal("&cInvalid filter mode. Use &eclean &cor &eregex&c.")
+        val cleanedPattern = pattern.trim()
+        if (cleanedPattern.isEmpty()) return literal("&cFilter message cannot be empty.")
+
+        val index = customFilters.indexOfFirst {
+            it.mode.equals(mode.command, true) && it.pattern == cleanedPattern
+        }
+        if (index == -1) return literal("&cThat custom filter was not found.")
+
+        val removed = customFilters.removeAt(index)
+        Config.save()
+        return buildFilterActionMessage("&aRemoved", removed)
+    }
+
+    fun clearCustomFilters(): Component {
+        if (customFilters.isEmpty()) return literal("&cThere are no custom filters to clear.")
+
+        val count = customFilters.size
+        customFilters.clear()
+        Config.save()
+        return literal("&aCleared &e$count&a custom chat filter${if (count == 1) "" else "s"}.")
+    }
+
+    fun customFilterStatus(): Component {
+        val state = if (customFiltersEnabled) "&aenabled" else "&cdisabled"
+        return literal("&7Custom chat filters are $state&7. Saved filters: &e${customFilters.size}&7.")
+    }
+
+    fun listCustomFilters(): MutableComponent {
+        if (customFilters.isEmpty()) {
+            return literal("&7No custom chat filters saved. Use &e/quio chatfilter add <clean|regex> <message>&7.")
+        }
+
+        val header = literal(
+            "&7Custom chat filters (&e${customFilters.size}&7, ${if (customFiltersEnabled) "&aenabled" else "&cdisabled"}&7):\n"
+        )
+
+        customFilters.forEachIndexed { index, filter ->
+            header.append(button("&c[x]", "/quoi chatfilter remove ${index + 1}", "Remove this filter"))
+            header.append(literal(" &7#${index + 1} &8[&b${filter.mode.lowercase()}&8] &f"))
+            header.append(Component.literal(filter.pattern))
+            if (index != customFilters.lastIndex) header.append(literal("\n"))
+        }
+
+        return header
+    }
+
+    private fun buildFilterActionMessage(prefix: String, filter: CustomChatFilter): MutableComponent {
+        return literal("$prefix &7custom &b${filter.mode.lowercase()} &7filter: &f")
+            .append(Component.literal(filter.pattern))
+    }
+
+    private fun matchesCustomFilter(message: String): Boolean {
+        return customFiltersEnabled && customFilters.any { filter ->
+            when (CustomFilterMode.fromInput(filter.mode) ?: return@any false) {
+                CustomFilterMode.CLEAN -> message == filter.pattern
+                CustomFilterMode.REGEX -> runCatching { Regex(filter.pattern).containsMatchIn(message) }.getOrDefault(false)
+            }
+        }
+    }
 
     val emojiMap = hashMapOf(
         "<3" to "❤",
@@ -456,6 +572,8 @@ External links from untrusted sources should be avoided.
 
     private fun handleChatMessage(message: String): Boolean {
         val noCodes = message.noControlCodes
+        if (matchesCustomFilter(noCodes)) return true
+
         if (cleanerDungeons) {
             for (r in toReplace) {
                 val m = r.pattern.find(noCodes) ?: continue
