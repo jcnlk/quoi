@@ -9,13 +9,14 @@ import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.network.chat.Component
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
+import org.joml.Vector3fc
 import org.joml.Vector3f
 import quoi.QuoiMod.mc
 import quoi.api.colour.*
 import quoi.utils.EntityUtils.renderPos
 import quoi.utils.unaryMinus
 import kotlin.math.pow
-import kotlin.math.sqrt
+import kotlin.math.tan
 
 /**
  * from OdinFabric (BSD 3-Clause)
@@ -25,31 +26,6 @@ import kotlin.math.sqrt
 private val ALLOCATOR = ByteBufferBuilder(1536)
 
 private fun camera() = mc.gameRenderer.mainCamera
-
-private fun VertexConsumer.addLine(
-    pose: com.mojang.blaze3d.vertex.PoseStack.Pose,
-    start: Vec3,
-    end: Vec3,
-    colour: Colour,
-    thickness: Float
-) {
-    val dx = (end.x - start.x).toFloat()
-    val dy = (end.y - start.y).toFloat()
-    val dz = (end.z - start.z).toFloat()
-    val len = sqrt(dx * dx + dy * dy + dz * dz).takeIf { it > 0f } ?: 1f
-    val nx = dx / len
-    val ny = dy / len
-    val nz = dz / len
-
-    addVertex(pose, start.x.toFloat(), start.y.toFloat(), start.z.toFloat())
-        .setColor(colour.rgb)
-        .setNormal(pose, nx, ny, nz)
-        .setLineWidth(thickness)
-    addVertex(pose, end.x.toFloat(), end.y.toFloat(), end.z.toFloat())
-        .setColor(colour.rgb)
-        .setNormal(pose, nx, ny, nz)
-        .setLineWidth(thickness)
-}
 
 private fun VertexConsumer.addQuad(
     pose: com.mojang.blaze3d.vertex.PoseStack.Pose,
@@ -63,6 +39,46 @@ private fun VertexConsumer.addQuad(
     addVertex(pose, b.x.toFloat(), b.y.toFloat(), b.z.toFloat()).setColor(colour.rgb)
     addVertex(pose, c.x.toFloat(), c.y.toFloat(), c.z.toFloat()).setColor(colour.rgb)
     addVertex(pose, d.x.toFloat(), d.y.toFloat(), d.z.toFloat()).setColor(colour.rgb)
+}
+
+private fun Vector3fc.toVec3() = Vec3(x().toDouble(), y().toDouble(), z().toDouble())
+
+private fun lineHalfWidth(cameraPos: Vec3, point: Vec3, thickness: Float): Double {
+    val camera = camera()
+    val depth = point.subtract(cameraPos).dot(camera.forwardVector().toVec3()).coerceAtLeast(0.05)
+    val fovDegrees = (mc.options.fov().get() as Number).toDouble()
+    val halfFovRadians = Math.toRadians(fovDegrees.toDouble()) / 2.0
+    return ((thickness / 2.0) * (2.0 * depth * tan(halfFovRadians)) / mc.window.height.toDouble()).coerceAtLeast(0.0015)
+}
+
+private fun perpendicular(direction: Vec3): Vec3 {
+    val camera = camera()
+    val left = camera.leftVector().toVec3()
+    val up = camera.upVector().toVec3()
+    val normalizedDirection = direction.normalize()
+    val screenX = normalizedDirection.dot(left)
+    val screenY = normalizedDirection.dot(up)
+    val perpendicular = left.scale(-screenY).add(up.scale(screenX))
+
+    return if (perpendicular.lengthSqr() > 1.0E-6) perpendicular.normalize() else up
+}
+
+private fun addLineSegment(buffer: VertexConsumer, pose: com.mojang.blaze3d.vertex.PoseStack.Pose, start: Vec3, end: Vec3, cameraPos: Vec3, colour: Colour, thickness: Float) {
+    val direction = end.subtract(start)
+    if (direction.lengthSqr() <= 1.0E-6) return
+
+    val primary = perpendicular(direction)
+    val secondary = direction.cross(primary).normalize()
+    val startPrimary = primary.scale(lineHalfWidth(cameraPos, start, thickness))
+    val endPrimary = primary.scale(lineHalfWidth(cameraPos, end, thickness))
+    val startSecondary = secondary.scale(lineHalfWidth(cameraPos, start, thickness))
+    val endSecondary = secondary.scale(lineHalfWidth(cameraPos, end, thickness))
+    val translatedStart = start.subtract(cameraPos)
+    val translatedEnd = end.subtract(cameraPos)
+
+    // Match the old lineWidth(thickness) behavior by keeping width in screen space instead of world space.
+    buffer.addQuad(pose, translatedStart.subtract(startPrimary), translatedStart.add(startPrimary), translatedEnd.add(endPrimary), translatedEnd.subtract(endPrimary), colour)
+    buffer.addQuad(pose, translatedStart.subtract(startSecondary), translatedStart.add(startSecondary), translatedEnd.add(endSecondary), translatedEnd.subtract(endSecondary), colour)
 }
 
 private fun addFilledBox(buffer: VertexConsumer, pose: com.mojang.blaze3d.vertex.PoseStack.Pose, box: AABB, cameraPos: Vec3, colour: Colour) {
@@ -94,16 +110,14 @@ fun WorldRenderContext.drawLine(points: Collection<Vec3>, colour: Colour, depth:
     if (points.size < 2) return
     val matrix = matrices() ?: return
     val bufferSource = consumers() as? MultiBufferSource.BufferSource ?: return
-    val layer = if (depth) CustomRenderLayer.LINE_LIST else CustomRenderLayer.LINE_LIST_ESP
+    val layer = if (depth) CustomRenderLayer.TRIANGLE_STRIP else CustomRenderLayer.TRIANGLE_STRIP_ESP
     val cameraPos = camera().position()
     val pose = matrix.last()
     val buffer = bufferSource.getBuffer(layer)
     val pointList = points.toList()
 
     for (i in 0 until pointList.size - 1) {
-        val start = pointList[i].subtract(cameraPos)
-        val end = pointList[i + 1].subtract(cameraPos)
-        buffer.addLine(pose, start, end, colour, thickness)
+        addLineSegment(buffer, pose, pointList[i], pointList[i + 1], cameraPos, colour, thickness)
     }
 
     bufferSource.endBatch(layer)
@@ -214,31 +228,30 @@ fun WorldRenderContext.drawCylinder(
 ) {
     val matrix = matrices() ?: return
     val bufferSource = consumers() as? MultiBufferSource.BufferSource ?: return
-    val layer = if (depth) CustomRenderLayer.LINE_LIST else CustomRenderLayer.LINE_LIST_ESP
+    val layer = if (depth) CustomRenderLayer.TRIANGLE_STRIP else CustomRenderLayer.TRIANGLE_STRIP_ESP
     val cameraPos = camera().position()
     val pose = matrix.last()
     val buffer = bufferSource.getBuffer(layer)
-    val translatedCenter = center.subtract(cameraPos)
     val angleStep = 2.0 * Math.PI / segments
 
     for (i in 0 until segments) {
         val angle1 = i * angleStep
         val angle2 = (i + 1) * angleStep
 
-        val x1 = translatedCenter.x + radius * kotlin.math.cos(angle1)
-        val z1 = translatedCenter.z + radius * kotlin.math.sin(angle1)
-        val x2 = translatedCenter.x + radius * kotlin.math.cos(angle2)
-        val z2 = translatedCenter.z + radius * kotlin.math.sin(angle2)
-        val topY = translatedCenter.y + height
+        val x1 = center.x + radius * kotlin.math.cos(angle1)
+        val z1 = center.z + radius * kotlin.math.sin(angle1)
+        val x2 = center.x + radius * kotlin.math.cos(angle2)
+        val z2 = center.z + radius * kotlin.math.sin(angle2)
+        val topY = center.y + height
 
         val topStart = Vec3(x1, topY, z1)
         val topEnd = Vec3(x2, topY, z2)
-        val bottomStart = Vec3(x1, translatedCenter.y, z1)
-        val bottomEnd = Vec3(x2, translatedCenter.y, z2)
+        val bottomStart = Vec3(x1, center.y, z1)
+        val bottomEnd = Vec3(x2, center.y, z2)
 
-        buffer.addLine(pose, topStart, topEnd, colour, thickness)
-        buffer.addLine(pose, bottomStart, bottomEnd, colour, thickness)
-        buffer.addLine(pose, bottomStart, topStart, colour, thickness)
+        addLineSegment(buffer, pose, topStart, topEnd, cameraPos, colour, thickness)
+        addLineSegment(buffer, pose, bottomStart, bottomEnd, cameraPos, colour, thickness)
+        addLineSegment(buffer, pose, bottomStart, topStart, cameraPos, colour, thickness)
     }
 
     bufferSource.endBatch(layer)

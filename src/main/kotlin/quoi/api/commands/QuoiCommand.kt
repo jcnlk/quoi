@@ -148,6 +148,11 @@ object QuoiCommand {
             }.description("Targets Player ESP to a specific player and enables it.")
                 .suggests("name") { WorldUtils.players.map { it.profile.name } }
 
+            sub("playeresp").sub("clear") {
+                PlayerESP.clearTargetedPlayer()
+                modMessage("Player ESP target cleared.")
+            }.description("Clears the specific player target for Player ESP.")
+
             val chatFilter = sub("chatfilter").description("Manages custom chat filters for Chat Replacements.")
 
             chatFilter.sub("add") { mode: String, pattern: GreedyString ->
