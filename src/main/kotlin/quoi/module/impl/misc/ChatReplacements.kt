@@ -5,6 +5,7 @@ import net.minecraft.network.chat.MutableComponent
 import quoi.api.events.ChatEvent
 import quoi.config.Config
 import quoi.module.Module
+import quoi.module.settings.Setting.Companion.json
 import quoi.module.settings.impl.ListSetting
 import quoi.module.impl.misc.Chat.socialCommands
 import quoi.utils.ChatUtils.button
@@ -26,8 +27,10 @@ object ChatReplacements : Module("Chat Replacements", desc = "temp") { // THIS I
     private val hideActionbar by switch("Hide actionbar", desc = "Hides ALL actionbar messages/contents.")
     private val hideScoreboardShit by switch("Hide scoreboard shit", desc = "Hides the Server ID and www.hypixel.net")
     private val hideEmptyChats by switch("Hide empty chat messages", desc = "Hides chat messages with no text.")
-    private val customFiltersEnabled by switch("Custom filters", desc = "Hides messages added with /quio chatfilter.")
-    private val customFilters by ListSetting("custom filters", mutableListOf<CustomChatFilter>())
+    private val customFiltersEnabled by switch("Enable custom filters", desc = "Hides messages added with /quio chatfilter.")
+        .json("Custom filters enabled")
+    private val customFilters by ListSetting("Saved custom filters", mutableListOf<CustomChatFilter>())
+        .json("Custom filters list")
 
     @JvmStatic val shouldHideServerId get() = this.enabled && hideScoreboardShit
 
