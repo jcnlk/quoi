@@ -45,6 +45,7 @@ import quoi.utils.ChatUtils.modMessage
 import quoi.utils.StringUtils.capitaliseFirst
 import quoi.utils.StringUtils.percentColour
 import quoi.utils.StringUtils.toFixed
+import quoi.utils.StringUtils.width
 import quoi.utils.ThemeManager.theme
 import quoi.utils.WorldUtils.day
 import quoi.utils.ui.elements.themedInput
@@ -70,6 +71,13 @@ object ClickGui : Module(
     val selectedTheme by selector("Theme", "Light", arrayListOf("Light", "Dark", "Onyx")).onValueChanged { _, _ ->
         reopen()
     }.open()
+    private val moduleSorting by selector(
+        "Module sorting",
+        "A-Z",
+        arrayListOf("A-Z", "Width (largest first)", "Width (smallest first)")
+    ).onValueChanged { _, _ ->
+        reopen()
+    }
 
     val seedColour by colourPicker("Colour", Colour.RGB(255, 204, 134)).json("Theme seed").childOf(::selectedTheme).asParent()
 
@@ -202,8 +210,7 @@ object ClickGui : Module(
                             copies(),
                             colour = colour { theme.surface.withAlpha(0.7f).rgb }
                         )
-                        for (module in modules.sortedBy { it.name }) {
-                            if (module.category != category) continue
+                        for (module in modulesFor(category)) {
                             moduleScopes.add(module to module(module))
                         }
                     }
@@ -339,6 +346,15 @@ object ClickGui : Module(
         settings = column(constrain(x = 7.px, w = Copying - 14.px, h = height), gap = 9.px) {
             divider(9.px)
         }
+    }
+
+    private fun modulesFor(category: Category): List<Module> =
+        modules.filter { it.category == category }.sortedWith(moduleComparator())
+
+    private fun moduleComparator(): Comparator<Module> = when (moduleSorting.selected) {
+        "Width (largest first)" -> compareByDescending<Module> { it.name.width() }.thenBy { it.name.lowercase() }
+        "Width (smallest first)" -> compareBy<Module> { it.name.width() }.thenBy { it.name.lowercase() }
+        else -> compareBy<Module> { it.name.lowercase() }
     }
 
     fun ElementScope<*>.description(desc: String) {
