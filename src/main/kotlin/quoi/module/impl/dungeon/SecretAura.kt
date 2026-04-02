@@ -28,6 +28,8 @@ import quoi.utils.Vec3
 import quoi.utils.WorldUtils.state
 import quoi.utils.aabb
 import quoi.utils.equalsOneOf
+import quoi.utils.isWithinFov
+import quoi.utils.minFovDot
 import quoi.utils.skyblock.player.AuraManager
 import quoi.utils.skyblock.player.SwapManager
 import quoi.utils.skyblock.player.SwapResult
@@ -41,6 +43,7 @@ object SecretAura : Module(
     private val chestRange by slider("Chest range", 6.2, 2.1, 6.5, 0.1, desc = "Maximum range for secret aura.")
     private val skullRange by slider("Skull range", 4.7, 2.1, 4.7, 0.1, desc = "Maximum range for secret aura when clicking skulls.")
     private val clickDelay by slider("Click delay", 150, 100, 4000, 50, desc = "Delay before clicking a block.") // this shit doesn't seem to be making any difference tbh...
+    private val auraFov by slider("Aura FOV", 360, 10, 360, 1, desc = "Only clicks secrets inside this field of view.", unit = "°")
 
     private val swapOn by selector("Swap on", "Skulls", arrayListOf("None", "Skulls", "All"), desc = "Makes secret aura swap")
     private val swapBack by switch("Swap back", true, desc = "Makes secret aura swap back to previous item after swapping.").childOf(::swapOn) { it.index >= 1 }
@@ -109,6 +112,9 @@ object SecretAura : Module(
 
             var blockCandidate = BlockDistance(Blocks.AIR, BlockPos(Int.MAX_VALUE, 69, Int.MIN_VALUE), Double.POSITIVE_INFINITY)
             val eyePos = player.eyePosition
+            val lookVec = player.getViewVector(mc.deltaTracker.getGameTimeDeltaPartialTick(false)).normalize()
+            val minFovDot = minFovDot(auraFov)
+            val fullCircleFov = auraFov >= 360
 
             val sqEssence = skullRange * skullRange
             val sqChest = chestRange * chestRange
@@ -131,6 +137,8 @@ object SecretAura : Module(
                 }
 
                 if (nextClickTime != null && nextClickTime > System.currentTimeMillis()) continue
+
+                if (!isWithinFov(eyePos, pos.center, lookVec, minFovDot, fullCircleFov)) continue
 
                 val currentDistanceSq = eyePos.distanceToSqr(pos.center)
 

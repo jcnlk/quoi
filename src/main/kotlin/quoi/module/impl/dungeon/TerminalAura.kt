@@ -10,6 +10,8 @@ import quoi.api.skyblock.invoke
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.utils.EntityUtils
+import quoi.utils.isWithinFov
+import quoi.utils.minFovDot
 import quoi.utils.skyblock.player.LeapManager
 
 // Kyleen
@@ -21,6 +23,7 @@ object TerminalAura : Module(
 
     private val auraDistance by slider("Distance", 4.0, 0.0, 4.0, 0.1)
     private val auraDelay by slider("Delay", 750, 0, 2000, 50)
+    private val auraFov by slider("Aura FOV", 360, 10, 360, 1, unit = "°")
     private val groundOnly by switch("Ground only")
     private val leapDelayEnabled by switch("Leap delay", desc = "Delays opening terminals for x seconds after leap")
     private val leapDelay by slider("Leap delay time", 0.5, 0.1, 5.0, 0.1, unit = "s").childOf(::leapDelayEnabled)
@@ -40,6 +43,10 @@ object TerminalAura : Module(
 
             if (groundOnly && !player.onGround()) return@on
 
+            val eyePos = player.eyePosition
+            val lookVec = player.getViewVector(mc.deltaTracker.getGameTimeDeltaPartialTick(false)).normalize()
+            val minFovDot = minFovDot(auraFov)
+            val fullCircleFov = auraFov >= 360
             val entities = EntityUtils.getEntities<ArmorStand>(player.boundingBox.inflate(auraDistance))
 
             for (entity in entities) {
@@ -50,11 +57,11 @@ object TerminalAura : Module(
 
                 val entityCenter = entity.position().add(0.0, entity.bbHeight / 2.0, 0.0)
 
-                if (player.eyePosition.distanceToSqr(entityCenter) > auraDistance * auraDistance) continue
+                if (eyePos.distanceToSqr(entityCenter) > auraDistance * auraDistance) continue
+                if (!isWithinFov(eyePos, entityCenter, lookVec, minFovDot, fullCircleFov)) continue
 
-                val eyesPos = player.eyePosition
                 val aabb = entity.boundingBox.inflate(0.1)
-                val hitResult = aabb.clip(eyesPos, entityCenter)
+                val hitResult = aabb.clip(eyePos, entityCenter)
 
                 if (hitResult.isEmpty) continue
 

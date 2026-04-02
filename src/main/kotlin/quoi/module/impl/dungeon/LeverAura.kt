@@ -14,6 +14,8 @@ import quoi.api.skyblock.dungeon.Dungeon.inP3
 import quoi.api.skyblock.invoke
 import quoi.module.Module
 import quoi.utils.StringUtils.noControlCodes
+import quoi.utils.isWithinFov
+import quoi.utils.minFovDot
 import quoi.utils.skyblock.player.AuraManager
 
 // Kyleen
@@ -27,6 +29,7 @@ object LeverAura : Module(
     private val sectionLevers by switch("S1/2/3/4 levers", desc = "Flips levers on gold pillar things")
     private val ignorePowered by switch("Ignore powered", desc = "Ignores powered lever check")
     private val delay by slider("Delay", 400, 0, 1000, 10)
+    private val auraFov by slider("Aura FOV", 360, 10, 360, 1, unit = "°")
 
     private val leverCooldowns = HashMap<BlockPos, Long>()
     private var hasFlippedReflip = false
@@ -84,8 +87,15 @@ object LeverAura : Module(
     }
 
     private fun processLevers(positions: List<BlockPos>, forceIgnorePowered: Boolean = false): Boolean {
+        val eyePos = player.eyePosition
+        val lookVec = player.getViewVector(mc.deltaTracker.getGameTimeDeltaPartialTick(false)).normalize()
+        val minFovDot = minFovDot(auraFov)
+        val fullCircleFov = auraFov >= 360
+
         for (pos in positions) {
-            if (player.distanceToSqr(Vec3.atCenterOf(pos)) > 25) continue
+            val leverCenter = Vec3.atCenterOf(pos)
+            if (player.distanceToSqr(leverCenter) > 25) continue
+            if (!isWithinFov(eyePos, leverCenter, lookVec, minFovDot, fullCircleFov)) continue
 
             val state = level.getBlockState(pos)
             if (state.block != Blocks.LEVER) continue
