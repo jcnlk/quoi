@@ -81,6 +81,43 @@ private fun addLineSegment(buffer: VertexConsumer, pose: com.mojang.blaze3d.vert
     buffer.addQuad(pose, translatedStart.subtract(startSecondary), translatedStart.add(startSecondary), translatedEnd.add(endSecondary), translatedEnd.subtract(endSecondary), colour)
 }
 
+private fun boxEdges(box: AABB): List<Pair<Vec3, Vec3>> {
+    val minX = box.minX
+    val minY = box.minY
+    val minZ = box.minZ
+    val maxX = box.maxX
+    val maxY = box.maxY
+    val maxZ = box.maxZ
+
+    val x0y0z0 = Vec3(minX, minY, minZ)
+    val x0y0z1 = Vec3(minX, minY, maxZ)
+    val x0y1z0 = Vec3(minX, maxY, minZ)
+    val x0y1z1 = Vec3(minX, maxY, maxZ)
+    val x1y0z0 = Vec3(maxX, minY, minZ)
+    val x1y0z1 = Vec3(maxX, minY, maxZ)
+    val x1y1z0 = Vec3(maxX, maxY, minZ)
+    val x1y1z1 = Vec3(maxX, maxY, maxZ)
+
+    return listOf(
+        x0y0z0 to x1y0z0,
+        x0y0z1 to x1y0z1,
+        x0y1z0 to x1y1z0,
+        x0y1z1 to x1y1z1,
+        x0y0z0 to x0y1z0,
+        x1y0z0 to x1y1z0,
+        x0y0z1 to x0y1z1,
+        x1y0z1 to x1y1z1,
+        x0y0z0 to x0y0z1,
+        x1y0z0 to x1y0z1,
+        x0y1z0 to x0y1z1,
+        x1y1z0 to x1y1z1
+    )
+}
+
+private fun legacyDistanceScaledThickness(cameraPos: Vec3, reference: Vec3, thickness: Float): Float {
+    return (thickness / cameraPos.distanceToSqr(reference).pow(0.15)).toFloat()
+}
+
 private fun addFilledBox(buffer: VertexConsumer, pose: com.mojang.blaze3d.vertex.PoseStack.Pose, box: AABB, cameraPos: Vec3, colour: Colour) {
     val minX = box.minX - cameraPos.x
     val minY = box.minY - cameraPos.y
@@ -137,35 +174,10 @@ fun WorldRenderContext.drawWireFrameBox(aabb: AABB, colour: Colour, thickness: F
     val cameraPos = camera().position()
     val pose = matrix.last()
     val buffer = bufferSource.getBuffer(layer)
-    val distance = cameraPos.distanceTo(aabb.center)
-    val half = (distance * thickness * 0.0013 / 2.0).coerceAtLeast(0.0015)
+    val legacyThickness = legacyDistanceScaledThickness(cameraPos, aabb.center, thickness)
 
-    val minX = aabb.minX
-    val minY = aabb.minY
-    val minZ = aabb.minZ
-    val maxX = aabb.maxX
-    val maxY = aabb.maxY
-    val maxZ = aabb.maxZ
-
-    fun edgeX(y: Double, z: Double) = AABB(minX, y - half, z - half, maxX, y + half, z + half)
-    fun edgeY(x: Double, z: Double) = AABB(x - half, minY, z - half, x + half, maxY, z + half)
-    fun edgeZ(x: Double, y: Double) = AABB(x - half, y - half, minZ, x + half, y + half, maxZ)
-
-    listOf(
-        edgeX(minY, minZ),
-        edgeX(minY, maxZ),
-        edgeX(maxY, minZ),
-        edgeX(maxY, maxZ),
-        edgeY(minX, minZ),
-        edgeY(minX, maxZ),
-        edgeY(maxX, minZ),
-        edgeY(maxX, maxZ),
-        edgeZ(minX, minY),
-        edgeZ(minX, maxY),
-        edgeZ(maxX, minY),
-        edgeZ(maxX, maxY)
-    ).forEach { edge ->
-        addFilledBox(buffer, pose, edge, cameraPos, colour)
+    boxEdges(aabb).forEach { (start, end) ->
+        addLineSegment(buffer, pose, start, end, cameraPos, colour, legacyThickness)
     }
 
     bufferSource.endBatch(layer)
@@ -233,6 +245,7 @@ fun WorldRenderContext.drawCylinder(
     val pose = matrix.last()
     val buffer = bufferSource.getBuffer(layer)
     val angleStep = 2.0 * Math.PI / segments
+    val legacyThickness = legacyDistanceScaledThickness(cameraPos, center, thickness)
 
     for (i in 0 until segments) {
         val angle1 = i * angleStep
@@ -249,9 +262,9 @@ fun WorldRenderContext.drawCylinder(
         val bottomStart = Vec3(x1, center.y, z1)
         val bottomEnd = Vec3(x2, center.y, z2)
 
-        addLineSegment(buffer, pose, topStart, topEnd, cameraPos, colour, thickness)
-        addLineSegment(buffer, pose, bottomStart, bottomEnd, cameraPos, colour, thickness)
-        addLineSegment(buffer, pose, bottomStart, topStart, cameraPos, colour, thickness)
+        addLineSegment(buffer, pose, topStart, topEnd, cameraPos, colour, legacyThickness)
+        addLineSegment(buffer, pose, bottomStart, bottomEnd, cameraPos, colour, legacyThickness)
+        addLineSegment(buffer, pose, bottomStart, topStart, cameraPos, colour, legacyThickness)
     }
 
     bufferSource.endBatch(layer)
