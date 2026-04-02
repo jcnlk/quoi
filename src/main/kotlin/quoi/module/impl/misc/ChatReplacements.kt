@@ -27,7 +27,7 @@ object ChatReplacements : Module("Chat Replacements", desc = "temp") { // THIS I
     private val hideActionbar by switch("Hide actionbar", desc = "Hides ALL actionbar messages/contents.")
     private val hideScoreboardShit by switch("Hide scoreboard shit", desc = "Hides the Server ID and www.hypixel.net")
     private val hideEmptyChats by switch("Hide empty chat messages", desc = "Hides chat messages with no text.")
-    private val customFiltersEnabled by switch("Enable custom filters", desc = "Hides messages added with /quio chatfilter.")
+    private val customFiltersEnabled by switch("Enable custom filters", desc = "Hides messages added with /quoi chatfilter.")
         .json("Custom filters enabled")
     private val customFilters by ListSetting("Saved custom filters", mutableListOf<CustomChatFilter>())
         .json("Custom filters list")
@@ -106,7 +106,7 @@ object ChatReplacements : Module("Chat Replacements", desc = "temp") { // THIS I
 
     fun removeCustomFilter(index: Int): Component {
         if (index !in 1..customFilters.size) {
-            return literal("&cInvalid filter index. Use &e/quio chatfilter list &cto see saved filters.")
+            return literal("&cInvalid filter index. Use &e/quoi chatfilter list &cto see saved filters.")
         }
 
         val removed = customFilters.removeAt(index - 1)
@@ -146,7 +146,7 @@ object ChatReplacements : Module("Chat Replacements", desc = "temp") { // THIS I
 
     fun listCustomFilters(): MutableComponent {
         if (customFilters.isEmpty()) {
-            return literal("&7No custom chat filters saved. Use &e/quio chatfilter add <clean|regex> <message>&7.")
+            return literal("&7No custom chat filters saved. Use &e/quoi chatfilter add <clean|regex> <message>&7.")
         }
 
         val header = literal(

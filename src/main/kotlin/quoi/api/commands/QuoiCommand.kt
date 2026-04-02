@@ -38,7 +38,7 @@ import quoi.utils.ui.rendering.NVGRenderer
 import kotlin.collections.sortedBy
 
 object QuoiCommand {
-    val command = BaseCommand("quoi", "requise", "quio") {
+    val command = BaseCommand("quoi", "requise") {
         open(clickGui)
     }
 
