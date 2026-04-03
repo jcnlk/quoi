@@ -7,8 +7,8 @@ import quoi.config.Config
 import quoi.module.Module
 import quoi.module.settings.Setting.Companion.json
 import quoi.module.settings.impl.ListSetting
-import quoi.module.impl.misc.Chat.socialCommands
 import quoi.utils.ChatUtils.button
+import quoi.utils.ChatUtils.command
 import quoi.utils.ChatUtils.literal
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.ChatUtils.say
@@ -45,7 +45,7 @@ object ChatReplacements : Module("Chat Replacements", desc = "temp") { // THIS I
         }
 
         on<ChatEvent.Sent> {
-            if (!chatEmotes || message.startsWith("/") && !socialCommands.any { message.startsWith(it) }) return@on
+            if (!chatEmotes) return@on
 
             var replaced = false
             val words = message.split(" ").toMutableList()
@@ -60,7 +60,8 @@ object ChatReplacements : Module("Chat Replacements", desc = "temp") { // THIS I
             if (!replaced) return@on
 
             cancel()
-            say(words.joinToString(" "))
+            val replacedMessage = words.joinToString(" ")
+            if (isCommand) command(replacedMessage) else say(replacedMessage)
         }
     }
 
