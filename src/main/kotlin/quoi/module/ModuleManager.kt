@@ -33,7 +33,7 @@ object ModuleManager {
             CancelInteract,
             SecretTriggerBot,
             InvincibilityTimer,
-            AutoSS,
+            SimonSays,
             DungeonBreaker,
             NecronPlatformHighlight,
 //            DungeonMap,
