@@ -34,7 +34,6 @@ import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.Vec3
 import quoi.api.skyblock.dungeon.Dungeon.currentRoom
 import quoi.utils.StringUtils.capitaliseFirst
-import quoi.utils.ui.rendering.NVGRenderer
 import kotlin.collections.sortedBy
 
 object QuoiCommand {
@@ -276,7 +275,6 @@ object QuoiCommand {
         Floors.entries.forEach { floor ->
             BaseCommand(floor.name.lowercase()) {
                 command("joininstance ${floor.instance()}")
-                modMessage("Joining ${floor.name}.")
             }.requires("&cYou are not in skyblock!") { inSkyblock }.register()
         }
     }
