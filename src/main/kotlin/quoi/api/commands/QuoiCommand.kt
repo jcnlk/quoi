@@ -57,7 +57,6 @@ object QuoiCommand {
     }
 
     init {
-
         with(devCommand) {
             "copy" { string: GreedyString ->
                 mc.keyboardHandler.clipboard = string.string
@@ -152,6 +151,27 @@ object QuoiCommand {
                 }
             }.description("Targets Player ESP to a specific player and enables it.")
                 .suggests("name") { WorldUtils.players.map { it.profile.name } }
+
+            val emote = sub("emote").description("Manages custom emotes for Chat Replacements.")
+
+            emote.sub("add") { input: GreedyString ->
+                val parts = input.string.trim().split(Regex("\\s+"), limit = 2)
+                if (parts.size < 2) return@sub modMessage("&cUsage: &e/quoi emote add <trigger> <replacement>")
+
+                modMessage(ChatReplacements.addCustomEmote(parts[0], parts[1]))
+            }.description("Adds a custom emote.")
+
+            emote.sub("remove") { trigger: GreedyString ->
+                modMessage(ChatReplacements.removeCustomEmote(trigger.string))
+            }.description("Removes a custom emote by trigger.").suggests("trigger") { ChatReplacements.customEmoteKeys() }
+
+            emote.sub("list") {
+                modMessage(ChatReplacements.listCustomEmotes(), id = "custom_emotes".hashCode())
+            }.description("Shows all saved custom emotes.")
+
+            emote.sub("clear") {
+                modMessage(ChatReplacements.clearCustomEmotes())
+            }.description("Clears all saved custom emotes.")
 
             val chatFilter = sub("chatfilter").description("Manages custom chat filters for Chat Replacements.")
 

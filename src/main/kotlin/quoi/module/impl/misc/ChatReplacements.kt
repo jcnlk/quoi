@@ -7,6 +7,7 @@ import quoi.config.Config
 import quoi.module.Module
 import quoi.module.settings.Setting.Companion.json
 import quoi.module.settings.impl.ListSetting
+import quoi.module.settings.impl.MapSetting
 import quoi.utils.ChatUtils.button
 import quoi.utils.ChatUtils.command
 import quoi.utils.ChatUtils.literal
@@ -16,6 +17,10 @@ import quoi.utils.StringUtils.noControlCodes
 
 object ChatReplacements : Module("Chat Replacements", desc = "temp") { // THIS IS A TEMP MODULE. todo replace with custom hiders
     private val chatEmotes by switch("Chat emotes")
+    private val customEmotesEnabled by switch("Custom emotes", desc = "Replaces custom emotes added with /quoi emote.")
+        .json("Custom emotes enabled")
+    private val customEmotes by MapSetting("Saved custom emotes", linkedMapOf<String, String>())
+        .json("Custom emotes list")
     private val cleanerDungeons by switch("Cleaner dungeons")
     private val cleanerPf by switch("Cleaner PF")
     private val hideOtherMessages by switch("Hide useless messages")
@@ -31,6 +36,7 @@ object ChatReplacements : Module("Chat Replacements", desc = "temp") { // THIS I
         .json("Custom filters enabled")
     private val customFilters by ListSetting("Saved custom filters", mutableListOf<CustomChatFilter>())
         .json("Custom filters list")
+    private var pendingSentReplacement: String? = null
 
     @JvmStatic val shouldHideServerId get() = this.enabled && hideScoreboardShit
 
@@ -45,22 +51,30 @@ object ChatReplacements : Module("Chat Replacements", desc = "temp") { // THIS I
         }
 
         on<ChatEvent.Sent> {
-            if (!chatEmotes) return@on
+            if (pendingSentReplacement == message) {
+                pendingSentReplacement = null
+                return@on
+            }
 
+            var replacedMessage = message
             var replaced = false
-            val words = message.split(" ").toMutableList()
 
-            for (i in words.indices) {
-                emojiMap[words[i]]?.let {
-                    replaced = true
-                    words[i] = it
-                }
+            if (customEmotesEnabled) {
+                val customMessage = replaceCustomEmotes(replacedMessage)
+                replaced = replaced || customMessage != replacedMessage
+                replacedMessage = customMessage
+            }
+
+            if (chatEmotes) {
+                val defaultMessage = replaceDefaultEmotes(replacedMessage)
+                replaced = replaced || defaultMessage != replacedMessage
+                replacedMessage = defaultMessage
             }
 
             if (!replaced) return@on
 
             cancel()
-            val replacedMessage = words.joinToString(" ")
+            pendingSentReplacement = replacedMessage
             if (isCommand) command(replacedMessage) else say(replacedMessage)
         }
     }
@@ -167,6 +181,100 @@ object ChatReplacements : Module("Chat Replacements", desc = "temp") { // THIS I
     private fun buildFilterActionMessage(prefix: String, filter: CustomChatFilter): MutableComponent {
         return literal("$prefix &7custom &b${filter.mode.lowercase()} &7filter: &f")
             .append(Component.literal(filter.pattern))
+    }
+
+    fun addCustomEmote(trigger: String, replacement: String): Component {
+        val cleanedTrigger = normalizeCustomEmoteTrigger(trigger)
+            ?: return literal("&cCustom emote trigger cannot be empty.")
+
+        val cleanedReplacement = replacement.trim()
+        if (cleanedReplacement.isEmpty()) return literal("&cCustom emote replacement cannot be empty.")
+
+        if (customEmotes.containsKey(cleanedTrigger)) return literal("&cThat custom emote already exists.")
+
+        customEmotes[cleanedTrigger] = cleanedReplacement
+        Config.save()
+        return buildCustomEmoteActionMessage("&aAdded", cleanedTrigger, cleanedReplacement)
+    }
+
+    fun removeCustomEmote(trigger: String): Component {
+        val cleanedTrigger = normalizeCustomEmoteTrigger(trigger)
+            ?: return literal("&cCustom emote trigger cannot be empty.")
+
+        val replacement = customEmotes.remove(cleanedTrigger) ?: return literal("&cThat custom emote was not found.")
+        Config.save()
+        return buildCustomEmoteActionMessage("&aRemoved", cleanedTrigger, replacement)
+    }
+
+    fun clearCustomEmotes(): Component {
+        if (customEmotes.isEmpty()) return literal("&cThere are no custom emotes to clear.")
+
+        val count = customEmotes.size
+        customEmotes.clear()
+        Config.save()
+        return literal("&aCleared &e$count&a custom emote${if (count == 1) "" else "s"}.")
+    }
+
+    fun listCustomEmotes(): MutableComponent {
+        if (customEmotes.isEmpty()) {
+            return literal("&7No custom emotes saved. Use &e/quoi emote add <trigger> <replacement>&7.")
+        }
+
+        val header = literal("&7Custom emotes:\n")
+
+        customEmotes.entries.forEachIndexed { index, (trigger, replacement) ->
+            header.append(button("&c[x]", "/quoi emote remove $trigger", "Remove this emote"))
+            header.append(literal(" &b$trigger &7-> &f"))
+            header.append(Component.literal(replacement))
+            if (index != customEmotes.size - 1) header.append(literal("\n"))
+        }
+
+        return header
+    }
+
+    fun customEmoteKeys(): List<String> = customEmotes.keys.sorted()
+
+    private fun buildCustomEmoteActionMessage(prefix: String, trigger: String, replacement: String): MutableComponent {
+        return literal("$prefix &7custom emote: &b$trigger &7-> &f")
+            .append(Component.literal(replacement))
+    }
+
+    private fun normalizeCustomEmoteTrigger(trigger: String): String? {
+        val cleanedTrigger = trigger.trim()
+        if (cleanedTrigger.isEmpty()) return null
+
+        val plainToken = cleanedTrigger.removePrefix(":").removeSuffix(":")
+        val shouldWrap = plainToken.isNotEmpty()
+            && plainToken.all { it.isLetterOrDigit() || it == '_' || it == '-' }
+
+        return if (shouldWrap) ":$plainToken:" else cleanedTrigger
+    }
+
+    private fun replaceCustomEmotes(message: String): String {
+        if (customEmotes.isEmpty()) return message
+
+        var replacedMessage = message
+        customEmotes.entries.sortedByDescending { it.key.length }.forEach { (trigger, replacement) ->
+            if (trigger.isNotEmpty() && replacedMessage.contains(trigger)) {
+                replacedMessage = replacedMessage.replace(trigger, replacement)
+            }
+        }
+
+        return replacedMessage
+    }
+
+    private fun replaceDefaultEmotes(message: String): String {
+        var replaced = false
+        val words = message.split(" ").toMutableList()
+
+        for (i in words.indices) {
+            emojiMap[words[i]]?.let {
+                replaced = true
+                words[i] = it
+            }
+        }
+
+        return if (replaced) words.joinToString(" ") else message
     }
 
     private fun matchesCustomFilter(message: String): Boolean {
