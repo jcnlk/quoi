@@ -51,10 +51,13 @@ fun <T : Number> ElementScope<*>.numberInput(
     size: Constraint.Size = 50.percent,
 ): ElementScope<TextInput> {
     val value by ref
+    val normalisedDegrees = unit == "°" && ref.get().toDouble() in 0.0..1.0 &&
+        (min?.toDouble() == null || min.toDouble() >= 0.0) &&
+        (max?.toDouble() == null || max.toDouble() <= 1.0)
 
     fun format(n: T) = when (unit) {
         "%" if (n.toDouble() <= 1.0f) -> "${(n.toDouble() * 100).roundToInt()}%"
-        "°" -> "${(n.toDouble() * 360).roundToInt()}°"
+        "°" if (normalisedDegrees) -> "${(n.toDouble() * 360).roundToInt()}°"
         else -> "$n$unit"
     }
 
@@ -94,7 +97,7 @@ fun <T : Number> ElementScope<*>.numberInput(
 
             num = when (unit) {
                 "%" -> (num.coerceIn(0.0, 100.0) / 100.0)
-                "°" -> (num.coerceIn(0.0, 360.0) / 360.0)
+                "°" if (normalisedDegrees) -> (num.coerceIn(0.0, 360.0) / 360.0)
                 else -> num.coerceIn(min?.toDouble() ?: Double.MIN_VALUE, max?.toDouble() ?: Double.MAX_VALUE)
             }
 
