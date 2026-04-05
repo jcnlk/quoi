@@ -1,5 +1,6 @@
 package quoi.mixins;
 
+import quoi.api.events.EntityEvent;
 import quoi.api.events.RenderEvent;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -8,6 +9,7 @@ import net.minecraft.world.entity.Entity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(EntityRenderer.class)
@@ -20,6 +22,18 @@ public class EntityRendererMixin<T extends Entity, S extends EntityRenderState> 
     private void onRender(T entity, Frustum frustum, double x, double y, double z, CallbackInfoReturnable<Boolean> cir) {
         if (new RenderEvent.Entity(entity).post()) {
             cir.setReturnValue(false);
+        }
+    }
+
+    @Inject(
+            method = "extractRenderState",
+            at = @At("TAIL")
+    )
+    private void onExtractRenderState(T entity, S state, float partialTick, CallbackInfo ci) {
+        EntityEvent.ForceGlow event = new EntityEvent.ForceGlow(entity);
+        event.post();
+        if (event.isGlowing()) {
+            state.outlineColor = event.getGlowColour().getRgb();
         }
     }
 }

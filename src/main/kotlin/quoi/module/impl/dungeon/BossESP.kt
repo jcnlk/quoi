@@ -13,6 +13,7 @@ import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.visibleIf
 import quoi.utils.EntityUtils.getEntities
 import quoi.utils.EntityUtils.interpolatedBox
+import quoi.utils.EntityUtils.isVisibleToPlayer
 import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.equalsOneOf
 import quoi.utils.render.drawStyledBox
@@ -44,7 +45,8 @@ object BossESP : Module( // todo move to dungeon esp
         }
 
         on<EntityEvent.ForceGlow> {
-            if (style.selected != "Glow" && !entity.isWitherBoss) return@on
+            if (style.selected != "Glow" || !entity.isWitherBoss) return@on
+            if (depth && !entity.isVisibleToPlayer()) return@on
             glowColour = colour
         }
 

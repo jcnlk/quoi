@@ -11,6 +11,7 @@ import quoi.module.settings.UIComponent.Companion.visibleIf
 import quoi.utils.EntityUtils.colourFromDistance
 import quoi.utils.EntityUtils.distanceToCamera
 import quoi.utils.EntityUtils.interpolatedBox
+import quoi.utils.EntityUtils.isVisibleToPlayer
 import quoi.utils.EntityUtils.playerEntitiesNoSelf
 import quoi.utils.EntityUtils.renderPos
 import quoi.utils.StringUtils.noControlCodes
@@ -86,6 +87,7 @@ object PlayerESP : Module(
             if (style.selected != "Glow") return@on
             if (entity !in playerEntitiesNoSelf) return@on
             if (!matchesFilters(entity.name?.string, entity.displayName?.string)) return@on
+            if (depth && !entity.isVisibleToPlayer()) return@on
             glowColour = colour
         }
     }

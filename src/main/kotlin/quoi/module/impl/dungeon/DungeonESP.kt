@@ -20,6 +20,7 @@ import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.module.settings.UIComponent.Companion.visibleIf
 import quoi.utils.EntityUtils
 import quoi.utils.EntityUtils.interpolatedBox
+import quoi.utils.EntityUtils.isVisibleToPlayer
 import quoi.utils.Scheduler.scheduleLoop
 import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.equalsOneOf
@@ -52,7 +53,7 @@ object DungeonESP : Module(
 
     init {
         scheduleLoop(10) {
-            if (!enabled || !starEsp || !Dungeon.inClear || style.selected == "Glow") return@scheduleLoop // todo do something about this..
+            if (!enabled || !starEsp || !Dungeon.inClear) return@scheduleLoop
             updateEntities()
         }
 
@@ -64,13 +65,16 @@ object DungeonESP : Module(
             if (!starEsp) return@on
             currentEntities.removeIf { (entity, colour, fillColour) ->
                 if (entity.isDeadOrDying || entity.isRemoved) return@removeIf true
-                val aabb = entity.interpolatedBox.inflate(sizeOffset, 0.0, sizeOffset)
-                ctx.drawStyledBox(style.selected, aabb, colour, fillColour, thickness.toFloat(), depth)
+                if (style.selected != "Glow") {
+                    val aabb = entity.interpolatedBox.inflate(sizeOffset, 0.0, sizeOffset)
+                    ctx.drawStyledBox(style.selected, aabb, colour, fillColour, thickness.toFloat(), depth)
+                }
                 false
             }
         }
 
         on<EntityEvent.ForceGlow> {
+            if (depth && !entity.isVisibleToPlayer()) return@on
             getTeammateColour(entity)?.let { glowColour = it }
             if (!starEsp|| style.selected != "Glow") return@on
 
