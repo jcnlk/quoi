@@ -69,6 +69,7 @@ object SimonSays : Module(
     private var nextActionTime = 0L
     private var lastManualReset = 0L
     private var startTime = 0L
+    private var smoothClickInFlight = false
 
     init {
         on<WorldEvent.Change> {
@@ -108,7 +109,9 @@ object SimonSays : Module(
                 val buttonPos = BlockPos(110, pos.y, pos.z)
                 if (clicks.getOrNull(0) == buttonPos) {
                     progress = 0
-                    if (smoothRotate && doingSS) player.rotateSmoothly(getDirection(pos.randomVec), duration = delay.ms, style = rotateStyle.selected)
+                    if (smoothRotate && doingSS && !smoothClickInFlight) {
+                        player.rotateSmoothly(getDirection(pos.randomVec), duration = delay.ms, style = rotateStyle.selected)
+                    }
                 }
 
                 if (clicks.size == 2 && clicks[0] == buttonPos && !doneFirst) {
@@ -178,8 +181,7 @@ object SimonSays : Module(
 
                 if (auto) clicks.getOrNull(progress)?.let { nextPos ->
                     if (nextPos.state.block == Blocks.STONE_BUTTON) {
-                        clickButton(nextPos)
-                        progress++
+                        clickButton(nextPos, advanceProgress = true)
                     }
                 }
             }
@@ -239,6 +241,7 @@ object SimonSays : Module(
         doingSS = false
         clicked = false
         startTime = 0L
+        smoothClickInFlight = false
     }
 
     private fun start() {
@@ -255,15 +258,18 @@ object SimonSays : Module(
         }
     }
 
-    private fun clickButton(pos: BlockPos) {
+    private fun clickButton(pos: BlockPos, advanceProgress: Boolean = false) {
         if (Dungeon.isDead || player.distanceToSqr(pos.center) > 25) return
 
         lastClickTime = System.currentTimeMillis()
-
         val shouldSmooth = smoothRotate && (pos != startButton || startStep == 0)
 
         if (shouldSmooth) {
+            if (smoothClickInFlight) return
+
+            smoothClickInFlight = true
             player.rotateSmoothly(getDirection(pos.randomVec), duration = delay.ms, style = rotateStyle.selected) {
+                smoothClickInFlight = false
                 if (Dungeon.isDead || player.distanceToSqr(pos.center) > 25) return@rotateSmoothly
                 clickedButton = pos
                 AuraManager.auraBlock(pos)
@@ -273,6 +279,10 @@ object SimonSays : Module(
             clickedButton = pos
             AuraManager.auraBlock(pos)
             player.swing(InteractionHand.MAIN_HAND)
+        }
+
+        if (advanceProgress) {
+            progress++
         }
     }
 
