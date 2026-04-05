@@ -48,6 +48,14 @@ public class ScreenMixin {
     }
 
     @Inject(
+            method = "renderWithTooltipAndSubtitles",
+            at = @At("TAIL")
+    )
+    protected void quoi$onRenderPost(GuiGraphics context, int mouseX, int mouseY, float deltaTicks, CallbackInfo ci) {
+        new GuiEvent.DrawPost((Screen) (Object) this, context, mouseX, mouseY).post();
+    }
+
+    @Inject(
             method = "renderBackground",
             at = @At("HEAD"),
             cancellable = true

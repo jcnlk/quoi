@@ -1,6 +1,7 @@
 package quoi.api.events
 
 import quoi.api.events.core.CancellableEvent
+import quoi.api.events.core.Event
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.world.inventory.ClickType
@@ -18,6 +19,7 @@ abstract class GuiEvent {
     class Char(val screen: Screen, val char: kotlin.Char) : CancellableEvent()
 
     class Draw(val screen: Screen, val ctx: GuiGraphics, val mx: Int, val my: Int) : CancellableEvent()
+    class DrawPost(val screen: Screen, val ctx: GuiGraphics, val mx: Int, val my: Int) : Event()
     class DrawBackground(val screen: Screen, val ctx: GuiGraphics, val mx: Int, val my: Int) : CancellableEvent()
 
     abstract class Slot {

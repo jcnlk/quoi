@@ -55,6 +55,7 @@ object ModuleManager {
             Test,
             Chat,
             ChatReplacements, // todo remove/replace
+            CatMode,
             AutoDialogue,
             PetKeybinds,
             Titles,
