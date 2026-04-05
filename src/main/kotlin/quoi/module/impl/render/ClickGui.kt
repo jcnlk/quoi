@@ -74,8 +74,8 @@ object ClickGui : Module(
     }.open()
     private val moduleSorting by selector(
         "Module sorting",
-        "A-Z",
-        arrayListOf("A-Z", "Width (largest first)", "Width (smallest first)")
+        "Width (desc)",
+        arrayListOf("A-Z", "Width (asc)", "Width (desc)")
     ).onValueChanged { _, _ ->
         reopen()
     }
@@ -156,6 +156,7 @@ object ClickGui : Module(
     }
 
     private const val MODULE_SIZE = 30.0f
+    private const val MODULE_TEXT_SIZE = 18.0f
 
     var clickGui: AbobaUI.Instance = clickGui()
         private set
@@ -308,7 +309,7 @@ object ClickGui : Module(
             description(module.desc)
             text(
                 string = module.name,
-                size = 18.px,
+                size = MODULE_TEXT_SIZE.px,
                 colour = theme.onSurface
             )
 
@@ -352,9 +353,12 @@ object ClickGui : Module(
     private fun modulesFor(category: Category): List<Module> =
         modules.filter { it.category == category }.sortedWith(moduleComparator())
 
+    private fun Module.renderedWidth(): Float =
+        NVGRenderer.textWidth(name, MODULE_TEXT_SIZE, defaultFont)
+
     private fun moduleComparator(): Comparator<Module> = when (moduleSorting.selected) {
-        "Width (largest first)" -> compareByDescending<Module> { it.name.width() }.thenBy { it.name.lowercase() }
-        "Width (smallest first)" -> compareBy<Module> { it.name.width() }.thenBy { it.name.lowercase() }
+        "Width (desc)" -> compareByDescending<Module> { it.renderedWidth() }.thenBy { it.name.lowercase() }
+        "Width (asc)" -> compareBy<Module> { it.renderedWidth() }.thenBy { it.name.lowercase() }
         else -> compareBy<Module> { it.name.lowercase() }
     }
 
