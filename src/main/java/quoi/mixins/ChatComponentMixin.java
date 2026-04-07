@@ -12,11 +12,10 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Constant;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
-import org.spongepowered.asm.mixin.injection.ModifyConstant;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
+import org.spongepowered.asm.mixin.injection.Slice;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.List;
@@ -137,11 +136,23 @@ public abstract class ChatComponentMixin implements IChatComponent {
         return original || Chat.INSTANCE.isDown();
     }
 
-    @ModifyConstant(
-            method = {"addMessageToDisplayQueue", "addMessageToQueue"},
-            constant = @Constant(intValue = 100)
+    @ModifyExpressionValue(
+            method = {
+                    "addMessageToDisplayQueue(Lnet/minecraft/client/GuiMessage;)V",
+                    "addMessageToQueue(Lnet/minecraft/client/GuiMessage;)V"
+            },
+            at = @At(
+                    value = "INVOKE",
+                    target = "Ljava/util/List;size()I"
+            ),
+            slice = @Slice(
+                    from = @At(value = "INVOKE", target = "Ljava/util/List;addFirst(Ljava/lang/Object;)V"),
+                    to = @At(value = "INVOKE", target = "Ljava/util/List;removeLast()Ljava/lang/Object;")
+            ),
+            require = 2,
+            expect = 2
     )
-    private int applyInfiniteChatLimit(int limit) {
-        return Chat.INSTANCE.chatLimit(limit);
+    private int applyInfiniteChatLimit(int size) {
+        return Chat.INSTANCE.keepsAllChatMessages() ? 0 : size;
     }
 }

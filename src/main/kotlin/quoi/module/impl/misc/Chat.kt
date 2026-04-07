@@ -175,8 +175,8 @@ object Chat : Module(
         chatGui?.scrollChat(if (isShiftDown) amount else amount * 7)
     }
 
-    fun chatLimit(defaultLimit: Int): Int {
-        return if (enabled && infiniteChatLimit) Int.MAX_VALUE else defaultLimit
+    fun keepsAllChatMessages(): Boolean {
+        return enabled && infiniteChatLimit
     }
 
     // compact chat
