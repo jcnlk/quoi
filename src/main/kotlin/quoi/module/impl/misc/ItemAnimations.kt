@@ -6,7 +6,9 @@ import net.minecraft.core.component.DataComponents
 import net.minecraft.world.effect.MobEffectUtil
 import net.minecraft.world.effect.MobEffects
 import net.minecraft.world.item.BlockItem
+import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.ItemStack
+import net.minecraft.world.level.block.SkullBlock
 import quoi.api.events.TickEvent
 import quoi.module.Module
 import quoi.module.settings.Setting.Companion.json
@@ -42,6 +44,7 @@ object ItemAnimations : Module(
     private val noSwingShortbow by switch("No shortbow swing")
     private val noHandSway by switch("No hand sway")
     private val noEatAnimation by switch("No eat animation")
+    private val oldSkullSize by switch("1.8 skull size", desc = "Scales held skull items to their 1.8 size.")
     private val reset by button("Reset") { resetSettings() }
 
     private var swinging = false
@@ -142,9 +145,20 @@ object ItemAnimations : Module(
 
     @JvmStatic
     fun applyScale(pose: PoseStack) {
+        applyScale(pose, null, null)
+    }
+
+    @JvmStatic
+    fun applyScale(pose: PoseStack, stack: ItemStack?, context: ItemDisplayContext?) {
         if (!enabled) return
-        val s = 2.0.pow(scale).toFloat()
+        val s = 2.0.pow(scale).toFloat() * if (useOldSkullSize(stack, context)) 0.55f else 1f
         if (s != 1f) pose.scale(s, s, s)
+    }
+
+    private fun useOldSkullSize(stack: ItemStack?, context: ItemDisplayContext?): Boolean {
+        return oldSkullSize &&
+            (context == ItemDisplayContext.FIRST_PERSON_LEFT_HAND || context == ItemDisplayContext.FIRST_PERSON_RIGHT_HAND) &&
+            (stack?.item as? BlockItem)?.block is SkullBlock
     }
 
     @JvmStatic

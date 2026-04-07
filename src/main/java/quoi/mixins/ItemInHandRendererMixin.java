@@ -104,7 +104,7 @@ public abstract class ItemInHandRendererMixin {
             at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/item/ItemStackRenderState;submit(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;III)V")
     )
     private void quoi$itemAnimationsItemScale(LivingEntity livingEntity, ItemStack itemStack, ItemDisplayContext itemDisplayContext, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, CallbackInfo ci) {
-        ItemAnimations.applyScale(poseStack);
+        ItemAnimations.applyScale(poseStack, itemStack, itemDisplayContext);
     }
 
     @WrapWithCondition(
