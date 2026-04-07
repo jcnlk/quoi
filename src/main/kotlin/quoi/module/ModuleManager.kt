@@ -21,14 +21,12 @@ object ModuleManager {
             // DUNGEONS
             ShadowAssassinAlert,
             LeapMenu,
-            AutoAlign,
+            ArrowAlign,
             AutoLeap,
             LeverAura,
             AutoCloseChest,
             FullBlockHitboxes,
-            GhostBlocks,
             DungeonAbilities,
-            BossESP,
             InventoryWalk,
             CancelInteract,
             SecretTriggerBot,
@@ -64,7 +62,6 @@ object ModuleManager {
             AutoClicker,
             Inventory,
             ItemAnimations,
-            Sweet,
 //            CustomTriggers,
             MirrorverseSolvers,
 

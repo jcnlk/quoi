@@ -4,6 +4,7 @@ import net.minecraft.core.BlockPos
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.ambient.Bat
+import net.minecraft.world.entity.boss.wither.WitherBoss
 import net.minecraft.world.entity.decoration.ArmorStand
 import net.minecraft.world.entity.monster.EnderMan
 import net.minecraft.world.entity.player.Player
@@ -18,6 +19,8 @@ import quoi.api.events.RenderEvent
 import quoi.api.events.WorldEvent
 import quoi.api.skyblock.Island
 import quoi.api.skyblock.dungeon.Dungeon
+import quoi.api.skyblock.dungeon.Dungeon.floor
+import quoi.api.skyblock.dungeon.Dungeon.inBoss
 import quoi.api.skyblock.dungeon.odonscanning.ScanUtils
 import quoi.api.skyblock.invoke
 import quoi.module.Module
@@ -55,6 +58,14 @@ object DungeonESP : Module(
     private val colourStarFill by colourPicker("Star", Colour.RED.withAlpha(60), true, "ESP color for star mobs.").json("Star fill").childOf(::fillDropdown)
     private val colourSAFill by colourPicker("Shadow assassin", Colour.RED.withAlpha(60), true, "ESP color for shadow assassins.").json("Shadow assassin fill").childOf(::fillDropdown)
     private val colourBatFill by colourPicker("Bat", Colour.RED.withAlpha(60), true, "ESP color for bats.").json("Bat fill").childOf(::fillDropdown)
+
+    private val bossEsp by switch("Wither boss")
+    private val depthBoss by switch("Depth check").json("Depth check boss").childOf(::bossEsp)
+    private val styleBoss by selector("Style", "Box", arrayListOf("Box", "Filled box", "Glow"/*, "2D"*/), desc = "Esp render style to be used.").json("Style boss").childOf(::bossEsp)
+    private val colourBoss by colourPicker("Colour", Colour.WHITE, desc = "Colour for the Boss ESP").json("Colour boss").childOf(::styleBoss)
+    private val fillColourBoss by colourPicker("Fill colour", Colour.WHITE.withAlpha(60), allowAlpha = true, desc = "Fill colour for the Boss ESP").json("Fill colour boss").childOf(::styleBoss).visibleIf { styleBoss.selected == "Filled box" }
+    private val thicknessBoss by slider("Thickness", 4, 1, 8, 1).json("Thickness boss").childOf(::styleBoss)
+    private val sizeOffsetBoss by slider("Size offset", 0.0, -1.0, 1.0, 0.05, desc = "Changes box size offset.").json("Size offset boss").childOf(::styleBoss).visibleIf { styleBoss.selected.equalsOneOf("Box", "Filled box") }
 
     private val mimicHighlight by switch("Mimic highlight", desc = "Highlights mimic trapped chests.").onValueChanged { _, enabled ->
         if (enabled && this.enabled) scanLoadedMimicChests() else if (!enabled) mimicChests.clear()
@@ -111,6 +122,15 @@ object DungeonESP : Module(
                 }
             }
 
+            if (bossEsp && inBoss && floor?.floorNumber == 7) {
+                EntityUtils.getEntities<WitherBoss>()
+                    .filter { it.isWitherBoss }
+                    .forEach { entity ->
+                        val aabb = entity.interpolatedBox.inflate(sizeOffsetBoss, 0.0, sizeOffsetBoss)
+                        ctx.drawStyledBox(styleBoss.selected, aabb, colourBoss, fillColourBoss, thicknessBoss.toFloat(), depthBoss)
+                    }
+            }
+
             if (mimicHighlight) {
                 mimicChests.removeIf { pos ->
                     if (!level.hasChunk(pos.x shr 4, pos.z shr 4) || level.getBlockState(pos).block != Blocks.TRAPPED_CHEST) {
@@ -130,16 +150,20 @@ object DungeonESP : Module(
         }
 
         on<EntityEvent.ForceGlow> {
-            if (depth && !entity.isVisibleToPlayer()) return@on
             getTeammateColour(entity)?.let { glowColour = it }
-            if (!starEsp|| style.selected != "Glow") return@on
 
-            getColour(entity)?.let {
-                glowColour = it.first
-                return@on
+            if (starEsp && style.selected == "Glow" && (!depth || entity.isVisibleToPlayer())) {
+                getColour(entity)?.let {
+                    glowColour = it.first
+                    return@on
+                }
+
+                if (currentEntities.any { it.entity == entity }) glowColour = colourStar
             }
 
-            if (currentEntities.any { it.entity == entity }) glowColour = colourStar
+            if (bossEsp && inBoss && floor?.floorNumber == 7 && styleBoss.selected == "Glow" && entity.isWitherBoss) {
+                if (!depthBoss || entity.isVisibleToPlayer()) glowColour = colourBoss
+            }
         }
     }
 
@@ -219,4 +243,6 @@ object DungeonESP : Module(
     }
 
     private data class EspMob(val entity: LivingEntity, val colour: Colour, val fillColour: Colour)
+
+    private val Entity.isWitherBoss get() = this is WitherBoss && !this.isInvisible && this.invulnerableTicks != 800
 }
