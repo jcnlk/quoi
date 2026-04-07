@@ -38,6 +38,8 @@ object Chat : Module(
     private val compactChat by switch("Compact chat", desc = "Compacts message duplicates.")
     private val compactChatTime by slider("Compact timer", 60, 5, 120, desc = "Time until compact chat no longer compacts the same message.", unit = "s").childOf(::compactChat)
 
+    private val infiniteChatLimit by switch("Infinite chat limit", desc = "Keeps all chat messages instead of trimming chat history at 100 messages.")
+
     private val copyChat by switch("Copy chat", desc = "Copies chat on right click (hold ctrl to copy with colour codes).")
     private val copyChatKey by keybind("Copy key", CatKeys.MOUSE_RIGHT).includingOnly(CatKeys.MOUSE_RIGHT, CatKeys.MOUSE_LEFT, *CatKeyboard.modifierCodes).childOf(::copyChat)
     private val copyChatCodesKey by keybind("Copy with codes key", CatKeys.KEY_NONE).includingOnly(CatKeys.MOUSE_RIGHT, CatKeys.MOUSE_LEFT, *CatKeyboard.modifierCodes).childOf(::copyChat)
@@ -171,6 +173,10 @@ object Chat : Module(
 
     fun scroll(amount: Int) {
         chatGui?.scrollChat(if (isShiftDown) amount else amount * 7)
+    }
+
+    fun chatLimit(defaultLimit: Int): Int {
+        return if (enabled && infiniteChatLimit) Int.MAX_VALUE else defaultLimit
     }
 
     // compact chat

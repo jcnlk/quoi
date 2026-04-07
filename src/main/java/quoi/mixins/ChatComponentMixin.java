@@ -12,8 +12,10 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Constant;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
+import org.spongepowered.asm.mixin.injection.ModifyConstant;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
@@ -135,4 +137,11 @@ public abstract class ChatComponentMixin implements IChatComponent {
         return original || Chat.INSTANCE.isDown();
     }
 
+    @ModifyConstant(
+            method = {"addMessageToDisplayQueue", "addMessageToQueue"},
+            constant = @Constant(intValue = 100)
+    )
+    private int applyInfiniteChatLimit(int limit) {
+        return Chat.INSTANCE.chatLimit(limit);
+    }
 }
