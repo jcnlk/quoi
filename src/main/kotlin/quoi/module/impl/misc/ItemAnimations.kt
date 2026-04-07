@@ -2,12 +2,14 @@ package quoi.module.impl.misc
 
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.math.Axis
+import net.minecraft.core.component.DataComponents
 import net.minecraft.world.effect.MobEffectUtil
 import net.minecraft.world.effect.MobEffects
 import net.minecraft.world.item.BlockItem
 import net.minecraft.world.item.ItemStack
 import quoi.api.events.TickEvent
 import quoi.module.Module
+import quoi.module.settings.Setting.Companion.json
 import quoi.utils.skyblock.ItemUtils.loreString
 import quoi.utils.skyblock.ItemUtils.skyblockId
 import quoi.utils.ui.settingFromK0
@@ -31,6 +33,8 @@ object ItemAnimations : Module(
     private val ignoreHand by switch("Ignore hand")
     private val ignoreMap by switch("Ignore map")
     private val ignoreEffects by switch("Ignore effects")
+    private val applyInThirdPerson by switch("Apply in third person").json("Third person")
+    private val applyToOtherPlayers by switch("Apply to other players").json("Other players")
     private val noReequipReset by switch("No re-equip reset")
     private val inplaceSwing by switch("Swing in place")
     private val noSwing by switch("No swing animation")
@@ -44,10 +48,14 @@ object ItemAnimations : Module(
     private var swingTimeTick = 0
     private var attackAnim = 0f
     private var prevAttackAnim = 0f
+    private val thirdPersonSwings = mutableMapOf<Int, ThirdPersonSwing>()
+
+    private data class ThirdPersonSwing(val startTime: Double, var previousVanilla: Float)
 
     override fun onDisable() {
         super.onDisable()
         swinging = false
+        thirdPersonSwings.clear()
     }
 
     private fun resetSettings() {
@@ -60,14 +68,13 @@ object ItemAnimations : Module(
 
     private fun calcSwingSpeed() = 2.0.pow(swingSpeed)
 
-    private fun disableSwingRotation(): Boolean {
+    private fun disableSwingRotation(held: ItemStack?): Boolean {
         if (!enabled) return false
         if (noSwing) return true
 
         if (!noSwingTerm && !noSwingShortbow) return false
 
-        val held = mc.player?.mainHandItem ?: return false
-        if (held.isEmpty) return false
+        if (held == null || held.isEmpty) return false
 
         if (noSwingTerm) {
             if (held.skyblockId == "TERMINATOR") return true
@@ -79,6 +86,8 @@ object ItemAnimations : Module(
 
         return false
     }
+
+    private fun disableSwingRotation(): Boolean = disableSwingRotation(mc.player?.mainHandItem)
 
     private fun getCurrentSwingDuration(): Int {
         if (ignoreEffects) return 6
@@ -136,6 +145,53 @@ object ItemAnimations : Module(
         if (!enabled) return
         val s = 2.0.pow(scale).toFloat()
         if (s != 1f) pose.scale(s, s, s)
+    }
+
+    @JvmStatic
+    fun applyThirdPersonPlayerTransformations(pose: PoseStack, stack: ItemStack, playerId: Int) {
+        if (!shouldApplyThirdPerson(stack, playerId)) return
+
+        applyTransformations(pose, stack)
+        applyScale(pose)
+    }
+
+    @JvmStatic
+    fun getThirdPersonSwingAnimation(current: Float, stack: ItemStack, playerId: Int): Float {
+        if (!shouldApplyThirdPerson(stack, playerId)) return current
+        if (disableSwingRotation(stack)) return 0f
+
+        val localPlayerId = mc.player?.id ?: return current
+        val pt = mc.deltaTracker.getGameTimeDeltaPartialTick(false)
+        if (playerId == localPlayerId) return getSwingAnimation(pt)
+
+        val speed = calcSwingSpeed().takeIf { it != 1.0 } ?: return current.also { thirdPersonSwings.remove(playerId) }
+        val currentTime = (mc.level ?: return current).gameTime.toDouble() + pt
+        val existingSwing = thirdPersonSwings[playerId]
+        val existingProgress = existingSwing?.progress(currentTime, speed)
+
+        val vanillaStartedSwing = current > 0f && (existingSwing == null || existingSwing.previousVanilla <= 0f || current < existingSwing.previousVanilla)
+        val swing = if (vanillaStartedSwing && (existingProgress == null || existingProgress >= 0.5f))
+            ThirdPersonSwing(currentTime, current).also { thirdPersonSwings[playerId] = it }
+        else existingSwing ?: return current
+
+        val progress = swing.progress(currentTime, speed)
+        swing.previousVanilla = current
+
+        return if (progress >= 1f) {
+            thirdPersonSwings.remove(playerId)
+            0f
+        } else progress.coerceIn(0f, 1f)
+    }
+
+    private fun ThirdPersonSwing.progress(time: Double, speed: Double) =
+        ((time - startTime) * speed / getCurrentSwingDuration()).toFloat()
+
+    private fun shouldApplyThirdPerson(stack: ItemStack, playerId: Int): Boolean {
+        val localPlayerId = mc.player?.id ?: return false
+        return enabled &&
+            (if (playerId == localPlayerId) applyInThirdPerson else applyToOtherPlayers) &&
+            (!stack.isEmpty || affectHand()) &&
+            (!stack.has(DataComponents.MAP_ID) || affectMap())
     }
 
     @JvmStatic
