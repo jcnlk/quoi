@@ -77,6 +77,7 @@ object ModuleManager {
             NickHider,
             ClickGui,
             PlayerESP,
+            Trajectories,
             EtherwarpOverlay,
 
             // MINING
