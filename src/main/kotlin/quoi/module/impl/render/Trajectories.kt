@@ -3,7 +3,7 @@ package quoi.module.impl.render
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext
 import net.minecraft.core.Direction
 import net.minecraft.world.entity.decoration.ArmorStand
-import net.minecraft.world.entity.projectile.arrow.AbstractArrow
+import net.minecraft.world.entity.projectile.AbstractArrow
 import net.minecraft.world.item.BowItem
 import net.minecraft.world.item.EnderpearlItem
 import net.minecraft.world.level.ClipContext
