@@ -40,6 +40,9 @@ dependencies {
 }
 
 loom {
+    mixin.useLegacyMixinAp.set(true)
+    mixin.defaultRefmapName.set("mixins.quoi.refmap.json")
+
     runConfigs.named("client") {
         isIdeConfigGenerated = true
         vmArgs.add("-Dmixin.debug.export=true")

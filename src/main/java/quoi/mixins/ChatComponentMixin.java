@@ -146,8 +146,8 @@ public abstract class ChatComponentMixin implements IChatComponent {
                     target = "Ljava/util/List;size()I"
             ),
             slice = @Slice(
-                    from = @At(value = "INVOKE", target = "Ljava/util/List;addFirst(Ljava/lang/Object;)V"),
-                    to = @At(value = "INVOKE", target = "Ljava/util/List;removeLast()Ljava/lang/Object;")
+                    from = @At(value = "INVOKE", target = "Ljava/util/List;add(ILjava/lang/Object;)V"),
+                    to = @At(value = "INVOKE", target = "Ljava/util/List;remove(I)Ljava/lang/Object;")
             ),
             require = 2,
             expect = 2

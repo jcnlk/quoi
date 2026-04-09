@@ -2,7 +2,7 @@ package quoi.module.impl.misc
 
 import net.minecraft.network.chat.Component
 import net.minecraft.network.protocol.game.ClientboundSoundPacket
-import net.minecraft.resources.Identifier
+import net.minecraft.resources.ResourceLocation
 import net.minecraft.sounds.SoundEvents
 import net.minecraft.util.FormattedCharSequence
 import quoi.api.events.GuiEvent
@@ -82,12 +82,12 @@ object CatMode : Module(
         return if (words == 0) text else List(words) { "meow" }.joinToString(" ")
     }
 
-    private enum class CatTexture(val path: Identifier) {
-        Trans(Identifier.parse("quoi:ui/fallingkittens/trans.png")),
-        Flushed(Identifier.parse("quoi:ui/fallingkittens/flushed.png")),
-        Bread(Identifier.parse("quoi:ui/fallingkittens/bread.png")),
-        Cut(Identifier.parse("quoi:ui/fallingkittens/cut.png")),
-        Toast(Identifier.parse("quoi:ui/fallingkittens/toast.png")),
+    private enum class CatTexture(val path: ResourceLocation) {
+        Trans(ResourceLocation.parse("quoi:ui/fallingkittens/trans.png")),
+        Flushed(ResourceLocation.parse("quoi:ui/fallingkittens/flushed.png")),
+        Bread(ResourceLocation.parse("quoi:ui/fallingkittens/bread.png")),
+        Cut(ResourceLocation.parse("quoi:ui/fallingkittens/cut.png")),
+        Toast(ResourceLocation.parse("quoi:ui/fallingkittens/toast.png")),
     }
 
     private class FallingCatsRenderer {
@@ -97,7 +97,7 @@ object CatMode : Module(
             ctx: net.minecraft.client.gui.GuiGraphics,
             width: Int,
             height: Int,
-            texture: Identifier,
+            texture: ResourceLocation,
             size: Int,
             speedMultiplier: Float,
             darken: Boolean
@@ -145,7 +145,7 @@ object CatMode : Module(
 
         fun draw(
             ctx: net.minecraft.client.gui.GuiGraphics,
-            texture: Identifier,
+            texture: ResourceLocation,
             size: Int,
             darken: Boolean
         ) {

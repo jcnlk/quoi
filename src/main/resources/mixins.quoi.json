@@ -57,8 +57,6 @@
     "accessors.KeyMappingAccessor",
     "accessors.LocalPlayerAccessor",
     "accessors.MapStateAccessor",
-    "accessors.RenderSetupAccessor",
-    "accessors.RenderTypeAccessor",
     "accessors.TexturedButtonWidgetAccessor"
   ]
 }

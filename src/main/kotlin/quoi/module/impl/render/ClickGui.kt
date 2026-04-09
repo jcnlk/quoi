@@ -2,7 +2,7 @@
 
 package quoi.module.impl.render
 
-import net.minecraft.util.Util
+import net.minecraft.Util
 import quoi.annotations.AlwaysActive
 import quoi.api.ServerInfo.averagePing
 import quoi.api.ServerInfo.averageTps
