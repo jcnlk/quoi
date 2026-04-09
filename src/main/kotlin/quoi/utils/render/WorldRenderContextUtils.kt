@@ -6,6 +6,7 @@ import quoi.utils.EntityUtils.renderPos
 import quoi.utils.unaryMinus
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.ByteBufferBuilder
+import com.mojang.blaze3d.vertex.VertexConsumer
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext
 import net.minecraft.client.gui.Font
 import net.minecraft.client.renderer.LightTexture
@@ -25,6 +26,51 @@ import kotlin.math.pow
 private val ALLOCATOR = ByteBufferBuilder(1536)
 
 private fun camera() = mc.gameRenderer.mainCamera
+
+private fun VertexConsumer.addQuad(
+    pose: com.mojang.blaze3d.vertex.PoseStack.Pose,
+    a: Vec3,
+    b: Vec3,
+    c: Vec3,
+    d: Vec3,
+    colour: Colour
+) {
+    addVertex(pose, a.x.toFloat(), a.y.toFloat(), a.z.toFloat()).setColor(colour.rgb)
+    addVertex(pose, b.x.toFloat(), b.y.toFloat(), b.z.toFloat()).setColor(colour.rgb)
+    addVertex(pose, c.x.toFloat(), c.y.toFloat(), c.z.toFloat()).setColor(colour.rgb)
+    addVertex(pose, d.x.toFloat(), d.y.toFloat(), d.z.toFloat()).setColor(colour.rgb)
+}
+
+private fun addFilledBox(
+    buffer: VertexConsumer,
+    pose: com.mojang.blaze3d.vertex.PoseStack.Pose,
+    box: AABB,
+    cameraPos: Vec3,
+    colour: Colour
+) {
+    val minX = box.minX - cameraPos.x
+    val minY = box.minY - cameraPos.y
+    val minZ = box.minZ - cameraPos.z
+    val maxX = box.maxX - cameraPos.x
+    val maxY = box.maxY - cameraPos.y
+    val maxZ = box.maxZ - cameraPos.z
+
+    val x0y0z0 = Vec3(minX, minY, minZ)
+    val x0y0z1 = Vec3(minX, minY, maxZ)
+    val x0y1z0 = Vec3(minX, maxY, minZ)
+    val x0y1z1 = Vec3(minX, maxY, maxZ)
+    val x1y0z0 = Vec3(maxX, minY, minZ)
+    val x1y0z1 = Vec3(maxX, minY, maxZ)
+    val x1y1z0 = Vec3(maxX, maxY, minZ)
+    val x1y1z1 = Vec3(maxX, maxY, maxZ)
+
+    buffer.addQuad(pose, x0y0z0, x0y1z0, x1y1z0, x1y0z0, colour)
+    buffer.addQuad(pose, x1y0z1, x1y1z1, x0y1z1, x0y0z1, colour)
+    buffer.addQuad(pose, x0y0z1, x0y1z1, x0y1z0, x0y0z0, colour)
+    buffer.addQuad(pose, x1y0z0, x1y1z0, x1y1z1, x1y0z1, colour)
+    buffer.addQuad(pose, x0y1z0, x0y1z1, x1y1z1, x1y1z0, colour)
+    buffer.addQuad(pose, x0y0z1, x0y0z0, x1y0z0, x1y0z1, colour)
+}
 
 fun WorldRenderContext.drawLine(points: Collection<Vec3>, colour: Colour, depth: Boolean, thickness: Float = 3f) {
     if (points.size < 2) return
@@ -89,25 +135,10 @@ fun WorldRenderContext.drawFilledBox(box: AABB, colour: Colour, depth: Boolean =
     val matrix = matrices() ?: return
     val bufferSource = consumers() as? MultiBufferSource.BufferSource ?: return
     val layer = if (depth) CustomRenderLayer.TRIANGLE_STRIP else CustomRenderLayer.TRIANGLE_STRIP_ESP
-
-    matrix.pushPose()
-    with(camera().position) { matrix.translate(-x, -y, -z) }
-    ShapeRenderer.addChainedFilledBoxVertices(
-        matrix,
-        bufferSource.getBuffer(layer),
-        box.minX,
-        box.minY,
-        box.minZ,
-        box.maxX,
-        box.maxY,
-        box.maxZ,
-        colour.redFloat,
-        colour.greenFloat,
-        colour.blueFloat,
-        colour.alphaFloat
-    )
-
-    matrix.popPose()
+    val cameraPos = camera().position
+    val pose = matrix.last()
+    val buffer = bufferSource.getBuffer(layer)
+    addFilledBox(buffer, pose, box, cameraPos, colour)
     bufferSource.endBatch(layer)
 }
 
