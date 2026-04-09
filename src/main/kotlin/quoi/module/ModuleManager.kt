@@ -55,6 +55,7 @@ object ModuleManager {
             ChatReplacements, // todo remove/replace
             CatMode,
             AutoDialogue,
+            AutoSell,
             PetKeybinds,
             Titles,
             WardrobeKeybinds,
@@ -76,6 +77,7 @@ object ModuleManager {
             NickHider,
             ClickGui,
             PlayerESP,
+            Trajectories,
             EtherwarpOverlay,
 
             // MINING
