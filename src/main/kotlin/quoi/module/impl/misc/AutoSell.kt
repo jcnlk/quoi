@@ -5,6 +5,7 @@ import net.minecraft.client.gui.screens.inventory.ContainerScreen
 import net.minecraft.client.gui.screens.inventory.InventoryScreen
 import net.minecraft.world.entity.player.Inventory
 import net.minecraft.world.inventory.ClickType
+import net.minecraft.world.item.ItemStack
 import quoi.api.commands.internal.BaseCommand
 import quoi.api.commands.internal.GreedyString
 import quoi.api.events.GuiEvent
@@ -40,10 +41,10 @@ object AutoSell : Module(
 
     init {
         autoSellCommand.sub("add") { item: GreedyString? ->
-            val lowercase = item?.string?.lowercase() ?: heldItemName()
+            val lowercase = item?.string?.let(::normalizeSellEntry) ?: heldItemName()
                 ?: return@sub modMessage("Either hold an item or write an item name to be added to autosell.")
 
-            if (lowercase in sellList) return@sub modMessage("$lowercase is already in the Auto sell list.")
+            if (sellList.containsSellEntry(lowercase)) return@sub modMessage("$lowercase is already in the Auto sell list.")
 
             modMessage("Added \"$lowercase\" to the Auto sell list.")
             sellList.add(lowercase)
@@ -51,13 +52,12 @@ object AutoSell : Module(
         }.description("Adds an item to the auto sell list.")
 
         autoSellCommand.sub("remove") { item: GreedyString? ->
-            val lowercase = item?.string?.lowercase() ?: heldItemName()
+            val lowercase = item?.string?.let(::normalizeSellEntry) ?: heldItemName()
                 ?: return@sub modMessage("Either hold an item or write an item name to be removed from autosell.")
 
-            if (lowercase !in sellList) return@sub modMessage("$lowercase isn't in the Auto sell list.")
+            if (!sellList.removeSellEntry(lowercase)) return@sub modMessage("$lowercase isn't in the Auto sell list.")
 
             modMessage("Removed \"$lowercase\" from the Auto sell list.")
-            sellList.remove(lowercase)
             Config.save()
         }.description("Removes an item from the auto sell list.").suggests("item") { sellList.toList() }
 
@@ -69,7 +69,7 @@ object AutoSell : Module(
 
         autoSellCommand.sub("list") {
             if (sellList.isEmpty()) return@sub modMessage("Auto sell list is empty")
-            val chunkedList = sellList.chunked(10)
+            val chunkedList = sellList.map(::normalizeSellEntry).distinct().chunked(10)
             modMessage("Auto sell list:\n${chunkedList.joinToString("\n")}")
         }.description("Shows the current auto sell list.")
 
@@ -89,10 +89,9 @@ object AutoSell : Module(
 
             val stack = screen.cursorStack() ?: return@on
             if (stack.isEmpty) return@on
-            val itemName = stack.hoverName.string.noControlCodes.lowercase()
+            val itemName = stack.sellListName()
 
-            if (itemName in sellList) {
-                sellList.remove(itemName)
+            if (sellList.removeSellEntry(itemName)) {
                 modMessage("Removed \"$itemName\" from the Auto sell list.")
             } else {
                 sellList.add(itemName)
@@ -113,10 +112,10 @@ object AutoSell : Module(
                 if (slot.container !is Inventory) continue
 
                 val stack = slot.item.takeIf { !it.isEmpty } ?: continue
-                val name = stack.hoverName.string.noControlCodes
+                val name = stack.sellListName()
 
-                if (!sellList.any { name.contains(it, true) }) continue
-                if (blacklist.any { name.contains(it, true) }) continue
+                if (!sellList.any { name.contains(normalizeSellEntry(it)) }) continue
+                if (blacklist.any(name::contains)) continue
 
                 mc.gameMode?.handleInventoryMouseClick(
                     menu.containerId,
@@ -147,13 +146,24 @@ object AutoSell : Module(
         else -> ClickType.PICKUP
     }
 
+    private fun normalizeSellEntry(name: String): String =
+        name.noControlCodes
+            .replace(STACK_SIZE_PREFIX_REGEX, "")
+            .trim()
+            .lowercase()
+
+    private fun Collection<String>.containsSellEntry(name: String): Boolean =
+        any { normalizeSellEntry(it) == name }
+
+    private fun MutableCollection<String>.removeSellEntry(name: String): Boolean =
+        removeAll { normalizeSellEntry(it) == name }
+
     private fun heldItemName(): String? =
         mc.player?.mainHandItem
             ?.takeIf { !it.isEmpty }
-            ?.hoverName
-            ?.string
-            ?.noControlCodes
-            ?.lowercase()
+            ?.sellListName()
+
+    private fun ItemStack.sellListName(): String = normalizeSellEntry(hoverName.string)
 
     private fun net.minecraft.client.gui.screens.Screen.cursorStack() = cursorSlot()?.item
 
@@ -168,6 +178,7 @@ object AutoSell : Module(
     }
 
     private val menuTitles = listOf("Trades", "Booster Cookie", "Farm Merchant", "Ophelia")
+    private val STACK_SIZE_PREFIX_REGEX = Regex("^(?:[1-9]|[1-5]\\d|6[0-4])(?:\\s*[xX×])?\\s+")
 
     private val defaultItems = arrayOf(
         "enchanted ice", "superboom tnt", "rotten", "skeleton master", "skeleton grunt", "cutlass",
