@@ -36,6 +36,7 @@
     "ItemInHandLayerMixin",
     "ItemInHandRendererMixin",
     "KeyboardHandlerMixin",
+    "KeyboardInputMixin",
     "LevelChunkMixin",
     "LeverBlockMixin",
     "LightTextureMixin",
