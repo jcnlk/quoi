@@ -272,12 +272,12 @@ object SimonSays : Module(
                 smoothClickInFlight = false
                 if (Dungeon.isDead || player.distanceToSqr(pos.center) > 25) return@rotateSmoothly
                 clickedButton = pos
-                AuraManager.auraBlock(pos)
+                AuraManager.interactBlock(pos)
                 player.swing(InteractionHand.MAIN_HAND)
             }
         } else {
             clickedButton = pos
-            AuraManager.auraBlock(pos)
+            AuraManager.interactBlock(pos)
             player.swing(InteractionHand.MAIN_HAND)
         }
 
