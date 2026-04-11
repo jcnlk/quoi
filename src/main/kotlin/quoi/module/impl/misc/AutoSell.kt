@@ -17,6 +17,7 @@ import quoi.module.Module
 import quoi.module.settings.impl.ListSetting
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.StringUtils.noControlCodes
+import quoi.utils.skyblock.ItemUtils.extraAttributes
 
 object AutoSell : Module(
     "Auto Sell",
@@ -146,10 +147,12 @@ object AutoSell : Module(
         else -> ClickType.PICKUP
     }
 
-    private fun normalizeSellEntry(name: String): String =
-        name.noControlCodes
-            .replace(STACK_SIZE_PREFIX_REGEX, "")
+    private fun normalizeSellEntry(name: String, reforge: String? = null): String =
+        (reforge?.let { name.replace(it, "", true) } ?: name)
+            .noControlCodes
+            .replace(STACK_SIZE_REGEX, "")
             .trim()
+            .replace("'", "")
             .lowercase()
 
     private fun Collection<String>.containsSellEntry(name: String): Boolean =
@@ -158,12 +161,10 @@ object AutoSell : Module(
     private fun MutableCollection<String>.removeSellEntry(name: String): Boolean =
         removeAll { normalizeSellEntry(it) == name }
 
-    private fun heldItemName(): String? =
-        mc.player?.mainHandItem
-            ?.takeIf { !it.isEmpty }
-            ?.sellListName()
+    private fun heldItemName(): String? = mc.player?.mainHandItem?.takeIf { !it.isEmpty }?.sellListName()
 
-    private fun ItemStack.sellListName(): String = normalizeSellEntry(hoverName.string)
+    private fun ItemStack.sellListName(): String =
+        normalizeSellEntry(customName?.string ?: hoverName.string, extraAttributes?.getString("modifier")?.orElse(null))
 
     private fun net.minecraft.client.gui.screens.Screen.cursorStack() = cursorSlot()?.item
 
@@ -178,7 +179,7 @@ object AutoSell : Module(
     }
 
     private val menuTitles = listOf("Trades", "Booster Cookie", "Farm Merchant", "Ophelia")
-    private val STACK_SIZE_PREFIX_REGEX = Regex("^(?:[1-9]|[1-5]\\d|6[0-4])(?:\\s*[xX×])?\\s+")
+    private val STACK_SIZE_REGEX = Regex("^(?:[1-9]|[1-5]\\d|6[0-4])(?:\\s*[xX×])?\\s+|\\s+[xX×]?\\d+$")
 
     private val defaultItems = arrayOf(
         "enchanted ice", "superboom tnt", "rotten", "skeleton master", "skeleton grunt", "cutlass",
