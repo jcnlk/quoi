@@ -10,8 +10,6 @@ import quoi.api.abobaui.elements.ElementScope
 import quoi.api.abobaui.elements.impl.Block.Companion.outline
 import quoi.api.animations.Animation
 import quoi.api.colour.Colour
-import quoi.api.colour.colour
-import quoi.api.colour.multiply
 import quoi.api.input.CursorShape
 import quoi.utils.ThemeManager.theme
 import quoi.utils.ui.cursor
@@ -75,7 +73,6 @@ inline fun ElementScope<*>.switch(
         (size.pixels / 2f).radius()
     ) {
         outline(outlineCol, thickness = (size * 0.0625.px).coerceAtLeast(2.px))
-//        hoverEffect(factor = 1.15f)
         tonalHover()
         cursor(CursorShape.HAND)
 
