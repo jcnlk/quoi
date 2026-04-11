@@ -155,4 +155,15 @@ public abstract class ChatComponentMixin implements IChatComponent {
     private int applyInfiniteChatLimit(int size) {
         return Chat.INSTANCE.keepsAllChatMessages() ? 0 : size;
     }
+
+    @Inject(
+            method = "clearMessages(Z)V",
+            at = @At("HEAD"),
+            cancellable = true
+    )
+    private void keepChatHistory(boolean clearRecentChat, CallbackInfo ci) {
+        if (clearRecentChat && Chat.INSTANCE.keepsChatHistory()) {
+            ci.cancel();
+        }
+    }
 }
