@@ -61,6 +61,7 @@ object ModuleManager {
             AutoClicker,
             Inventory,
             ItemAnimations,
+            WitherCloak,
 //            CustomTriggers,
             MirrorverseSolvers,
 
