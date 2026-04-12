@@ -97,7 +97,7 @@ open class Text(
                 }
                 ctx.drawText(string, 0, 0, colour, fontScale, false)
             }
-        } else if (ui.nvgPass) {
+        } else if (ui.nvgPass && font.name != "Minecraft") {
             if (shadow) {
                 val offset = height / 25f
                 NVGRenderer.text(string, x + offset, y + offset, height, colour.multiply(0.25f), font)
