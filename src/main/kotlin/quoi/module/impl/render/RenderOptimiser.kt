@@ -4,6 +4,7 @@ import net.fabricmc.fabric.api.client.screen.v1.Screens
 import net.minecraft.client.gui.components.ImageButton
 import net.minecraft.client.gui.screens.recipebook.RecipeBookComponent
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket
+import net.minecraft.network.protocol.game.ClientboundLevelParticlesPacket
 import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket
 import net.minecraft.network.protocol.game.ClientboundUpdateMobEffectPacket
 import net.minecraft.world.effect.MobEffects
@@ -13,6 +14,7 @@ import net.minecraft.world.entity.EquipmentSlot
 import quoi.api.events.GuiEvent
 import quoi.api.events.PacketEvent
 import quoi.api.skyblock.dungeon.Dungeon
+import quoi.api.skyblock.dungeon.M7Phases
 import quoi.mixins.accessors.TexturedButtonWidgetAccessor
 import quoi.module.Module
 import quoi.utils.skyblock.ItemUtils.texture
@@ -31,6 +33,7 @@ object RenderOptimiser : Module(
     private val hideFairy by switch("Hide healer fairy", desc = "Disables healer fairy rendering.")
     private val hideRecipeBook by switch("Hide recipe book", desc = "Disables recipe book rendering.")
     private val hideBlindness by switch("Hide blindness", desc = "Disabled blindness effect rendering.")
+    private val hideParticles by switch("Hide particles", desc = "Hides particles everywhere except floor 7 phase 5.")
     @JvmStatic val hideFire by switch("Hide fire overlay", desc = "Disables fire overlay rendering.")
 
     @JvmStatic val fullBright by switch("Full bright", desc = "Makes dark places bright.")
@@ -64,6 +67,10 @@ object RenderOptimiser : Module(
                     if (hideBlindness &&
                         packet.entityId == player.id &&
                         packet.effect == MobEffects.BLINDNESS) cancel()
+                }
+
+                is ClientboundLevelParticlesPacket -> {
+                    if (hideParticles && Dungeon.getF7Phase() != M7Phases.P5) cancel()
                 }
 
             }
