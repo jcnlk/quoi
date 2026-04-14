@@ -61,6 +61,7 @@
     "accessors.MapStateAccessor",
     "accessors.RenderSetupAccessor",
     "accessors.RenderTypeAccessor",
+    "accessors.MultiPlayerGameModeAccessor",
     "accessors.TexturedButtonWidgetAccessor"
   ]
 }
