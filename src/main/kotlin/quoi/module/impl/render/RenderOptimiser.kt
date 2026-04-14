@@ -15,9 +15,9 @@ import quoi.api.events.GuiEvent
 import quoi.api.events.PacketEvent
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.M7Phases
-import quoi.mixins.accessors.TexturedButtonWidgetAccessor
 import quoi.module.Module
 import quoi.utils.skyblock.ItemUtils.texture
+import quoi.utils.textures
 
 object RenderOptimiser : Module(
     "Render Optimiser",
@@ -80,7 +80,7 @@ object RenderOptimiser : Module(
             if (!hideRecipeBook) return@on
             Screens.getButtons(screen)
                 .filterIsInstance<ImageButton>()
-                .firstOrNull { (it as TexturedButtonWidgetAccessor).textures == RecipeBookComponent.RECIPE_BUTTON_SPRITES }
+                .firstOrNull { it.textures == RecipeBookComponent.RECIPE_BUTTON_SPRITES }
                 ?.visible = false
         }
     }

@@ -17,13 +17,17 @@ import quoi.mixins.accessors.ChatComponentAccessor
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.utils.ChatUtils
-import quoi.utils.ChatUtils.add
 import quoi.utils.ChatUtils.chatGui
-import quoi.utils.ChatUtils.chatHudAccessor
 import quoi.utils.ChatUtils.literal
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.Scheduler.scheduleTask
 import quoi.utils.StringUtils.noControlCodes
+import quoi.utils.add
+import quoi.utils.getMessageLineIdx
+import quoi.utils.scrolledLines
+import quoi.utils.toChatLineMX
+import quoi.utils.toChatLineMY
+import quoi.utils.visibleMessages
 
 object Chat : Module(
     "Chat",
@@ -101,11 +105,11 @@ object Chat : Module(
                 this.cancel()
 
                 scheduleTask {
-                    val scrollBefore = chatHudAccessor.scrolledLines // without this scroll resets every time message gets compacted. visual bug: scroll bar changes colour for a split second. I can't be asked fixing it
+                    val scrollBefore = chatGui.scrolledLines // without this scroll resets every time message gets compacted. visual bug: scroll bar changes colour for a split second. I can't be asked fixing it
                     ChatUtils.removeLines(id, msg)
-                    ChatUtils.chatHud.add(text.copy().append(literal(" &7($count)")), id)
+                    chatGui.add(text.copy().append(literal(" &7($count)")), id)
                     chatList[msg] = Pair(count, System.currentTimeMillis())
-                    chatHudAccessor.scrolledLines = scrollBefore
+                    chatGui.scrolledLines = scrollBefore
                 }
 
                 return@on
@@ -115,20 +119,20 @@ object Chat : Module(
 
         on<GuiEvent.Click> {
             if (!state || !copyChat || screen !is ChatScreen) return@on
-            if (chatHudAccessor.visibleMessages.isEmpty()) return@on
+            if (chatGui.visibleMessages.isEmpty()) return@on
 
             val isCopyBtn = button == copyChatKey.key + 100 && copyChatKey.isModifierDown()
             val isCodeBtn = button == copyChatCodesKey.key + 100 && copyChatCodesKey.isModifierDown()
             if (!isCopyBtn && !isCodeBtn) return@on
             cancel()
 
-            val dx = chatHudAccessor.screenToChatX(mx)
-            val dy = chatHudAccessor.screenToChatY(my)
-            val idx = chatHudAccessor.getMessageLineIndexAt(dx, dy)
-            if (idx !in chatHudAccessor.visibleMessages.indices) return@on
-            if (idx == 0 && dy !in 0.0..1.0 || dx >= ChatComponent.getWidth(mc.options.chatWidth().get()).plus(10)) return@on
+            val dx = chatGui.toChatLineMX(mx)
+            val dy = chatGui.toChatLineMY(my)
+            val idx = chatGui.getMessageLineIdx(dx, dy)
+            if (idx !in chatGui.visibleMessages.indices) return@on
+            if (idx == 0 && dy !in 0.0..1.0 || dx >= chatGui.width.plus(10)) return@on
 
-            val fullText = chatGui?.getFullText(idx)?.string ?: return@on
+            val fullText = chatGui.getFullText(idx)?.string ?: return@on
             val finalText = if (isCodeBtn) fullText else fullText.noControlCodes
             mc.keyboardHandler.clipboard = finalText
             modMessage(
@@ -206,25 +210,5 @@ object Chat : Module(
         }
 
         return messages.getOrNull(fullIndex)?.content
-    }
-
-    private fun ChatComponentAccessor.screenToChatX(x: Double): Double {
-        return x / `quoi$getChatScale`() - 4.0
-    }
-
-    private fun ChatComponentAccessor.screenToChatY(y: Double): Double {
-        val chatBottom = mc.window.guiScaledHeight - y - 40.0
-        return chatBottom / (`quoi$getChatScale`() * `quoi$getChatLineHeight`())
-    }
-
-    private fun ChatComponentAccessor.getMessageLineIndexAt(chatLineX: Double, chatLineY: Double): Int {
-        if (!chatGui!!.isChatFocused || `quoi$isChatHidden`()) return -1
-        if (chatLineX < -4.0 || chatLineX > Mth.floor(`quoi$getChatWidth`().toDouble() / `quoi$getChatScale`())) return -1
-
-        val lineCount = minOf(chatGui!!.linesPerPage, visibleMessages.size)
-        if (chatLineY < 0.0 || chatLineY >= lineCount) return -1
-
-        val idx = Mth.floor(chatLineY + scrolledLines.toDouble())
-        return idx.takeIf { it in visibleMessages.indices } ?: -1
     }
 }
