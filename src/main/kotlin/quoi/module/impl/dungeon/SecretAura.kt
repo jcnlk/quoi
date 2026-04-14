@@ -33,7 +33,7 @@ import quoi.utils.aabb
 import quoi.utils.equalsOneOf
 import quoi.utils.isWithinFov
 import quoi.utils.minFovDot
-import quoi.utils.skyblock.player.AuraManager
+import quoi.utils.skyblock.player.interact.AuraManager
 import quoi.utils.skyblock.player.SwapManager
 import quoi.utils.skyblock.player.SwapResult
 import java.util.*
@@ -279,6 +279,7 @@ object SecretAura : Module(
     }
 
     private fun handleChangedBlock(packetState: BlockState, pos: BlockPos) {
+        val level = mc.level ?: return
         val state = level.getBlockState(pos)
         val currentBlock = state.block
 
