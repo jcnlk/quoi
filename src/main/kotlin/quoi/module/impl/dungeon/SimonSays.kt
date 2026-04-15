@@ -109,7 +109,7 @@ object SimonSays : Module(
                 val buttonPos = BlockPos(110, pos.y, pos.z)
                 if (clicks.getOrNull(0) == buttonPos) {
                     progress = 0
-                    if (smoothRotate && doingSS && !smoothClickInFlight) {
+                    if (auto && smoothRotate && doingSS && !smoothClickInFlight) {
                         player.rotateSmoothly(getDirection(pos.randomVec), duration = delay.ms, style = rotateStyle.selected)
                     }
                 }
@@ -262,7 +262,7 @@ object SimonSays : Module(
         if (Dungeon.isDead || player.distanceToSqr(pos.center) > 25) return
 
         lastClickTime = System.currentTimeMillis()
-        val shouldSmooth = smoothRotate && (pos != startButton || startStep == 0)
+        val shouldSmooth = auto && smoothRotate && (pos != startButton || startStep == 0)
 
         if (shouldSmooth) {
             if (smoothClickInFlight) return
