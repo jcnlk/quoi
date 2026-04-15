@@ -66,7 +66,6 @@ abstract class UIComponent<T>(
     }
 
     fun render(scope: ElementScope<*>, asSub: Boolean = isSubsetting): ElementScope<*> {
-
         var rendering: ElementScope<*>
         var chevronImage: ElementScope<*>? = null
 
@@ -103,6 +102,12 @@ abstract class UIComponent<T>(
 
                     val (from, to) = if (collapsed) 180f to 90f else 90f to 180f
                     val rotationAnim = rotation(from = from, to = to)
+
+                    watch(::collapsed) {
+                        rotationAnim.animate(0.25.seconds, Animation.Style.EaseInOutQuint)
+//                        gapAnim.animate(0.25.seconds, Animation.Style.EaseInOutQuint)
+                        redraw()
+                    }
 
                     transform(chevronAlphaAnim)
 
