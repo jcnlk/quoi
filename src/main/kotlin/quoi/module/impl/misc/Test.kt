@@ -1,7 +1,10 @@
 package quoi.module.impl.misc
 
 import kotlinx.coroutines.launch
+import net.minecraft.core.BlockPos
+import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.BlockHitResult
+import net.minecraft.world.phys.Vec3
 import quoi.QuoiMod.scope
 import quoi.api.abobaui.dsl.radius
 import quoi.api.abobaui.dsl.size
@@ -19,6 +22,8 @@ import quoi.utils.Scheduler.scheduleTask
 import quoi.utils.Scheduler.wait
 import quoi.utils.StringUtils.formatTime
 import quoi.utils.StringUtils.toFixed
+import quoi.utils.WorldUtils.nearbyBlocks
+import quoi.utils.WorldUtils.state
 import quoi.utils.skyblock.player.interact.AuraAction
 import quoi.utils.skyblock.player.interact.AuraManager
 import quoi.utils.skyblock.player.ContainerUtils
@@ -184,10 +189,10 @@ object Test : Module("Test", desc = "Dev module for testing.") {
             AuraManager.interactEntity(entity, action = AuraAction.INTERACT_AT)
         }
 
-        command.sub("mineblock") {
+        command.sub("mineblock") { custom: Boolean? ->
             mc.hitResult?.let {
                 if (it !is BlockHitResult) return@let
-                AuraManager.breakBlock(it.blockPos, custom = false)
+                AuraManager.breakBlock(it.blockPos, custom = custom ?: false)
             }
         }
 

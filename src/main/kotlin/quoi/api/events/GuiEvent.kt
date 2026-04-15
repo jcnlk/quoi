@@ -7,8 +7,7 @@ import net.minecraft.client.gui.screens.Screen
 import net.minecraft.world.inventory.ClickType
 
 abstract class GuiEvent {
-    abstract class Open {
-        class Pre(val screen: Screen) : CancellableEvent()
+    class Open(val screen: Screen) : CancellableEvent() {
         class Post(val screen: Screen) : CancellableEvent()
     }
 
