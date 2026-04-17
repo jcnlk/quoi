@@ -34,6 +34,7 @@ import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.Vec3
 import quoi.api.skyblock.dungeon.Dungeon.currentRoom
 import quoi.utils.StringUtils.capitaliseFirst
+import quoi.utils.addVec
 import kotlin.collections.sortedBy
 
 object QuoiCommand {
@@ -124,6 +125,12 @@ object QuoiCommand {
 
                 mc.keyboardHandler.clipboard = featureList.toString()
                 modMessage("Copied feature list to clipboard.")
+            }
+
+            "centre" {
+                with(mc.player) {
+                    this?.setPos(this.blockPosition().center.addVec(y = -0.5))
+                }
             }
         }
 
