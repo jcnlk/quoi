@@ -15,6 +15,7 @@ import quoi.module.impl.render.ClickGui.description
 import quoi.utils.ThemeManager.theme
 import quoi.utils.ui.cursor
 import quoi.utils.ui.settingFromK0
+import quoi.utils.ui.watch
 import kotlin.reflect.KProperty0
 
 abstract class UIComponent<T>(

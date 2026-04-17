@@ -84,7 +84,7 @@ object AutoSell : Module(
             inGui = false
         }
 
-        on<GuiEvent.Key> {
+        on<GuiEvent.Key.Press> {
             if (key != inventoryToggleKey.key) return@on
             if (!inventoryToggleKey.isModifierDown()) return@on
 
