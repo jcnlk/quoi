@@ -6,6 +6,7 @@ import net.minecraft.client.KeyMapping
 import net.minecraft.client.gui.components.ChatComponent
 import net.minecraft.client.gui.components.ImageButton
 import net.minecraft.client.gui.components.WidgetSprites
+import net.minecraft.util.Mth
 import net.minecraft.client.multiplayer.MultiPlayerGameMode
 import net.minecraft.client.multiplayer.prediction.PredictiveAction
 import net.minecraft.network.chat.Component
@@ -32,13 +33,23 @@ inline val ChatComponent.visibleMessages: List<GuiMessage.Line>
     get() = (this as ChatComponentAccessor).visibleMessages
 
 fun ChatComponent.toChatLineMX(x: Double): Double =
-    (this as ChatComponentAccessor).toChatLineMX(x)
+    x / (this as ChatComponentAccessor).`quoi$getChatScale`() - 4.0
 
 fun ChatComponent.toChatLineMY(y: Double): Double =
-    (this as ChatComponentAccessor).toChatLineMY(y)
+    (mc.window.guiScaledHeight - y - 40.0) /
+        ((this as ChatComponentAccessor).`quoi$getChatScale`() * (this as ChatComponentAccessor).`quoi$getChatLineHeight`())
 
 fun ChatComponent.getMessageLineIdx(chatLineX: Double, chatLineY: Double): Int =
-    (this as ChatComponentAccessor).getMessageLineIdx(chatLineX, chatLineY)
+    with(this as ChatComponentAccessor) {
+        if (!this@getMessageLineIdx.isChatFocused || `quoi$isChatHidden`()) return -1
+        if (chatLineX < -4.0 || chatLineX > Mth.floor(`quoi$getChatWidth`().toDouble() / `quoi$getChatScale`())) return -1
+
+        val lineCount = minOf(this@getMessageLineIdx.linesPerPage, visibleMessages.size)
+        if (chatLineY < 0.0 || chatLineY >= lineCount) return -1
+
+        val idx = Mth.floor(chatLineY + scrolledLines.toDouble())
+        idx.takeIf { it in visibleMessages.indices } ?: -1
+    }
 
 fun ChatComponent.refreshTrimmedMessages() =
     (this as ChatComponentAccessor).invokeRefreshTrimmedMessages()
@@ -67,4 +78,3 @@ inline val KeyMapping.key: InputConstants.Key
 
 inline val ImageButton.textures: WidgetSprites
     get() = (this as ImageButtonAccessor).textures
-

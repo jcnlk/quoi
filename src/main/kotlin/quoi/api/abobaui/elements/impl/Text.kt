@@ -98,7 +98,6 @@ open class Text(
                 }
                 ctx.drawText(string, 0, 0, colour, fontScale, false)
             }
-<<<<<<< HEAD
         } else if (font.name != "Minecraft" && ui.nvgPass) {
             if (shadow) {
                 val offset = height / 25f

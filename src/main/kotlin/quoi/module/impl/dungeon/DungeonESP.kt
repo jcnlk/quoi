@@ -13,7 +13,7 @@ import net.minecraft.world.level.chunk.LevelChunk
 import net.minecraft.world.level.chunk.status.ChunkStatus
 import quoi.api.colour.Colour
 import quoi.api.colour.withAlpha
-import quoi.api.events.BlockUpdateEvent
+import quoi.api.events.BlockEvent
 import quoi.api.events.EntityEvent
 import quoi.api.events.RenderEvent
 import quoi.api.events.WorldEvent
@@ -104,7 +104,7 @@ object DungeonESP : Module(
             if (mimicHighlight) scanMimicChests(chunk)
         }
 
-        on<BlockUpdateEvent> {
+        on<BlockEvent.Update> {
             if (!mimicHighlight) return@on
             if (updated.block == Blocks.TRAPPED_CHEST) mimicChests.add(pos.immutable())
             else if (old.block == Blocks.TRAPPED_CHEST) mimicChests.remove(pos)
