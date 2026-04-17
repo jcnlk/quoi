@@ -40,6 +40,7 @@
     "LevelChunkMixin",
     "LeverBlockMixin",
     "LightTextureMixin",
+    "LivingEntityMixin",
     "LivingEntityRendererMixin",
     "LocalPlayerMixin",
     "MinecraftMixin",
