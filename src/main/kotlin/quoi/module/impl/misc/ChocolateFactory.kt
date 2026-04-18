@@ -5,6 +5,7 @@ import net.minecraft.network.protocol.game.ClientboundSoundPacket
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.decoration.ArmorStand
 import net.minecraft.world.inventory.ClickType
+import net.minecraft.world.item.ItemStack
 import net.minecraft.world.phys.Vec3
 import quoi.api.colour.Colour
 import quoi.api.events.ChatEvent
@@ -19,6 +20,7 @@ import quoi.utils.ChatUtils.literal
 import quoi.utils.EntityUtils.getEntities
 import quoi.utils.StringUtils.containsOneOf
 import quoi.utils.StringUtils.noControlCodes
+import quoi.utils.romanToInt
 import quoi.utils.aabb
 import quoi.utils.render.drawText
 import quoi.utils.render.drawWireFrameBox
@@ -36,7 +38,8 @@ object ChocolateFactory : Module(
     desc = "Automates the Chocolate Factory."
 ) {
     private val clickFactory by switch("Click Factory", desc = "Click the cookie in the Chocolate Factory menu.")
-    private val autoUpgrade by switch("Auto Upgrade", desc = "Automatically upgrade the worker.")
+    private val autoTimeTower by switch("Auto Time Tower", desc = "Automatically activate the Time Tower when it has charges and is inactive.")
+    private val autoUpgrade by switch("Auto Upgrade", desc = "Automatically buy the most efficient Chocolate Factory upgrade.")
     private val delay by slider("Delay", 150, 50, 1500, 5, unit = "ms", desc = "Delay between actions.")
     private val upgradeDelay by slider("Upgrade delay", 500, 300, 2000, 100, unit = "ms", desc = "Delay between upgrades.")
     private val claimStrays by switch("Claim Strays", desc = "Claim stray rabbits in the Chocolate Factory menu.")
@@ -44,13 +47,15 @@ object ChocolateFactory : Module(
     private val eggEsp by switch("Egg ESP", desc = "Shows the location of the egg.")
 
     private var chocolate = 0L
-    private var bestWorker = 28
-    private var bestCost = 0
-    private var found = false
+    private val rabbitSlotGains = mapOf(28 to 1, 29 to 2, 30 to 3, 31 to 4, 32 to 5, 33 to 6, 34 to 7)
     private var lastActionAt = 0L
     private var lastUpgradeAt = 0L
     private var lastEggScanAt = 0L
     private val currentDetectedEggs = mutableListOf<Egg>()
+    private val chocolatePerSecondPattern = Regex("([\\d.,]+)\\s+per second")
+    private val totalMultiplierPattern = Regex("Total Multiplier:\\s+([\\d.]+)x")
+    private val timeTowerStatusPattern = Regex("Status:\\s+(ACTIVE|INACTIVE)")
+    private val timeTowerChargesPattern = Regex("Charges:\\s*(\\d+)\\s*/\\s*(\\d+)")
 
     private val possibleLocations = arrayOf(
         Island.SpiderDen,
@@ -145,6 +150,11 @@ object ChocolateFactory : Module(
         val screen = mc.screen as? AbstractContainerScreen<*> ?: return
         if (screen.title.string != "Chocolate Factory") return
 
+        if (autoTimeTower && shouldActivateTimeTower(screen.menu.getSlot(39)?.item)) {
+            mc.gameMode?.handleInventoryMouseClick(screen.menu.containerId, 39, 1, ClickType.PICKUP, player)
+            return
+        }
+
         if (clickFactory) {
             mc.gameMode?.handleInventoryMouseClick(screen.menu.containerId, 13, 1, ClickType.PICKUP, player)
         }
@@ -167,43 +177,115 @@ object ChocolateFactory : Module(
             ?.toLongOrNull()
             ?: 0L
 
-        findWorker(screen.menu)
-        if (!found) return
-        if (chocolate > bestCost && autoUpgrade) {
-            mc.gameMode?.handleInventoryMouseClick(screen.menu.containerId, bestWorker, 2, ClickType.CLONE, player)
+        val bestUpgrade = findBestUpgrade(screen.menu) ?: return
+        if (autoUpgrade && chocolate >= bestUpgrade.cost) {
+            mc.gameMode?.handleInventoryMouseClick(screen.menu.containerId, bestUpgrade.slot, 2, ClickType.CLONE, player)
         }
     }
 
-    private fun findWorker(menu: net.minecraft.world.inventory.AbstractContainerMenu) {
-        val workers = mutableListOf<List<String>>()
-        repeat(7) { index ->
-            workers.add(menu.slots.getOrNull(index + 28)?.item?.lore ?: return)
-        }
+    private fun findBestUpgrade(menu: net.minecraft.world.inventory.AbstractContainerMenu): UpgradeCandidate? {
+        val chocolatePerSecond = parseChocolatePerSecond(menu.getSlot(13)?.item ?: return null) ?: return null
+        val totalMultiplier = parseTotalMultiplier(menu.getSlot(45)?.item ?: return null) ?: return null
+        if (chocolatePerSecond <= 0.0 || totalMultiplier <= 0.0) return null
 
-        found = false
-        var maxValue = 0
+        val rawChocolatePerSecond = chocolatePerSecond / totalMultiplier
+        val timeTowerItem = menu.getSlot(39)?.item
+        val timeTowerLevel = parseUpgradeTier(timeTowerItem)
+        val timeTowerActive = isTimeTowerActive(timeTowerItem)
+        val rawMultiplier = (totalMultiplier - if (timeTowerActive) timeTowerLevel * 0.1 else 0.0).coerceAtLeast(0.0)
+        if (rawChocolatePerSecond <= 0.0 || rawMultiplier <= 0.0) return null
 
-        repeat(7) { index ->
-            val worker = workers[index]
-            if (worker.any { it.contains("climbed as far") }) return@repeat
+        val candidates = buildList {
+            rabbitSlotGains.forEach { (slot, gain) ->
+                val item = menu.slots.getOrNull(slot)?.item ?: return@forEach
+                val cost = parseUpgradeCost(item) ?: return@forEach
+                val extraPerSecond = gain * rawMultiplier
+                if (extraPerSecond > 0.0) {
+                    add(UpgradeCandidate(slot, cost, cost / extraPerSecond))
+                }
+            }
 
-            val costIndex = worker.indexOfFirst { it.contains("Cost") }
-                .takeIf { it != -1 }
-                ?: return@repeat
-            val cost = worker.getOrNull(costIndex + 1)
-                ?.noControlCodes
-                ?.replace(Regex("\\D"), "")
-                ?.toIntOrNull()
-                ?: return@repeat
-            val value = cost / (index + 1).toFloat()
+            val timeTowerCost = parseUpgradeCost(timeTowerItem)
+            if (timeTowerCost != null) {
+                val extraPerSecond = rawChocolatePerSecond * 0.1 / 8.0
+                if (extraPerSecond > 0.0) {
+                    add(UpgradeCandidate(39, timeTowerCost, timeTowerCost / extraPerSecond))
+                }
+            }
 
-            if (value < maxValue || !found) {
-                bestWorker = 28 + index
-                maxValue = value.toInt()
-                bestCost = cost
-                found = true
+            val coachRabbitItem = menu.getSlot(42)?.item
+            val coachRabbitCost = parseUpgradeCost(coachRabbitItem)
+            if (coachRabbitCost != null) {
+                val extraPerSecond = rawChocolatePerSecond * 0.01
+                if (extraPerSecond > 0.0) {
+                    add(UpgradeCandidate(42, coachRabbitCost, coachRabbitCost / extraPerSecond))
+                }
             }
         }
+
+        return candidates.minByOrNull(UpgradeCandidate::effectiveCost)
+    }
+
+    private fun parseUpgradeCost(item: ItemStack?): Long? {
+        val lore = item?.lore ?: return null
+        val costIndex = lore.indexOfFirst { it.noControlCodes.contains("Cost") }
+            .takeIf { it != -1 }
+            ?: return null
+        return lore.getOrNull(costIndex + 1)
+            ?.noControlCodes
+            ?.replace(Regex("\\D"), "")
+            ?.toLongOrNull()
+    }
+
+    private fun parseChocolatePerSecond(item: ItemStack): Double? {
+        return item.lore
+            ?.asSequence()
+            ?.map { it.noControlCodes }
+            ?.mapNotNull { line ->
+                chocolatePerSecondPattern.find(line)?.groupValues?.getOrNull(1)
+                    ?.replace(",", "")
+                    ?.toDoubleOrNull()
+            }
+            ?.firstOrNull()
+    }
+
+    private fun parseTotalMultiplier(item: ItemStack): Double? {
+        return item.lore
+            ?.asSequence()
+            ?.map { it.noControlCodes }
+            ?.mapNotNull { line ->
+                totalMultiplierPattern.find(line)?.groupValues?.getOrNull(1)?.toDoubleOrNull()
+            }
+            ?.firstOrNull()
+    }
+
+    private fun parseUpgradeTier(item: ItemStack?): Int {
+        val cleanName = item?.hoverName?.string?.noControlCodes ?: return 0
+        val tier = cleanName.substringAfterLast(' ', "").takeIf(String::isNotBlank) ?: return 0
+        return runCatching { romanToInt(tier) }.getOrDefault(0)
+    }
+
+    private fun isTimeTowerActive(item: ItemStack?): Boolean {
+        return (item?.lore
+            ?.asSequence()
+            ?.map { it.noControlCodes }
+            ?.mapNotNull { line -> timeTowerStatusPattern.find(line)?.groupValues?.getOrNull(1) }
+            ?.firstOrNull()) == "ACTIVE"
+    }
+
+    private fun shouldActivateTimeTower(item: ItemStack?): Boolean {
+        val charges = parseTimeTowerCurrentCharges(item) ?: return false
+        return charges > 0 && !isTimeTowerActive(item)
+    }
+
+    private fun parseTimeTowerCurrentCharges(item: ItemStack?): Int? {
+        return item?.lore
+            ?.asSequence()
+            ?.map { it.noControlCodes }
+            ?.mapNotNull { line ->
+                timeTowerChargesPattern.find(line)?.groupValues?.getOrNull(1)?.toIntOrNull()
+            }
+            ?.firstOrNull()
     }
 
     private fun scanForEggs() {
@@ -222,6 +304,12 @@ object ChocolateFactory : Module(
         val renderName: String,
         val colour: Colour,
         var isFound: Boolean = false
+    )
+
+    private data class UpgradeCandidate(
+        val slot: Int,
+        val cost: Long,
+        val effectiveCost: Double
     )
 
     private enum class ChocolateEgg(
