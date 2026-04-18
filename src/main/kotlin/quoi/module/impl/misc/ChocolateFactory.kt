@@ -192,38 +192,70 @@ object ChocolateFactory : Module(
         val timeTowerItem = menu.getSlot(39)?.item
         val timeTowerLevel = parseUpgradeTier(timeTowerItem)
         val timeTowerActive = isTimeTowerActive(timeTowerItem)
-        val rawMultiplier = (totalMultiplier - if (timeTowerActive) timeTowerLevel * 0.1 else 0.0).coerceAtLeast(0.0)
-        if (rawChocolatePerSecond <= 0.0 || rawMultiplier <= 0.0) return null
+        val baseMultiplier = (totalMultiplier - if (timeTowerActive) timeTowerLevel * 0.1 else 0.0).coerceAtLeast(0.0)
+        if (rawChocolatePerSecond <= 0.0 || baseMultiplier <= 0.0) return null
+
+        val averageChocolate = averageChocolatePerSecond(rawChocolatePerSecond, baseMultiplier)
 
         val candidates = buildList {
             rabbitSlotGains.forEach { (slot, gain) ->
                 val item = menu.slots.getOrNull(slot)?.item ?: return@forEach
                 val cost = parseUpgradeCost(item) ?: return@forEach
-                val extraPerSecond = gain * rawMultiplier
-                if (extraPerSecond > 0.0) {
-                    add(UpgradeCandidate(slot, cost, cost / extraPerSecond))
+                val newAverageChocolate = averageChocolatePerSecond(
+                    rawChocolatePerSecond = rawChocolatePerSecond + gain,
+                    baseMultiplier = baseMultiplier
+                )
+                val effectiveCost = effectiveUpgradeCost(cost, averageChocolate, newAverageChocolate)
+                if (effectiveCost != null) {
+                    add(UpgradeCandidate(slot, cost, effectiveCost))
                 }
             }
 
             val timeTowerCost = parseUpgradeCost(timeTowerItem)
             if (timeTowerCost != null) {
-                val extraPerSecond = rawChocolatePerSecond * 0.1 / 8.0
-                if (extraPerSecond > 0.0) {
-                    add(UpgradeCandidate(39, timeTowerCost, timeTowerCost / extraPerSecond))
+                val newAverageChocolate = averageChocolatePerSecond(
+                    rawChocolatePerSecond = rawChocolatePerSecond,
+                    baseMultiplier = baseMultiplier,
+                    includeTimeTower = true
+                )
+                val effectiveCost = effectiveUpgradeCost(timeTowerCost, averageChocolate, newAverageChocolate)
+                if (effectiveCost != null) {
+                    add(UpgradeCandidate(39, timeTowerCost, effectiveCost))
                 }
             }
 
             val coachRabbitItem = menu.getSlot(42)?.item
             val coachRabbitCost = parseUpgradeCost(coachRabbitItem)
             if (coachRabbitCost != null) {
-                val extraPerSecond = rawChocolatePerSecond * 0.01
-                if (extraPerSecond > 0.0) {
-                    add(UpgradeCandidate(42, coachRabbitCost, coachRabbitCost / extraPerSecond))
+                val newAverageChocolate = averageChocolatePerSecond(
+                    rawChocolatePerSecond = rawChocolatePerSecond,
+                    baseMultiplier = baseMultiplier + 0.01
+                )
+                val effectiveCost = effectiveUpgradeCost(coachRabbitCost, averageChocolate, newAverageChocolate)
+                if (effectiveCost != null) {
+                    add(UpgradeCandidate(42, coachRabbitCost, effectiveCost))
                 }
             }
         }
 
         return candidates.minByOrNull(UpgradeCandidate::effectiveCost)
+    }
+
+    private fun averageChocolatePerSecond(
+        rawChocolatePerSecond: Double,
+        baseMultiplier: Double,
+        includeTimeTower: Boolean = false
+    ): Double {
+        val basePerSecond = rawChocolatePerSecond * baseMultiplier
+        if (!includeTimeTower) return basePerSecond
+
+        return basePerSecond + rawChocolatePerSecond * 0.1 / 8.0
+    }
+
+    private fun effectiveUpgradeCost(cost: Long, averageChocolate: Double, newAverageChocolate: Double): Double? {
+        val extraPerSecond = newAverageChocolate - averageChocolate
+        if (extraPerSecond <= 0.0) return null
+        return cost / extraPerSecond
     }
 
     private fun parseUpgradeCost(item: ItemStack?): Long? {
