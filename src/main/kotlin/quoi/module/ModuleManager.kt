@@ -61,6 +61,7 @@ object ModuleManager {
             WardrobeKeybinds,
             AntiNick,
             AutoClicker,
+            ChocolateFactory,
             Inventory,
             ItemAnimations,
             WitherCloak,
