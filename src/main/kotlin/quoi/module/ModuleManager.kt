@@ -53,6 +53,7 @@ object ModuleManager {
             // MISC
             Test,
             Chat,
+            AutoJoinSkyBlock,
             ChatReplacements, // todo remove/replace
             CatMode,
             AutoSell,
