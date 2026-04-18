@@ -10,6 +10,7 @@ import quoi.api.commands.internal.BaseCommand
 import quoi.api.commands.internal.GreedyString
 import quoi.api.events.GuiEvent
 import quoi.api.events.TickEvent
+import quoi.api.events.WorldEvent
 import quoi.api.input.CatKeys
 import quoi.config.Config
 import quoi.mixins.accessors.AbstractContainerScreenAccessor
@@ -36,8 +37,8 @@ object AutoSell : Module(
 
     private val autoSellCommand = BaseCommand("autosell")
 
-    private var last = 0L
-    private var next = 0L
+    private var lastClick = -1L
+    private var nextDelay = 0L
     private var inGui = false
 
     init {
@@ -84,13 +85,18 @@ object AutoSell : Module(
             inGui = false
         }
 
+        on<WorldEvent.Change> {
+            lastClick = -1L
+            nextDelay = 0L
+        }
+
         on<GuiEvent.Key.Press> {
             if (key != inventoryToggleKey.key) return@on
             if (!inventoryToggleKey.isModifierDown()) return@on
 
             val stack = screen.cursorStack() ?: return@on
             if (stack.isEmpty) return@on
-            val itemName = stack.sellListName()
+            val itemName = stack.sellListName() ?: return@on
 
             if (sellList.removeSellEntry(itemName)) {
                 modMessage("Removed \"$itemName\" from the Auto sell list.")
@@ -107,33 +113,33 @@ object AutoSell : Module(
 
             val menu = (mc.screen as? AbstractContainerScreen<*>)?.menu ?: return@on
             val now = System.currentTimeMillis()
-            if (now - last < next) return@on
+            if (lastClick != -1L && now - lastClick < nextDelay) return@on
 
-            for (slot in menu.slots) {
-                if (slot.container !is Inventory) continue
-
-                val stack = slot.item.takeIf { !it.isEmpty } ?: continue
-                val name = stack.sellListName()
-
-                if (!sellList.any { name.contains(normalizeSellEntry(it)) }) continue
-                if (blacklist.any(name::contains)) continue
-
-                mc.gameMode?.handleInventoryMouseClick(
-                    menu.containerId,
-                    slot.index,
-                    clickButton(),
-                    clickAction(),
-                    player
-                )
-                last = now
-                scheduleNextDelay()
-                break
-            }
+            val slot = nextSellSlot(menu) ?: return@on
+            mc.gameMode?.handleInventoryMouseClick(
+                menu.containerId,
+                slot.index,
+                clickButton(),
+                clickAction(),
+                player
+            )
+            lastClick = now
+            scheduleNextDelay()
         }
     }
 
     private fun scheduleNextDelay() {
-        next = ((delay + (0..randomization).random()) * 50L)
+        nextDelay = ((delay + (0..randomization).random()) * 50L)
+    }
+
+    private fun nextSellSlot(menu: net.minecraft.world.inventory.AbstractContainerMenu): net.minecraft.world.inventory.Slot? =
+        menu.slots.firstOrNull { slot ->
+            slot.container is Inventory && shouldSell(slot.item)
+        }
+
+    private fun shouldSell(stack: ItemStack): Boolean {
+        val itemName = stack.sellListName() ?: return false
+        return !blacklist.contains(itemName) && sellList.containsSellEntry(itemName)
     }
 
     private fun clickButton() = when (clickType.index) {
@@ -154,6 +160,7 @@ object AutoSell : Module(
             .trim()
             .replace("'", "")
             .lowercase()
+            .replace(WHITESPACE_REGEX, " ")
 
     private fun Collection<String>.containsSellEntry(name: String): Boolean =
         any { normalizeSellEntry(it) == name }
@@ -163,8 +170,9 @@ object AutoSell : Module(
 
     private fun heldItemName(): String? = mc.player?.mainHandItem?.takeIf { !it.isEmpty }?.sellListName()
 
-    private fun ItemStack.sellListName(): String =
+    private fun ItemStack.sellListName(): String? =
         normalizeSellEntry(customName?.string ?: hoverName.string, extraAttributes?.getString("modifier")?.orElse(null))
+            .takeIf(String::isNotEmpty)
 
     private fun net.minecraft.client.gui.screens.Screen.cursorStack() = cursorSlot()?.item
 
@@ -180,6 +188,7 @@ object AutoSell : Module(
 
     private val menuTitles = listOf("Trades", "Booster Cookie", "Farm Merchant", "Ophelia")
     private val STACK_SIZE_REGEX = Regex("^(?:[1-9]|[1-5]\\d|6[0-4])(?:\\s*[xX×])?\\s+|\\s+[xX×]?\\d+$")
+    private val WHITESPACE_REGEX = Regex("\\s+")
 
     private val defaultItems = arrayOf(
         "enchanted ice", "superboom tnt", "rotten", "skeleton master", "skeleton grunt", "cutlass",
