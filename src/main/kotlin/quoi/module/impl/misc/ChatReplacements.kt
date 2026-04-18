@@ -653,7 +653,8 @@ object ChatReplacements : Module("Chat Replacements", desc = "temp") { // THIS I
         Regex("The wind has changed direction!"),
         Regex("""^Unknown command\. Type "/help" for help\. \('.+'\)$"""),
         Regex(".+ joined the lobby!"),
-        Regex("You already tipped everyone that has boosters active, so there isn't anybody to be tipped right now!")
+        Regex("You already tipped everyone that has boosters active, so there isn't anybody to be tipped right now!"),
+        Regex("""^You tipped (\d+) players in (\d+) different games!$"""),
     )
 
     private val pfClassChangeRegex = Regex("""^Party Finder > (.+?) set their class to (\w+) Level (\d+)!$""")
