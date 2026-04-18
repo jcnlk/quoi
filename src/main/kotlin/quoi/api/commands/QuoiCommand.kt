@@ -35,6 +35,7 @@ import net.minecraft.world.phys.Vec3
 import quoi.api.skyblock.dungeon.Dungeon.currentRoom
 import quoi.utils.StringUtils.capitaliseFirst
 import quoi.utils.addVec
+import quoi.utils.skyblock.player.RotationUtils.rotate
 import kotlin.collections.sortedBy
 
 object QuoiCommand {
@@ -131,6 +132,10 @@ object QuoiCommand {
                 with(mc.player) {
                     this?.setPos(this.blockPosition().center.addVec(y = -0.5))
                 }
+            }
+
+            "rotate" { yaw: Float, pitch: Float ->
+                mc.player?.rotate(yaw, pitch)
             }
         }
 
