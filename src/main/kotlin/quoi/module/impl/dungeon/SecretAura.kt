@@ -105,6 +105,7 @@ object SecretAura : Module(
         }
 
         on<TickEvent.End> {
+            if (AutoClear.active) return@on
             if (!inSkyblock ||
                 (mc.screen != null && !inContainer) ||
                 (dungeonsOnly && !inDungeons) ||
