@@ -654,7 +654,7 @@ object ChatReplacements : Module("Chat Replacements", desc = "temp") { // THIS I
         Regex("""^Unknown command\. Type "/help" for help\. \('.+'\)$"""),
         Regex(".+ joined the lobby!"),
         Regex("You already tipped everyone that has boosters active, so there isn't anybody to be tipped right now!"),
-        Regex("""^You tipped (\d+) players? in (\d+) different games?!$"""),
+        Regex("""^You tipped (\d+) players? in (\d+) (?:different )?games?!$"""),
         Regex("""^Cannot join SkyBlock for a moment! \(Queue join in cooldown\)$"""),
     )
 
