@@ -14,6 +14,8 @@ import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.EquipmentSlot
 import quoi.api.events.GuiEvent
 import quoi.api.events.PacketEvent
+import quoi.api.skyblock.Island
+import quoi.api.skyblock.Location.currentArea
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.M7Phases
 import quoi.module.Module
@@ -72,7 +74,7 @@ object RenderOptimiser : Module(
                 }
 
                 is ClientboundLevelParticlesPacket -> {
-                    if (hideParticles && Dungeon.getF7Phase() != M7Phases.P5) cancel()
+                    if (hideParticles && !currentArea.isArea(Island.Garden) && Dungeon.getF7Phase() != M7Phases.P5) cancel()
                     else if (hidePotionBubbles && packet.particle.type == ParticleTypes.ENTITY_EFFECT) cancel()
                 }
 
