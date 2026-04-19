@@ -38,6 +38,8 @@ object AutoJoinSkyBlock : Module(
                 joinTicks = 0
             }
 
+            if (Location.inSkyblock) return@on.also { reset() }
+
             if (++joinTicks < 20) return@on
             if (mc.player?.connection == null) return@on
 
