@@ -2,7 +2,7 @@ package quoi.api.skyblock.dungeon.odonscanning
 
 import net.minecraft.client.gui.components.PlayerFaceRenderer
 import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket
-import net.minecraft.resources.ResourceLocation
+import net.minecraft.resources.Identifier
 import net.minecraft.world.level.saveddata.maps.MapDecorationTypes
 import quoi.QuoiMod.MOD_ID
 import quoi.QuoiMod.mc
@@ -65,8 +65,8 @@ object MapRenderer {
     var refreshShit = 0
         private set
 
-    private val WHITE_MARKER = ResourceLocation.fromNamespaceAndPath(MOD_ID, "white_marker.png")
-    private val GREEN_MARKER = ResourceLocation.fromNamespaceAndPath(MOD_ID, "green_marker.png")
+    private val WHITE_MARKER = Identifier.fromNamespaceAndPath(MOD_ID, "white_marker.png")
+    private val GREEN_MARKER = Identifier.fromNamespaceAndPath(MOD_ID, "green_marker.png")
 
     fun refresh() {
         refreshShit++

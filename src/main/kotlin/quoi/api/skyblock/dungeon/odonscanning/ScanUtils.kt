@@ -264,6 +264,12 @@ object ScanUtils {
         return grid[gz * 11 + gx] as? OdonRoom
     }
 
+    fun getRoomCenter(x: Int, z: Int): Vec2i {
+        val roomX = (x - START + 16) shr 5
+        val roomZ = (z - START + 16) shr 5
+        return Vec2i((roomX shl 5) + START, (roomZ shl 5) + START)
+    }
+
     fun updateRotation(room: OdonRoom, roomHeight: Int) {
         if (room.data.name == "Fairy") { // Fairy room doesn't have a clay block so we need to set it manually
             room.clayPos = room.roomComponents.firstOrNull()?.let { BlockPos(it.x - 15, roomHeight, it.z - 15) } ?: return
