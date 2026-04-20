@@ -86,6 +86,7 @@ object ModuleManager {
             // MINING
             CrystalHollowsMap,
             CrystalHollowsScanner,
+            CommissionDisplay,
             MineshaftESP,
             GrieferTracker,
         )
