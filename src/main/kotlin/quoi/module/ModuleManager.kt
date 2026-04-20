@@ -49,6 +49,7 @@ object ModuleManager {
             SecretAura,
             PuzzleSolvers,
             AutoClear,
+            DungeonMap,
 
             // MISC
             Test,
