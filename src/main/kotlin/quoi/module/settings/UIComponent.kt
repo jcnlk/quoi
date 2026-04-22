@@ -117,8 +117,6 @@ abstract class UIComponent<T>( // todo cleanup
 
                     onClick {
                         collapsed = !collapsed
-                        rotationAnim.animate(0.25.seconds, Animation.Style.EaseInOutQuint)
-                        redraw()
                         true
                     }
                 }
