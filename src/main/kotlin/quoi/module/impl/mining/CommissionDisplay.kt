@@ -9,6 +9,7 @@ import quoi.api.abobaui.elements.impl.Text.Companion.textSupplied
 import quoi.api.colour.Colour
 import quoi.api.colour.withAlpha
 import quoi.api.events.AreaEvent
+import quoi.api.events.ChatEvent
 import quoi.api.events.GuiEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
@@ -21,6 +22,7 @@ import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.WorldUtils.tablist
 import quoi.utils.render.DrawContextUtils.rect
 import quoi.utils.skyblock.ItemUtils.lore
+import quoi.utils.skyblock.player.PlayerUtils
 import quoi.utils.ui.hud.HudManager
 import quoi.utils.ui.hud.impl.TextHud
 
@@ -36,12 +38,14 @@ object CommissionDisplay : Module(
 
     private val infoSectionRegex = Regex("^(?:Info|Account Info|Player Stats|Dungeon Stats)$")
     private val commissionRegex = Regex("^(.*): ([\\d,.]+%|DONE)$")
+    private val commissionCompleteRegex = Regex("^(.*) Commission Complete! Visit the King to claim your rewards!$")
     private val previewLines = listOf(
         TITLE,
         "&7- &fExample: &a100%",
         "&7- &fExample: &b75%",
         "&7- &fExample: &c7%",
     )
+    private val completionTitle by switch("Completion title", desc = "Shows a title when a commission is completed.")
     private val highlightDoneCommissions by switch("Highlight done commissions", desc = "Highlights completed commissions in the commissions menu.")
     private val doneCommissionColour by colourPicker("Done commission colour", Colour.GREEN.withAlpha(90), allowAlpha = true)
         .visibleIf { highlightDoneCommissions }
@@ -106,6 +110,25 @@ object CommissionDisplay : Module(
 
         on<AreaEvent.Main> {
             refreshCommissions()
+        }
+
+        on<ChatEvent.Packet> {
+            if (!completionTitle || !inCommissionArea()) return@on
+
+            val commissionName = commissionCompleteRegex.matchEntire(message.noControlCodes)
+                ?.groupValues
+                ?.getOrNull(1)
+                ?.trim()
+                ?.takeIf(String::isNotEmpty)
+                ?: return@on
+
+            PlayerUtils.setTitle(
+                title = commissionName,
+                subtitle = "§aCommission Complete!",
+                fadeIn = 0,
+                stayAlive = 40,
+                fadeOut = 10,
+            )
         }
 
         on<GuiEvent.Slot.Draw> {
