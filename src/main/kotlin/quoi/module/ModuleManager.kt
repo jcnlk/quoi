@@ -36,7 +36,7 @@ object ModuleManager {
             NecronPlatformHighlight,
 //            DungeonMap,
             TerminalAura,
-            AutoMask,
+            AutoInvincibility,
             BarrierBoom,
             TickTimers,
             DungeonESP,
