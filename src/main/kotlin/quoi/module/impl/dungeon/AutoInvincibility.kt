@@ -3,6 +3,10 @@ package quoi.module.impl.dungeon
 import kotlinx.coroutines.launch
 import net.minecraft.world.item.Items
 import quoi.QuoiMod.scope
+import quoi.api.abobaui.dsl.px
+import quoi.api.abobaui.elements.impl.Text.Companion.shadow
+import quoi.api.abobaui.elements.impl.Text.Companion.textSupplied
+import quoi.api.colour.Colour
 import quoi.api.commands.internal.GreedyString
 import quoi.api.events.ChatEvent
 import quoi.api.events.TickEvent
@@ -19,25 +23,43 @@ import quoi.utils.Scheduler.scheduleTask
 import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.skyblock.player.ContainerUtils
 import quoi.utils.skyblock.player.MovementUtils.stop
+import quoi.utils.skyblock.player.PetUtils
 import quoi.utils.skyblock.player.PlayerUtils.rightClick
 import quoi.utils.skyblock.player.SwapManager
+import quoi.utils.ui.hud.impl.TextHud
 
-// Kyleen
-object AutoInvincibility : Module( // todo remove in the future
+object AutoInvincibility : Module(
     "Auto Invincibility",
     desc = "Automatically swaps to invincibility items."
 ) {
 
-    private val prioritySettings by text("Available items")
-    private val useSpiritMask by switch("Spirit Mask", true).childOf(::prioritySettings)
-    private val useBonzoMask by switch("Bonzo's Mask", true).childOf(::prioritySettings)
-    private val usePhoenixPet by switch("Phoenix Pet", true).childOf(::prioritySettings)
+    private val useSpiritMask by switch("Spirit Mask", true)
+    private val useBonzoMask by switch("Bonzo's Mask", true)
+    private val usePhoenixPet by switch("Phoenix Pet", true)
+    private val phoenixSwapMethod by selector("Swap method", PhoenixSwapMethod.RodSwap).childOf(::usePhoenixPet)
     private val dungeonsOnly by switch("Dungeons only")
     private val bossOnly by switch("Boss only")
     private val p3Only by switch("Phase 3 only")
     private val stopMoving by switch("Prevent moving", true)
+    private val hud by textHud("Swap hud", Colour.WHITE, font = TextHud.HudFont.Minecraft) {
+        visibleIf { this@AutoInvincibility.enabled && (preview || swapHudText != null) }
+        column {
+            textSupplied(
+                supplier = { swapHudText ?: "Equipping Spirit Mask" },
+                colour = colour,
+                font = font,
+                size = 18.px,
+            ).shadow = shadow
+        }
+    }.setting()
 
     private var swapping = false
+    private var swapHudText: String? = null
+
+    override fun onDisable() {
+        resetSwapState()
+        super.onDisable()
+    }
 
     init {
         command.sub("equip") { maskName: GreedyString ->
@@ -45,7 +67,7 @@ object AutoInvincibility : Module( // todo remove in the future
         }.description("Automatically swaps to a specified mask.").requires("&cAuto Invincibility module is disabled!") { enabled }
 
         on<WorldEvent.Change> {
-            swapping = false
+            resetSwapState()
         }
 
         on<TickEvent.Start> {
@@ -122,9 +144,10 @@ object AutoInvincibility : Module( // todo remove in the future
         swapping = true
         scope.launch {
             try {
+                swapHudText = "Equipping ${maskName.split(" ").joinToString(" ") { it.replaceFirstChar(Char::uppercase) }}"
                 equipMask(maskName)
             } finally {
-                swapping = false
+                resetSwapState()
             }
         }
     }
@@ -135,20 +158,37 @@ object AutoInvincibility : Module( // todo remove in the future
         swapping = true
         scope.launch {
             try {
-                val player = player
-                val rodSlot = (0..8).firstOrNull { player.inventory.getItem(it).item == Items.FISHING_ROD }
-                    ?: return@launch modMessage("§cCould not find a rod in your hotbar.")
-
-                val swapped = SwapManager.swapToSlot(rodSlot)
-                if (!swapped.success) return@launch
-                if (!swapped.already) wait(1)
-
-                player.rightClick()
-                wait(4)
-                player.rightClick()
+                swapHudText = "Equipping Phoenix"
+                when (phoenixSwapMethod.selected) {
+                    PhoenixSwapMethod.RodSwap -> triggerRodSwap()
+                    PhoenixSwapMethod.PetMenu -> triggerPetMenuSwap()
+                }
             } finally {
-                swapping = false
+                resetSwapState()
             }
+        }
+    }
+
+    private suspend fun triggerRodSwap() {
+        val player = player
+        val rodSlot = (0..8).firstOrNull { player.inventory.getItem(it).item == Items.FISHING_ROD }
+            ?: return modMessage("§cCould not find a rod in your hotbar.")
+
+        val swapped = SwapManager.swapToSlot(rodSlot)
+        if (!swapped.success) return
+        if (!swapped.already) wait(1)
+
+        player.rightClick()
+        wait(4)
+        player.rightClick()
+    }
+
+    private suspend fun triggerPetMenuSwap() {
+        val queued = PetUtils.switchPet("Phoenix", preventMove = stopMoving)
+        if (!queued) return modMessage("§cFailed to queue Phoenix pet switch.")
+
+        while (PetUtils.isBusy()) {
+            wait(1)
         }
     }
 
@@ -165,5 +205,15 @@ object AutoInvincibility : Module( // todo remove in the future
         if (success) {
             scheduleTask(2) { ContainerUtils.closeContainer() }
         }
+    }
+
+    private fun resetSwapState() {
+        swapping = false
+        swapHudText = null
+    }
+
+    private enum class PhoenixSwapMethod {
+        RodSwap,
+        PetMenu
     }
 }

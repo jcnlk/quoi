@@ -141,6 +141,10 @@ object ClickGui : Module(
     
     private var currentPet by textInput("Current pet", "").hide() // just for cfg
 
+    private val hudEditor by button("Edit HUD") {
+        open(HudManager.editor(fromMain = true))
+    }
+
     override fun onKeybind() {
         open(clickGui)
     }
