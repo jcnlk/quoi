@@ -11,38 +11,36 @@
   - Automatically completes arrows align device.
 - **Auto Close Chest**
   - Automatically closes secret chests.
+- **Auto Blood Rush**
+  - Automatically blood rushes.
 - **Auto Leap**
   - Automatically leaps to predefined targets.
-- **Auto Mask**
-  - Automatically swaps to invincibility item.
+- **Auto Clear**
+  - Automatically teleports to a specified room.
 - **Auto Routes**
   - /route
-- **AutoSS**
-  - Automatically completes Simon says device.
+- **Auto Invincibility**
+  - Automatically swaps to invincibility items.
 - **Barrier Boom**
   - Automatically blows up Goldor fight gates.
-- **Boss ESP**
-  - Highlights floor seven bosses.
 - **Cancel Interact**
 - **Dungeon Abilities**
   - Automatically uses abilities.
 - **Dungeon Breaker**
+- **Dungeon Map**
+  - In-dungeon map HUD.
 - **Dungeon ESP**
   - Highlights various dungeon entities.
 - **Fuck Diorite**
   - Replaces the pillars in the storm fight with glass.
 - **Full Block Hitboxes**
   - Increases the hitboxes of buttons, chests, levers, and skulls to be 1x1 blocks.
-- **Ghost Blocks**
-  - Set useless levers in lights device to air. /gb help
 - **Inventory Walk**
   - Allows movement in containers.
 - **Invincibility Timer**
   - Gives visual information about your invincibility times.
 - **Leap Menu**
   - Adds a custom leap menu.
-- **Lever Aura**
-  - Automatically flicks levers in Goldor fight.
 - **Necron Platform Highlight**
   - Highlights 3x3 area to mine after Goldor dies.
 - **Puzzle Solvers**
@@ -55,6 +53,8 @@
   - Highlights collected secrets.
 - **Shadow Assassin Alert**
   - Sends an alert when SA jumps you.
+- **Simon Says**
+  - Automatically completes Simon Says device.
 - **Splits**
   - Shows timers for various phases
 - **Terminal Aura**
@@ -71,14 +71,20 @@
   - Detects nicked players.
 - **Auto Clicker**
   - A simple auto clicker for both left and right click. Activates when the corresponding key is being held down.
-- **Auto Dialogue**
-  - Automatically continues dialogues with NPCs.
 - **Auto GFS**
   - Automatically refills certain items from your sacks.
+- **Auto Join SkyBlock**
+  - Automatically joins SkyBlock after connecting to Hypixel.
+- **Auto Sell**
+  - Automatically sells items in trades and cookie menus.
 - **Chat**
   - Various chat related tweaks.
 - **Chat Replacements**
   - temp
+- **Cat Mode**
+  - MEOWMEOWMEOWMEOWMEOWMEOWMEOW.
+- **Chocolate Factory**
+  - Automates the Chocolate Factory.
 - **Inventory**
   - Various quality of life features for inventory GUIs
 - **Item Animations**
@@ -87,13 +93,14 @@
   - Automatically completes Mirrorverse puzzles: Lava Maze, Lava Parkour, Craft Room, Red Green, Tiny Dancer, and Tubulator.
 - **Pet Keybinds**
   - Keybinds for the pets menu.
-- **Sweet**
 - **Test**
   - Dev module for testing.
 - **Titles**
   - temp module
 - **Wardrobe Keybinds**
   - Keybinds for wardrobe.
+- **Wither Cloak**
+  - Tracks Creeper Veil and optionally hides nearby cloak creepers.
 
 </details>
 
@@ -123,6 +130,8 @@
   - Highlights players through walls.
 - **Render Optimiser**
   - Various render optimisation features.
+- **Trajectories**
+  - Shows the trajectories of bows and ender pearls.
 
 </details>
 
@@ -131,7 +140,11 @@
 
 - **Crystal Hollows Map**
 - **Crystal Hollows Scanner**
+- **Commision Display**
+  - Displays your commissions in a HUD.
 - **Griefer Tracker**
+- **Mineshaft ESP**
+  - Highlights Umber, Tungsten, Lapis and Vanguard spots in Glacite Mineshafts.
 
 </details>
 
