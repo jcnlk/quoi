@@ -45,11 +45,12 @@ object ModuleManager {
             Splits,
             Secrets,
             AutoBloodRush,
-            AutoRoutes,
+            AutoRoutesLegacy,
             SecretAura,
             PuzzleSolvers,
             AutoClear,
             DungeonMap,
+            AutoRoutes,
 
             // MISC
             Test,
