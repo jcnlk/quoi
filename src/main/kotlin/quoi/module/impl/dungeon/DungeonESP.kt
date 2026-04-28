@@ -28,6 +28,7 @@ import quoi.module.settings.Setting.Companion.json
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.module.settings.UIComponent.Companion.visibleIf
 import quoi.utils.EntityUtils
+import quoi.utils.EntityUtils.getEntity
 import quoi.utils.EntityUtils.interpolatedBox
 import quoi.utils.EntityUtils.isVisibleToPlayer
 import quoi.utils.Scheduler.scheduleLoop
@@ -189,8 +190,15 @@ object DungeonESP : Module(
 
     private fun getColour(entity: Entity) = when (entity) {
         is Bat if (entity.maxHealth.equalsOneOf(100f, 200f, 400f, 800f)) -> colourBat to colourBatFill
+//        is EnderMan if (entity.name.string == "Dinnerbone") -> {
+//            colourStar to colourStarFill
+//        }
         is EnderMan if (entity.name.string == "Dinnerbone") -> {
-            colourStar to colourStarFill
+            val stand = getEntity(entity.id + 1) as? ArmorStand
+
+            if (stand?.customName?.string?.contains("✯") == true) {
+                colourStar to colourStarFill
+            } else null
         }
         is ArmorStand -> {
             handleStand(entity)
