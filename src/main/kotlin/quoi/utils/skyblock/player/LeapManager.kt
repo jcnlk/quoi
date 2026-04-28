@@ -109,7 +109,7 @@ object LeapManager { // still schizophrenia
         }
 
         inProgress = true
-        val r = SwapManager.swapById("INFINITE_SPIRIT_LEAP").success
+        val r = SwapManager.swapById("INFINITE_SPIRIT_LEAP", "SPIRIT_LEAP").success
         scheduleTask {
             if (!r) { inProgress = false; return@scheduleTask }
             PlayerUtils.interact()
