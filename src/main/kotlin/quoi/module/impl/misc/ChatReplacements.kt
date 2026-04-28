@@ -25,6 +25,7 @@ object ChatReplacements : Module("Chat Replacements", desc = "temp") { // THIS I
     private val cleanerPf by switch("Cleaner PF")
     private val hideOtherMessages by switch("Hide useless messages")
     private val hideMoreMessages by switch("Hide even more useless messages")
+    private val hideNonRankInvites by switch("Hide non rank invites", desc = "Hides party invites from players without a rank.")
 
     private val hideDiscordWarnings by switch("Hide discord warnings", desc = "Hides Discord warning messages.")
     private val hideMicrosoftWarnings by switch("Hide microsoft warnings", desc = "Hides Microsoft account warnings.")
@@ -676,6 +677,7 @@ object ChatReplacements : Module("Chat Replacements", desc = "temp") { // THIS I
     )
 
     private val discordWarningRegex = Regex("""Please be mindful of Discord links in chat as they may pose a security risk""")
+    private val nonRankInviteRegex = Regex("^(.+?) has invited you to join their party!\\nYou have 60 seconds to accept\\. Click here to join!.*$")
     private val microsoftWarningRegex = Regex(
         """-----------------------------------------------------
 You should NEVER enter your Microsoft account details anywhere but on official Microsoft services!
@@ -687,6 +689,9 @@ External links from untrusted sources should be avoided.
     private fun handleChatMessage(message: String): Boolean {
         val noCodes = message.noControlCodes
         if (matchesCustomFilter(noCodes)) return true
+        nonRankInviteRegex.find(noCodes)?.let { match ->
+            if (hideNonRankInvites && '[' !in match.groupValues[1]) return true
+        }
 
         if (cleanerDungeons) {
             for (r in toReplace) {
