@@ -69,6 +69,7 @@ object ModuleManager {
             WitherCloak,
 //            CustomTriggers,
             MirrorverseSolvers,
+            AutoCarnival,
 
             // PLAYER
             AutoSprint,
