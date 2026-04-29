@@ -59,6 +59,7 @@ object ModuleManager {
             ChatReplacements, // todo remove/replace
             CatMode,
             AutoSell,
+            AutoWardrobe,
             PetKeybinds,
             Titles,
             WardrobeKeybinds,
