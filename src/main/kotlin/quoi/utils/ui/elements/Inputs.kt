@@ -288,11 +288,12 @@ fun ElementScope<*>.suggestionInput( // todo move it to selectors
     content: ElementScope<*>.() -> ElementScope<TextInput>
 ): ElementScope<TextInput> {
     var popup: Popup? = null
-    lateinit var mainBlock: ElementScope<Block>
+    var mainBlock: ElementScope<Block>? = null
 
     val items = mutableMapOf<String, ElementScope<Block>>()
 
     fun update(string: String) {
+        val mainBlock = mainBlock ?: return
         val matching = items.filter { (text, _) ->
             string.isEmpty() || text.contains(string, true)
         }
@@ -319,6 +320,7 @@ fun ElementScope<*>.suggestionInput( // todo move it to selectors
         onFocus {
             popup?.closePopup()
             items.clear()
+            mainBlock = null
 
             val y = popupY(gap = 10f, corner = true)
             val thickness = 2.px
@@ -366,6 +368,7 @@ fun ElementScope<*>.suggestionInput( // todo move it to selectors
                                     onClick {
                                         string = suggestion
                                         ui.unfocus()
+                                        mainBlock = null
                                         closePopup()
                                         true
                                     }
