@@ -26,7 +26,9 @@ import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.Dungeon.currentRoom
 import quoi.api.skyblock.dungeon.Dungeon.inDungeons
 import quoi.module.Module
+import quoi.module.settings.Setting.Companion.json
 import quoi.module.settings.UIComponent.Companion.childOf
+import quoi.module.settings.UIComponent.Companion.visibleIf
 import quoi.utils.*
 import quoi.utils.EntityUtils.getEntities
 import quoi.utils.WorldUtils.state
@@ -44,8 +46,10 @@ object SecretAura : Module(
     "Secret Aura",
     desc = "Automatically collects secrets."
 ) {
-    private val chestRange by slider("Chest range", 6.2, 2.1, 6.5, 0.1, desc = "Maximum range for secret aura.")
+    private val range by slider("Range", 6.2, 2.1, 6.5, 0.1, desc = "Maximum range for secret aura. Both levers and chests.").json("Chest range")
     private val skullRange by slider("Skull range", 4.7, 2.1, 4.7, 0.1, desc = "Maximum range for secret aura when clicking skulls.")
+    private val bossRange by slider("Boss lever range", 5.7, 2.1, 6.5, 0.1, desc = "Maximum range for levers in boss room.").visibleIf { inBoss }
+
     private val clickDelay by slider("Click delay", 150, 100, 4000, 50, desc = "Delay before clicking a block.") // this shit doesn't seem to be making any difference tbh...
     private val auraFov by slider("Aura FOV", 360, 10, 360, 1, desc = "Only clicks secrets inside this field of view.", unit = "°")
 
@@ -151,9 +155,9 @@ object SecretAura : Module(
             val minFovDot = minFovDot(auraFov)
             val fullCircleFov = auraFov >= 360
 
-            val sqEssence = skullRange * skullRange
-            val sqChest = chestRange * chestRange
-            val maxRange = maxOf(chestRange, skullRange)
+            val sqEssence = skullRange.sq
+            val sqRange = if (inBoss && Dungeon.inBoss) bossRange.sq else range.sq
+            val maxRange = maxOf(range, skullRange)
 
             val searchBox = AABB(eyePos, eyePos).inflate(maxRange)
             val minPos = BlockPos.containing(searchBox.minX, searchBox.minY, searchBox.minZ)
@@ -182,7 +186,7 @@ object SecretAura : Module(
 
                 val currentDistanceSq = eyePos.distanceToSqr(pos.center)
 
-                if ((block is SkullBlock && currentDistanceSq > sqEssence) || currentDistanceSq > sqChest) continue
+                if ((block is SkullBlock && currentDistanceSq > sqEssence) || currentDistanceSq > sqRange) continue
 
                 if (currentDistanceSq < blockCandidate.distanceSq) {
                     blockCandidate = BlockDistance(block, pos.immutable(), currentDistanceSq)
