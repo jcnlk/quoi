@@ -23,6 +23,7 @@ public class KeyboardInputMixin {
     private void onTick(KeyboardInput instance, Input input, Operation<Void> original) {
         KeyEvent.Input event = new KeyEvent.Input(input, new MutableInput(input));
         event.post();
-        instance.keyPresses = event.getInput().toInput();
+        // Preserve downstream KeyboardInput mixins instead of short-circuiting the field write.
+        original.call(instance, event.getInput().toInput());
     }
 }
