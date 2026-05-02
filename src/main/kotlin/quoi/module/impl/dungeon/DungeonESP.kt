@@ -140,7 +140,7 @@ object DungeonESP : Module(
 
                     val roomCenter = ScanUtils.getRoomCenter(pos.x, pos.z)
                     if (ScanUtils.scannedRooms.any { room ->
-                            room.data.trappedChests > 0 && room.roomComponents.any { it.vec2 == roomCenter }
+                            room.data.trappedChests > 0 && room.roomTiles.any { it.vec2 == roomCenter }
                         }
                     ) return@removeIf false
 
