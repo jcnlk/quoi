@@ -39,6 +39,7 @@ object ModuleManager {
             AutoInvincibility,
             BarrierBoom,
             FireFreeze,
+            LightsDevice,
             TickTimers,
             DungeonESP,
             FuckDiorite,
