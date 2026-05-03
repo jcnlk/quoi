@@ -33,9 +33,9 @@ object AutoInvincibility : Module(
     desc = "Automatically swaps to invincibility items."
 ) {
 
-    private val useSpiritMask by switch("Spirit Mask", true)
-    private val useBonzoMask by switch("Bonzo's Mask", true)
-    private val usePhoenixPet by switch("Phoenix Pet", true)
+    private val useSpiritMask by switch("Spirit Mask", false)
+    private val useBonzoMask by switch("Bonzo's Mask", false)
+    private val usePhoenixPet by switch("Phoenix Pet", false)
     private val phoenixSwapMethod by selector("Swap method", PhoenixSwapMethod.RodSwap).childOf(::usePhoenixPet)
     private val dungeonsOnly by switch("Dungeons only")
     private val bossOnly by switch("Boss only")
