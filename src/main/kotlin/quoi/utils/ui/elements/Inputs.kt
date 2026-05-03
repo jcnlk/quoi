@@ -233,11 +233,11 @@ fun ElementScope<*>.lengthInput(
 
     group(constrain(x = pos.x, y = pos.y, w = size.width, h = size.height)) {
 
-        val lengthText = text(
+        val lengthText = if (length > 0) text(
             string = "${value.length}/$length",
             pos = at(x = 3.percent.alignOpposite),
             colour = lenCol(value)
-        ).toggle()
+        ).toggle() else null
 
         input = textInput(
             string = value,
@@ -248,33 +248,38 @@ fun ElementScope<*>.lengthInput(
             caretColour = theme.primary,
             placeHolderColour = theme.onSurfaceVariant
         ) {
-            val maxWidth = Animatable(from = 94.percent, to = 75.percent)
-            maxWidth(maxWidth)
+            if (lengthText != null) {
+                val maxWidth = Animatable(from = 94.percent, to = 75.percent)
+                maxWidth(maxWidth)
+                onFocusChanged {
+                    lengthText.toggle()
+                    maxWidth.swap()
+                }
+            } else maxWidth(94.percent)
 
             cursor(CursorShape.IBEAM)
 
             onTextChanged { event ->
                 var str = event.string
-                if (str.length > length) str = str.take(length)
+                if (lengthText != null) {
+                    if (str.length > length) str = str.take(length)
 
-                lengthText.string = "${str.length}/$length"
-                lengthText.element.colour = lenCol(str)
+                    lengthText.string = "${str.length}/$length"
+                    lengthText.element.colour = lenCol(str)
+                }
 
                 event.string = str
                 value = str
-            }
-
-            onFocusChanged {
-                lengthText.toggle()
-                maxWidth.swap()
             }
         }
 
         watch(ref) { current ->
             value = current
             input.string = current
-            lengthText.string = "${current.length}/$length"
-            lengthText.element.colour = lenCol(current)
+            if (lengthText != null) {
+                lengthText.string = "${current.length}/$length"
+                lengthText.element.colour = lenCol(current)
+            }
             element.parent?.positionChildren()
         }
     }
