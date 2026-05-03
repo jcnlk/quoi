@@ -15,6 +15,7 @@ import quoi.module.impl.misc.PetKeybinds.petMap
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.Scheduler.wait
 import quoi.utils.StringUtils.noControlCodes
+import quoi.utils.skyblock.ItemUtils.lore
 import quoi.utils.skyblock.ItemUtils.loreString
 import quoi.utils.skyblock.player.ContainerUtils.closeContainer
 import quoi.utils.skyblock.player.MovementUtils.stop
@@ -44,12 +45,13 @@ object PetUtils {
     }
 
     @JvmOverloads
-    fun switchPet(name: String, preventMove: Boolean = true): Boolean {
+    fun switchPet(name: String, item: String? = null, preventMove: Boolean = true): Boolean {
         val cleanedName = cleanPetName(name).trim()
+        val cleanedItem = item?.let(::cleanPetItemName)?.takeIf(String::isNotEmpty)
         if (cleanedName.isEmpty()) return false
-        if (petQueue.any { it.name.equals(cleanedName, ignoreCase = true) }) return false
+        if (petQueue.any { it.matches(cleanedName, cleanedItem) }) return false
 
-        petQueue += PetRequest(cleanedName, preventMove)
+        petQueue += PetRequest(cleanedName, cleanedItem, preventMove)
         processQueue()
         return true
     }
@@ -66,7 +68,7 @@ object PetUtils {
                 preventMoveCurrent = request.preventMove
                 switchingPetName = request.name
 
-                val result = switchPetNow(request.name)
+                val result = switchPetNow(request.name, request.item)
                 modMessage(result.chatMessage)
                 switchingPetName = null
                 wait(2)
@@ -78,42 +80,43 @@ object PetUtils {
         }
     }
 
-    private suspend fun switchPetNow(name: String): PetSwitchResult {
+    private suspend fun switchPetNow(name: String, item: String?): PetSwitchResult {
         val items = ContainerUtils.getContainerItems("petsmenu", "Pets")
         if (items.isEmpty()) {
             return PetSwitchResult.failure("Timed out opening Pets")
         }
 
         val slot = petSlots.firstOrNull { index ->
-            val petName = items.getOrNull(index)?.displayName?.string?.let(::cleanPetName) ?: return@firstOrNull false
-            petName.contains(name, ignoreCase = true)
+            val pet = items.getOrNull(index) ?: return@firstOrNull false
+            val petName = pet.displayName?.string?.let(::cleanPetName) ?: return@firstOrNull false
+            petName.contains(name, ignoreCase = true) && pet.matchesPetItem(item)
         }
 
         if (slot == null) {
             closeContainer()
-            return PetSwitchResult.failure("Couldn't find $name")
+            return PetSwitchResult.failure("Couldn't find ${petLabel(name, item)}")
         }
 
-        val item = items[slot] ?: run {
+        val pet = items[slot] ?: run {
             closeContainer()
-            return PetSwitchResult.failure("Couldn't read $name")
+            return PetSwitchResult.failure("Couldn't read ${petLabel(name, item)}")
         }
 
         return when {
-            item.isEquippedPet() -> {
+            pet.isEquippedPet() -> {
                 closeContainer()
-                PetSwitchResult.alreadyEquipped(name)
+                PetSwitchResult.alreadyEquipped(petLabel(name, item))
             }
 
-            item.isSummonablePet() && ContainerUtils.click(slot) -> PetSwitchResult.success(name)
-            item.isSummonablePet() -> {
+            pet.isSummonablePet() && ContainerUtils.click(slot) -> PetSwitchResult.success(petLabel(name, item))
+            pet.isSummonablePet() -> {
                 closeContainer()
-                PetSwitchResult.failure("Failed to click $name")
+                PetSwitchResult.failure("Failed to click ${petLabel(name, item)}")
             }
 
             else -> {
                 closeContainer()
-                PetSwitchResult.failure("$name is not summonable")
+                PetSwitchResult.failure("${petLabel(name, item)} is not summonable")
             }
         }
     }
@@ -131,6 +134,10 @@ object PetUtils {
             .trim('[', ']', ' ')
     }
 
+    private fun cleanPetItemName(name: String): String = name.noControlCodes.trim()
+
+    private fun petLabel(name: String, item: String?): String = item?.let { "$name ($it)" } ?: name
+
     private fun resetState() {
         petQueue.clear()
         inProgress = false
@@ -142,10 +149,33 @@ object PetUtils {
 
     private fun ItemStack.isSummonablePet(): Boolean = loreString?.contains("Left-click to summon!", ignoreCase = true) == true
 
+    private fun ItemStack.matchesPetItem(item: String?): Boolean {
+        if (item == null) return true
+        val heldItem = lore?.firstNotNullOfOrNull { line ->
+            val cleanedLine = line.noControlCodes
+            cleanedLine
+                .substringAfter("Held Item:", "")
+                .trim()
+                .takeIf { cleanedLine.startsWith("Held Item:", ignoreCase = true) }
+        } ?: return false
+
+        return heldItem.contains(item, ignoreCase = true)
+    }
+
     private data class PetRequest(
         val name: String,
+        val item: String?,
         val preventMove: Boolean,
-    )
+    ) {
+        fun matches(name: String, item: String?): Boolean {
+            if (!this.name.equals(name, ignoreCase = true)) return false
+            return when {
+                this.item == null && item == null -> true
+                this.item == null || item == null -> false
+                else -> this.item.equals(item, ignoreCase = true)
+            }
+        }
+    }
 
     private data class PetSwitchResult(
         val chatMessage: String,
