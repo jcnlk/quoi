@@ -3,6 +3,7 @@ package quoi.module.impl.dungeon
 import kotlinx.coroutines.launch
 import net.minecraft.world.phys.Vec3
 import quoi.QuoiMod.scope
+import quoi.api.abobaui.dsl.ms
 import quoi.api.abobaui.elements.impl.Text.Companion.shadow
 import quoi.api.abobaui.elements.impl.Text.Companion.textSupplied
 import quoi.api.colour.Colour
@@ -19,10 +20,14 @@ import quoi.utils.Scheduler.wait
 import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.StringUtils.toFixed
 import quoi.utils.ThemeManager.theme
+import quoi.utils.getDirection
 import quoi.utils.skyblock.player.MovementUtils.cancelMovementTask
 import quoi.utils.skyblock.player.MovementUtils.moveTo
 import quoi.utils.skyblock.player.MovementUtils.resetInput
 import quoi.utils.skyblock.player.PlayerUtils.rightClick
+import quoi.utils.skyblock.player.RotationUtils.cancelRotationTask
+import quoi.utils.skyblock.player.RotationUtils.pitch
+import quoi.utils.skyblock.player.RotationUtils.rotateSmoothly
 import quoi.utils.skyblock.player.SwapManager
 
 object FireFreeze : Module(
@@ -56,6 +61,7 @@ object FireFreeze : Module(
         Vec3(4.5, 71.0, 1.5),
         Vec3(-1.5, 71.0, 1.5),
     )
+    private val repositionRotateDuration = 250.ms
 
     override fun onDisable() {
         if (repositioning) {
@@ -80,7 +86,8 @@ object FireFreeze : Module(
 
             if (autoReposition) {
                 repositionTarget = getBestRepositionTarget()
-                repositioning = true
+                repositioning = repositionTarget != null
+                if (repositioning) startRepositionRotation()
             }
         }
 
@@ -92,16 +99,12 @@ object FireFreeze : Module(
             }
 
             if (!Dungeon.inBoss || !Dungeon.isFloor(3)) {
-                repositioning = false
-                cancelMovementTask()
-                player.resetInput()
+                stopReposition()
                 return@on
             }
 
             if (player.position().distanceToSqr(target) <= 0.09) {
-                repositioning = false
-                cancelMovementTask()
-                player.resetInput()
+                stopReposition()
                 return@on
             }
 
@@ -114,6 +117,7 @@ object FireFreeze : Module(
             remainingTicks = startedAt--
 
             if (!autoTriggered && remainingTicks <= 0) {
+                stopReposition()
                 if (autoUse && player.position().distanceToSqr(autoUsePosition) <= 25.0) {
                     autoTriggered = true
                     triggerAutoUse()
@@ -141,6 +145,23 @@ object FireFreeze : Module(
         return repositionPositions.minByOrNull { position.distanceToSqr(it) }
     }
 
+    private fun startRepositionRotation() {
+        val player = mc.player ?: return
+        val target = repositionTarget ?: return
+        val dir = getDirection(player.position(), target)
+        player.rotateSmoothly(yaw = dir.yaw, pitch = player.pitch, duration = repositionRotateDuration)
+    }
+
+    private fun stopReposition() {
+        if (repositioning) {
+            cancelMovementTask()
+            mc.player?.resetInput()
+        }
+        cancelRotationTask()
+        repositioning = false
+        repositionTarget = null
+    }
+
     private fun formatTime(ticks: Int): String {
         val time = (ticks.coerceAtLeast(0) / 20f).toFixed()
         val colour = when {
@@ -158,12 +179,7 @@ object FireFreeze : Module(
     }
 
     private fun resetState() {
-        if (repositioning) {
-            cancelMovementTask()
-            mc.player?.resetInput()
-        }
-        repositioning = false
-        repositionTarget = null
+        stopReposition()
         resetTimer()
     }
 }
