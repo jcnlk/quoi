@@ -17,6 +17,8 @@ import quoi.utils.bounds
 import quoi.utils.getDirection
 import quoi.utils.isXZInterceptable
 import quoi.utils.render.drawFilledBox
+import quoi.utils.skyblock.player.MovementUtils.movementTask
+import quoi.utils.skyblock.player.MovementUtils.resetInput
 import quoi.utils.skyblock.player.RotationUtils.rotate
 import java.util.concurrent.CopyOnWriteArraySet
 
@@ -89,7 +91,10 @@ object MazeSolver {
                 val dir = getDirection(player.eyePosition, Vec3.atCenterOf(targetPos))
                 player.rotate(dir)
 
-                mc.options.keyUp.isDown = true
+                movementTask { input ->
+                    input.forward = true
+                    false
+                }
                 walking = true
             } else {
                 stop()
@@ -98,7 +103,10 @@ object MazeSolver {
             nextMove = false
 
         } else if (walking) {
-            mc.options.keyUp.isDown = true
+            movementTask { input ->
+                input.forward = true
+                false
+            }
         }
     }
 
@@ -119,7 +127,7 @@ object MazeSolver {
 
     private fun stop() {
         if (walking) {
-            mc.options.keyUp.isDown = false
+            mc.player?.resetInput()
             walking = false
         }
     }
