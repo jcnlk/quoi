@@ -38,6 +38,7 @@ object ModuleManager {
             TerminalAura,
             AutoInvincibility,
             BarrierBoom,
+            FireFreeze,
             TickTimers,
             DungeonESP,
             FuckDiorite,
