@@ -9,9 +9,21 @@
 - `/quoi hud` - opens the HUD editor
 - `/quoi ping` - prints current and average ping
 - `/quoi tps` - prints current and average TPS
+- `/quoi toggle <module>` - toggles a module by name
+- `/quoi playeresp <name|clear>` - targets Player ESP
 - `/quoi pet <name>` - queues a pet swap by name
 - `/quoi wardrobe <1-9>` - equips a wardrobe slot
-- `/route` - AutoRoutes command set
+- `/quoi autosell ...` - manages the Auto Sell item list
+- `/quoi ac ...` - manages Auto Clicker buttons
+- `/quoi emote ...` - manages custom emotes
+- `/quoi chatfilter ...` - manages custom chat filters
+- `/quoi petkeybinds ...` - manages pet keybind entries
+- `/quoi antiafk <delay>` - runs the anti-AFK helper
+- `/quoi findlobby <area> <day|server|player> <value>` - searches for matching lobbies
+- `/route` - Auto Routes command set
+- `/lroute` - legacy Auto Routes command set
+- `/clearchat` - clears the in-game chat
+- `/f0` to `/f7`, `/m1` to `/m7` - quick dungeon floor instance commands
 
 ## Features
 <details>
@@ -23,6 +35,8 @@
   - Automatically blood rushes.
 - **Auto Close Chest**
   - Automatically closes secret chests.
+- **Auto Frag Run**
+  - Automates F7 frag runs.
 - **Auto Invincibility**
   - Automatically swaps to invincibility items.
 - **Auto Leap**
@@ -33,6 +47,8 @@
   - Legacy route runtime via `/lroute`
 - **Barrier Boom**
   - Automatically blows up Goldor fight gates.
+- **Blood Camp**
+  - Predicts blood mob spawn positions and timings.
 - **Cancel Interact**
 - **Dungeon Abilities**
   - Automatically uses abilities.
@@ -41,6 +57,8 @@
   - Highlights various dungeon entities.
 - **Dungeon Map**
   - In-dungeon map HUD.
+- **Fire Freeze**
+  - Shows the F3/M3 Fire Freeze timer and can automate the use.
 - **Fuck Diorite**
   - Replaces Storm pillars with glass
 - **Full Block Hitboxes**
@@ -53,6 +71,8 @@
   - Gives visual information about your invincibility times.
 - **Leap Menu**
   - Adds a custom leap menu.
+- **Lights Device**
+  - Adds triggerbot and hides useless levers for the lights device.
 - **Necron Platform Highlight**
   - Highlights 3x3 area to mine after Goldor dies.
 - **Puzzle Solvers**
@@ -73,6 +93,8 @@
   - Automatically opens terminals.
 - **Tick Timers**
   - Displays tick timers for floor seven boss fight.
+- **Warp Cooldown**
+  - Dungeon warp cooldown display.
 
 </details>
 
@@ -89,6 +111,8 @@
   - Automatically refills certain items from your sacks.
 - **Auto Join SkyBlock**
   - Automatically joins SkyBlock after connecting to Hypixel.
+- **Auto Kick**
+  - Automatically kicks selected party members.
 - **Auto Sell**
   - Automatically sells items in trades and cookie menus.
 - **Auto Wardrobe**
@@ -180,5 +204,5 @@ GPL-3.0, but I don't give a single fuck if you use the code without crediting. D
 ## Credits
 - [Odin](https://github.com/odtheking/OdinFabric) - NanoVG implementation, world renderer, and module config system
 - [Zen](https://github.com/StellariumMC/zen) - Event manager inspiration
-- [devonian](https://github.com/Synnerz/devonian) - Commands api inspiration
-- [Stivias](https://github.com/Stivais/) - AuroraUI ui library
+- [devonian](https://github.com/Synnerz/devonian) - commands API inspiration
+- [Stivias](https://github.com/Stivais/) - AuroraUI UI library
