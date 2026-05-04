@@ -4,9 +4,12 @@ import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket
 import net.minecraft.network.protocol.game.ClientboundSectionBlocksUpdatePacket
 import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket
+import net.minecraft.world.InteractionHand
 import net.minecraft.world.phys.BlockHitResult
+import net.minecraft.world.phys.HitResult
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.LeverBlock
+import net.minecraft.world.level.block.state.BlockState
 import quoi.api.events.PacketEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
@@ -15,7 +18,6 @@ import quoi.api.skyblock.invoke
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.M7Phases
 import quoi.module.Module
-import quoi.utils.skyblock.player.PlayerUtils.rightClick
 
 object LightsDevice : Module(
     "Lights Device",
@@ -27,7 +29,7 @@ object LightsDevice : Module(
     private val hideUselessLevers by switch("Hide useless levers", desc = "Turns useless lights device levers into ghost blocks.")
 
     private var lastTriggerAt = 0L
-    private val pendingLevers = hashSetOf<BlockPos>()
+    private val pendingLevers = hashMapOf<BlockPos, Long>()
 
     private val deviceLevers = setOf(
         BlockPos(58, 136, 142),
@@ -60,6 +62,10 @@ object LightsDevice : Module(
         return enabled && hideUselessLevers && Dungeon.getF7Phase() == M7Phases.P3 && pos in uselessLevers
     }
 
+    private fun BlockState.isUnpoweredDeviceLever(): Boolean {
+        return block == Blocks.LEVER && hasProperty(LeverBlock.POWERED) && !getValue(LeverBlock.POWERED)
+    }
+
     override fun onDisable() {
         lastTriggerAt = 0L
         pendingLevers.clear()
@@ -74,10 +80,10 @@ object LightsDevice : Module(
 
         on<TickEvent.End> {
             if (Dungeon.getF7Phase() != M7Phases.P3) return@on
+            val now = System.currentTimeMillis()
 
-            pendingLevers.removeIf { pos ->
-                val state = level.getBlockState(pos)
-                state.block !is LeverBlock || state.getValue(LeverBlock.POWERED)
+            pendingLevers.entries.removeIf { (pos, triggeredAt) ->
+                !level.getBlockState(pos).isUnpoweredDeviceLever() || now - triggeredAt >= delay + 150L
             }
 
             if (hideUselessLevers) {
@@ -90,19 +96,23 @@ object LightsDevice : Module(
 
             if (!triggerBot) return@on
 
-            val pos = (mc.hitResult as? BlockHitResult)?.blockPos ?: return@on
+            val hitResult = mc.hitResult as? BlockHitResult ?: return@on
+            if (hitResult.type != HitResult.Type.BLOCK) return@on
+
+            val pos = hitResult.blockPos
             if (pos !in deviceLevers) return@on
-            if (pos in pendingLevers) return@on
+            if (pos in pendingLevers.keys) return@on
 
-            val state = level.getBlockState(pos)
-            if (state.block !is LeverBlock || state.getValue(LeverBlock.POWERED)) return@on
+            if (!level.getBlockState(pos).isUnpoweredDeviceLever()) return@on
 
-            val now = System.currentTimeMillis()
             if (now - lastTriggerAt < delay) return@on
 
-            player.rightClick()
+            val result = mc.gameMode?.useItemOn(player, InteractionHand.MAIN_HAND, hitResult) ?: return@on
+            if (!result.consumesAction()) return@on
+
+            player.swing(InteractionHand.MAIN_HAND)
             lastTriggerAt = now
-            pendingLevers += pos.immutable()
+            pendingLevers[pos.immutable()] = now
         }
 
         on<PacketEvent.Sent, ServerboundUseItemOnPacket> {
