@@ -44,6 +44,7 @@ import quoi.module.settings.impl.MapSetting
 import quoi.module.settings.impl.SelectorComponent
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.StringUtils.capitaliseFirst
+import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.StringUtils.percentColour
 import quoi.utils.StringUtils.toFixed
 import quoi.utils.ThemeManager.theme
@@ -288,11 +289,13 @@ object ClickGui : Module(
                 ) {
                     maxWidth(Fill - 3.percent)
                     onTextChanged { (string) ->
+                        val query = normaliseSearchText(string)
                         moduleScopes.forEach { (m, element) ->
                             element.enabled =
-                                m.name.contains(string, true) ||
-                                        m.desc.contains(string, true) ||
-                                        m.settings.any { it.name.contains(string, true) }
+                                query.isEmpty() ||
+                                    normaliseSearchText(m.name).contains(query) ||
+                                    normaliseSearchText(m.desc).contains(query) ||
+                                    m.settings.any { normaliseSearchText(it.name).contains(query) }
                         }
                     }
                 }
@@ -386,6 +389,8 @@ object ClickGui : Module(
         "Width (asc)" -> compareBy<Module> { it.renderedWidth() }.thenBy { it.name.lowercase() }
         else -> compareBy<Module> { it.name.lowercase() }
     }
+
+    private fun normaliseSearchText(string: String?) = string.noControlCodes.lowercase().trim()
 
     fun ElementScope<*>.description(desc: String) {
         if (desc.isEmpty()) return
