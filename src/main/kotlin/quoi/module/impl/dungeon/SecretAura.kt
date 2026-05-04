@@ -36,6 +36,7 @@ import quoi.utils.aabb
 import quoi.utils.equalsOneOf
 import quoi.utils.isWithinFov
 import quoi.utils.minFovDot
+import quoi.utils.skyblock.player.EtherwarpManager
 import quoi.utils.skyblock.player.interact.AuraManager
 import quoi.utils.skyblock.player.SwapManager
 import quoi.utils.skyblock.player.SwapResult
@@ -110,7 +111,7 @@ object SecretAura : Module(
         }
 
         on<TickEvent.End> {
-            if (InteractiveMap.active) return@on
+            if (EtherwarpManager.active) return@on
             if (!inSkyblock ||
                 (mc.screen != null && !inContainer) ||
                 (dungeonsOnly && !inDungeons) ||
