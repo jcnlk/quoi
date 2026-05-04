@@ -7,19 +7,17 @@ import quoi.api.abobaui.dsl.*
 import quoi.api.abobaui.elements.Element
 import quoi.api.abobaui.elements.Layout.Companion.divider
 import quoi.api.abobaui.elements.impl.Block.Companion.outline
-import quoi.api.abobaui.elements.impl.RefreshableGroup
 import quoi.api.abobaui.elements.impl.Text.Companion.shadow
 import quoi.api.abobaui.elements.impl.Text.Companion.string
 import quoi.api.abobaui.elements.impl.TextInput.Companion.maxWidth
 import quoi.api.abobaui.elements.impl.TextInput.Companion.onTextChanged
-import quoi.api.abobaui.elements.impl.refreshableGroup
 import quoi.api.colour.*
 import quoi.api.events.GuiEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.core.Priority
 import quoi.api.input.CursorShape
 import quoi.module.Module
-import quoi.utils.ChatUtils.modMessage
+import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.StringUtils.toFixed
 import quoi.utils.StringUtils.width
 import quoi.utils.render.DrawContextUtils.drawEntity
@@ -29,7 +27,6 @@ import quoi.utils.skyblock.ItemUtils.loreString
 import quoi.utils.ui.cursor
 import quoi.utils.ui.delegateClick
 import quoi.utils.ui.inHudEditor
-import quoi.utils.ui.rendering.NVGRenderer.minecraftFont
 import kotlin.math.pow
 
 object Inventory : Module(
@@ -170,10 +167,10 @@ object Inventory : Module(
             if (mc.screen !is AbstractContainerScreen<*> || !searchBar.enabled || searchText.isEmpty()) return@on
             highlightSlots.clear()
 
-            val queries = searchText.lowercase().split(",").map { it.trim() }
+            val queries = searchText.split(",").map(::normaliseSearchText).filter(String::isNotEmpty)
             player.containerMenu.items.forEachIndexed { i, stack ->
-                val name = stack.customName?.string?.lowercase()?.trim().orEmpty()
-                val lore = stack.loreString?.lowercase()?.trim().orEmpty()
+                val name = normaliseSearchText(stack.hoverName.string)
+                val lore = normaliseSearchText(stack.loreString)
                 if (name.isEmpty() && lore.isEmpty()) return@forEachIndexed
                 queries.forEach {
                     matchType(name, lore, it)?.let { lore ->
@@ -194,11 +191,13 @@ object Inventory : Module(
     }
 
     private fun matchType(name: String, lore: String, string: String) = when {
-        name.isEmpty() || lore.isEmpty() || string.isEmpty() -> null
-        name.contains(string, true) -> false
-        lore.contains(string, true) -> true
+        string.isEmpty() -> null
+        name.contains(string) -> false
+        lore.contains(string) -> true
         else -> null
     }
+
+    private fun normaliseSearchText(string: String?) = string.noControlCodes.lowercase().trim()
 
     private fun calculate(string: String): Double? {
         var s = string.replace(",", "")
