@@ -6,7 +6,6 @@ import net.minecraft.client.gui.screens.inventory.InventoryScreen
 import net.minecraft.world.entity.player.Inventory
 import net.minecraft.world.inventory.ClickType
 import net.minecraft.world.item.ItemStack
-import quoi.api.commands.internal.BaseCommand
 import quoi.api.commands.internal.GreedyString
 import quoi.api.events.GuiEvent
 import quoi.api.events.TickEvent
@@ -22,7 +21,7 @@ import quoi.utils.skyblock.ItemUtils.extraAttributes
 
 object AutoSell : Module(
     "Auto Sell",
-    desc = "Automatically sell items in trades and cookie menus. (/autosell)"
+    desc = "Automatically sell items in trades and cookie menus. (/quoi autosell)"
 ) {
     val sellList by ListSetting("Sell list", mutableSetOf<String>())
     private val delay by slider("Delay", 6, 2, 10, 1, desc = "The delay between each sell action.", unit = " ticks")
@@ -35,13 +34,13 @@ object AutoSell : Module(
         Config.save()
     }
 
-    private val autoSellCommand = BaseCommand("autosell")
-
     private var lastClick = -1L
     private var nextDelay = 0L
     private var inGui = false
 
     init {
+        val autoSellCommand = command.sub("autosell").description("Auto Sell module settings.")
+
         autoSellCommand.sub("add") { item: GreedyString? ->
             val lowercase = item?.string?.let(::normalizeSellEntry) ?: heldItemName()
                 ?: return@sub modMessage("Either hold an item or write an item name to be added to autosell.")
@@ -74,8 +73,6 @@ object AutoSell : Module(
             val chunkedList = sellList.map(::normalizeSellEntry).distinct().chunked(10)
             modMessage("Auto sell list:\n${chunkedList.joinToString("\n")}")
         }.description("Shows the current auto sell list.")
-
-        autoSellCommand.register()
 
         on<GuiEvent.Open.Post> {
             inGui = screen.title.string in menuTitles
