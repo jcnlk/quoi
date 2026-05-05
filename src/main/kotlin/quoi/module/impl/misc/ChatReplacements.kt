@@ -246,7 +246,7 @@ object ChatReplacements : Module("Chat Replacements", desc = "temp") { // THIS I
 
         val plainToken = cleanedTrigger.removePrefix(":").removeSuffix(":")
         val shouldWrap = plainToken.isNotEmpty()
-            && plainToken.all { it.isLetterOrDigit() || it == '_' || it == '-' }
+                && plainToken.all { it.isLetterOrDigit() || it == '_' || it == '-' }
 
         return if (shouldWrap) ":$plainToken:" else cleanedTrigger
     }
@@ -505,6 +505,7 @@ object ChatReplacements : Module("Chat Replacements", desc = "temp") { // THIS I
         Regex("This item's ability is temporarily disabled!"),
         Regex("Throwing Axe is now available!"),
         Regex("Used Throwing Axe!"),
+        Regex("Guided Sheep is now available!"),
         Regex("\\[STATUE].+"),
         Regex("PUZZLE SOLVED!.+"),
         Regex("DUNGEON BUFF! .+"),
@@ -527,6 +528,7 @@ object ChatReplacements : Module("Chat Replacements", desc = "temp") { // THIS I
         Regex("Your .+ hit .+ for [\\d,.]+ damage."),
         Regex("You do not have enough mana to do this!"),
         Regex(".+Kill Combo+"),
+        Regex("Your .+ healed your entire team for .+"),
         Regex(".+ healed you for .+ health!"),
         Regex("You earned .+ GEXP .*"),
         Regex(".+ unlocked .+ Essence!"),
@@ -631,11 +633,14 @@ object ChatReplacements : Module("Chat Replacements", desc = "temp") { // THIS I
         Regex("A CLICK HERE to get your SPECIAL new year cake!"),
         Regex("RARE DROP! .+"),
         Regex("HOPPITY'S HUNT You found a .+"),
+        Regex("Hoppity's Hunt has begun! Help Hoppity find his Chocolate Rabbit Eggs across SkyBlock each day during the Spring!"),
+        Regex("HOPPITY'S HUNT"),
         Regex("You found a journal .+"),
         Regex("You have already collected this .+ Try again when it respawns!"),
         Regex("You have been re-queued!"),
         Regex("A Prince falls. +1 Bonus Score"),
         Regex("\\[NPC] .+"),
+        Regex("\\[SkyBlockAPI] Loaded some data from pv! \\(hover\\)"),
         Regex("  Clicking sketchy links can result in your account"),
         Regex("  being stolen!"),
         Regex("  Link looks suspicious\\? - Don't click it!"),
@@ -652,6 +657,9 @@ object ChatReplacements : Module("Chat Replacements", desc = "temp") { // THIS I
         Regex("You cannot drop items yet!"),
         Regex("There are no reachable enemies nearby!"),
         Regex("The wind has changed direction!"),
+        Regex("Try switching servers to regain Mining Fatigue..."),
+        Regex(" +Granted you .+"),
+        Regex("You cannot use abilities in this room!"),
         Regex("""^Unknown command\. Type "/help" for help\. \('.+'\)$"""),
         Regex(".+ joined the lobby!"),
         Regex("You already tipped everyone that has boosters active, so there isn't anybody to be tipped right now!"),
