@@ -58,7 +58,6 @@ object AutoLeap : Module(
     private val relicLeap by switch("Relic leap", desc = "Leaps in relic.")
     private val relicAuto by switch("Auto", desc = "Automatically leaps after picking up a relic.").childOf(::relicLeap)
 
-    private val clearName by textInput("Clear leap", "Clear", length = 16).childOf(::p3Leap) { p3Leap && leapMode.selected == "Name" }.suggests { allTeammatesNoSelf }
     private val p1Name by textInput("Target", "P1", length = 16).childOf(::p1Leap) { p1Leap && leapMode.selected == "Name" }.suggests { allTeammatesNoSelf }
     private val predevName by textInput("Target", "Predev", length = 16).childOf(::predevLeap) { predevLeap && leapMode.selected == "Name" }.suggests { allTeammatesNoSelf }
     private val greenName by textInput("Target", "Green", length = 16).childOf(::greenLeap) { greenLeap && leapMode.selected == "Name" }.suggests { allTeammatesNoSelf }
@@ -72,7 +71,6 @@ object AutoLeap : Module(
     private val p5Name by textInput("Target", "P5", length = 16).childOf(::p5Leap) { p5Leap && leapMode.selected == "Name" }.suggests { allTeammatesNoSelf }
     private val relicName by textInput("Target", "Relic", length = 16).childOf(::relicLeap) { relicLeap && leapMode.selected == "Name" }.suggests { allTeammatesNoSelf }
 
-    private val clearClass by selector("Clear leap", DungeonClass.Unknown).json("Clear leap class").childOf(::p3Leap) { p3Leap && leapMode.selected == "Class" }
     private val p1Class by selector("Target", DungeonClass.Unknown).json("P1 leap class").childOf(::p1Leap) { p1Leap && leapMode.selected == "Class" }
     private val predevClass by selector("Target", DungeonClass.Unknown).json("Predev leap class").childOf(::predevLeap) { predevLeap && leapMode.selected == "Class" }
     private val greenClass by selector("Target", DungeonClass.Unknown).json("Green leap class").childOf(::greenLeap) { greenLeap && leapMode.selected == "Class" }
@@ -271,16 +269,12 @@ object AutoLeap : Module(
             Dungeon.getP3Section()
         }
 
-        val (name, clazz) = if (Dungeon.inClear) {
-            clearName to clearClass.selected
-        } else {
-            when (targetSection) {
-                P3Section.S1 -> s1Name to s1Class.selected
-                P3Section.S2 -> s2Name to s2Class.selected
-                P3Section.S3 -> s3Name to s3Class.selected
-                P3Section.S4 -> s4Name to s4Class.selected
-                else -> return
-            }
+        val (name, clazz) = when (targetSection) {
+            P3Section.S1 -> s1Name to s1Class.selected
+            P3Section.S2 -> s2Name to s2Class.selected
+            P3Section.S3 -> s3Name to s3Class.selected
+            P3Section.S4 -> s4Name to s4Class.selected
+            else -> return
         }
 
         when (leapMode.selected) {
