@@ -6,8 +6,6 @@ import net.minecraft.client.player.LocalPlayer
 import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.common.ClientboundPingPacket
 import net.minecraft.network.protocol.game.*
-import net.minecraft.world.entity.EntityType
-import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.SkullBlock
 import net.minecraft.world.level.block.entity.SkullBlockEntity
@@ -27,7 +25,6 @@ import quoi.api.skyblock.dungeon.odonscanning.ScanUtils
 import quoi.api.skyblock.dungeon.odonscanning.tiles.OdonRoom
 import quoi.module.impl.dungeon.LeapMenu
 import quoi.module.impl.render.ClickGui
-import quoi.utils.ChatUtils.modMessage
 import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.equalsOneOf
 import quoi.utils.romanToInt
@@ -156,6 +153,9 @@ object Dungeon {
 
     inline val bloodDone: Boolean
         get() = dungeonStats.bloodDone
+
+    inline val bloodOpen: Boolean
+        get() = dungeonStats.bloodOpen
 
     inline val score: Int
         get() {
@@ -298,6 +298,7 @@ object Dungeon {
                                 p3Section.start()
                             }
                             "[NPC] Mort: Here, I found this map when I first entered the dungeon." -> DungeonEvent.Start().post()
+                            "The BLOOD DOOR has been opened!" -> dungeonStats.bloodOpen = true
                         }
 
                         if (inBoss && inP3) {
@@ -589,6 +590,7 @@ object Dungeon {
         var princeKilled: Boolean = false,
         var doorOpener: String = "Unknown",
         var bloodDone: Boolean = false,
+        var bloodOpen: Boolean = false,
         var puzzleCount: Int = 0,
     )
 }

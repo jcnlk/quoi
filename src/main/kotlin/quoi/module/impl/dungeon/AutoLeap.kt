@@ -18,6 +18,15 @@ import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.skyblock.ItemUtils.skyblockId
 import quoi.utils.skyblock.player.LeapManager
 
+/**
+ * TODO:
+ * queuing leap while fast leaping in term
+ * auto leap delay (?)
+ * pre4 fast leap (maybe auto leap too)
+ * option to create custom fast/auto leaps (maybe; prob use custom triggers for that)
+ * move some stuff to utils
+ */
+
 // Kyleen (maybe)
 object AutoLeap : Module(
     "Auto Leap",
@@ -29,6 +38,7 @@ object AutoLeap : Module(
     private val fastDelay by slider("Delay", 250L, 100L, 500L, 50L)
 
     private val doorOpenerLeap by switch("Door opener leap", desc = "Outside of F7 boss, fast leap to the last wither door opener.")
+    private val disableAfterBloodOpen by switch("Disable after Blood Open", desc = "Disables Door Fast Leap after the Blood Room has been opened.").childOf(::doorOpenerLeap)
 
     private val p1Leap by switch("P1 leap", desc = "Leaps in P1.")
     private val p1Auto by switch("Auto", desc = "Automatically leaps after Maxor died.").childOf(::p1Leap)
@@ -176,6 +186,7 @@ object AutoLeap : Module(
         on<MouseEvent.Click> {
             if (button != 0 || !state) return@on
             if (player.mainHandItem.skyblockId !in setOf("INFINITE_SPIRIT_LEAP", "SPIRIT_LEAP")) return@on
+            cancel()
 
             val currentTime = System.currentTimeMillis()
             if (currentTime - lastClick < fastDelay) return@on
@@ -207,7 +218,6 @@ object AutoLeap : Module(
         }
     }
 
-    // TODO: Move that stuff in utils
     private fun inF7Boss() = Dungeon.inBoss && Dungeon.isFloor(7)
 
     private fun inBox(x1: Double, x2: Double, y1: Double, y2: Double, z1: Double, z2: Double): Boolean =
@@ -230,8 +240,12 @@ object AutoLeap : Module(
             player.y < 110.0 && player.y > 55.0 && !isInP5Start()
 
     private fun getFastLeapTarget(): Any? {
+        if (!Dungeon.inBoss) {
+            return Dungeon.doorOpener.takeIf { doorOpenerLeap && it != "Unknown" && (!disableAfterBloodOpen || !Dungeon.bloodOpen) }
+        }
+
         if (!inF7Boss()) {
-            return Dungeon.doorOpener.takeIf { doorOpenerLeap && it != "Unknown" }
+            return null
         }
 
         return when {
