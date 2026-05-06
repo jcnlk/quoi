@@ -18,12 +18,14 @@ object AutoBookCombine : Module(
     private val clickDelay by slider("Click delay", 200L, 50L, 1_000L, 50L, desc = "Delay between clicks.", "ms")
     private val resultDelay by slider("Result delay", 500L, 100L, 2_000L, 50L, desc = "Delay before taking the combined book.", "ms")
     private val disableAfterFinish by switch("Disable after finish", true, desc = "Disables the module after all matching books have been combined.")
+    private val autoCloseAfterFinish by switch("Auto close after finish", false, desc = "Closes the anvil after successfully combining books.")
 
     private var currentStep = 0
     private var nextActionAt = 0L
     private var activePair: Pair<Int, Int>? = null
     private var wasInAnvil = false
     private var finishedForCurrentAnvil = false
+    private var combinedInCurrentAnvil = false
 
     init {
         on<TickEvent.End> {
@@ -45,7 +47,10 @@ object AutoBookCombine : Module(
             when (currentStep) {
                 0 -> click(pair.first, screen, clickDelay, shift = true)
                 1 -> click(pair.second, screen, clickDelay, shift = true)
-                2 -> click(RESULT_SLOT, screen, resultDelay)
+                2 -> {
+                    click(RESULT_SLOT, screen, resultDelay)
+                    combinedInCurrentAnvil = true
+                }
                 3 -> click(RESULT_SLOT, screen, resultDelay)
                 else -> {
                     activePair = null
@@ -71,7 +76,12 @@ object AutoBookCombine : Module(
     private fun nextPair(screen: AbstractContainerScreen<*>): Pair<Int, Int>? {
         val pair = findBookPair(screen)
         if (pair == null) {
-            modMessage("&aFinished Book Combining!")
+            if (combinedInCurrentAnvil) {
+                modMessage("&aFinished Book Combining!")
+                if (autoCloseAfterFinish) {
+                    screen.onClose()
+                }
+            }
             reset()
             finishedForCurrentAnvil = true
             if (disableAfterFinish) {
@@ -124,6 +134,7 @@ object AutoBookCombine : Module(
         nextActionAt = 0L
         activePair = null
         finishedForCurrentAnvil = false
+        combinedInCurrentAnvil = false
     }
 
     private const val CONTAINER_SIZE = 54
