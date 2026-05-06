@@ -76,6 +76,7 @@ object ModuleManager {
             Inventory,
             ItemAnimations,
             WitherCloak,
+            AutoBookCombine,
 //            CustomTriggers,
             MirrorverseSolvers,
             AutoCarnival,
