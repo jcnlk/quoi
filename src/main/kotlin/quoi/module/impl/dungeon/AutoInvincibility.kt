@@ -9,6 +9,8 @@ import quoi.api.abobaui.elements.impl.Text.Companion.textSupplied
 import quoi.api.colour.Colour
 import quoi.api.commands.internal.GreedyString
 import quoi.api.events.ChatEvent
+import quoi.api.events.KeyEvent
+import quoi.api.events.MouseEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
 import quoi.api.skyblock.SkyblockPlayer
@@ -33,14 +35,15 @@ object AutoInvincibility : Module(
     desc = "Automatically swaps to invincibility items."
 ) {
 
-    private val useSpiritMask by switch("Spirit Mask", false)
-    private val useBonzoMask by switch("Bonzo's Mask", false)
-    private val usePhoenixPet by switch("Phoenix Pet", false)
-    private val phoenixSwapMethod by selector("Swap method", PhoenixSwapMethod.RodSwap).childOf(::usePhoenixPet)
-    private val dungeonsOnly by switch("Dungeons only")
-    private val bossOnly by switch("Boss only")
-    private val p3Only by switch("Phase 3 only")
-    private val stopMoving by switch("Prevent moving", true)
+    private val useSpiritMask by switch("Spirit Mask", false, desc = "Equips Spirit Mask after proccing.")
+    private val useBonzoMask by switch("Bonzo's Mask", false, desc = "Equips Bonzo's Mask after proccing.")
+    private val usePhoenixPet by switch("Phoenix Pet", false, desc = "Swaps to Phoenix pet after proccing.")
+    private val phoenixSwapMethod by selector("Swap method", PhoenixSwapMethod.RodSwap, desc = "Method used to swap to the Phoenix pet. Rod Swap ignores input blocking.").childOf(::usePhoenixPet)
+    private val dungeonsOnly by switch("Dungeons only", desc = "Only triggers while being in dungeons.")
+    private val bossOnly by switch("Boss only", desc = "Only triggers while being in boss room.")
+    private val p3Only by switch("Phase 3 only", desc = "Only triggers during phase 3.")
+    private val stopMoving by switch("Prevent moving", true, desc = "Stops movement while equipping masks or swapping through the pet menu. Does not affect Rod Swap.")
+    private val blockInputs by switch("Block inputs", false, desc = "Blocks keyboard and mouse input while equipping masks or swapping through the pet menu. Does not affect Rod Swap.")
     private val hud by textHud("Swap hud", Colour.WHITE, font = TextHud.HudFont.Minecraft) {
         visibleIf { this@AutoInvincibility.enabled && (preview || swapHudText != null) }
         column {
@@ -51,9 +54,10 @@ object AutoInvincibility : Module(
                 size = 18.px,
             ).shadow = shadow
         }
-    }.setting()
+    }.setting("Shows the invincibility item currently being equipped.")
 
     private var swapping = false
+    private var blockingGameInput = false
     private var swapHudText: String? = null
 
     override fun onDisable() {
@@ -71,7 +75,27 @@ object AutoInvincibility : Module(
         }
 
         on<TickEvent.Start> {
-            if (stopMoving && swapping) player.stop()
+            if ((stopMoving || blockInputs) && blockingGameInput) player.stop()
+        }
+
+        on<KeyEvent.Press> {
+            if (blockInputs && blockingGameInput) cancel()
+        }
+
+        on<KeyEvent.Release> {
+            if (blockInputs && blockingGameInput) cancel()
+        }
+
+        on<MouseEvent.Click> {
+            if (blockInputs && blockingGameInput) cancel()
+        }
+
+        on<MouseEvent.Scroll> {
+            if (blockInputs && blockingGameInput) cancel()
+        }
+
+        on<MouseEvent.Move> {
+            if (blockInputs && blockingGameInput) cancel()
         }
 
         on<ChatEvent.Packet> {
@@ -142,6 +166,7 @@ object AutoInvincibility : Module(
         if (helmetName.contains(maskName, ignoreCase = true)) return
 
         swapping = true
+        blockingGameInput = true
         scope.launch {
             try {
                 swapHudText = "Equipping ${maskName.split(" ").joinToString(" ") { it.replaceFirstChar(Char::uppercase) }}"
@@ -156,6 +181,7 @@ object AutoInvincibility : Module(
         if (Dungeon.isDead || swapping || Dungeon.inTerminal) return
 
         swapping = true
+        blockingGameInput = phoenixSwapMethod.selected != PhoenixSwapMethod.RodSwap
         scope.launch {
             try {
                 swapHudText = "Equipping Phoenix"
@@ -209,6 +235,7 @@ object AutoInvincibility : Module(
 
     private fun resetSwapState() {
         swapping = false
+        blockingGameInput = false
         swapHudText = null
     }
 
