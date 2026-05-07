@@ -165,10 +165,20 @@ object ArrowAlign : Module(
         if (frame.entity.id != targetFrame.id) return
 
         if (clicksNeeded(frame, solution[frameIndex]) <= 0) return
+        if (!inP3 && totalClicksNeeded(currentFrames, solution) <= 1) return
 
         recentClicks[frameIndex] = System.currentTimeMillis()
         lastTriggerbotClick = recentClicks[frameIndex]
         clickFrame(frame)
+    }
+
+    private fun totalClicksNeeded(currentFrames: Array<CachedFrame?>, solution: List<Int?>): Int {
+        var clicks = 0
+        for (i in 0 until 25) {
+            val frame = currentFrames[i] ?: continue
+            clicks += clicksNeeded(frame, solution[i])
+        }
+        return clicks
     }
 
     private fun findSolution(currentFrames: Array<CachedFrame?>): List<Int?>? {
