@@ -23,6 +23,7 @@ import quoi.utils.ChatUtils.modMessage
 import quoi.utils.Scheduler.wait
 import quoi.utils.Scheduler.scheduleTask
 import quoi.utils.StringUtils.noControlCodes
+import quoi.utils.skyblock.ItemUtils.skyblockId
 import quoi.utils.skyblock.player.ContainerUtils
 import quoi.utils.skyblock.player.MovementUtils.stop
 import quoi.utils.skyblock.player.PetUtils
@@ -59,6 +60,16 @@ object AutoInvincibility : Module(
     private var swapping = false
     private var blockingGameInput = false
     private var swapHudText: String? = null
+    private var previousPet: String? = null
+    private var phoenixSwapId = 0
+
+    private val rodSwapBlacklist = setOf("SOUL_WHIP", "FLAMING_FLAY")
+
+    private val invincibilityPriority = listOf(
+        InvincibilityType.SPIRIT,
+        InvincibilityType.BONZO,
+        InvincibilityType.PHOENIX
+    )
 
     override fun onDisable() {
         resetSwapState()
@@ -109,67 +120,66 @@ object AutoInvincibility : Module(
             val phoenixMsg = messageRaw == "Your Phoenix Pet saved you from certain death!"
 
             if (bonzoMsg || spiritMsg || phoenixMsg) {
-                triggerNextItem(
-                    when {
-                        bonzoMsg -> InvincibilityType.BONZO
-                        spiritMsg -> InvincibilityType.SPIRIT
-                        else -> InvincibilityType.PHOENIX
-                    }
-                )
+                triggerNextItem()
+
+                if (phoenixMsg) queuePreviousPetSwap("Swapping back to previous pet after Phoenix proc.")
             }
         }
     }
 
-    private fun triggerNextItem(triggered: InvincibilityType) {
-        if (Dungeon.isDead || swapping || Dungeon.inTerminal) return
+    private fun triggerNextItem() {
+        if (Dungeon.isDead || swapping) return
 
-        when (getNextItem(triggered)) {
+        when (getNextItem()) {
             InvincibilityType.SPIRIT -> triggerEquip("spirit mask")
             InvincibilityType.BONZO -> triggerEquip("bonzo's mask")
             InvincibilityType.PHOENIX -> triggerPhoenixSwap()
-            null -> Unit
+            null -> handleNoInvincibilityLeft()
         }
     }
 
-    private fun getNextItem(triggered: InvincibilityType): InvincibilityType? {
-        return listOf(
-            InvincibilityType.SPIRIT.takeIf { useSpiritMask && canUseSpirit(triggered) },
-            InvincibilityType.BONZO.takeIf { useBonzoMask && canUseBonzo(triggered) },
-            InvincibilityType.PHOENIX.takeIf { usePhoenixPet && canUsePhoenix(triggered) }
-        ).firstOrNull { it != null }
+    private fun handleNoInvincibilityLeft() {
+        modMessage("§cNo invincibility left!")
+        queuePreviousPetSwap("§cNo invincibility left, swapping back to previous pet.")
     }
 
-    private fun canUseSpirit(triggered: InvincibilityType): Boolean {
-        if (triggered == InvincibilityType.SPIRIT) return false
-        if (InvincibilityType.SPIRIT.currentCooldown > 0) return false
-        return SkyblockPlayer.currentMask != Mask.SPIRIT
+    private fun getNextItem(): InvincibilityType? {
+        return invincibilityPriority.firstOrNull { it.isEnabled() && canUse(it) }
     }
 
-    private fun canUseBonzo(triggered: InvincibilityType): Boolean {
-        if (triggered == InvincibilityType.BONZO) return false
-        if (InvincibilityType.BONZO.currentCooldown > 0) return false
-        return SkyblockPlayer.currentMask != Mask.BONZO
+    private fun InvincibilityType.isEnabled(): Boolean = when (this) {
+        InvincibilityType.SPIRIT -> useSpiritMask
+        InvincibilityType.BONZO -> useBonzoMask
+        InvincibilityType.PHOENIX -> usePhoenixPet
     }
 
-    private fun canUsePhoenix(triggered: InvincibilityType): Boolean {
-        if (triggered == InvincibilityType.PHOENIX) return false
-        if (InvincibilityType.PHOENIX.currentCooldown > 0) return false
-        return !SkyblockPlayer.currentPet.contains("phoenix", true)
+    private fun canUse(type: InvincibilityType): Boolean {
+        if (type.currentCooldown > 0) return false
+        return when (type) {
+            InvincibilityType.SPIRIT -> SkyblockPlayer.currentMask != Mask.SPIRIT
+            InvincibilityType.BONZO -> SkyblockPlayer.currentMask != Mask.BONZO
+            InvincibilityType.PHOENIX -> !SkyblockPlayer.currentPet.contains("phoenix", true)
+        }
     }
 
     fun triggerEquip(maskName: String) {
-        if (Dungeon.isDead || swapping || Dungeon.inTerminal) return
-
-        val currentHelmet = player.inventory.getItem(39)
-        val helmetName = currentHelmet.displayName.string
-
-        if (helmetName.contains(maskName, ignoreCase = true)) return
+        if (Dungeon.isDead || swapping) return
 
         swapping = true
         blockingGameInput = true
         scope.launch {
             try {
+                while (Dungeon.inTerminal) {
+                    wait(1)
+                    if (Dungeon.isDead) return@launch
+                }
+
+                val currentHelmet = player.inventory.getItem(39)
+                val helmetName = currentHelmet.displayName.string
+                if (helmetName.contains(maskName, ignoreCase = true)) return@launch
+
                 swapHudText = "Equipping ${maskName.split(" ").joinToString(" ") { it.replaceFirstChar(Char::uppercase) }}"
+                modMessage("§eEquipping $maskName.")
                 equipMask(maskName)
             } finally {
                 resetSwapState()
@@ -178,8 +188,14 @@ object AutoInvincibility : Module(
     }
 
     private fun triggerPhoenixSwap() {
-        if (Dungeon.isDead || swapping || Dungeon.inTerminal) return
+        if (Dungeon.isDead || swapping) return
 
+        val currentPet = SkyblockPlayer.currentPet.trim()
+        if (currentPet.isNotEmpty() && !currentPet.contains("phoenix", ignoreCase = true)) {
+            previousPet = currentPet
+        }
+
+        val swapId = ++phoenixSwapId
         swapping = true
         blockingGameInput = phoenixSwapMethod.selected != PhoenixSwapMethod.RodSwap
         scope.launch {
@@ -192,24 +208,43 @@ object AutoInvincibility : Module(
             } finally {
                 resetSwapState()
             }
+
+            scope.launch {
+                wait(100)
+                if (swapId != phoenixSwapId) return@launch
+                if (InvincibilityType.PHOENIX.currentCooldown > 0) return@launch
+                queuePreviousPetSwap("§cPhoenix didn't proc within 5s, swapping back to previous pet.")
+            }
         }
     }
 
     private suspend fun triggerRodSwap() {
+        if (!waitUntilNotInTerminal()) return
+
         val player = player
-        val rodSlot = (0..8).firstOrNull { player.inventory.getItem(it).item == Items.FISHING_ROD }
+        val rodSlot = (0..8).firstOrNull { slot ->
+            val stack = player.inventory.getItem(slot)
+            stack.item == Items.FISHING_ROD && stack.skyblockId !in rodSwapBlacklist
+        }
             ?: return modMessage("§cCould not find a rod in your hotbar.")
 
         val swapped = SwapManager.swapToSlot(rodSlot)
         if (!swapped.success) return
         if (!swapped.already) wait(1)
 
+        modMessage("§eRod swapping.")
+        val wasCasted = player.fishing != null
         player.rightClick()
-        wait(4)
-        player.rightClick()
+        if (wasCasted) {
+            wait(4)
+            player.rightClick()
+        }
     }
 
     private suspend fun triggerPetMenuSwap() {
+        if (!waitUntilNotInTerminal()) return
+
+        modMessage("§eSwapping to Phoenix.")
         val queued = PetUtils.switchPet("Phoenix", preventMove = stopMoving)
         if (!queued) return modMessage("§cFailed to queue Phoenix pet switch.")
 
@@ -218,7 +253,32 @@ object AutoInvincibility : Module(
         }
     }
 
+    private fun queuePreviousPetSwap(message: String? = null) {
+        val pet = previousPet?.takeIf { it.isNotBlank() } ?: return
+
+        scope.launch {
+            while (swapping || PetUtils.isBusy()) {
+                wait(1)
+            }
+
+            if (Dungeon.isDead) return@launch
+            if (!SkyblockPlayer.currentPet.contains("phoenix", ignoreCase = true)) return@launch
+            if (!waitUntilNotInTerminal()) return@launch
+
+            modMessage(message ?: "§eSwapping back to $pet.")
+            when (phoenixSwapMethod.selected) {
+                PhoenixSwapMethod.RodSwap -> triggerRodSwap()
+                PhoenixSwapMethod.PetMenu -> {
+                    val queued = PetUtils.switchPet(pet, preventMove = stopMoving)
+                    if (!queued) modMessage("§cFailed to queue previous pet switch.")
+                }
+            }
+        }
+    }
+
     private suspend fun equipMask(name: String) {
+        if (!waitUntilNotInTerminal()) return
+
         val success = ContainerUtils.getContainerItemsClick(
             command = "eq",
             container = "Your Equipment and Stats",
@@ -230,7 +290,18 @@ object AutoInvincibility : Module(
 
         if (success) {
             scheduleTask(2) { ContainerUtils.closeContainer() }
+        } else {
+            modMessage("§cFailed to equip $name.")
         }
+    }
+
+    private suspend fun waitUntilNotInTerminal(): Boolean {
+        while (Dungeon.inTerminal) {
+            wait(1)
+            if (Dungeon.isDead) return false
+        }
+
+        return true
     }
 
     private fun resetSwapState() {
