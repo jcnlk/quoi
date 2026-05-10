@@ -3,9 +3,13 @@ package quoi.module.impl.misc
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.math.Axis
 import net.minecraft.core.component.DataComponents
+import net.minecraft.client.renderer.entity.state.FishingHookRenderState
 import net.minecraft.world.effect.MobEffectUtil
 import net.minecraft.world.effect.MobEffects
+import net.minecraft.world.entity.player.Player
+import net.minecraft.world.entity.projectile.FishingHook
 import net.minecraft.world.item.BlockItem
+import net.minecraft.world.item.FishingRodItem
 import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.block.SkullBlock
@@ -141,6 +145,32 @@ object ItemAnimations : Module(
         if (x != 0.0f || renderY != 0.0f || z != 0.0f) {
             pose.translate(x, renderY, z)
         }
+    }
+
+    @JvmStatic
+    fun applyFishingRodLineTransformations(hook: FishingHook, state: FishingHookRenderState) {
+        if (!enabled) return
+
+        val player = hook.playerOwner ?: return
+        if (player != mc.player) return
+        if (!mc.options.cameraType.isFirstPerson) return
+        if (!isHoldingFishingRod(player)) return
+
+        val camera = mc.gameRenderer.mainCamera
+        val left = camera.leftVector()
+        val up = camera.upVector()
+        val look = player.lookAngle
+        val offset = state.lineOriginOffset
+
+        state.lineOriginOffset = offset.add(
+            (-left.x() * x + up.x() * y).toDouble() + look.x * z,
+            (-left.y() * x + up.y() * y).toDouble() + look.y * z,
+            (-left.z() * x + up.z() * y).toDouble() + look.z * z
+        )
+    }
+
+    private fun isHoldingFishingRod(player: Player): Boolean {
+        return player.mainHandItem.item is FishingRodItem || player.offhandItem.item is FishingRodItem
     }
 
     @JvmStatic
