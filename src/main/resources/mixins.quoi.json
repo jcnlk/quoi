@@ -25,6 +25,7 @@
     "CommandSuggestionsListMixin",
     "EntityMixin",
     "EntityRendererMixin",
+    "FishingHookRendererMixin",
     "FogRendererMixin",
     "FontMixin",
     "GuiGraphicsMixin",
