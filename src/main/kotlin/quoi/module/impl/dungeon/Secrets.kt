@@ -9,6 +9,7 @@ import quoi.api.events.ChatEvent
 import quoi.api.events.DungeonEvent
 import quoi.api.events.RenderEvent
 import quoi.api.events.WorldEvent
+import quoi.api.skyblock.Island
 import quoi.api.skyblock.dungeon.Dungeon.dungeonItemDrops
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf
@@ -25,6 +26,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 // https://github.com/Noamm9/CatgirlAddons/blob/main/src/main/kotlin/catgirlroutes/module/impl/dungeons/Secrets.kt
 object Secrets : Module(
     "Secrets",
+    Island.Dungeon,
     desc = "Highlights collected secrets."
 ) {
     private val secretChime by switch("Chime", desc = "Plays a sound on secret click.")
