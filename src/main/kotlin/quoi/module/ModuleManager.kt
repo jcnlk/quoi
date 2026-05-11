@@ -47,7 +47,6 @@ object ModuleManager {
             AutoGFS,
             Splits,
             Secrets,
-            AutoBloodRush,
             AutoRoutesLegacy,
             SecretAura,
             PuzzleSolvers,
