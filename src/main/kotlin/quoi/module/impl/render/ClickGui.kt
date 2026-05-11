@@ -72,6 +72,12 @@ object ClickGui : Module(
     val selectedTheme by selector("Theme", "Light", arrayListOf("Light", "Dark", "Onyx")).onValueChanged { _, _ ->
         reopen()
     }.open()
+    val classColors by selector(
+        "Class colors",
+        "Hypixel Style",
+        listOf("Hypixel Style", "Noamm Style"),
+        desc = "Blame Noamm for this"
+    )
     private val moduleSorting by selector(
         "Module sorting",
         "Width (desc)",

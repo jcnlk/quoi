@@ -6,6 +6,7 @@ import net.minecraft.world.entity.player.PlayerSkin
 import quoi.api.events.DungeonEvent
 import quoi.api.events.core.EventBus
 import quoi.api.skyblock.dungeon.odonscanning.MapRenderer.mapSize
+import quoi.module.impl.render.ClickGui
 import quoi.utils.EntityUtils.playerEntities
 import quoi.api.vec.Vec2i
 
@@ -110,8 +111,8 @@ sealed class PuzzleStatus {
  *
  */
 enum class DungeonClass(
-    val colour: Colour,
-    val colourCode: Char,
+    private val hypixelColour: Colour,
+    private val hypixelColourCode: Char,
     val defaultQuadrant: Int,
     var priority: Int,
 ) {
@@ -120,7 +121,21 @@ enum class DungeonClass(
     Healer(Colour.MINECRAFT_LIGHT_PURPLE, 'd', 2, 2),
     Mage(Colour.MINECRAFT_AQUA, 'b', 3, 2),
     Tank(Colour.MINECRAFT_DARK_GREEN, '2', 3, 1),
-    Unknown(Colour.WHITE, 'f', 0, 0)
+    Unknown(Colour.WHITE, 'f', 0, 0);
+
+    val colour: Colour
+        get() = when {
+            ClickGui.classColors.selected == "Noamm Style" && this == Archer -> Berserk.hypixelColour
+            ClickGui.classColors.selected == "Noamm Style" && this == Berserk -> Archer.hypixelColour
+            else -> hypixelColour
+        }
+
+    val colourCode: Char
+        get() = when {
+            ClickGui.classColors.selected == "Noamm Style" && this == Archer -> Berserk.hypixelColourCode
+            ClickGui.classColors.selected == "Noamm Style" && this == Berserk -> Archer.hypixelColourCode
+            else -> hypixelColourCode
+        }
 }
 
 enum class Blessing(

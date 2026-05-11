@@ -29,8 +29,10 @@ class TextHud(
     private val anchor: Anchor get() = anchorSetting?.selected ?: Anchor.TopLeft
     private val font: Font get() = (fontSetting?.selected ?: HudFont.Minecraft).get()
 
-    class Scope(parent: Hud.Scope, val font: Font, val colour: Colour, val shadow: Boolean)
-        : Hud.Scope(parent.element, parent.preview)
+    class Scope(parent: Hud.Scope, val font: Font, private val colourSupplier: () -> Colour, val shadow: Boolean)
+        : Hud.Scope(parent.element, parent.preview) {
+        val colour: Colour get() = colourSupplier()
+    }
 
     override fun createScope(base: Hud.Scope): Scope {
         val anchor = /*anchorSetting.selected*/ anchor
@@ -44,7 +46,7 @@ class TextHud(
         element.constraints.x = Alignment.Relative(x.value.percent, anchor.x)
         element.constraints.y = Alignment.Relative(y.value.percent, anchor.y)
 
-        return Scope(base, font, colourSetting.value, shadowSetting.value)
+        return Scope(base, font, { colourSetting.value }, shadowSetting.value)
     }
 
     override fun savePosition(element: Element, screenWidth: Float, screenHeight: Float) {
