@@ -29,7 +29,6 @@ object ModuleManager {
             FullBlockHitboxes,
             DungeonAbilities,
             InventoryWalk,
-            CancelInteract,
             SecretTriggerBot,
             InvincibilityTimer,
             SimonSays,
