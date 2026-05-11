@@ -306,7 +306,7 @@ object AutoLeap : Module(
         player.x in x1..x2 && player.y in y1..y2 && player.z in z1..z2
 
     private fun isInP1() = inF7Boss() && player.y in 220.0..250.0
-    private fun isInPredev() = inF7Boss() && player.y in 100.0..160.0
+    private fun isInPredev() = inF7Boss() && Dungeon.getF7Phase() in setOf(M7Phases.P1, M7Phases.P2) && player.y in 100.0..160.0
     private fun isInP4() = inF7Boss() && player.y >= 55.0 && Dungeon.getF7Phase() == M7Phases.P4
     private fun isInRelic() = inF7Boss() && player.y in 4.0..50.0
     private fun isInGreenPad() = inF7Boss() && inBox(24.0, 41.0, 170.0, 172.0, 4.0, 21.0)
