@@ -38,22 +38,20 @@ jobs:
       - name: Build Mod
         run: ./gradlew build validateAccessWidener remapJar --stacktrace
 
-      - name: Stage Build Artifacts
+      - name: Upload Mod Jar
         if: always()
-        run: |
-          rm -rf ci-artifacts
-          mkdir -p ci-artifacts/reports
-          cp build/libs/*.jar ci-artifacts/
-          if [ -d build/reports ]; then
-            cp -R build/reports/. ci-artifacts/reports/
-          fi
-
-      - name: Upload Build Artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
-          name: quoi-build-artifacts
+          name: quoi
           path: |
-            ci-artifacts/*
-            ci-artifacts/reports/**
+            build/libs/*.jar
+            !build/libs/*-sources.jar
           if-no-files-found: warn
+
+      - name: Upload Build Reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: quoi-build-reports
+          path: build/reports/**
+          if-no-files-found: ignore
