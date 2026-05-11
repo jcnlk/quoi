@@ -1,13 +1,22 @@
 package quoi.module.impl.dungeon
 
 import net.minecraft.world.phys.Vec3
+import quoi.api.abobaui.constraints.Positions
+import quoi.api.abobaui.dsl.at
+import quoi.api.abobaui.dsl.px
+import quoi.api.abobaui.elements.ElementScope
+import quoi.api.abobaui.elements.impl.Text
+import quoi.api.abobaui.elements.impl.Text.Companion.shadow
+import quoi.api.colour.Colour
 import quoi.api.events.ChatEvent
 import quoi.api.events.DungeonEvent
 import quoi.api.events.MouseEvent
+import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
 import quoi.api.skyblock.Island
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.Dungeon.allTeammatesNoSelf
+import quoi.api.skyblock.dungeon.Dungeon.dungeonTeammatesNoSelf
 import quoi.api.skyblock.dungeon.DungeonClass
 import quoi.api.skyblock.dungeon.M7Phases
 import quoi.api.skyblock.dungeon.P3Section
@@ -17,14 +26,17 @@ import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.skyblock.ItemUtils.skyblockId
 import quoi.utils.skyblock.player.LeapManager
+import quoi.utils.ui.hud.impl.TextHud
 
 /**
  * TODO:
  * queuing leap while fast leaping in term
  * auto leap delay (?)
- * pre4 fast leap (maybe auto leap too)
+ * add other pre4 done detection methods
+ * pre4 leap to melody
  * option to create custom fast/auto leaps (maybe; prob use custom triggers for that)
  * move some stuff to utils
+ * make block input/movement option
  */
 
 // Kyleen (maybe)
@@ -55,7 +67,10 @@ object AutoLeap : Module(
     private val purpleLeap by switch("Purple pad leap", desc = "Leaps on purple pad.")
     private val purpleAuto by switch("Auto", desc = "Automatically leaps when Storm is enraged.").childOf(::purpleLeap)
 
-    private val p3Leap by switch("P3 leap", desc = "Leaps in clear and Goldor terminals.")
+    private val pre4Leap by switch("Pre4 leap", desc="Leaps on Pre4 dev.")
+    private val pre4Auto by switch("Auto", desc="Automatically leaps when Pre4 is done.").childOf(::pre4Leap)
+
+    private val p3Leap by switch("P3 leap", desc = "Leaps in terminal phase.")
     private val p3Auto by switch("Auto", desc = "Automatically leaps when a section is finished.").childOf(::p3Leap)
     private val whenBlown by switch("Only when gate blown", desc = "Only leaps when gate is blown").childOf(::p3Auto)
 
@@ -73,6 +88,7 @@ object AutoLeap : Module(
     private val greenName by textInput("Target", "Green", length = 16).childOf(::greenLeap) { greenLeap && leapMode.selected == "Name" }.suggests { allTeammatesNoSelf }
     private val yellowName by textInput("Target", "Yellow", length = 16).childOf(::yellowLeap) { yellowLeap && leapMode.selected == "Name" }.suggests { allTeammatesNoSelf }
     private val purpleName by textInput("Target", "Purple", length = 16).childOf(::purpleLeap) { purpleLeap && leapMode.selected == "Name" }.suggests { allTeammatesNoSelf }
+    private val pre4Name by textInput("Target", "Pre4", length=16).childOf(::predevLeap) { pre4Leap && leapMode.selected == "Name" }.suggests { allTeammatesNoSelf }
     private val s1Name by textInput("S1 leap", "S1", length = 16).childOf(::p3Leap) { p3Leap && leapMode.selected == "Name" }.suggests { allTeammatesNoSelf }
     private val s2Name by textInput("S2 leap", "S2", length = 16).childOf(::p3Leap) { p3Leap && leapMode.selected == "Name" }.suggests { allTeammatesNoSelf }
     private val s3Name by textInput("S3 leap", "S3", length = 16).childOf(::p3Leap) { p3Leap && leapMode.selected == "Name" }.suggests { allTeammatesNoSelf }
@@ -86,6 +102,7 @@ object AutoLeap : Module(
     private val greenClass by selector("Target", DungeonClass.Unknown).json("Green leap class").childOf(::greenLeap) { greenLeap && leapMode.selected == "Class" }
     private val yellowClass by selector("Target", DungeonClass.Unknown).json("Yellow leap class").childOf(::yellowLeap) { yellowLeap && leapMode.selected == "Class" }
     private val purpleClass by selector("Target", DungeonClass.Unknown).json("Purple leap class").childOf(::purpleLeap) { purpleLeap && leapMode.selected == "Class" }
+    private val pre4Class by selector("Target", DungeonClass.Unknown).json("Pre4 leap class").childOf(::pre4Leap) { pre4Leap && leapMode.selected == "Class" }
     private val s1Class by selector("S1 leap", DungeonClass.Healer).json("S1 leap class").childOf(::p3Leap) { p3Leap && leapMode.selected == "Class" }
     private val s2Class by selector("S2 leap", DungeonClass.Archer).json("S2 leap class").childOf(::p3Leap) { p3Leap && leapMode.selected == "Class" }
     private val s3Class by selector("S3 leap", DungeonClass.Mage).json("S3 leap class").childOf(::p3Leap) { p3Leap && leapMode.selected == "Class" }
@@ -94,10 +111,24 @@ object AutoLeap : Module(
     private val p5Class by selector("Target", DungeonClass.Unknown).json("P5 leap class").childOf(::p5Leap) { p5Leap && leapMode.selected == "Class" }
     private val relicClass by selector("Target", DungeonClass.Unknown).json("Relic leap class").childOf(::relicLeap) { relicLeap && leapMode.selected == "Class" }
 
+    private val hud by textHud("Leap hud", Colour.WHITE, font = TextHud.HudFont.Minecraft) {
+        visibleIf { this@AutoLeap.enabled && (preview || leapHudText != null) }
+        dynamicTextSupplied(
+            supplier = { leapHudText ?: "Leaping to &dHealer" },
+            colour = colour,
+            font = font,
+            size = 18.px,
+        ).shadow = shadow
+    }.setting("Shows the current leap target.")
+
     private var lastClick = 0L
     private var arghCount = 0
     private var crystalCount = 0
     private var oofCount = 0
+    private var leapHudText: String? = null
+    private var leapHudShownAt = 0L
+
+    private val leapHudDuration = 1_500L
 
     private val doNotLeapLocations = listOf(
         Vec3(108.5, 120.0, 94.5) to 1.5, // at ss
@@ -117,6 +148,13 @@ object AutoLeap : Module(
             arghCount = 0
             crystalCount = 0
             oofCount = 0
+            leapHudText = null
+        }
+
+        on<TickEvent.Start> {
+            if (leapHudText != null && System.currentTimeMillis() - leapHudShownAt > leapHudDuration) {
+                leapHudText = null
+            }
         }
 
         on<DungeonEvent.SectionComplete> {
@@ -181,6 +219,11 @@ object AutoLeap : Module(
             if (message.noControlCodes == "The Core entrance is opening!" && p3Leap && p3Auto) {
                 handleP3Leap(completedSection = P3Section.S4)
             }
+
+            val pre4Done = Regex("""(\w+) completed a device! \((.*?)\)""").matchEntire(message.noControlCodes)
+            if (pre4Done != null && pre4Done.groupValues[1] == player.name.string && pre4Leap && pre4Auto) {
+                leapToConfigured(pre4Name, pre4Class.selected)
+            }
         }
 
         on<MouseEvent.Click> {
@@ -193,7 +236,7 @@ object AutoLeap : Module(
 
             val target = getFastLeapTarget()
             if (target != null) {
-                LeapManager.leap(target)
+                leap(target)
             } else {
                 if (!p3Leap) return@on
                 if (Dungeon.getP3Section() == P3Section.Unknown && !Dungeon.inClear) return@on
@@ -205,10 +248,49 @@ object AutoLeap : Module(
 
     private fun leapToConfigured(name: String, clazz: DungeonClass) {
         when (leapMode.selected) {
-            "Name" -> if (name.isNotBlank()) LeapManager.leap(name)
-            "Class" -> if (clazz != DungeonClass.Unknown) LeapManager.leap(clazz)
+            "Name" -> if (name.isNotBlank()) leap(name)
+            "Class" -> if (clazz != DungeonClass.Unknown) leap(clazz)
         }
     }
+
+    private fun leap(target: Any) {
+        showLeapHud(target)
+        LeapManager.leap(target)
+    }
+
+    private fun showLeapHud(target: Any) {
+        leapHudText = "Leaping to ${formatTarget(target)}"
+        leapHudShownAt = System.currentTimeMillis()
+    }
+
+    private fun clearLeapHud() {
+        leapHudText = null
+    }
+
+    private fun formatTarget(target: Any): String {
+        return when (target) {
+            is DungeonClass -> "§${target.colourCode}${target.name}"
+            is String -> {
+                val clazz = dungeonTeammatesNoSelf.firstOrNull { it.name.equals(target, true) }?.clazz
+                "§${clazz?.colourCode ?: 'f'}$target"
+            }
+            else -> target.toString()
+        }
+    }
+
+    private inline fun TextHud.Scope.dynamicTextSupplied(
+        crossinline supplier: () -> Any?,
+        colour: Colour,
+        font: quoi.utils.ui.rendering.Font,
+        pos: Positions = at(),
+        size: quoi.api.abobaui.constraints.Constraint.Size
+    ): ElementScope<Text> = object : Text(supplier().toString(), font, colour, pos, size) {
+        override fun draw() {
+            text = supplier().toString()
+            this.colour = this@dynamicTextSupplied.colour
+            super.draw()
+        }
+    }.scope { }
 
     private fun configuredTarget(name: String, clazz: DungeonClass): Any? {
         return when (leapMode.selected) {
@@ -231,6 +313,7 @@ object AutoLeap : Module(
     private fun isInYellowPad() = inF7Boss() && inBox(24.0, 41.0, 170.0, 172.0, 86.0, 103.0)
     private fun isInPurplePad() = inF7Boss() && inBox(95.0, 123.0, 164.0, 172.0, 86.0, 103.0)
     private fun isInP5Start() = inF7Boss() && inBox(47.0, 61.0, 64.0, 75.0, 69.0, 83.0)
+    private fun isAtPre4() = inF7Boss() && inBox(62.0, 65.0, 127.0, 130.0, 34.0, 37.0)
     private fun isInMiddleFast() =
         inF7Boss() && (Dungeon.p3Section == P3Section.S4 || Dungeon.getF7Phase() == M7Phases.P4) &&
             (inBox(41.0, 68.0, 110.0, 150.0, 59.0, 117.0) || (player.y < 110.0 && player.y > 55.0 && !isInP5Start()))
@@ -257,6 +340,7 @@ object AutoLeap : Module(
             yellowLeap && isInYellowPad() -> configuredTarget(yellowName, yellowClass.selected)
             purpleLeap && isInPurplePad() -> configuredTarget(purpleName, purpleClass.selected)
             middleLeap && isInMiddleFast() -> configuredTarget(middleName, middleClass.selected)
+            pre4Leap && isAtPre4() -> configuredTarget(pre4Name, pre4Class.selected)
             else -> null
         }
     }
@@ -292,8 +376,8 @@ object AutoLeap : Module(
         }
 
         when (leapMode.selected) {
-            "Name" -> LeapManager.leap(name)
-            "Class" -> LeapManager.leap(clazz)
+            "Name" -> leap(name)
+            "Class" -> leap(clazz)
         }
     }
 }

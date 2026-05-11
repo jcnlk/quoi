@@ -46,7 +46,7 @@ object LeapManager { // still schizophrenia
                     if (stack.isEmpty) return@on
 
                     if (slot > 35) {
-                        modMessage("§cFailed to leap! §r$currentLeap §cnot found!")
+                        modMessage("§cFailed to leap! ${formatName(currentLeap)} §cnot found!")
                         reloadGui()
                         return@on
                     }
@@ -91,13 +91,13 @@ object LeapManager { // still schizophrenia
             is String -> dungeonTeammatesNoSelf.firstOrNull { it.name.equals(target, true) }
             is DungeonClass -> dungeonTeammatesNoSelf.firstOrNull { it.clazz == target }
             else -> null
-        } ?: return modMessage("&cFailed to leap! &r$target &cnot found")
+        } ?: return modMessage("&cFailed to leap! ${formatTarget(target)} &cnot found")
 
 //        if (teammate.name !in WorldUtils.players.map { it.profile.name }) return modMessage("&c Failed to leap! &r$target &cnot found")
 
         if (mc.screen != null || ContainerUtils.containerId != -1) {
             pendingLeap = teammate
-            modMessage("&eQueued leap to &f${teammate.name}")
+            modMessage("&eQueued leap to ${formatName(teammate)}")
         } else doLeap(teammate)
     }
 
@@ -115,9 +115,26 @@ object LeapManager { // still schizophrenia
             PlayerUtils.interact()
             lastLeap = System.currentTimeMillis()
             leapCD = 48 * getMageCooldownMultiplier()
-            modMessage("&aLeaping to &r${target.name}")
+            modMessage("&aLeaping to ${formatName(target)}")
         }
         leapQueue.add(target.name)
+    }
+
+    private fun formatTarget(target: Any): String {
+        return when (target) {
+            is DungeonClass -> "&${target.colourCode}${target.name}"
+            is String -> formatName(target)
+            else -> target.toString()
+        }
+    }
+
+    private fun formatName(name: String): String {
+        val teammate = dungeonTeammatesNoSelf.firstOrNull { it.name.equals(name, true) }
+        return if (teammate != null) formatName(teammate) else "&f$name"
+    }
+
+    private fun formatName(player: DungeonPlayer): String {
+        return "&${player.clazz.colourCode}${player.name}"
     }
 
     private fun reloadGui() {
