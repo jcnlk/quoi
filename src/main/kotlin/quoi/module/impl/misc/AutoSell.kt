@@ -6,6 +6,7 @@ import net.minecraft.client.gui.screens.inventory.InventoryScreen
 import net.minecraft.world.entity.player.Inventory
 import net.minecraft.world.inventory.ClickType
 import net.minecraft.world.item.ItemStack
+import net.minecraft.world.item.Items
 import quoi.api.commands.internal.GreedyString
 import quoi.api.events.GuiEvent
 import quoi.api.events.TickEvent
@@ -18,6 +19,7 @@ import quoi.module.settings.impl.ListSetting
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.skyblock.ItemUtils.extraAttributes
+import quoi.utils.skyblock.ItemUtils.lore
 
 object AutoSell : Module(
     "Auto Sell",
@@ -109,6 +111,8 @@ object AutoSell : Module(
             if (sellList.isEmpty() || !inGui) return@on
 
             val menu = (mc.screen as? AbstractContainerScreen<*>)?.menu ?: return@on
+            if (!menu.isSellMenu()) return@on
+
             val now = System.currentTimeMillis()
             if (lastClick != -1L && now - lastClick < nextDelay) return@on
 
@@ -133,6 +137,15 @@ object AutoSell : Module(
         menu.slots.firstOrNull { slot ->
             slot.container is Inventory && shouldSell(slot.item)
         }
+
+    private fun net.minecraft.world.inventory.AbstractContainerMenu.isSellMenu(): Boolean {
+        val sellItem = slots.getOrNull(49)?.item ?: return false
+        if (sellItem.item == Items.HOPPER && sellItem.hoverName.string.noControlCodes == "Sell Item") return true
+
+        val lore = sellItem.lore?.map { it.noControlCodes } ?: return false
+        return lore.firstOrNull() == "Click items in your inventory to sell" ||
+            lore.lastOrNull() == "Click to buyback!"
+    }
 
     private fun shouldSell(stack: ItemStack): Boolean {
         val itemName = stack.sellListName() ?: return false
@@ -184,7 +197,7 @@ object AutoSell : Module(
     }
 
     private val menuTitles = listOf("Trades", "Booster Cookie", "Farm Merchant", "Ophelia")
-    private val STACK_SIZE_REGEX = Regex("^(?:[1-9]|[1-5]\\d|6[0-4])(?:\\s*[xX×])?\\s+|\\s+[xX×]?\\d+$")
+    private val STACK_SIZE_REGEX = Regex("^(?:[1-9]|[1-5]\\d|6[0-4])(?:\\s*[xX×])?\\s+|\\s+(?:[xX×]\\s*(?:[1-9]|[1-5]\\d|6[0-4])|(?:[1-9]|[1-5]\\d|6[0-4])\\s*[xX×])$")
     private val WHITESPACE_REGEX = Regex("\\s+")
 
     private val defaultItems = arrayOf(
