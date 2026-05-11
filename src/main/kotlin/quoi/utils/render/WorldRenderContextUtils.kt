@@ -15,6 +15,7 @@ import quoi.QuoiMod.mc
 import quoi.api.colour.*
 import quoi.utils.EntityUtils.renderPos
 import quoi.utils.unaryMinus
+import kotlin.math.max
 import kotlin.math.pow
 import kotlin.math.tan
 
@@ -115,7 +116,8 @@ private fun boxEdges(box: AABB): List<Pair<Vec3, Vec3>> {
 }
 
 private fun legacyDistanceScaledThickness(cameraPos: Vec3, reference: Vec3, thickness: Float): Float {
-    return (thickness / cameraPos.distanceToSqr(reference).pow(0.15)).toFloat()
+    val distanceSqr = max(cameraPos.distanceToSqr(reference), 1.0)
+    return (thickness / distanceSqr.pow(0.15)).toFloat()
 }
 
 private fun addFilledBox(buffer: VertexConsumer, pose: com.mojang.blaze3d.vertex.PoseStack.Pose, box: AABB, cameraPos: Vec3, colour: Colour) {
