@@ -16,6 +16,7 @@ import net.minecraft.network.chat.Component
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import org.joml.Vector3f
+import kotlin.math.max
 import kotlin.math.pow
 
 /**
@@ -113,7 +114,8 @@ fun WorldRenderContext.drawWireFrameBox(aabb: AABB, colour: Colour, thickness: F
     val bufferSource = consumers() as? MultiBufferSource.BufferSource ?: return
     val layer = if (depth) CustomRenderLayer.LINE_LIST else CustomRenderLayer.LINE_LIST_ESP
     val camera = camera() ?: return
-    RenderSystem.lineWidth((thickness / camera.position.distanceToSqr(aabb.center).pow(0.15)).toFloat())
+    val distanceSqr = max(camera.position.distanceToSqr(aabb.center), 1.0)
+    RenderSystem.lineWidth((thickness / distanceSqr.pow(0.15)).toFloat())
 
     matrix.pushPose()
     with(camera.position) { matrix.translate(-x, -y, -z) }
@@ -209,7 +211,8 @@ fun WorldRenderContext.drawCylinder(
 
     matrix.pushPose()
     matrix.translate(center.x - camera.x, center.y - camera.y, center.z - camera.z)
-    RenderSystem.lineWidth((thickness / camera.distanceToSqr(center).pow(0.15)).toFloat())
+    val distanceSqr = max(camera.distanceToSqr(center), 1.0)
+    RenderSystem.lineWidth((thickness / distanceSqr.pow(0.15)).toFloat())
 
     val angleStep = 2.0 * Math.PI / segments
     val buffer = bufferSource.getBuffer(layer)
