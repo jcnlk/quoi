@@ -37,6 +37,7 @@ import quoi.utils.equalsOneOf
 import quoi.utils.isWithinFov
 import quoi.utils.minFovDot
 import quoi.utils.skyblock.player.EtherwarpManager
+import quoi.utils.skyblock.player.PlayerUtils.eyePosition
 import quoi.utils.skyblock.player.interact.AuraManager
 import quoi.utils.skyblock.player.SwapManager
 import quoi.utils.skyblock.player.SwapResult
