@@ -1,6 +1,8 @@
 package quoi.module.impl.dungeon
 
+import kotlinx.coroutines.launch
 import net.minecraft.world.phys.Vec3
+import quoi.QuoiMod.scope
 import quoi.api.abobaui.constraints.Positions
 import quoi.api.abobaui.dsl.at
 import quoi.api.abobaui.dsl.px
@@ -10,6 +12,7 @@ import quoi.api.abobaui.elements.impl.Text.Companion.shadow
 import quoi.api.colour.Colour
 import quoi.api.events.ChatEvent
 import quoi.api.events.DungeonEvent
+import quoi.api.events.KeyEvent
 import quoi.api.events.MouseEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
@@ -23,9 +26,11 @@ import quoi.api.skyblock.dungeon.P3Section
 import quoi.module.Module
 import quoi.module.settings.Setting.Companion.json
 import quoi.module.settings.UIComponent.Companion.childOf
+import quoi.utils.Scheduler.wait
 import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.skyblock.item.ItemUtils.skyblockId
 import quoi.utils.skyblock.player.LeapManager
+import quoi.utils.skyblock.player.MovementUtils.stop
 import quoi.utils.ui.hud.impl.TextHud
 
 /**
@@ -33,10 +38,8 @@ import quoi.utils.ui.hud.impl.TextHud
  * queuing leap while fast leaping in term
  * auto leap delay (?)
  * add other pre4 done detection methods
- * pre4 leap to melody
  * option to create custom fast/auto leaps (maybe; prob use custom triggers for that)
  * move some stuff to utils
- * make block input/movement option
  */
 
 // Kyleen (maybe)
@@ -48,6 +51,8 @@ object AutoLeap : Module(
 ) {
     private val leapMode by selector("Leap mode", "Name", listOf("Name", "Class"), "Leap mode for the module.").open()
     private val fastDelay by slider("Delay", 250L, 100L, 500L, 50L)
+    private val preventMoving by switch("Prevent moving", false, desc = "Stops movement while leaping.")
+    private val blockInputs by switch("Block inputs", false, desc = "Blocks keyboard and mouse input while leaping.")
 
     private val doorOpenerLeap by switch("Door opener leap", desc = "Outside of F7 boss, fast leap to the last wither door opener.")
     private val disableAfterBloodOpen by switch("Disable after Blood Open", desc = "Disables Door Fast Leap after the Blood Room has been opened.").childOf(::doorOpenerLeap)
@@ -69,6 +74,7 @@ object AutoLeap : Module(
 
     private val pre4Leap by switch("Pre4 leap", desc="Leaps on Pre4 dev.")
     private val pre4Auto by switch("Auto", desc="Automatically leaps when Pre4 is done.").childOf(::pre4Leap)
+    private val pre4LeapMelody by switch("Leap Melody", false, desc = "Leaps to the player doing Melody when Pre4 is done.").childOf(::pre4Leap)
 
     private val p3Leap by switch("P3 leap", desc = "Leaps in terminal phase.")
     private val p3Auto by switch("Auto", desc = "Automatically leaps when a section is finished.").childOf(::p3Leap)
@@ -127,8 +133,18 @@ object AutoLeap : Module(
     private var oofCount = 0
     private var leapHudText: String? = null
     private var leapHudShownAt = 0L
+    private var blockingGameInput = false
+    private var leapBlockId = 0
+    private var melodyTarget: String? = null
 
     private val leapHudDuration = 1_500L
+    private val leapBlockTimeout = 20
+    private val melodyProgress = setOf("1/4", "2/4", "3/4", "25%", "50%", "75%")
+
+    override fun onDisable() {
+        resetLeapState()
+        super.onDisable()
+    }
 
     private val doNotLeapLocations = listOf(
         Vec3(108.5, 120.0, 94.5) to 1.5, // at ss
@@ -148,13 +164,30 @@ object AutoLeap : Module(
             arghCount = 0
             crystalCount = 0
             oofCount = 0
-            leapHudText = null
+            resetLeapState()
         }
 
         on<TickEvent.Start> {
             if (leapHudText != null && System.currentTimeMillis() - leapHudShownAt > leapHudDuration) {
                 leapHudText = null
             }
+            if ((preventMoving || blockInputs) && blockingGameInput) player.stop()
+        }
+
+        on<KeyEvent.Press> {
+            if (blockInputs && blockingGameInput) cancel()
+        }
+
+        on<KeyEvent.Release> {
+            if (blockInputs && blockingGameInput) cancel()
+        }
+
+        on<MouseEvent.Scroll> {
+            if (blockInputs && blockingGameInput) cancel()
+        }
+
+        on<MouseEvent.Move> {
+            if (blockInputs && blockingGameInput) cancel()
         }
 
         on<DungeonEvent.SectionComplete> {
@@ -170,6 +203,14 @@ object AutoLeap : Module(
         }
 
         on<ChatEvent.Packet> {
+            if (pre4Leap && pre4LeapMelody && "Party" in message.noControlCodes && melodyProgress.any { it in message.noControlCodes }) {
+                melodyTarget = Regex("""([A-Za-z0-9_]{3,16}):""")
+                    .findAll(message.noControlCodes)
+                    .lastOrNull()
+                    ?.groupValues
+                    ?.get(1)
+            }
+
             if (message.noControlCodes.matches(Regex("\\[BOSS] Storm: (?:Oof|Ouch, that hurt!)"))) {
                 oofCount++
                 if (oofCount == 1 && greenLeap && greenAuto && isInGreenPad()) {
@@ -222,11 +263,16 @@ object AutoLeap : Module(
 
             val pre4Done = Regex("""(\w+) completed a device! \((.*?)\)""").matchEntire(message.noControlCodes)
             if (pre4Done != null && pre4Done.groupValues[1] == player.name.string && pre4Leap && pre4Auto) {
-                leapToConfigured(pre4Name, pre4Class.selected)
+                leapToPre4Target()
             }
         }
 
         on<MouseEvent.Click> {
+            if (blockInputs && blockingGameInput) {
+                cancel()
+                return@on
+            }
+
             if (button != 0 || !state) return@on
             if (player.mainHandItem.skyblockId !in setOf("INFINITE_SPIRIT_LEAP", "SPIRIT_LEAP")) return@on
             cancel()
@@ -253,9 +299,32 @@ object AutoLeap : Module(
         }
     }
 
+    private fun leapToPre4Target() {
+        val target = getPre4Target() ?: return
+        leap(target)
+    }
+
     private fun leap(target: Any) {
         showLeapHud(target)
+        startLeapBlock()
         LeapManager.leap(target)
+    }
+
+    private fun startLeapBlock() {
+        if (!preventMoving && !blockInputs) return
+
+        val blockId = ++leapBlockId
+        blockingGameInput = true
+
+        scope.launch {
+            repeat(leapBlockTimeout) {
+                wait(1)
+                if (blockId != leapBlockId) return@launch
+            }
+            if (blockId == leapBlockId) blockingGameInput = false
+        }.invokeOnCompletion {
+            if (blockId == leapBlockId) blockingGameInput = false
+        }
     }
 
     private fun showLeapHud(target: Any) {
@@ -265,6 +334,13 @@ object AutoLeap : Module(
 
     private fun clearLeapHud() {
         leapHudText = null
+    }
+
+    private fun resetLeapState() {
+        leapBlockId++
+        blockingGameInput = false
+        melodyTarget = null
+        clearLeapHud()
     }
 
     private fun formatTarget(target: Any): String {
@@ -297,6 +373,14 @@ object AutoLeap : Module(
             "Name" -> name.takeIf { it.isNotBlank() }
             "Class" -> clazz.takeIf { it != DungeonClass.Unknown }
             else -> null
+        }
+    }
+
+    private fun getPre4Target(): Any? {
+        return if (pre4LeapMelody) {
+            melodyTarget ?: configuredTarget(pre4Name, pre4Class.selected)
+        } else {
+            configuredTarget(pre4Name, pre4Class.selected)
         }
     }
 
@@ -340,7 +424,7 @@ object AutoLeap : Module(
             yellowLeap && isInYellowPad() -> configuredTarget(yellowName, yellowClass.selected)
             purpleLeap && isInPurplePad() -> configuredTarget(purpleName, purpleClass.selected)
             middleLeap && isInMiddleFast() -> configuredTarget(middleName, middleClass.selected)
-            pre4Leap && isAtPre4() -> configuredTarget(pre4Name, pre4Class.selected)
+            pre4Leap && isAtPre4() -> getPre4Target()
             else -> null
         }
     }
