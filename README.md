@@ -13,15 +13,16 @@
 - `/quoi playeresp <name|clear>` - targets Player ESP
 - `/quoi pet <name>` - queues a pet swap by name
 - `/quoi wardrobe <1-9>` - equips a wardrobe slot
-- `/quoi autosell ...` - manages the Auto Sell item list
-- `/quoi ac ...` - manages Auto Clicker buttons
-- `/quoi emote ...` - manages custom emotes
-- `/quoi chatfilter ...` - manages custom chat filters
-- `/quoi petkeybinds ...` - manages pet keybind entries
+- `/quoi autosell <add|remove|clear|list> [item]` - manages the Auto Sell item list
+- `/quoi ac <add|remove|clear> <left|right>` - manages Auto Clicker item whitelists
+- `/quoi emote <add|remove|list|clear> ...` - manages custom emotes
+- `/quoi chatfilter <add|remove|list|show|status|clear> ...` - manages custom chat filters
+- `/quoi petkeybinds <add|get|list|remove|clear> ...` - manages pet keybind entries
 - `/quoi antiafk <delay>` - runs the anti-AFK helper
 - `/quoi findlobby <area> <day|server|player> <value>` - searches for matching lobbies
-- `/route` - Auto Routes command set
+- `/route` - Auto Routes editor/runtime command set
 - `/lroute` - legacy Auto Routes command set
+- `/grieferpro` or `/gp` - manages the Griefer Tracker player list
 - `/clearchat` - clears the in-game chat
 - `/f0` to `/f7`, `/m1` to `/m7` - quick dungeon floor instance commands
 
@@ -31,8 +32,6 @@
 
 - **Arrow Align**
   - Automatically completes arrows align device.
-- **Auto Blood Rush**
-  - Automatically blood rushes.
 - **Auto Close Chest**
   - Automatically closes secret chests.
 - **Auto Frag Run**
@@ -49,7 +48,6 @@
   - Automatically blows up Goldor fight gates.
 - **Blood Camp**
   - Predicts blood mob spawn positions and timings.
-- **Cancel Interact**
 - **Dungeon Abilities**
   - Automatically uses abilities.
 - **Dungeon Breaker**
@@ -105,6 +103,8 @@
   - Detects nicked players.
 - **Auto Carnival**
   - Automates Carnival tasks.
+- **Auto Book Combine**
+  - Automatically combines matching enchanted books in the Hypixel Anvil.
 - **Auto Clicker**
   - A simple auto clicker for both left and right click. Activates when the corresponding key is being held down.
 - **Auto GFS**
