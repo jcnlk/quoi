@@ -177,13 +177,13 @@ object DungeonESP : Module(
 
     private fun handleStand(stand: ArmorStand) {
         val name = stand.customName?.string ?: return
-        if ("✯" !in name && !name.endsWith("§c❤")) return
+        val colours = getStandColours(name) ?: return
 
         val offset = if (name.noControlCodes.contains("withermancer", true)) 3 else 1
         val realId = stand.id - offset
 
         stand.level().getEntity(realId)?.takeIf { it is LivingEntity && it !is ArmorStand }?.let {
-            addMob(it as LivingEntity, colourStar, colourStarFill)
+            addMob(it as LivingEntity, colours.first, colours.second)
             return
         }
 
@@ -191,7 +191,19 @@ object DungeonESP : Module(
         stand.level().getEntities(stand, stand.boundingBox.move(0.0, -1.0, 0.0)) {
             it !is ArmorStand && it is LivingEntity && it != player
         }.firstOrNull()?.let {
-            addMob(it as LivingEntity, colourStar, colourStarFill)
+            addMob(it as LivingEntity, colours.first, colours.second)
+        }
+    }
+
+    private fun getStandColours(name: String): Pair<Colour, Colour>? {
+        val cleanName = name.noControlCodes
+
+        return when {
+            cleanName.contains("Shadow Assassin", true) -> colourSA to colourSAFill
+            cleanName.contains("Lost Adventurer", true) -> colourStar to colourStarFill
+            cleanName.contains("Diamond Guy", true) -> colourStar to colourStarFill
+            "✯" in name || name.endsWith("§c❤") -> colourStar to colourStarFill
+            else -> null
         }
     }
 
@@ -212,8 +224,8 @@ object DungeonESP : Module(
             null
         }
         is Player -> with(entity.name.string) {
-            if (!contains("✯")) null
-            else if (contains("Shadow Assassin")) colourSA to colourSAFill
+            if (contains("Shadow Assassin")) colourSA to colourSAFill
+            else if (!contains("✯")) null
             else if (equalsOneOf("Diamond Guy", "Lost Adventurer")) colourStar to colourStarFill
             else null
         }
