@@ -21,7 +21,7 @@ import quoi.module.settings.UIComponent.Companion.visibleIf
 import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.WorldUtils.tablist
 import quoi.utils.render.DrawContextUtils.rect
-import quoi.utils.skyblock.ItemUtils.lore
+import quoi.utils.skyblock.item.ItemUtils.lore
 import quoi.utils.skyblock.player.PlayerUtils
 import quoi.utils.ui.hud.HudManager
 import quoi.utils.ui.hud.impl.TextHud

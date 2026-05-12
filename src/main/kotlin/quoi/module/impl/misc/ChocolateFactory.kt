@@ -24,8 +24,8 @@ import quoi.utils.romanToInt
 import quoi.utils.aabb
 import quoi.utils.render.drawText
 import quoi.utils.render.drawWireFrameBox
-import quoi.utils.skyblock.ItemUtils.lore
-import quoi.utils.skyblock.ItemUtils.texture
+import quoi.utils.skyblock.item.ItemUtils.lore
+import quoi.utils.skyblock.item.ItemUtils.texture
 import kotlin.math.max
 
 /**

@@ -15,8 +15,8 @@ import quoi.module.impl.misc.PetKeybinds.petMap
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.Scheduler.wait
 import quoi.utils.StringUtils.noControlCodes
-import quoi.utils.skyblock.ItemUtils.lore
-import quoi.utils.skyblock.ItemUtils.loreString
+import quoi.utils.skyblock.item.ItemUtils.lore
+import quoi.utils.skyblock.item.ItemUtils.loreString
 import quoi.utils.skyblock.player.ContainerUtils.closeContainer
 import quoi.utils.skyblock.player.MovementUtils.stop
 import java.util.ArrayDeque

@@ -23,7 +23,7 @@ import quoi.utils.ChatUtils.modMessage
 import quoi.utils.Scheduler.wait
 import quoi.utils.Scheduler.scheduleTask
 import quoi.utils.StringUtils.noControlCodes
-import quoi.utils.skyblock.ItemUtils.skyblockId
+import quoi.utils.skyblock.item.ItemUtils.skyblockId
 import quoi.utils.skyblock.player.ContainerUtils
 import quoi.utils.skyblock.player.MovementUtils.stop
 import quoi.utils.skyblock.player.PetUtils

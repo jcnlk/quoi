@@ -18,8 +18,8 @@ import quoi.module.Module
 import quoi.module.settings.impl.ListSetting
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.StringUtils.noControlCodes
-import quoi.utils.skyblock.ItemUtils.extraAttributes
-import quoi.utils.skyblock.ItemUtils.lore
+import quoi.utils.skyblock.item.ItemUtils.extraAttributes
+import quoi.utils.skyblock.item.ItemUtils.lore
 
 object AutoSell : Module(
     "Auto Sell",
