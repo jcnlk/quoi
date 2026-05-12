@@ -19,7 +19,7 @@ import quoi.api.skyblock.Location.currentArea
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.M7Phases
 import quoi.module.Module
-import quoi.utils.skyblock.ItemUtils.texture
+import quoi.utils.skyblock.item.ItemUtils.texture
 import quoi.utils.textures
 
 object RenderOptimiser : Module(
