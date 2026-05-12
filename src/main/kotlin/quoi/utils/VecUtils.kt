@@ -29,6 +29,17 @@ data class Direction(val yaw: Float, val pitch: Float, val distance: Double = 0.
     fun getLook() = getLook(yaw, pitch)
 }
 
+fun minFovDot(fov: Number): Double = cos(Math.toRadians(fov.toDouble()) / 2.0)
+
+fun isWithinFov(eyePos: Vec3, targetPos: Vec3, lookVec: Vec3, minFovDot: Double, fullCircleFov: Boolean = false): Boolean {
+    if (fullCircleFov) return true
+
+    val targetVec = targetPos.subtract(eyePos)
+    if (targetVec.lengthSqr() <= 1.0E-6) return true
+
+    return lookVec.dot(targetVec.normalize()) >= minFovDot
+}
+
 operator fun Vec3.component1(): Double = x
 operator fun Vec3.component2(): Double = y
 operator fun Vec3.component3(): Double = z

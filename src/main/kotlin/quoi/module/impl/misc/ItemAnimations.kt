@@ -16,8 +16,8 @@ import net.minecraft.world.level.block.SkullBlock
 import quoi.api.events.TickEvent
 import quoi.module.Module
 import quoi.module.settings.Setting.Companion.json
-import quoi.utils.skyblock.ItemUtils.loreString
-import quoi.utils.skyblock.ItemUtils.skyblockId
+import quoi.utils.skyblock.item.ItemUtils.loreString
+import quoi.utils.skyblock.item.ItemUtils.skyblockId
 import quoi.utils.ui.settingFromK0
 import kotlin.math.pow
 

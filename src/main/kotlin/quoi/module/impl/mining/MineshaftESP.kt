@@ -22,8 +22,8 @@ import quoi.utils.aabb
 import quoi.utils.render.drawStyledBox
 import quoi.utils.render.drawText
 import quoi.utils.render.drawTracer
-import quoi.utils.skyblock.ItemUtils.extraAttributes
-import quoi.utils.skyblock.ItemUtils.skyblockId
+import quoi.utils.skyblock.item.ItemUtils.extraAttributes
+import quoi.utils.skyblock.item.ItemUtils.skyblockId
 import quoi.utils.vec3
 import kotlin.math.sqrt
 

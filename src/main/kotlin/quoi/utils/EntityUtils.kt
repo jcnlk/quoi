@@ -10,6 +10,7 @@ import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
 import quoi.annotations.Init
+import quoi.utils.skyblock.player.PlayerUtils.eyePosition
 import kotlin.math.sqrt
 
 @Init
