@@ -15,7 +15,6 @@ import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.module.settings.impl.ListSetting
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.StringUtils.formattedString
-<<<<<<< HEAD
 import quoi.utils.skyblock.item.ItemUtils.skyblockId
 import quoi.utils.skyblock.item.ItemUtils.skyblockUuid
 import quoi.utils.skyblock.player.PlayerUtils.isLookingAtBreakable
