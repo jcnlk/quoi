@@ -64,11 +64,12 @@ object AutoInvincibility : Module(
     private var swapHudText: String? = null
     private var previousPet: String? = null
     private var phoenixSwapId = 0
+    private var phoenixWatchId = 0
 
     private val rodSwapBlacklist = setOf("SOUL_WHIP", "FLAMING_FLAY")
 
     override fun onDisable() {
-        resetSwapState()
+        resetAllState()
         super.onDisable()
     }
 
@@ -78,7 +79,7 @@ object AutoInvincibility : Module(
         }.description("Automatically swaps to a specified mask.").requires("&cAuto Invincibility module is disabled!") { enabled }
 
         on<WorldEvent.Change> {
-            resetSwapState()
+            resetAllState()
         }
 
         on<TickEvent.Start> {
@@ -115,22 +116,58 @@ object AutoInvincibility : Module(
             val spiritMsg = messageRaw == "Second Wind Activated! Your Spirit Mask saved your life!"
             val phoenixMsg = messageRaw == "Your Phoenix Pet saved you from certain death!"
 
-            if (bonzoMsg || spiritMsg || phoenixMsg) {
+            if (phoenixMsg) {
+                handlePhoenixProc()
+            } else if (bonzoMsg || spiritMsg) {
                 triggerNextItem()
-
-                if (phoenixMsg) queuePreviousPetSwap("Swapping back to previous pet after Phoenix proc.")
             }
+        }
+    }
+
+    private fun triggerItem(type: InvincibilityType) {
+        when (type) {
+            InvincibilityType.SPIRIT -> triggerEquip("spirit mask", delayed = true)
+            InvincibilityType.BONZO -> triggerEquip("bonzo's mask", delayed = true)
+            InvincibilityType.PHOENIX -> triggerPhoenixSwap(delayed = true)
         }
     }
 
     private fun triggerNextItem() {
         if (Dungeon.isDead || swapping) return
 
-        when (getNextItem()) {
-            InvincibilityType.SPIRIT -> triggerEquip("spirit mask", delayed = true)
-            InvincibilityType.BONZO -> triggerEquip("bonzo's mask", delayed = true)
-            InvincibilityType.PHOENIX -> triggerPhoenixSwap(delayed = true)
-            null -> handleNoInvincibilityLeft()
+        val nextItem = getNextItem()
+        if (nextItem == null) {
+            handleNoInvincibilityLeft()
+            return
+        }
+
+        triggerItem(nextItem)
+    }
+
+    private fun handlePhoenixProc() {
+        phoenixWatchId++
+
+        val nextItem = getNextItem()
+        if (nextItem == null) {
+            handleNoInvincibilityLeft()
+            return
+        }
+
+        triggerItem(nextItem)
+        startPhoenixProcWatch("§cPhoenix didn't proc within 5s, swapping back to previous pet.")
+    }
+
+    private fun startPhoenixProcWatch(message: String) {
+        val watchId = ++phoenixWatchId
+
+        scope.launch {
+            wait(100)
+
+            if (watchId != phoenixWatchId) return@launch
+            if (Dungeon.isDead) return@launch
+            if (!SkyblockPlayer.currentPet.contains("phoenix", ignoreCase = true)) return@launch
+
+            queuePreviousPetSwap(message)
         }
     }
 
@@ -221,12 +258,9 @@ object AutoInvincibility : Module(
                 resetSwapState()
             }
 
-            scope.launch {
-                wait(100)
-                if (swapId != phoenixSwapId) return@launch
-                if (InvincibilityType.PHOENIX.currentCooldown > 0) return@launch
-                queuePreviousPetSwap("§cPhoenix didn't proc within 5s, swapping back to previous pet.")
-            }
+            if (swapId != phoenixSwapId) return@launch
+
+            startPhoenixProcWatch("§cPhoenix didn't proc within 5s, swapping back to previous pet.")
         }
     }
 
@@ -326,6 +360,13 @@ object AutoInvincibility : Module(
         swapping = false
         blockingGameInput = false
         swapHudText = null
+    }
+
+    private fun resetAllState() {
+        resetSwapState()
+        phoenixWatchId++
+        phoenixSwapId++
+        previousPet = null
     }
 
     private enum class PhoenixSwapMethod {
