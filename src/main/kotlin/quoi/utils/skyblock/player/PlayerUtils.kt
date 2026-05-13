@@ -117,9 +117,12 @@ object PlayerUtils {
         return amount
     }
 
-    fun fillItemFromSack(itemId: String, amount: Int, sackName: String) {
-        val needed = mc.player?.inventory?.find { it.skyblockId == itemId }?.count ?: 0
-        if (needed != amount) ChatUtils.command("gfs $sackName ${amount - needed}")
+    fun fillItemFromSack(itemId: String, amount: Int, sackName: String): Boolean {
+        val missing = amount - getItemsAmount(itemId)
+        if (missing <= 0) return false
+
+        ChatUtils.command("gfs $sackName $missing")
+        return true
     }
 
 
