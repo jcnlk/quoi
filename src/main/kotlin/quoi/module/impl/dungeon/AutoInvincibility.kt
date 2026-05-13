@@ -161,7 +161,7 @@ object AutoInvincibility : Module(
         val watchId = ++phoenixWatchId
 
         scope.launch {
-            wait(100)
+            waitServerTicks(100)
 
             if (watchId != phoenixWatchId) return@launch
             if (Dungeon.isDead) return@launch
@@ -265,7 +265,12 @@ object AutoInvincibility : Module(
     }
 
     private suspend fun waitSwapDelay(delayed: Boolean) {
-        if (delayed && swapDelay > 0) wait(swapDelay)
+        if (delayed && swapDelay > 0) waitServerTicks(swapDelay)
+    }
+
+    private suspend fun waitServerTicks(ticks: Int) {
+        wait(ticks, server = true)
+        wait(1)
     }
 
     private suspend fun triggerRodSwap(delayed: Boolean = false) {
@@ -309,12 +314,15 @@ object AutoInvincibility : Module(
 
     private fun queuePreviousPetSwap(message: String? = null) {
         val pet = previousPet?.takeIf { it.isNotBlank() } ?: return
+        val swapId = phoenixSwapId
+        val watchId = phoenixWatchId
 
         scope.launch {
             while (swapping || PetUtils.isBusy()) {
                 wait(1)
             }
 
+            if (swapId != phoenixSwapId || watchId != phoenixWatchId) return@launch
             if (Dungeon.isDead) return@launch
             if (!SkyblockPlayer.currentPet.contains("phoenix", ignoreCase = true)) return@launch
             if (!waitUntilNotInTerminal()) return@launch
