@@ -12,6 +12,8 @@ object AutoGFS : Module( // untested
     "Auto GFS",
     desc = "Automatically refills certain items from your sacks."
 ) {
+    private const val COMMAND_COOLDOWN_TICKS = 5
+
     private val itemsDropdown by text("Items to refill")
     private val pearls by switch("Pearls").childOf(::itemsDropdown)
     private val booms by switch("Super booms").childOf(::itemsDropdown)
@@ -25,13 +27,19 @@ object AutoGFS : Module( // untested
     private val dungeonsOnly by switch("Dungeons only", desc = "Only refill items when in dungeons.")
 
     private var tickCount = 0
+    private var commandCooldown = 0
+    private var refilling = false
+    private var nextItemIndex = 0
+
     init {
         on<TickEvent.End> {
+            if (commandCooldown > 0) commandCooldown--
+
             if (dungeonsOnly && !Dungeon.inDungeons) return@on
             if (Dungeon.isDead || !Location.inSkyblock || mc.screen != null) return@on
-            if (!SkyblockPlayer.canUseCommands) return@on.also { tickCount = 10000 }
+            if (!SkyblockPlayer.canUseCommands || commandCooldown > 0) return@on
 
-            if (++tickCount < when (mode.selected) {
+            if (!refilling && ++tickCount < when (mode.selected) {
                     "Amount" -> 20
                     "Time" -> time * 20
                     else -> Int.MAX_VALUE
@@ -39,14 +47,29 @@ object AutoGFS : Module( // untested
             ) return@on
             tickCount = 0
 
-            when (mode.selected) {
-                "Amount" -> RefillItem.entries.forEach { if (it.shouldRefill()) it.refill() }
-                "Time" -> RefillItem.entries.forEach { if (it.enabled) it.refill() }
+            if (refillNextItem()) {
+                refilling = true
+                commandCooldown = COMMAND_COOLDOWN_TICKS
+            } else {
+                refilling = false
             }
         }
     }
 
     private fun isBelowPercentage(n: Int, max: Int) = n < (amount / 100.0) * max
+
+    private fun refillNextItem(): Boolean {
+        val items = RefillItem.entries
+
+        repeat(items.size) {
+            val item = items[nextItemIndex]
+            nextItemIndex = (nextItemIndex + 1) % items.size
+
+            if (item.shouldRefill() && item.refill()) return true
+        }
+
+        return false
+    }
 
     private enum class RefillItem(
         val maxStack: Int,
@@ -58,7 +81,7 @@ object AutoGFS : Module( // untested
         JERRY(64, "INFLATABLE_JERRY", "inflatable_jerry"),
         LEAP(16, "SPIRIT_LEAP", "spirit_leap");
 
-        val enabled get() = when(this) {
+        val enabled get() = when (this) {
             PEARL -> pearls
             BOOM -> booms
             JERRY -> jerries
@@ -66,11 +89,18 @@ object AutoGFS : Module( // untested
         }
 
         fun shouldRefill(): Boolean {
-            return enabled && isBelowPercentage(PlayerUtils.getItemsAmount(itemId), maxStack)
+            if (!enabled) return false
+
+            val currentAmount = PlayerUtils.getItemsAmount(itemId)
+            return when (mode.selected) {
+                "Amount" -> isBelowPercentage(currentAmount, maxStack)
+                "Time" -> currentAmount < maxStack
+                else -> false
+            }
         }
 
-        fun refill() {
-            PlayerUtils.fillItemFromSack(itemId, maxStack, sackName)
+        fun refill(): Boolean {
+            return PlayerUtils.fillItemFromSack(itemId, maxStack, sackName)
         }
     }
 }
