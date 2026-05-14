@@ -65,6 +65,7 @@ object ModuleManager {
             CatMode,
             AutoSell,
             AutoWardrobe,
+            AutoHotbar,
             PetKeybinds,
             Titles,
             WardrobeKeybinds,
