@@ -1,11 +1,14 @@
 package quoi.module.impl.misc
 
+import quoi.api.events.ChatEvent
 import quoi.api.events.TickEvent
+import quoi.api.events.WorldEvent
 import quoi.api.skyblock.Location
 import quoi.api.skyblock.SkyblockPlayer
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf
+import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.skyblock.player.PlayerUtils
 
 object AutoGFS : Module( // untested
@@ -28,10 +31,21 @@ object AutoGFS : Module( // untested
 
     private var tickCount = 0
     private var commandCooldown = 0
-    private var refilling = false
     private var nextItemIndex = 0
+    private val emptySacks = hashSetOf<RefillItem>()
 
     init {
+        on<ChatEvent.Packet> {
+            val cleanMessage = message.noControlCodes
+            RefillItem.entries.firstOrNull { cleanMessage == "You have no ${it.itemName} in your Sacks!" }?.let {
+                emptySacks.add(it)
+            }
+        }
+
+        on<WorldEvent.Change> {
+            emptySacks.clear()
+        }
+
         on<TickEvent.End> {
             if (commandCooldown > 0) commandCooldown--
 
@@ -39,7 +53,7 @@ object AutoGFS : Module( // untested
             if (Dungeon.isDead || !Location.inSkyblock || mc.screen != null) return@on
             if (!SkyblockPlayer.canUseCommands || commandCooldown > 0) return@on
 
-            if (!refilling && ++tickCount < when (mode.selected) {
+            if (++tickCount < when (mode.selected) {
                     "Amount" -> 20
                     "Time" -> time * 20
                     else -> Int.MAX_VALUE
@@ -48,10 +62,7 @@ object AutoGFS : Module( // untested
             tickCount = 0
 
             if (refillNextItem()) {
-                refilling = true
                 commandCooldown = COMMAND_COOLDOWN_TICKS
-            } else {
-                refilling = false
             }
         }
     }
@@ -65,6 +76,7 @@ object AutoGFS : Module( // untested
             val item = items[nextItemIndex]
             nextItemIndex = (nextItemIndex + 1) % items.size
 
+            if (item in emptySacks) return@repeat
             if (item.shouldRefill() && item.refill()) return true
         }
 
@@ -74,12 +86,13 @@ object AutoGFS : Module( // untested
     private enum class RefillItem(
         val maxStack: Int,
         val itemId: String,
-        val sackName: String
+        val sackName: String,
+        val itemName: String
     ) {
-        PEARL(16, "ENDER_PEARL", "ender_pearl"),
-        BOOM(64, "SUPERBOOM_TNT", "superboom_tnt"),
-        JERRY(64, "INFLATABLE_JERRY", "inflatable_jerry"),
-        LEAP(16, "SPIRIT_LEAP", "spirit_leap");
+        PEARL(16, "ENDER_PEARL", "ender_pearl", "Ender Pearls"),
+        BOOM(64, "SUPERBOOM_TNT", "superboom_tnt", "Superboom TNT"),
+        JERRY(64, "INFLATABLE_JERRY", "inflatable_jerry", "Inflatable Jerries"),
+        LEAP(16, "SPIRIT_LEAP", "spirit_leap", "Spirit Leaps");
 
         val enabled get() = when (this) {
             PEARL -> pearls
