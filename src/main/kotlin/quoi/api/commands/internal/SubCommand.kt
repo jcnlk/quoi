@@ -71,7 +71,7 @@ class SubCommand(
         } else if (parser.arguments.first().isOptional) {
             node.executes { executeSafe(it) { parser.execute(arrayOfNulls(parser.arguments.size)) } }
         } else if (node.command == null) {
-            node.executes { executeSafe(it) { modMessage("Usage: &7/$path ${getUsage()}", id = name.hashCode() + 1) } }
+            node.executes { executeSafe(it) { modMessage("Usage: &7${getUsage(includePath = true)}", id = name.hashCode() + 1) } }
         }
 
         if (parser.arguments.isEmpty()) return
@@ -128,10 +128,14 @@ class SubCommand(
         }
     }
 
-    fun getUsage(): String {
+    fun getUsage(includePath: Boolean = false): String {
         val argsUsage = parser.arguments.joinToString(" ") {
             if (it.isOptional) "§7[§b${it.name}§7]" else "§7<§b${it.name}§7>"
         }
-        return "§7$name $argsUsage".trim()
+        val usage = "§7$name $argsUsage".trim()
+        if (!includePath) return usage
+
+        val commandPath = if (path.startsWith("/")) path else "/$path"
+        return "$commandPath $usage".trim()
     }
 }
