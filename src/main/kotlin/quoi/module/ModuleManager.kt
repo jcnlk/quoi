@@ -28,7 +28,6 @@ object ModuleManager {
             AutoCloseChest,
             FullBlockHitboxes,
             DungeonAbilities,
-            InventoryWalk,
             SecretTriggerBot,
             InvincibilityTimer,
             SimonSays,
