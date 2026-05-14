@@ -26,6 +26,7 @@ import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.Dungeon.currentRoom
 import quoi.api.skyblock.dungeon.Dungeon.inDungeons
 import quoi.module.Module
+import quoi.module.impl.dungeon.autoclear.executor.ClearExecutor
 import quoi.module.settings.Setting.Companion.json
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.module.settings.UIComponent.Companion.visibleIf
@@ -36,7 +37,6 @@ import quoi.utils.aabb
 import quoi.utils.equalsOneOf
 import quoi.utils.isWithinFov
 import quoi.utils.minFovDot
-import quoi.utils.skyblock.player.EtherwarpManager
 import quoi.utils.skyblock.player.PlayerUtils.eyePosition
 import quoi.utils.skyblock.player.interact.AuraManager
 import quoi.utils.skyblock.player.SwapManager
@@ -112,7 +112,7 @@ object SecretAura : Module(
         }
 
         on<TickEvent.End> {
-            if (EtherwarpManager.active) return@on
+            if (ClearExecutor.active) return@on
             if (!inSkyblock ||
                 (mc.screen != null && !inContainer) ||
                 (dungeonsOnly && !inDungeons) ||
