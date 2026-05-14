@@ -13,16 +13,21 @@
 - `/quoi playeresp <name|clear>` - targets Player ESP
 - `/quoi pet <name>` - queues a pet swap by name
 - `/quoi wardrobe <1-9>` - equips a wardrobe slot
+- `/quoi equip <mask>` - equips Bonzo/Spirit Mask
+- `/quoi order [p1] [p2] [p3] [p4]` - shows or sets Leap Menu custom order
+- `/quoi clearaura` - clears Secret Aura state
+- `/quoi db <em|clear>` - manages Dungeon Breaker edit mode and saved blocks
 - `/quoi autosell <add|remove|clear|list> [item]` - manages the Auto Sell item list
 - `/quoi ac <add|remove|clear> <left|right>` - manages Auto Clicker item whitelists
+- `/quoi hotbar <save|load|list|delete|setmsg|setfloor|setclass> ...` - manages Auto Hotbar presets
 - `/quoi emote <add|remove|list|clear> ...` - manages custom emotes
 - `/quoi chatfilter <add|remove|list|show|status|clear> ...` - manages custom chat filters
 - `/quoi petkeybinds <add|get|list|remove|clear> ...` - manages pet keybind entries
+- `/quoi ct` - opens the Custom Triggers editor
 - `/quoi antiafk <delay>` - runs the anti-AFK helper
 - `/quoi findlobby <area> <day|server|player> <value>` - searches for matching lobbies
-- `/route` - Auto Routes editor/runtime command set
-- `/lroute` - legacy Auto Routes command set
-- `/grieferpro` or `/gp` - manages the Griefer Tracker player list
+- `/route <em|add|rm|restore|clear|edit|editdb|chain|convert|reload> ...` - Auto Routes editor/runtime command set
+- `/grieferpro` or `/gp <add|update|remove|get|list|donotgrief> ...` - manages the Griefer Tracker player list
 - `/clearchat` - clears the in-game chat
 - `/f0` to `/f7`, `/m1` to `/m7` - quick dungeon floor instance commands
 
@@ -41,9 +46,7 @@
 - **Auto Leap**
   - Automatically leaps to predefined targets.
 - **Auto Routes**
-  - Route editor/runtime support via `/route`
-- **Auto Routes Legacy**
-  - Legacy route runtime via `/lroute`
+  - Route editor/runtime support via `/route`.
 - **Barrier Boom**
   - Automatically blows up Goldor fight gates.
 - **Blood Camp**
@@ -109,6 +112,8 @@
   - A simple auto clicker for both left and right click. Activates when the corresponding key is being held down.
 - **Auto GFS**
   - Automatically refills certain items from your sacks.
+- **Auto Hotbar**
+  - Saves and equips hotbar presets, with optional chat trigger, dungeon floor and class requirements.
 - **Auto Join SkyBlock**
   - Automatically joins SkyBlock after connecting to Hypixel.
 - **Auto Kick**
@@ -124,6 +129,8 @@
 - **Chat Replacements**
 - **Chocolate Factory**
   - Automates the Chocolate Factory.
+- **Custom Triggers**
+  - Custom trigger editor for grouped conditions and actions.
 - **Inventory**
   - Inventory search/HUD helpers and other GUI QoL
 - **Item Animations**
