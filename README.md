@@ -66,8 +66,6 @@
   - Enlarges interactable dungeon hitboxes
 - **Interactive Map**
   - Automatically teleports to a specified target.
-- **Inventory Walk**
-  - Allows movement in containers.
 - **Invincibility Timer**
   - Gives visual information about your invincibility times.
 - **Leap Menu**
