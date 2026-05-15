@@ -45,8 +45,7 @@ import quoi.utils.ui.hud.impl.TextHud
 object AutoLeap : Module(
     "Auto Leap",
     desc = "Automatically leaps to predefined targets.",
-    area = Island.Dungeon,
-    tag = Tag.BETA
+    area = Island.Dungeon
 ) {
     private val leapMode by selector("Leap mode", "Name", listOf("Name", "Class"), "Leap mode for the module.").open()
     private val fastDelay by slider("Delay", 250L, 100L, 500L, 50L)
@@ -56,7 +55,7 @@ object AutoLeap : Module(
     private val doorOpenerLeap by switch("Door opener leap", desc = "Outside of F7 boss, fast leap to the last wither door opener.")
     private val disableAfterBloodOpen by switch("Disable after Blood Open", desc = "Disables Door Fast Leap after the Blood Room has been opened.").childOf(::doorOpenerLeap)
 
-    private val p1Leap by switch("P1 leap", desc = "Leaps in P1.")
+    private val p1Leap by switch("Pre P2 leap", desc = "Leaps in P1.")
     private val p1Auto by switch("Auto", desc = "Automatically leaps after Maxor died.").childOf(::p1Leap)
 
     private val predevLeap by switch("Predev leap", desc = "Leaps before Storm dev.")
@@ -202,6 +201,8 @@ object AutoLeap : Module(
         }
 
         on<ChatEvent.Packet> {
+            if (!inF7Boss()) return@on
+
             if (pre4Leap && pre4LeapMelody && "Party" in message.noControlCodes && melodyProgress.any { it in message.noControlCodes }) {
                 melodyTarget = Regex("""([A-Za-z0-9_]{3,16}):""")
                     .findAll(message.noControlCodes)
@@ -243,7 +244,7 @@ object AutoLeap : Module(
             }
 
             if (message.noControlCodes == "[BOSS] Necron: That's a very impressive trick. I guess I'll have to handle this myself." &&
-                middleLeap && middleAuto && isInMiddleAuto()
+                middleLeap && middleAuto && isOutsideMiddle()
             ) {
                 leapToConfigured(middleName, middleClass.selected)
             }
@@ -386,25 +387,20 @@ object AutoLeap : Module(
 
     private fun inF7Boss() = Dungeon.inBoss && Dungeon.isFloor(7)
 
+    // TODO: Replace with Vec3 ?
     private fun inBox(x1: Double, x2: Double, y1: Double, y2: Double, z1: Double, z2: Double): Boolean =
         player.x in x1..x2 && player.y in y1..y2 && player.z in z1..z2
 
-    private fun isInP1() = inF7Boss() && player.y in 220.0..250.0
-    private fun isInPredev() = inF7Boss() && Dungeon.getF7Phase() in setOf(M7Phases.P1, M7Phases.P2) && player.y in 100.0..160.0
-    private fun isInP4() = inF7Boss() && player.y >= 55.0 && Dungeon.getF7Phase() == M7Phases.P4
-    private fun isInRelic() = inF7Boss() && player.y in 4.0..50.0
-    private fun isInGreenPad() = inF7Boss() && inBox(24.0, 41.0, 170.0, 172.0, 4.0, 21.0)
-    private fun isInYellowPad() = inF7Boss() && inBox(24.0, 41.0, 170.0, 172.0, 86.0, 103.0)
-    private fun isInPurplePad() = inF7Boss() && inBox(95.0, 123.0, 164.0, 172.0, 86.0, 103.0)
-    private fun isInP5Start() = inF7Boss() && inBox(47.0, 61.0, 64.0, 75.0, 69.0, 83.0)
-    private fun isAtPre4() = inF7Boss() && inBox(62.0, 65.0, 127.0, 130.0, 34.0, 37.0)
-    private fun isInMiddleFast() =
-        inF7Boss() && (Dungeon.p3Section == P3Section.S4 || Dungeon.getF7Phase() == M7Phases.P4) &&
-            (inBox(41.0, 68.0, 110.0, 150.0, 59.0, 117.0) || (player.y < 110.0 && player.y > 55.0 && !isInP5Start()))
-
-    private fun isInMiddleAuto() =
-        inF7Boss() && (Dungeon.p3Section == P3Section.S4 || Dungeon.getF7Phase() == M7Phases.P4) &&
-            player.y < 110.0 && player.y > 55.0 && !isInP5Start()
+    private fun isInP1() = Dungeon.getF7Phase() == M7Phases.P1
+    private fun isInPredev() = Dungeon.p3Section == P3Section.Unknown && Dungeon.getF7Phase() == M7Phases.P3
+    private fun isInP4() = player.y >= 55.0 && Dungeon.getF7Phase() == M7Phases.P4
+    private fun isInRelic() = Dungeon.getF7Phase() == M7Phases.P5
+    private fun isInGreenPad() = inBox(24.0, 41.0, 170.0, 172.0, 4.0, 21.0) // TODO: Vec3 ?
+    private fun isInYellowPad() = inBox(24.0, 41.0, 170.0, 172.0, 86.0, 103.0) // TODO: Vec3 ?
+    private fun isInPurplePad() = inBox(95.0, 123.0, 164.0, 172.0, 86.0, 103.0) // TODO: Vec3 ?
+    private fun isInMiddle() = inBox(47.0, 61.0, 64.0, 75.0, 69.0, 83.0) // TODO: Vec3 ?
+    private fun isAtPre4() = inBox(62.0, 65.0, 127.0, 130.0, 34.0, 37.0) // TODO: Vec3 ?
+    private fun isOutsideMiddle() = Dungeon.getF7Phase() == M7Phases.P4 && !isInMiddle()
 
     private fun getFastLeapTarget(): Any? {
         if (!Dungeon.inBoss) {
@@ -419,11 +415,11 @@ object AutoLeap : Module(
             predevLeap && isInPredev() -> configuredTarget(predevName, predevClass.selected)
             relicLeap && isInRelic() -> configuredTarget(relicName, relicClass.selected)
             p1Leap && isInP1() -> configuredTarget(p1Name, p1Class.selected)
-            p5Leap && isInP5Start() -> configuredTarget(p5Name, p5Class.selected)
+            p5Leap && isInMiddle() -> configuredTarget(p5Name, p5Class.selected)
             greenLeap && isInGreenPad() -> configuredTarget(greenName, greenClass.selected)
             yellowLeap && isInYellowPad() -> configuredTarget(yellowName, yellowClass.selected)
             purpleLeap && isInPurplePad() -> configuredTarget(purpleName, purpleClass.selected)
-            middleLeap && isInMiddleFast() -> configuredTarget(middleName, middleClass.selected)
+            middleLeap && isOutsideMiddle() -> configuredTarget(middleName, middleClass.selected)
             pre4Leap && isAtPre4() -> getPre4Target()
             else -> null
         }
