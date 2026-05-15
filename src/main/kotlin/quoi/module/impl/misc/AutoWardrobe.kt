@@ -4,10 +4,14 @@ import quoi.api.abobaui.dsl.px
 import quoi.api.abobaui.elements.impl.Text.Companion.shadow
 import quoi.api.abobaui.elements.impl.Text.Companion.textSupplied
 import quoi.api.colour.Colour
+import quoi.api.events.KeyEvent
+import quoi.api.events.MouseEvent
+import quoi.api.events.TickEvent
 import quoi.api.input.CatKeys
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.module.settings.impl.KeybindComponent
+import quoi.utils.skyblock.player.MovementUtils.stop
 import quoi.utils.skyblock.player.WardrobeUtils
 import quoi.utils.ui.hud.impl.TextHud
 
@@ -17,6 +21,7 @@ object AutoWardrobe : Module(
 ) {
     private val disableUnequip by switch("Disable unequip", desc = "Prevents clicking the currently equipped wardrobe slot.")
     private val preventMoving by switch("Prevent moving", true, desc = "Stops your movement while a wardrobe equip is in progress.")
+    private val blockInputs by switch("Block inputs", true, desc = "Blocks keyboard and mouse input while a wardrobe equip is in progress.")
     private val keybinds by text("Keybinds")
     private val wardrobeKeys = (1..9).map { i ->
         register(
@@ -37,7 +42,31 @@ object AutoWardrobe : Module(
         }
     }.setting()
 
-    init { }
+    init {
+        on<TickEvent.Start> {
+            if ((preventMoving || blockInputs) && WardrobeUtils.isBusy()) player.stop()
+        }
+
+        on<KeyEvent.Press> {
+            if (blockInputs && WardrobeUtils.isBusy()) cancel()
+        }
+
+        on<KeyEvent.Release> {
+            if (blockInputs && WardrobeUtils.isBusy()) cancel()
+        }
+
+        on<MouseEvent.Click> {
+            if (blockInputs && WardrobeUtils.isBusy()) cancel()
+        }
+
+        on<MouseEvent.Scroll> {
+            if (blockInputs && WardrobeUtils.isBusy()) cancel()
+        }
+
+        on<MouseEvent.Move> {
+            if (blockInputs && WardrobeUtils.isBusy()) cancel()
+        }
+    }
 
     private fun onWardrobeKey(slot: Int) {
         if (!enabled || mc.screen != null) return
