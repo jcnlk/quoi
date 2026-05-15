@@ -64,6 +64,8 @@ object PuzzleSolvers : Module(
     private val wbSecond by colourPicker("Second", Colour.MINECRAFT_GOLD, true, desc = "Colour for the second tracer.").json("Water board colour second").childOf(::wbTracer)
     private val wbOptimised by switch("Optimised solutions", desc = "Uses optimised solutions for the water board puzzle.").childOf(::wbDropdown).asParent()
     private val wbAuto by switch("Auto").json("Auto waterboard").childOf(::wbDropdown).asParent()
+    private val wbTriggerbot by switch("Triggerbot", desc = "Automatically clicks the next correct water board lever when you look at it.").json("Water board triggerbot").childOf(::wbDropdown)
+    private val wbTriggerbotDelay by slider("Triggerbot delay", 200L, 70L, 500L, 10L, unit = "ms").childOf(::wbTriggerbot)
 
     private val beamsDropdown by text("Creeper beams")
     private val beamsSolver by switch("Solver", desc = "Shows the solution for the creeper beams puzzle.").json("Creeper beams solver").childOf(::beamsDropdown)
@@ -102,7 +104,7 @@ object PuzzleSolvers : Module(
         scheduleLoop(10) {
             if (!enabled || !inPuzzle) return@scheduleLoop
             if (blazeSolver || blazeAuto) BlazeSolver.getBlaze()
-            if (wbSolver || wbAuto) WaterSolver.scan(wbOptimised)
+            if (wbSolver || wbAuto || wbTriggerbot) WaterSolver.scan(wbOptimised)
         }
 
         on<WorldEvent.Change> {
@@ -151,12 +153,13 @@ object PuzzleSolvers : Module(
             if (quizAuto)    QuizSolver.onTick(player)
             if (weirdosAuto) WeirdosSolver.onTick(player)
             if (wbAuto)      WaterSolver.onTick(player)
+            if (wbTriggerbot) WaterSolver.onTriggerbotTick(player, wbTriggerbotDelay)
             if (pathSolver || pathAuto) IcePathSolver.onTick(player, pathAuto, shootCd, missCd)
             if (tttSolver || tttAuto)   TicTacToeSolver.onTick(player, level, tttPrediction, tttAuto)
         }
 
         on<TickEvent.Server> {
-            if (wbSolver || wbAuto) WaterSolver.onServerTick()
+            if (wbSolver || wbAuto || wbTriggerbot) WaterSolver.onServerTick()
         }
 
         on<ChatEvent.Packet> {
@@ -180,7 +183,7 @@ object PuzzleSolvers : Module(
 
         on<PacketEvent.Sent, ServerboundUseItemOnPacket> {
             if (!inPuzzle) return@on
-            if (wbSolver || wbAuto) WaterSolver.onInteract(packet)
+            if (wbSolver || wbAuto || wbTriggerbot) WaterSolver.onInteract(packet)
         }
     }
 }
