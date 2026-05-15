@@ -24,7 +24,9 @@ object LeapManager { // still schizophrenia
     private var menuOpened = false
     private var inProgress = false
 
-    private var pendingLeap: DungeonPlayer? = null
+    private data class PendingLeap(val target: DungeonPlayer, val onLeap: (() -> Unit)?)
+
+    private var pendingLeap: PendingLeap? = null
 
     var lastLeap = 0L
         private set
@@ -77,14 +79,15 @@ object LeapManager { // still schizophrenia
         on<TickEvent.Server> {
             if (leapCD > 0) leapCD -= 1
 
-            if (pendingLeap != null && mc.screen == null && ContainerUtils.containerId == -1) {
-                doLeap(pendingLeap!!)
+            val pending = pendingLeap
+            if (pending != null && mc.screen == null && ContainerUtils.containerId == -1) {
+                doLeap(pending.target, pending.onLeap)
                 pendingLeap = null
             }
         }
     }
 
-    fun leap(target: Any) {
+    fun leap(target: Any, onLeap: (() -> Unit)? = null) {
         if (!inDungeons || target == DungeonClass.Unknown) return
 
         val teammate = when (target) {
@@ -96,12 +99,12 @@ object LeapManager { // still schizophrenia
 //        if (teammate.name !in WorldUtils.players.map { it.profile.name }) return modMessage("&c Failed to leap! &r$target &cnot found")
 
         if (mc.screen != null || ContainerUtils.containerId != -1) {
-            pendingLeap = teammate
+            pendingLeap = PendingLeap(teammate, onLeap)
             modMessage("&eQueued leap to ${formatName(teammate)}")
-        } else doLeap(teammate)
+        } else doLeap(teammate, onLeap)
     }
 
-    private fun doLeap(target: DungeonPlayer) {
+    private fun doLeap(target: DungeonPlayer, onLeap: (() -> Unit)? = null) {
         if (inProgress) return
         if (leapCD > 0) {
             modMessage("&cFailed to leap! On cooldown: ${"%.1f".format(leapCD / 20.0)}s")
@@ -115,6 +118,7 @@ object LeapManager { // still schizophrenia
             PlayerUtils.interact()
             lastLeap = System.currentTimeMillis()
             leapCD = 48 * getMageCooldownMultiplier()
+            onLeap?.invoke()
             modMessage("&aLeaping to ${formatName(target)}")
         }
         leapQueue.add(target.name)
