@@ -40,7 +40,7 @@ object AutoInvincibility : Module(
     private val useBonzoMask by switch("Bonzo's Mask", false, desc = "Equips Bonzo's Mask after proccing.")
     private val usePhoenixPet by switch("Phoenix Pet", false, desc = "Swaps to Phoenix pet after proccing.")
     private val prioritizePhoenix by switch("Prioritize Phoenix", false, desc = "Uses Phoenix Pet before Bonzo's Mask when both are available.")
-    private val swapDelay by slider("Swap delay", 0, 0, 60, 1, desc = "Ticks to wait before swapping after an invincibility proc.", unit = "t")
+    private val swapDelay by slider("Swap delay", 0, 0, 40, 1, desc = "Ticks to wait before swapping after an invincibility proc.", unit = "t")
     private val phoenixSwapMethod by selector("Swap method", PhoenixSwapMethod.RodSwap, desc = "Method used to swap to the Phoenix pet. Rod Swap ignores input blocking.").childOf(::usePhoenixPet)
     private val dungeonsOnly by switch("Dungeons only", desc = "Only triggers while being in dungeons.")
     private val bossOnly by switch("Boss only", desc = "Only triggers while being in boss room.")

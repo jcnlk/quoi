@@ -304,9 +304,10 @@ object AutoLeap : Module(
     }
 
     private fun leap(target: Any) {
-        showLeapHud(target)
-        startLeapBlock()
-        LeapManager.leap(target)
+        LeapManager.leap(target) {
+            showLeapHud(target)
+            startLeapBlock()
+        }
     }
 
     private fun startLeapBlock() {
