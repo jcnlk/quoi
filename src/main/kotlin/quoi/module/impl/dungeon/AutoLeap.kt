@@ -35,7 +35,6 @@ import quoi.utils.ui.hud.impl.TextHud
 
 /**
  * TODO:
- * queuing leap while fast leaping in term
  * auto leap delay (?)
  * add other pre4 done detection methods
  * option to create custom fast/auto leaps (maybe; prob use custom triggers for that)
@@ -51,8 +50,8 @@ object AutoLeap : Module(
 ) {
     private val leapMode by selector("Leap mode", "Name", listOf("Name", "Class"), "Leap mode for the module.").open()
     private val fastDelay by slider("Delay", 250L, 100L, 500L, 50L)
-    private val preventMoving by switch("Prevent moving", false, desc = "Stops movement while leaping.")
-    private val blockInputs by switch("Block inputs", false, desc = "Blocks keyboard and mouse input while leaping.")
+    private val preventMoving by switch("Prevent moving", true, desc = "Stops movement while leaping.")
+    private val blockInputs by switch("Block inputs", true, desc = "Blocks keyboard and mouse input while leaping.")
 
     private val doorOpenerLeap by switch("Door opener leap", desc = "Outside of F7 boss, fast leap to the last wither door opener.")
     private val disableAfterBloodOpen by switch("Disable after Blood Open", desc = "Disables Door Fast Leap after the Blood Room has been opened.").childOf(::doorOpenerLeap)
