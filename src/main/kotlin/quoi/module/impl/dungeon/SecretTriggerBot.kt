@@ -41,6 +41,10 @@ object SecretTriggerBot : Module(
 
         on<TickEvent.End> {
             if (mc.screen != null || inBoss) return@on
+            if (Dungeon.currentRoom?.name == "Water Board") {
+                tBotTicker = null
+                return@on
+            }
 
             tBotTicker?.let {
                 if (it.tick()) tBotTicker = null
