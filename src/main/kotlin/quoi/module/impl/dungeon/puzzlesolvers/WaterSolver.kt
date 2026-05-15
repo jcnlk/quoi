@@ -8,6 +8,8 @@ import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.phys.BlockHitResult
+import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
 import quoi.QuoiMod.mc
 import quoi.api.colour.Colour
@@ -59,6 +61,11 @@ object WaterSolver {
     private var lastCLick = 0L
     private var atChest = false
 
+    private val solutionList: List<Pair<LeverBlock, Double>>
+        get() = solutions
+            .flatMap { (lever, times) -> times.drop(lever.i).map { lever to it } }
+            .sortedBy { (lever, time) -> time + if (lever == LeverBlock.WATER) 0.01 else 0.0 }
+
     fun scan(optimized: Boolean) = with (Dungeon.currentRoom) {
         if (this?.name != "Water Board" || patternIdentifier != -1) return@with
         val extendedSlots = WoolColour.entries.joinToString("") { if (it.isExtended) it.ordinal.toString() else "" }.takeIf { it.length == 3 } ?: return@with
@@ -101,13 +108,15 @@ object WaterSolver {
     fun onRenderWorld(ctx: WorldRenderContext, showTracer: Boolean, tracerFirst: Colour, tracerSecond: Colour) {
         if (patternIdentifier == -1 || solutions.isEmpty() || Dungeon.currentRoom?.name != "Water Board") return
 
-        val solutionList = solutions
-            .flatMap { (lever, times) -> times.drop(lever.i).map { Pair(lever, it) } }
-            .sortedBy { (lever, time) -> time + if (lever == LeverBlock.WATER) 0.01 else 0.0 }
-
         if (showTracer) {
             val firstSolution = solutionList.firstOrNull()?.first ?: return
-            mc.player?.let { ctx.drawLine(listOf(it.renderPos, Vec3(firstSolution.leverPos).add(.5, .5, .5)), colour = tracerFirst, depth = true) }
+            mc.player?.let {
+                ctx.drawLine(
+                    listOf(it.renderPos.add(it.forward.add(0.0, it.eyeHeight.toDouble(), 0.0)), Vec3(firstSolution.leverPos).add(.5, .5, .5)),
+                    colour = tracerFirst,
+                    depth = true
+                )
+            }
 
             if (solutionList.size > 1 && firstSolution.leverPos != solutionList[1].first.leverPos) {
                 ctx.drawLine(
@@ -155,10 +164,6 @@ object WaterSolver {
             return
         }
 
-        val solutionList = solutions
-            .flatMap { (lever, times) -> times.drop(lever.i).map { lever to it } }
-            .sortedBy { (lever, time) -> time + if (lever == LeverBlock.WATER) 0.01 else 0.0 }
-
         val first = solutionList.firstOrNull() ?: return chest(player, room)
 
         val (lever, time) = first
@@ -184,6 +189,29 @@ object WaterSolver {
             AuraManager.interactBlock(lever.leverPos)
             lastCLick = System.currentTimeMillis()
         }
+    }
+
+    fun onTriggerbotTick(player: LocalPlayer, delay: Long) {
+        val room = Dungeon.currentRoom ?: return
+        if (patternIdentifier == -1 || solutions.isEmpty() || room.name != "Water Board") return
+        if (mc.screen != null) return
+
+        val (lever, time) = solutionList.firstOrNull() ?: return
+        val hitResult = mc.hitResult as? BlockHitResult ?: return
+        if (hitResult.type != HitResult.Type.BLOCK || hitResult.blockPos != lever.leverPos) return
+
+        val remaining = openedWaterTicks - tickCounter + time * 20
+        val water = lever == LeverBlock.WATER
+        if (!(water && (openedWaterTicks == -1 || remaining <= 0)) && !(!water && remaining <= 0)) return
+
+        val now = System.currentTimeMillis()
+        if (now - lastCLick < delay) return
+
+        val result = mc.gameMode?.useItemOn(player, InteractionHand.MAIN_HAND, hitResult) ?: return
+        if (!result.consumesAction()) return
+
+        player.swing(InteractionHand.MAIN_HAND)
+        lastCLick = now
     }
 
     fun reset() {
