@@ -39,7 +39,6 @@ object AutoInvincibility : Module(
     private val useSpiritMask by switch("Spirit Mask", false, desc = "Equips Spirit Mask after proccing.")
     private val useBonzoMask by switch("Bonzo's Mask", false, desc = "Equips Bonzo's Mask after proccing.")
     private val usePhoenixPet by switch("Phoenix Pet", false, desc = "Swaps to Phoenix pet after proccing.")
-    private val prioritizePhoenix by switch("Prioritize Phoenix", false, desc = "Uses Phoenix Pet before Bonzo's Mask when both are available.")
     private val swapDelay by slider("Swap delay", 0, 0, 40, 1, desc = "Ticks to wait before swapping after an invincibility proc.", unit = "t")
     private val phoenixSwapMethod by selector("Swap method", PhoenixSwapMethod.RodSwap, desc = "Method used to swap to the Phoenix pet. Rod Swap ignores input blocking.").childOf(::usePhoenixPet)
     private val dungeonsOnly by switch("Dungeons only", desc = "Only triggers while being in dungeons.")
@@ -67,6 +66,11 @@ object AutoInvincibility : Module(
     private var phoenixWatchId = 0
 
     private val rodSwapBlacklist = setOf("SOUL_WHIP", "FLAMING_FLAY")
+    private val invincibilityPriority = listOf(
+        InvincibilityType.SPIRIT,
+        InvincibilityType.PHOENIX,
+        InvincibilityType.BONZO
+    )
 
     override fun onDisable() {
         resetAllState()
@@ -165,7 +169,7 @@ object AutoInvincibility : Module(
 
             if (watchId != phoenixWatchId) return@launch
             if (Dungeon.isDead) return@launch
-            if (!SkyblockPlayer.currentPet.contains("phoenix", ignoreCase = true)) return@launch
+            if (!isPhoenixPet()) return@launch
 
             queuePreviousPetSwap(message)
         }
@@ -176,19 +180,7 @@ object AutoInvincibility : Module(
         queuePreviousPetSwap("§cNo invincibility left, swapping back to previous pet.")
     }
 
-    private fun getNextItem(): InvincibilityType? {
-        return invincibilityPriority().firstOrNull { it.isEnabled() && canUse(it) }
-    }
-
-    private fun invincibilityPriority(): List<InvincibilityType> {
-        val bonzoPhoenixPriority = if (prioritizePhoenix) {
-            listOf(InvincibilityType.PHOENIX, InvincibilityType.BONZO)
-        } else {
-            listOf(InvincibilityType.BONZO, InvincibilityType.PHOENIX)
-        }
-
-        return listOf(InvincibilityType.SPIRIT) + bonzoPhoenixPriority
-    }
+    private fun getNextItem(): InvincibilityType? = invincibilityPriority.firstOrNull { it.isEnabled() && canUse(it) }
 
     private fun InvincibilityType.isEnabled(): Boolean = when (this) {
         InvincibilityType.SPIRIT -> useSpiritMask
@@ -201,7 +193,7 @@ object AutoInvincibility : Module(
         return when (type) {
             InvincibilityType.SPIRIT -> SkyblockPlayer.currentMask != Mask.SPIRIT
             InvincibilityType.BONZO -> SkyblockPlayer.currentMask != Mask.BONZO
-            InvincibilityType.PHOENIX -> !SkyblockPlayer.currentPet.contains("phoenix", true)
+            InvincibilityType.PHOENIX -> !isPhoenixPet()
         }
     }
 
@@ -213,10 +205,7 @@ object AutoInvincibility : Module(
             try {
                 waitSwapDelay(delayed)
 
-                while (Dungeon.inTerminal) {
-                    wait(1)
-                    if (Dungeon.isDead) return@launch
-                }
+                if (!waitUntilNotInTerminal()) return@launch
 
                 val currentHelmet = player.inventory.getItem(39)
                 val helmetName = currentHelmet.displayName.string
@@ -245,7 +234,7 @@ object AutoInvincibility : Module(
                 if (!waitUntilNotInTerminal()) return@launch
 
                 val currentPet = SkyblockPlayer.currentPet.trim()
-                if (currentPet.isNotEmpty() && !currentPet.contains("phoenix", ignoreCase = true)) {
+                if (currentPet.isNotEmpty() && !isPhoenixPet(currentPet)) {
                     previousPet = currentPet
                 }
 
@@ -324,7 +313,7 @@ object AutoInvincibility : Module(
 
             if (swapId != phoenixSwapId || watchId != phoenixWatchId) return@launch
             if (Dungeon.isDead) return@launch
-            if (!SkyblockPlayer.currentPet.contains("phoenix", ignoreCase = true)) return@launch
+            if (!isPhoenixPet()) return@launch
             if (!waitUntilNotInTerminal()) return@launch
 
             modMessage(message ?: "§eSwapping back to $pet.")
@@ -362,6 +351,10 @@ object AutoInvincibility : Module(
         }
 
         return true
+    }
+
+    private fun isPhoenixPet(pet: String = SkyblockPlayer.currentPet): Boolean {
+        return pet.contains("phoenix", ignoreCase = true)
     }
 
     private fun resetSwapState() {
