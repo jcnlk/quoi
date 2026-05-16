@@ -5,13 +5,22 @@ import quoi.api.colour.Colour
 import quoi.api.colour.withAlpha
 import quoi.api.events.ChatEvent
 import quoi.api.events.RenderEvent
+import quoi.api.events.TickEvent
+import quoi.api.events.WorldEvent
 import quoi.api.skyblock.Island
+import quoi.api.skyblock.dungeon.Dungeon
+import quoi.api.skyblock.dungeon.M7Phases
 import quoi.api.skyblock.invoke
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.render.drawFilledBox
 import quoi.utils.render.drawWireFrameBox
+
+/**
+ * TODO:
+ *  rework active logic (temp fix for now)
+ */
 
 // Kyleen
 object NecronPlatformHighlight : Module( // todo rename maybe question mark
@@ -27,6 +36,7 @@ object NecronPlatformHighlight : Module( // todo rename maybe question mark
     private val depth by switch("Depth check")
 
     private var shouldHighlightBlocks = false
+    private var disabledUntilWorldSwitch = false
     private val healerBox = AABB(53.0, 63.0, 113.0, 56.0, 64.0, 116.0)
 
     init {
@@ -40,15 +50,22 @@ object NecronPlatformHighlight : Module( // todo rename maybe question mark
             }
         }
 
-        on<ChatEvent.Packet> {
-            when (message.noControlCodes) {
-                "[BOSS] Goldor: You have done it, you destroyed the factory…" -> {
-                    shouldHighlightBlocks = true
-                }
-                "[BOSS] Goldor: Necron, forgive me." -> {
-                    shouldHighlightBlocks = false
-                }
+        on<TickEvent.Start> {
+            if (!disabledUntilWorldSwitch && Dungeon.getF7Phase() == M7Phases.P4) {
+                shouldHighlightBlocks = true
             }
+        }
+
+        on<ChatEvent.Packet> {
+            if (message.noControlCodes == "[BOSS] Goldor: Necron, forgive me.") {
+                shouldHighlightBlocks = false
+                disabledUntilWorldSwitch = true
+            }
+        }
+
+        on<WorldEvent.Change> {
+            shouldHighlightBlocks = false
+            disabledUntilWorldSwitch = false
         }
     }
 }
