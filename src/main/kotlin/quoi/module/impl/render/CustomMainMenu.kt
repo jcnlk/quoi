@@ -7,6 +7,7 @@ import net.minecraft.client.gui.screens.TitleScreen
 import quoi.api.colour.Colour
 import quoi.api.colour.withAlpha
 import quoi.api.events.GuiEvent
+import quoi.api.events.TickEvent
 import quoi.module.Module
 import quoi.module.settings.impl.SelectorComponent
 import quoi.ui.CustomMainMenuScreen
@@ -45,6 +46,8 @@ object CustomMainMenu : Module(
 
     val backgroundFolder = File(mc.gameDirectory, "config/quoi!/images").apply { mkdirs() }
     private val backgroundOptions = mutableListOf(VANILLA_BACKGROUND)
+    private var backgroundSnapshot = emptyList<String>()
+    private var refreshTicks = 0
 
     val backgroundImage: SelectorComponent<String> by selector(
         "Background image",
@@ -58,18 +61,22 @@ object CustomMainMenu : Module(
         Colour.RGB(255, 204, 134).withAlpha(255),
         desc = "Accent colour for custom main menu buttons and overlays."
     )
-    private val refreshBackgrounds by button("Refresh backgrounds", desc = "Reloads the image list from the backgrounds folder.") {
-        refreshBackgroundOptions()
-    }
     private val openBackgroundsFolder by button("Open backgrounds folder") {
         runCatching { Util.getPlatform().openPath(backgroundFolder.toPath()) }
     }
     val dimAmount by slider("Background dim", 0.2f, 0f, 0.95f, 0.05f)
     val showHypixelButton by switch("Hypixel button", true, desc = "Shows a quick join button for Hypixel.")
-    val showP3SimButton by switch("P3Sim button", false, desc = "Shows a quick join button for p3sim.net.")
+    val showP3SimButton by switch("P3Sim button", true, desc = "Shows a quick join button for p3sim.net.")
 
     init {
-        refreshBackgroundOptions()
+        refreshBackgroundOptions(force = true)
+
+        on<TickEvent.End> {
+            if (++refreshTicks >= 20) {
+                refreshTicks = 0
+                refreshBackgroundOptions()
+            }
+        }
 
         on<GuiEvent.Draw> {
             if (screen !is TitleScreen) return@on
@@ -83,19 +90,22 @@ object CustomMainMenu : Module(
     }
 
     fun selectedBackgroundFile(): File? {
+        refreshBackgroundOptions()
         val selected = backgroundImage.selected
         if (selected == VANILLA_BACKGROUND) return null
         return File(backgroundFolder, selected).takeIf { it.isFile }
     }
 
-    private fun refreshBackgroundOptions() {
-        val previous = backgroundImage.selected
+    private fun refreshBackgroundOptions(force: Boolean = false) {
         val files = backgroundFolder.listFiles()
             ?.filter { it.isFile && it.extension.lowercase() in SUPPORTED_BACKGROUND_EXTENSIONS }
             ?.map { it.name }
             ?.sortedWith(String.CASE_INSENSITIVE_ORDER)
             ?: emptyList()
+        if (!force && files == backgroundSnapshot) return
 
+        val previous = backgroundImage.selected
+        backgroundSnapshot = files
         backgroundOptions.clear()
         backgroundOptions += VANILLA_BACKGROUND
         backgroundOptions += files
