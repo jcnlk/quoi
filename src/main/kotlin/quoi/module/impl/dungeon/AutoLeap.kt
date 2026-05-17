@@ -1,8 +1,6 @@
 package quoi.module.impl.dungeon
 
-import kotlinx.coroutines.launch
 import net.minecraft.world.phys.Vec3
-import quoi.QuoiMod.scope
 import quoi.api.abobaui.constraints.Positions
 import quoi.api.abobaui.dsl.at
 import quoi.api.abobaui.dsl.px
@@ -26,7 +24,6 @@ import quoi.api.skyblock.dungeon.P3Section
 import quoi.module.Module
 import quoi.module.settings.Setting.Companion.json
 import quoi.module.settings.UIComponent.Companion.childOf
-import quoi.utils.Scheduler.wait
 import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.skyblock.item.ItemUtils.skyblockId
 import quoi.utils.skyblock.player.LeapManager
@@ -39,6 +36,7 @@ import quoi.utils.ui.hud.impl.TextHud
  * add other pre4 done detection methods
  * option to create custom fast/auto leaps (maybe; prob use custom triggers for that)
  * move some stuff to utils
+ * recode at some point
  */
 
 // Kyleen (maybe)
@@ -132,11 +130,11 @@ object AutoLeap : Module(
     private var leapHudText: String? = null
     private var leapHudShownAt = 0L
     private var blockingGameInput = false
-    private var leapBlockId = 0
+    private var leapBlockUntil = 0L
     private var melodyTarget: String? = null
 
     private val leapHudDuration = 1_500L
-    private val leapBlockTimeout = 20
+    private val leapBlockDuration = 1_000L
     private val melodyProgress = setOf("1/4", "2/4", "3/4", "25%", "50%", "75%")
 
     override fun onDisable() {
@@ -168,6 +166,9 @@ object AutoLeap : Module(
         on<TickEvent.Start> {
             if (leapHudText != null && System.currentTimeMillis() - leapHudShownAt > leapHudDuration) {
                 leapHudText = null
+            }
+            if (blockingGameInput && System.currentTimeMillis() >= leapBlockUntil) {
+                blockingGameInput = false
             }
             if ((preventMoving || blockInputs) && blockingGameInput) player.stop()
         }
@@ -314,18 +315,8 @@ object AutoLeap : Module(
     private fun startLeapBlock() {
         if (!preventMoving && !blockInputs) return
 
-        val blockId = ++leapBlockId
         blockingGameInput = true
-
-        scope.launch {
-            repeat(leapBlockTimeout) {
-                wait(1)
-                if (blockId != leapBlockId) return@launch
-            }
-            if (blockId == leapBlockId) blockingGameInput = false
-        }.invokeOnCompletion {
-            if (blockId == leapBlockId) blockingGameInput = false
-        }
+        leapBlockUntil = System.currentTimeMillis() + leapBlockDuration
     }
 
     private fun showLeapHud(target: Any) {
@@ -338,8 +329,8 @@ object AutoLeap : Module(
     }
 
     private fun resetLeapState() {
-        leapBlockId++
         blockingGameInput = false
+        leapBlockUntil = 0L
         melodyTarget = null
         clearLeapHud()
     }
