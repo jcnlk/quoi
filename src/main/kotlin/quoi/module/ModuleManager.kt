@@ -86,6 +86,7 @@ object ModuleManager {
             // RENDER
             NameTags,
             RenderOptimiser,
+            CustomMainMenu,
             NickHider,
             ClickGui,
             PlayerESP,
