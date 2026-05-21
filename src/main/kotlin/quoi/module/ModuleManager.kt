@@ -72,6 +72,7 @@ object ModuleManager {
             ChocolateFactory,
             Inventory,
             ItemAnimations,
+            EscrowFix,
             WitherCloak,
             AutoBookCombine,
 //            CustomTriggers,
