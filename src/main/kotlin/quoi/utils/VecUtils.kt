@@ -396,7 +396,7 @@ fun isPathClear(from: Vec3, target: Vec3): Boolean {
     return result.type == HitResult.Type.MISS
 }
 
-fun getVisiblePoint(from: Vec3, to: BlockPos): Vec3? {
+fun getVisiblePoint(from: Vec3, to: BlockPos, block: (Vec3) -> BlockPos? = { rayCast(from, it).pos }): Vec3? {
     val t = to.vec3
     val targets = listOf(
         // centre
@@ -439,7 +439,7 @@ fun getVisiblePoint(from: Vec3, to: BlockPos): Vec3? {
     )
 
     for (targetVec in targets) {
-        val hitPos = rayCast(from, targetVec.subtract(from)).pos
+        val hitPos = block(targetVec.subtract(from))
         if (hitPos == to) {
             return targetVec
         }
