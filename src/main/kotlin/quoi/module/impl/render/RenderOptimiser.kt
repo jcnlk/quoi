@@ -16,6 +16,7 @@ import quoi.api.events.GuiEvent
 import quoi.api.events.PacketEvent
 import quoi.api.skyblock.Island
 import quoi.api.skyblock.Location.currentArea
+import quoi.api.skyblock.Location.subarea
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.M7Phases
 import quoi.module.Module
@@ -74,7 +75,11 @@ object RenderOptimiser : Module(
                 }
 
                 is ClientboundLevelParticlesPacket -> {
-                    if (hideParticles && !currentArea.isArea(Island.Garden) && Dungeon.getF7Phase() != M7Phases.P5) cancel()
+                    if (hideParticles &&
+                        !currentArea.isArea(Island.Garden) &&
+                        Dungeon.getF7Phase() != M7Phases.P5 &&
+                        !packet.isGeyserFishingParticle()
+                    ) cancel()
                     else if (hidePotionBubbles && packet.particle.type == ParticleTypes.ENTITY_EFFECT) cancel()
                 }
 
@@ -88,6 +93,18 @@ object RenderOptimiser : Module(
                 .firstOrNull { it.textures == RecipeBookComponent.RECIPE_BUTTON_SPRITES }
                 ?.visible = false
         }
+    }
+
+    private fun ClientboundLevelParticlesPacket.isGeyserFishingParticle(): Boolean {
+        if (!currentArea.isArea(Island.CrimsonIsle)) return false
+        if (subarea?.contains("Blazing Volcano", ignoreCase = true) != true) return false
+
+        return particle.type == ParticleTypes.CLOUD &&
+            count == 15 &&
+            maxSpeed == 0.05f &&
+            xDist == 0.1f &&
+            yDist == 0.6f &&
+            zDist == 0.1f
     }
 
     @JvmStatic
