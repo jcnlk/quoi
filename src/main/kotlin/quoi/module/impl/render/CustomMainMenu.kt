@@ -78,14 +78,15 @@ object CustomMainMenu : Module(
             }
         }
 
-        on<GuiEvent.Draw> {
+        on<GuiEvent.Open.Post> {
             if (screen !is TitleScreen) return@on
 
             val extraButtons = Screens.getWidgets(screen)
                 .filter(::isExternalTitleButton)
 
-            cancel()
-            if (mc.screen !is CustomMainMenuScreen) mc.setScreen(CustomMainMenuScreen(extraButtons))
+            mc.submit {
+                if (mc.screen === screen) mc.setScreen(CustomMainMenuScreen(extraButtons))
+            }
         }
     }
 
