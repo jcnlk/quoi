@@ -88,7 +88,7 @@ object RenderOptimiser : Module(
 
         on<GuiEvent.Open.Post> {
             if (!hideRecipeBook) return@on
-            Screens.getButtons(screen)
+            Screens.getWidgets(screen)
                 .filterIsInstance<ImageButton>()
                 .firstOrNull { it.textures == RecipeBookComponent.RECIPE_BUTTON_SPRITES }
                 ?.visible = false

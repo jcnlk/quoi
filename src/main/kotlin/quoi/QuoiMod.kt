@@ -2,7 +2,7 @@ package quoi
 
 import kotlinx.coroutines.CoroutineScope
 import net.fabricmc.api.ClientModInitializer
-import net.fabricmc.fabric.api.client.rendering.v1.SpecialGuiElementRegistry
+import net.fabricmc.fabric.api.client.rendering.v1.PictureInPictureRendererRegistry
 import net.minecraft.client.Minecraft
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
@@ -24,11 +24,12 @@ object QuoiMod : ClientModInitializer {
     val logger: Logger = LogManager.getLogger("quoi")
 
     override fun onInitializeClient() {
+        PictureInPictureRendererRegistry.register { context ->
+            NVGSpecialRenderer(context.bufferSource())
+        }
+
         ModuleManager.initialise()
         AnnotationLoader.load()
-        SpecialGuiElementRegistry.register { context ->
-            NVGSpecialRenderer(context.vertexConsumers())
-        }
 
         var schizophrenia: EventBus.EventListener? = null
         schizophrenia = EventBus.on<GameEvent.Load> {

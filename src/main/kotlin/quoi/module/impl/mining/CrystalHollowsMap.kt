@@ -1,6 +1,6 @@
 package quoi.module.impl.mining
 
-import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.resources.Identifier
 import quoi.QuoiMod.MOD_ID
 import quoi.api.abobaui.dsl.px
@@ -112,7 +112,7 @@ object CrystalHollowsMap : Module(
         }
     }
 
-    private fun GuiGraphics.renderMap() {
+    private fun GuiGraphicsExtractor.renderMap() {
 
         drawImage(MAP_IMAGE, 0, 0, MAP_SIZE, MAP_SIZE)
 
@@ -146,7 +146,7 @@ object CrystalHollowsMap : Module(
         if (drawPlayers) drawPlayers()
     }
 
-    private fun GuiGraphics.drawPlayers() {
+    private fun GuiGraphicsExtractor.drawPlayers() {
         val l = playerEntities.map { it.uuid }
         mapPlayers.values.sortedBy { it.name == player.name.string }.forEach { p ->
             val inRange = l.contains(p.uuid)
@@ -169,7 +169,7 @@ object CrystalHollowsMap : Module(
         }
     }
 
-    private fun GuiGraphics.drawName(name: String, x: Double, z: Double) {
+    private fun GuiGraphicsExtractor.drawName(name: String, x: Double, z: Double) {
         if (!drawNames) return
         withMatrix(x.mapX, z.mapZ, textScale) {
             pose().translate(0f, 10f)

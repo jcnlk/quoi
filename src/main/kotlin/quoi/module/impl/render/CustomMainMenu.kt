@@ -81,7 +81,7 @@ object CustomMainMenu : Module(
         on<GuiEvent.Draw> {
             if (screen !is TitleScreen) return@on
 
-            val extraButtons = Screens.getButtons(screen)
+            val extraButtons = Screens.getWidgets(screen)
                 .filter(::isExternalTitleButton)
 
             cancel()

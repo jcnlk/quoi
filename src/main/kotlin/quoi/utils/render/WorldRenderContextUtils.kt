@@ -2,9 +2,8 @@ package quoi.utils.render
 
 import com.mojang.blaze3d.vertex.ByteBufferBuilder
 import com.mojang.blaze3d.vertex.VertexConsumer
-import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext
+import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext
 import net.minecraft.client.gui.Font
-import net.minecraft.client.renderer.LightTexture
 import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.network.chat.Component
 import net.minecraft.world.phys.AABB
@@ -145,10 +144,10 @@ private fun addFilledBox(buffer: VertexConsumer, pose: com.mojang.blaze3d.vertex
     buffer.addQuad(pose, x0y0z1, x0y0z0, x1y0z0, x1y0z1, colour)
 }
 
-fun WorldRenderContext.drawLine(points: Collection<Vec3>, colour: Colour, depth: Boolean, thickness: Float = 3f) {
+fun LevelRenderContext.drawLine(points: Collection<Vec3>, colour: Colour, depth: Boolean, thickness: Float = 3f) {
     if (points.size < 2) return
-    val matrix = matrices() ?: return
-    val bufferSource = consumers() as? MultiBufferSource.BufferSource ?: return
+    val matrix = poseStack()
+    val bufferSource = bufferSource()
     val layer = if (depth) CustomRenderLayer.TRIANGLE_STRIP else CustomRenderLayer.TRIANGLE_STRIP_ESP
     val cameraPos = camera().position()
     val pose = matrix.last()
@@ -162,16 +161,16 @@ fun WorldRenderContext.drawLine(points: Collection<Vec3>, colour: Colour, depth:
     bufferSource.endBatch(layer)
 }
 
-fun WorldRenderContext.drawTracer(to: Vec3, colour: Colour, thickness: Float = 6f, depth: Boolean = false) {
+fun LevelRenderContext.drawTracer(to: Vec3, colour: Colour, thickness: Float = 6f, depth: Boolean = false) {
     val from = mc.player?.let { player ->
         player.renderPos.add(player.forward.add(0.0, player.eyeHeight.toDouble(), 0.0))
     } ?: return
     drawLine(listOf(from, to), colour, depth, thickness)
 }
 
-fun WorldRenderContext.drawWireFrameBox(aabb: AABB, colour: Colour, thickness: Float = 6f, depth: Boolean = false) {
-    val matrix = matrices() ?: return
-    val bufferSource = consumers() as? MultiBufferSource.BufferSource ?: return
+fun LevelRenderContext.drawWireFrameBox(aabb: AABB, colour: Colour, thickness: Float = 6f, depth: Boolean = false) {
+    val matrix = poseStack()
+    val bufferSource = bufferSource()
     val layer = if (depth) CustomRenderLayer.TRIANGLE_STRIP else CustomRenderLayer.TRIANGLE_STRIP_ESP
     val cameraPos = camera().position()
     val pose = matrix.last()
@@ -185,9 +184,9 @@ fun WorldRenderContext.drawWireFrameBox(aabb: AABB, colour: Colour, thickness: F
     bufferSource.endBatch(layer)
 }
 
-fun WorldRenderContext.drawFilledBox(box: AABB, colour: Colour, depth: Boolean = false) {
-    val matrix = matrices() ?: return
-    val bufferSource = consumers() as? MultiBufferSource.BufferSource ?: return
+fun LevelRenderContext.drawFilledBox(box: AABB, colour: Colour, depth: Boolean = false) {
+    val matrix = poseStack()
+    val bufferSource = bufferSource()
     val layer = if (depth) CustomRenderLayer.TRIANGLE_STRIP else CustomRenderLayer.TRIANGLE_STRIP_ESP
     val cameraPos = camera().position()
     val pose = matrix.last()
@@ -197,7 +196,7 @@ fun WorldRenderContext.drawFilledBox(box: AABB, colour: Colour, depth: Boolean =
     bufferSource.endBatch(layer)
 }
 
-fun WorldRenderContext.drawStyledBox(style: String, box: AABB, colour: Colour, fillColour: Colour = colour, thickness: Float = 2.0f, depth: Boolean = false) {
+fun LevelRenderContext.drawStyledBox(style: String, box: AABB, colour: Colour, fillColour: Colour = colour, thickness: Float = 2.0f, depth: Boolean = false) {
     when (style) {
         "Box" -> drawWireFrameBox(box, colour, thickness, depth)
         "Filled box" -> {
@@ -207,8 +206,8 @@ fun WorldRenderContext.drawStyledBox(style: String, box: AABB, colour: Colour, f
     }
 }
 
-fun WorldRenderContext.drawText(text: Component, pos: Vec3, colour: Colour = Colour.TRANSPARENT, shadow: Boolean = true, scale: Float = 0.5f, depth: Boolean = false) {
-    val stack = matrices() ?: return
+fun LevelRenderContext.drawText(text: Component, pos: Vec3, colour: Colour = Colour.TRANSPARENT, shadow: Boolean = true, scale: Float = 0.5f, depth: Boolean = false) {
+    val stack = poseStack()
 
     stack.pushPose()
     val matrix = stack.last().pose()
@@ -223,7 +222,7 @@ fun WorldRenderContext.drawText(text: Component, pos: Vec3, colour: Colour = Col
         it.drawInBatch(
             text, -it.width(text) / 2f, 0f, -1, shadow, matrix, consumers,
             if (depth) Font.DisplayMode.NORMAL else Font.DisplayMode.SEE_THROUGH,
-            colour.rgb, LightTexture.FULL_BRIGHT
+            colour.rgb, 15728880
         )
     }
 
@@ -231,7 +230,7 @@ fun WorldRenderContext.drawText(text: Component, pos: Vec3, colour: Colour = Col
     stack.popPose()
 }
 
-fun WorldRenderContext.drawCylinder(
+fun LevelRenderContext.drawCylinder(
     center: Vec3,
     radius: Float,
     height: Float,
@@ -240,8 +239,8 @@ fun WorldRenderContext.drawCylinder(
     thickness: Float = 5f,
     depth: Boolean = false
 ) {
-    val matrix = matrices() ?: return
-    val bufferSource = consumers() as? MultiBufferSource.BufferSource ?: return
+    val matrix = poseStack()
+    val bufferSource = bufferSource()
     val layer = if (depth) CustomRenderLayer.TRIANGLE_STRIP else CustomRenderLayer.TRIANGLE_STRIP_ESP
     val cameraPos = camera().position()
     val pose = matrix.last()

@@ -39,14 +39,14 @@ object CatMode : Module(
         }
 
         on<PacketEvent.Received, ClientboundSoundPacket> {
-            if (!meowSound || packet.sound == SoundEvents.CAT_AMBIENT) return@on
+            if (!meowSound || packet.sound == SoundEvents.CAT_AMBIENT_BABY) return@on
 
             cancel()
             mc.level?.playLocalSound(
                 packet.x,
                 packet.y,
                 packet.z,
-                SoundEvents.CAT_AMBIENT,
+                SoundEvents.CAT_AMBIENT_BABY.value(),
                 packet.source,
                 packet.volume,
                 packet.pitch,
@@ -94,7 +94,7 @@ object CatMode : Module(
         private val kittens = List(150) { Kitten() }
 
         fun draw(
-            ctx: net.minecraft.client.gui.GuiGraphics,
+            ctx: net.minecraft.client.gui.GuiGraphicsExtractor,
             width: Int,
             height: Int,
             texture: Identifier,
@@ -144,7 +144,7 @@ object CatMode : Module(
         }
 
         fun draw(
-            ctx: net.minecraft.client.gui.GuiGraphics,
+            ctx: net.minecraft.client.gui.GuiGraphicsExtractor,
             texture: Identifier,
             size: Int,
             darken: Boolean

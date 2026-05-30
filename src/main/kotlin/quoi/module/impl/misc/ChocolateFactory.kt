@@ -4,7 +4,7 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.network.protocol.game.ClientboundSoundPacket
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.decoration.ArmorStand
-import net.minecraft.world.inventory.ClickType
+import net.minecraft.world.inventory.ContainerInput
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.phys.Vec3
 import quoi.api.colour.Colour
@@ -151,12 +151,12 @@ object ChocolateFactory : Module(
         if (screen.title.string != "Chocolate Factory") return
 
         if (autoTimeTower && shouldActivateTimeTower(screen.menu.getSlot(39)?.item)) {
-            mc.gameMode?.handleInventoryMouseClick(screen.menu.containerId, 39, 1, ClickType.PICKUP, player)
+            mc.gameMode?.handleContainerInput(screen.menu.containerId, 39, 1, ContainerInput.PICKUP, player)
             return
         }
 
         if (clickFactory) {
-            mc.gameMode?.handleInventoryMouseClick(screen.menu.containerId, 13, 1, ClickType.PICKUP, player)
+            mc.gameMode?.handleContainerInput(screen.menu.containerId, 13, 1, ContainerInput.PICKUP, player)
         }
 
         if (!claimStrays) return
@@ -165,7 +165,7 @@ object ChocolateFactory : Module(
             slot.item.hoverName.string.containsOneOf("CLICK ME!", "Golden Rabbit")
         } ?: return
 
-        mc.gameMode?.handleInventoryMouseClick(screen.menu.containerId, found.index, 0, ClickType.PICKUP, player)
+        mc.gameMode?.handleContainerInput(screen.menu.containerId, found.index, 0, ContainerInput.PICKUP, player)
     }
 
     private fun tickUpgrades() {
@@ -179,7 +179,7 @@ object ChocolateFactory : Module(
 
         val bestUpgrade = findBestUpgrade(screen.menu) ?: return
         if (autoUpgrade && chocolate >= bestUpgrade.cost) {
-            mc.gameMode?.handleInventoryMouseClick(screen.menu.containerId, bestUpgrade.slot, 2, ClickType.CLONE, player)
+            mc.gameMode?.handleContainerInput(screen.menu.containerId, bestUpgrade.slot, 2, ContainerInput.CLONE, player)
         }
     }
 

@@ -4,7 +4,7 @@ import net.minecraft.core.BlockPos
 import net.minecraft.client.renderer.blockentity.BeaconRenderer
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.decoration.ArmorStand
-import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext
+import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext
 import quoi.api.colour.Colour
 import quoi.api.colour.withAlpha
 import quoi.api.events.AreaEvent
@@ -102,7 +102,7 @@ object MineshaftESP : Module(
         waypoints.putAll(found)
     }
 
-    private fun renderBeaconBeam(ctx: WorldRenderContext, pos: BlockPos, colour: Int) {
+    private fun renderBeaconBeam(ctx: LevelRenderContext, pos: BlockPos, colour: Int) {
         val pose = com.mojang.blaze3d.vertex.PoseStack()
         val cameraPos = mc.gameRenderer.mainCamera.position()
         val time = (level.gameTime + mc.deltaTracker.getGameTimeDeltaPartialTick(true)).toFloat()
@@ -115,7 +115,7 @@ object MineshaftESP : Module(
         )
         BeaconRenderer.submitBeaconBeam(
             pose,
-            ctx.commandQueue(),
+            ctx.submitNodeCollector(),
             BeaconRenderer.BEAM_LOCATION,
             1.0f,
             time,

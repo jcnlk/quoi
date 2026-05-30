@@ -1,7 +1,7 @@
 package quoi.utils
 
 import com.mojang.blaze3d.platform.InputConstants
-import net.minecraft.client.GuiMessage
+import net.minecraft.client.multiplayer.chat.GuiMessage
 import net.minecraft.client.KeyMapping
 import net.minecraft.client.gui.components.ChatComponent
 import net.minecraft.client.gui.components.ImageButton
@@ -10,6 +10,7 @@ import net.minecraft.util.Mth
 import net.minecraft.client.multiplayer.MultiPlayerGameMode
 import net.minecraft.client.multiplayer.prediction.PredictiveAction
 import net.minecraft.network.chat.Component
+import net.minecraft.world.entity.player.ChatVisiblity
 import net.minecraft.world.entity.player.Inventory
 import net.minecraft.world.item.ItemStack
 import quoi.QuoiMod.mc
@@ -41,7 +42,7 @@ fun ChatComponent.toChatLineMY(y: Double): Double =
 
 fun ChatComponent.getMessageLineIdx(chatLineX: Double, chatLineY: Double): Int =
     with(this as ChatComponentAccessor) {
-        if (!this@getMessageLineIdx.isChatFocused || `quoi$isChatHidden`()) return -1
+        if (!this@getMessageLineIdx.isChatFocused || mc.options.chatVisibility().get() == ChatVisiblity.HIDDEN) return -1
         if (chatLineX < -4.0 || chatLineX > Mth.floor(`quoi$getChatWidth`().toDouble() / `quoi$getChatScale`())) return -1
 
         val lineCount = minOf(this@getMessageLineIdx.linesPerPage, visibleMessages.size)

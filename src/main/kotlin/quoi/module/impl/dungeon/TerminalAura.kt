@@ -67,12 +67,7 @@ object TerminalAura : Module(
 
                 val hitVec = hitResult.get()
 
-                val packet = ServerboundInteractPacket.createInteractionPacket(
-                    entity,
-                    player.isShiftKeyDown,
-                    InteractionHand.MAIN_HAND,
-                    hitVec
-                )
+                val packet = ServerboundInteractPacket(entity.id, InteractionHand.MAIN_HAND, hitVec.subtract(entity.position()), player.isShiftKeyDown)
 
                 mc.connection?.send(packet)
                 player.swing(InteractionHand.MAIN_HAND)

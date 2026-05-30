@@ -22,31 +22,18 @@ class EntityInteract(private val entity: Entity, private val action: AuraAction)
                 val hitVec = clipResult.get()
 
                 mc.connection?.send(
-                    ServerboundInteractPacket.createInteractionPacket(
-                        entity,
-                        player.isShiftKeyDown,
-                        InteractionHand.MAIN_HAND,
-                        hitVec.subtract(entity.position())
-                    )
+                    ServerboundInteractPacket(entity.id, InteractionHand.MAIN_HAND, hitVec.subtract(entity.position()), player.isShiftKeyDown)
                 )
 
                 mc.connection?.send(
-                    ServerboundInteractPacket.createInteractionPacket(
-                        entity,
-                        player.isShiftKeyDown,
-                        InteractionHand.MAIN_HAND
-                    )
+                    ServerboundInteractPacket(entity.id, InteractionHand.MAIN_HAND, entity.boundingBox.center.subtract(entity.position()), player.isShiftKeyDown)
                 )
 
                 debugBox(hitVec)
             }
         } else {
             mc.connection?.send(
-                ServerboundInteractPacket.createInteractionPacket(
-                    entity,
-                    player.isShiftKeyDown,
-                    InteractionHand.MAIN_HAND
-                )
+                ServerboundInteractPacket(entity.id, InteractionHand.MAIN_HAND, entity.boundingBox.center.subtract(entity.position()), player.isShiftKeyDown)
             )
             debugBox(entity.boundingBox.center)
         }

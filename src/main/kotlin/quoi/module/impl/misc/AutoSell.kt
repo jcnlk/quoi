@@ -4,7 +4,7 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.client.gui.screens.inventory.ContainerScreen
 import net.minecraft.client.gui.screens.inventory.InventoryScreen
 import net.minecraft.world.entity.player.Inventory
-import net.minecraft.world.inventory.ClickType
+import net.minecraft.world.inventory.ContainerInput
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import quoi.api.commands.internal.GreedyString
@@ -117,7 +117,7 @@ object AutoSell : Module(
             if (lastClick != -1L && now - lastClick < nextDelay) return@on
 
             val slot = nextSellSlot(menu) ?: return@on
-            mc.gameMode?.handleInventoryMouseClick(
+            mc.gameMode?.handleContainerInput(
                 menu.containerId,
                 slot.index,
                 clickButton(),
@@ -158,9 +158,9 @@ object AutoSell : Module(
     }
 
     private fun clickAction() = when (clickType.index) {
-        0 -> ClickType.QUICK_MOVE
-        1 -> ClickType.CLONE
-        else -> ClickType.PICKUP
+        0 -> ContainerInput.QUICK_MOVE
+        1 -> ContainerInput.CLONE
+        else -> ContainerInput.PICKUP
     }
 
     private fun normalizeSellEntry(name: String, reforge: String? = null): String =

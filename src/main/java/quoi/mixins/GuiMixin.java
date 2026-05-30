@@ -7,7 +7,7 @@ import quoi.module.impl.player.PlayerDisplay.HudType;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.gui.Gui;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.scores.*;
@@ -44,10 +44,10 @@ public class GuiMixin {
             method = "render",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/client/gui/Gui;renderSleepOverlay(Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/client/DeltaTracker;)V"
+                    target = "Lnet/minecraft/client/gui/Gui;renderSleepOverlay(Lnet/minecraft/client/gui/GuiGraphicsExtractor;Lnet/minecraft/client/DeltaTracker;)V"
             )
     )
-    private void render(GuiGraphics guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci) {
+    private void render(GuiGraphicsExtractor guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci) {
 //        new RenderEvent.Overlay(guiGraphics, deltaTracker).post();
     }
 
@@ -56,7 +56,7 @@ public class GuiMixin {
             at = @At("HEAD"),
             cancellable = true
     )
-    private static void cancelArmorBar(GuiGraphics context, Player player, int i, int j, int k, int x, CallbackInfo ci) {
+    private static void cancelArmorBar(GuiGraphicsExtractor context, Player player, int i, int j, int k, int x, CallbackInfo ci) {
         if (PlayerDisplay.shouldCancelHud(HudType.ARMOUR)) ci.cancel();
     }
 
@@ -65,7 +65,7 @@ public class GuiMixin {
             at = @At("HEAD"),
             cancellable = true
     )
-    private void cancelHealthBar(GuiGraphics context, Player player, int x, int y, int lines, int regeneratingHeartIndex, float maxHealth, int lastHealth, int health, int absorption, boolean blinking, CallbackInfo ci) {
+    private void cancelHealthBar(GuiGraphicsExtractor context, Player player, int x, int y, int lines, int regeneratingHeartIndex, float maxHealth, int lastHealth, int health, int absorption, boolean blinking, CallbackInfo ci) {
         if (PlayerDisplay.shouldCancelHud(HudType.HEALTH)) ci.cancel();
     }
 
@@ -74,7 +74,7 @@ public class GuiMixin {
             at = @At("HEAD"),
             cancellable = true
     )
-    private void cancelFoodBar(GuiGraphics context, Player player, int top, int right, CallbackInfo ci) {
+    private void cancelFoodBar(GuiGraphicsExtractor context, Player player, int top, int right, CallbackInfo ci) {
         if (PlayerDisplay.shouldCancelHud(HudType.FOOD)) ci.cancel();
     }
 
@@ -83,7 +83,7 @@ public class GuiMixin {
             at = @At("HEAD"),
             cancellable = true
     )
-    private void cancelMountHealth(GuiGraphics guiGraphics, CallbackInfo ci) {
+    private void cancelMountHealth(GuiGraphicsExtractor guiGraphics, CallbackInfo ci) {
         if (PlayerDisplay.shouldCancelHud(HudType.MOUNT_HEALTH)) ci.cancel();
     }
 

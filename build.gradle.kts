@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    id("fabric-loom")
+    id("net.fabricmc.fabric-loom")
     kotlin("jvm")
     `maven-publish`
 }
@@ -15,25 +15,28 @@ repositories {
 
 dependencies {
     minecraft("com.mojang:minecraft:${property("minecraft_version")}")
-//    mappings("net.fabricmc:yarn:${property("yarn_mappings")}:v2")
-    mappings(loom.officialMojangMappings())
 
-    modImplementation("net.fabricmc:fabric-loader:${property("loader_version")}")
-    modImplementation("net.fabricmc:fabric-language-kotlin:${property("fabric_kotlin_version")}")
-    modImplementation("net.fabricmc.fabric-api:fabric-api:${property("fabric_api_version")}")
-    modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.1")
+    implementation("net.fabricmc:fabric-loader:${property("loader_version")}")
+    implementation("net.fabricmc:fabric-language-kotlin:${property("fabric_kotlin_version")}")
+    implementation("net.fabricmc.fabric-api:fabric-api:${property("fabric_api_version")}")
+    implementation("net.fabricmc.fabric-api:fabric-command-api-v2:3.0.5+e2bdee7847")
+    implementation("net.fabricmc.fabric-api:fabric-lifecycle-events-v1:4.0.6+a9b9c17647")
+    implementation("net.fabricmc.fabric-api:fabric-networking-api-v1:6.3.0+50a808ce47")
+    implementation("net.fabricmc.fabric-api:fabric-rendering-v1:23.0.4+c7e428fd47")
+    implementation("net.fabricmc.fabric-api:fabric-screen-api-v1:5.0.1+d871b99e47")
+    runtimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.1")
     runtimeOnly("org.apache.httpcomponents:httpclient:4.5.14")
 
-    modImplementation("io.github.classgraph:classgraph:4.8.184")
+    implementation("io.github.classgraph:classgraph:4.8.184")
     include("io.github.classgraph:classgraph:4.8.184")
 
     property("minecraft_lwjgl_version").let {
 
-        modImplementation("org.lwjgl:lwjgl-nanovg:$it")
+        implementation("org.lwjgl:lwjgl-nanovg:$it")
         include("org.lwjgl:lwjgl-nanovg:$it")
 
         listOf("windows", "linux", "macos", "macos-arm64").forEach { v ->
-            modImplementation("org.lwjgl:lwjgl-nanovg:$it:natives-$v")
+            implementation("org.lwjgl:lwjgl-nanovg:$it:natives-$v")
             include("org.lwjgl:lwjgl-nanovg:$it:natives-$v")
         }
     }
@@ -42,12 +45,13 @@ dependencies {
 loom {
     runConfigs.named("client") {
         isIdeConfigGenerated = true
-        vmArgs.add("-Dmixin.debug.export=true")
+        runDir = "runs/${project.property("minecraft_version")}"
         vmArgs.addAll(
             arrayOf(
                 "-Dmixin.debug.export=true",
                 "-Ddevauth.enabled=true",
-                "-Ddevauth.account=main",
+                "-Ddevauth.account=${providers.gradleProperty("devauth_account").orElse("main").get()}",
+                // JetBrains Runtime only; Temurin/OpenJDK reject this flag. IntelliJ run configs use JBR.
                 "-XX:+AllowEnhancedClassRedefinition",
             )
         )
@@ -73,14 +77,14 @@ tasks {
 
     compileKotlin {
         compilerOptions {
-            jvmTarget = JvmTarget.JVM_21
+            jvmTarget = JvmTarget.JVM_25
             freeCompilerArgs.add("-Xlambdas=class")
         }
     }
 
     compileJava {
-        sourceCompatibility = "21"
-        targetCompatibility = "21"
+        sourceCompatibility = "25"
+        targetCompatibility = "25"
         options.encoding = "UTF-8"
         options.compilerArgs.addAll(listOf("-Xlint:deprecation", "-Xlint:unchecked"))
     }
