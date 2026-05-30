@@ -28,6 +28,7 @@
     "FishingHookRendererMixin",
     "FogRendererMixin",
     "FontMixin",
+    "GlyphRenderStateMixin",
     "GuiGraphicsMixin",
     "GuiMessage",
     "GuiMessageLineMixin",
