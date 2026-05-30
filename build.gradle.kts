@@ -46,7 +46,6 @@ loom {
     runConfigs.named("client") {
         isIdeConfigGenerated = true
         runDir = "runs/${project.property("minecraft_version")}"
-        vmArgs.add("-Dmixin.debug.export=true")
         vmArgs.addAll(
             arrayOf(
                 "-Dmixin.debug.export=true",
