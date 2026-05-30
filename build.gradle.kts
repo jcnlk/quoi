@@ -42,12 +42,14 @@ dependencies {
 loom {
     runConfigs.named("client") {
         isIdeConfigGenerated = true
+        runDir = "runs/${project.property("minecraft_version")}"
         vmArgs.add("-Dmixin.debug.export=true")
         vmArgs.addAll(
             arrayOf(
                 "-Dmixin.debug.export=true",
                 "-Ddevauth.enabled=true",
-                "-Ddevauth.account=main",
+                "-Ddevauth.account=${providers.gradleProperty("devauth_account").orElse("main").get()}",
+                // JetBrains Runtime only; Temurin/OpenJDK reject this flag. IntelliJ run configs use JBR.
                 "-XX:+AllowEnhancedClassRedefinition",
             )
         )
