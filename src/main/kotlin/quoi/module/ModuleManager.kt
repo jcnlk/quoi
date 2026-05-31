@@ -39,6 +39,7 @@ object ModuleManager {
             BarrierBoom,
             FireFreeze,
             LightsDevice,
+            LavaBounce,
             TickTimers,
             DungeonESP,
             FuckDiorite,
