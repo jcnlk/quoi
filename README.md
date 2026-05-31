@@ -16,14 +16,12 @@
 - `/quoi equip <mask>` - equips Bonzo/Spirit Mask
 - `/quoi order [p1] [p2] [p3] [p4]` - shows or sets Leap Menu custom order
 - `/quoi clearaura` - clears Secret Aura state
-- `/quoi db <em|clear>` - manages Dungeon Breaker edit mode and saved blocks
 - `/quoi autosell <add|remove|clear|list> [item]` - manages the Auto Sell item list
 - `/quoi ac <add|remove|clear> <left|right>` - manages Auto Clicker item whitelists
 - `/quoi hotbar <save|load|list|delete|setmsg|setfloor|setclass> ...` - manages Auto Hotbar presets
 - `/quoi emote <add|remove|list|clear> ...` - manages custom emotes
 - `/quoi chatfilter <add|remove|list|show|status|clear> ...` - manages custom chat filters
 - `/quoi petkeybinds <add|get|list|remove|clear> ...` - manages pet keybind entries
-- `/quoi ct` - opens the Custom Triggers editor
 - `/quoi antiafk <delay>` - runs the anti-AFK helper
 - `/quoi findlobby <area> <day|server|player> <value>` - searches for matching lobbies
 - `/route <em|add|rm|restore|clear|edit|editdb|chain|convert|reload> ...` - Auto Routes editor/runtime command set
@@ -68,6 +66,8 @@
   - Automatically teleports to a specified target.
 - **Invincibility Timer**
   - Gives visual information about your invincibility times.
+- **Lava Bounce**
+  - Automatically places soul sand, chests, or ender chests for lava bounce spots.
 - **Leap Menu**
   - Adds a custom leap menu.
 - **Lights Device**
@@ -75,7 +75,7 @@
 - **Necron Platform Highlight**
   - Highlights 3x3 area to mine after Goldor dies.
 - **Puzzle Solvers**
-  - Ice Fill, Ice Path, Teleport Maze, Quiz, Three Weirdos, Tic Tac Toe, Water Board, Creeper Beams, and Blaze
+  - Displays solutions and automatically completes dungeon puzzles: Ice Fill, Teleport Maze, Quiz, Three Weirdos, Tic Tac Toe, Water Board, Creeper Beams, Blaze, Ice Path, and Boulder.
 - **Secret Aura**
   - Automatically collects secrets.
 - **Secret TriggerBot**
@@ -127,8 +127,8 @@
 - **Chat Replacements**
 - **Chocolate Factory**
   - Automates the Chocolate Factory.
-- **Custom Triggers**
-  - Custom trigger editor for grouped conditions and actions.
+- **Escrow Fix**
+  - Automatically reopens the Auction House or Bazaar after escrow closes it.
 - **Inventory**
   - Inventory search/HUD helpers and other GUI QoL
 - **Item Animations**
@@ -164,6 +164,8 @@
 
 - **Click GUI**
   - Includes direct access to the HUD editor
+- **Custom Main Menu**
+  - Replaces the vanilla main menu with a Quoi-styled one.
 - **Etherwarp Overlay**
   - Renders a box at the location where the etherwarp is going to be at.
 - **Name Tags**
@@ -182,7 +184,7 @@
 <details>
 <summary><b>Mining</b></summary>
 
-- **Commission Display**
+- **Commision Display**
   - Displays your commissions without you having to open the tab menu.
 - **Crystal Hollows Map**
   - Crystal Hollows map HUD.
