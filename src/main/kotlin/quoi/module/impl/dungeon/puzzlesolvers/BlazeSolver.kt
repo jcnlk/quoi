@@ -67,7 +67,7 @@ object BlazeSolver { // todo maybe improve terminator shit some day
         if (!this?.name.equalsOneOf("Lower Blaze", "Higher Blaze") ) return@with reset()
     }
 
-    fun onRenderWorld(ctx: LevelRenderContext, blazeLineNext: Boolean, blazeLineAmount: Int, blazeStyle: String, blazeFirstColour: Colour, blazeSecondColour: Colour, blazeAllColour: Colour, blazeAnnounce: Boolean, blazeLineWidth: Float, autoReposition: Boolean) {
+    fun onRenderWorld(ctx: LevelRenderContext, blazeLineNext: Boolean, blazeLineAmount: Int, blazeStyle: String, blazeFirstColour: Colour, blazeSecondColour: Colour, blazeThirdColour: Colour, blazeAllColour: Colour, blazeAnnounce: Boolean, blazeLineWidth: Float, autoReposition: Boolean) {
         if (!Dungeon.currentRoom?.name.equalsOneOf("Lower Blaze", "Higher Blaze") || blazes.isEmpty()) return
 
         if (autoReposition) {
@@ -91,6 +91,7 @@ object BlazeSolver { // todo maybe improve terminator shit some day
             val colour = when (index) {
                 0 -> blazeFirstColour
                 1 -> blazeSecondColour
+                2 -> blazeThirdColour
                 else -> blazeAllColour
             }
             val aabb = entity.boundingBox.inflate(0.5, 1.0, 0.5).move(0.0, -1.0, 0.0)
