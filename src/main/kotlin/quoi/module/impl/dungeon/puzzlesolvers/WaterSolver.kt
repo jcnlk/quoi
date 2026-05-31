@@ -16,7 +16,6 @@ import quoi.api.colour.Colour
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.odonscanning.tiles.OdonRoom
 import quoi.utils.ChatUtils
-import quoi.utils.EntityUtils.renderPos
 import quoi.utils.Scheduler.scheduleTask
 import quoi.utils.StringUtils.toFixed
 import quoi.utils.Ticker
@@ -24,6 +23,7 @@ import quoi.utils.WorldUtils.state
 import quoi.utils.skyblock.item.TeleportUtils.getEtherwarpDirection
 import quoi.utils.render.drawLine
 import quoi.utils.render.drawText
+import quoi.utils.render.drawTracer
 import quoi.utils.skyblock.player.interact.AuraManager
 import quoi.utils.skyblock.player.PlayerUtils.at
 import quoi.utils.skyblock.player.PlayerUtils.useItem
@@ -64,7 +64,13 @@ object WaterSolver {
     private val solutionList: List<Pair<LeverBlock, Double>>
         get() = solutions
             .flatMap { (lever, times) -> times.drop(lever.i).map { lever to it } }
-            .sortedBy { (lever, time) -> time + if (lever == LeverBlock.WATER) 0.01 else 0.0 }
+            .sortedWith(
+                compareBy(
+                    { it.second != 0.0 },
+                    { if (it.second == 0.0) it.first.ordinal else Int.MAX_VALUE },
+                    { if (it.second != 0.0) it.second else 0.0 }
+                )
+            )
 
     fun scan(optimized: Boolean) = with (Dungeon.currentRoom) {
         if (this?.name != "Water Board" || patternIdentifier != -1) return@with
@@ -110,18 +116,12 @@ object WaterSolver {
 
         if (showTracer) {
             val firstSolution = solutionList.firstOrNull()?.first ?: return
-            mc.player?.let {
-                ctx.drawLine(
-                    listOf(it.renderPos.add(it.forward.add(0.0, it.eyeHeight.toDouble(), 0.0)), Vec3(firstSolution.leverPos).add(.5, .5, .5)),
-                    colour = tracerFirst,
-                    depth = true
-                )
-            }
+            mc.player?.let { ctx.drawTracer(Vec3(firstSolution.leverPos).add(.5, .5, .5), tracerFirst, depth = false) }
 
             if (solutionList.size > 1 && firstSolution.leverPos != solutionList[1].first.leverPos) {
                 ctx.drawLine(
                     listOf(Vec3(firstSolution.leverPos).add(.5, .5, .5), Vec3(solutionList[1].first.leverPos).add(.5, .5, .5)),
-                    colour = tracerSecond, depth = true
+                    colour = tracerSecond, depth = false
                 )
             }
         }
@@ -271,9 +271,9 @@ object WaterSolver {
     }
 
     private enum class LeverBlock(val relativePosition: BlockPos, var i: Int = 0) {
-        QUARTZ(BlockPos(20, 61, 20)),
-        GOLD(BlockPos(20, 61, 15)),
         COAL(BlockPos(20, 61, 10)),
+        GOLD(BlockPos(20, 61, 15)),
+        QUARTZ(BlockPos(20, 61, 20)),
         DIAMOND(BlockPos(10, 61, 20)),
         EMERALD(BlockPos(10, 61, 15)),
         CLAY(BlockPos(10, 61, 10)),

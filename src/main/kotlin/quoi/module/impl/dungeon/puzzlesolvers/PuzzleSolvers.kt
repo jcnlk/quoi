@@ -35,6 +35,8 @@ object PuzzleSolvers : Module(
     private val mazeColourOne by colourPicker("Colour for one", Colour.MINECRAFT_GREEN.withAlpha(0.5f), true, desc = "Colour for when there is a single solution.").childOf(::mazeSolver)
     private val mazeColourMultiple by colourPicker("Colour for multiple", Colour.MINECRAFT_GOLD.withAlpha(0.5f), true, desc = "Colour for when there are multiple solutions.").childOf(::mazeSolver)
     private val mazeColourVisited by colourPicker("Colour for visited", Colour.MINECRAFT_RED.withAlpha(0.5f), true, desc = "Colour for the already used TP pads.").childOf(::mazeSolver)
+    private val mazeTracer by switch("Tracer", true, desc = "Shows a tracer to the best next TP pad.").childOf(::mazeSolver)
+    private val mazeTracerColour by colourPicker("Tracer colour", Colour.MINECRAFT_AQUA, true, desc = "Colour for the TP maze tracer.").childOf(::mazeTracer)
     private val mazeAuto by switch("Auto").json("Auto maze").childOf(::mazeDropdown).asParent()
 
     private val quizDropdown by text("Quiz")
@@ -83,6 +85,7 @@ object PuzzleSolvers : Module(
     private val blazeStyle by selector("Style", "Box", arrayListOf("Box", "Filled box"), desc = "Render style to be used.").json("Blaze style").childOf(::blazeSolver)
     private val blazeFirstColour by colourPicker("First colour", Colour.MINECRAFT_GREEN.withAlpha(0.75f), desc = "Colour for the first blaze.").childOf(::blazeSolver)
     private val blazeSecondColour by colourPicker("Second colour", Colour.MINECRAFT_GOLD.withAlpha(0.75f), desc = "Colour for the second blaze.").childOf(::blazeSolver)
+    private val blazeThirdColour by colourPicker("Third colour", Colour.MINECRAFT_RED.withAlpha(0.75f), desc = "Colour for the third blaze.").childOf(::blazeSolver)
     private val blazeAllColour by colourPicker("Other colour", Colour.WHITE.withAlpha(0.3f), desc = "Colour for the other blazes.").childOf(::blazeSolver)
     private val blazeAnnounce by switch("Announce completion", desc = "Sends complete message.").childOf(::blazeDropdown).asParent()
     private val blazeAuto by switch("Auto").json("Auto blaze").childOf(::blazeDropdown)
@@ -135,8 +138,8 @@ object PuzzleSolvers : Module(
             if (!inPuzzle)     return@on
             if (fillSolver)    IceFillSolver.onRenderWorld(ctx, fillColour)
             if (beamsSolver)   BeamsSolver.onRenderWorld(ctx, beamsStyle.selected, beamsTracer, beamsAlpha)
-            if (blazeSolver)   BlazeSolver.onRenderWorld(ctx, blazeLineNext, blazeLineAmount, blazeStyle.selected, blazeFirstColour, blazeSecondColour, blazeAllColour, blazeAnnounce, blazeLineWidth, blazeReposition)
-            if (mazeSolver)    MazeSolver.onRenderWorld(ctx, mazeColourOne, mazeColourMultiple, mazeColourVisited)
+            if (blazeSolver)   BlazeSolver.onRenderWorld(ctx, blazeLineNext, blazeLineAmount, blazeStyle.selected, blazeFirstColour, blazeSecondColour, blazeThirdColour, blazeAllColour, blazeAnnounce, blazeLineWidth, blazeReposition)
+            if (mazeSolver)    MazeSolver.onRenderWorld(ctx, mazeColourOne, mazeColourMultiple, mazeColourVisited, mazeTracer, mazeTracerColour)
             if (pathSolver)    IcePathSolver.onRenderWorld(ctx, pathColour)
             if (weirdosSolver) WeirdosSolver.onRenderWorld(ctx, weirdosColour, weirdosWrongColour, weirdosStyle.selected)
             if (tttSolver)     TicTacToeSolver.onRenderWorld(ctx, tttColour, tttPColour, tttPrediction)
