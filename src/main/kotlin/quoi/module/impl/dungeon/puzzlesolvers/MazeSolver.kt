@@ -4,6 +4,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext
 import net.minecraft.client.player.LocalPlayer
 import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ClientboundPlayerPositionPacket
+import net.minecraft.util.Mth
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import quoi.QuoiMod.mc
@@ -17,10 +18,13 @@ import quoi.utils.bounds
 import quoi.utils.getDirection
 import quoi.utils.isXZInterceptable
 import quoi.utils.render.drawFilledBox
+import quoi.utils.render.drawTracer
 import quoi.utils.skyblock.player.MovementUtils.movementTask
 import quoi.utils.skyblock.player.MovementUtils.resetInput
 import quoi.utils.skyblock.player.RotationUtils.rotate
 import java.util.concurrent.CopyOnWriteArraySet
+import kotlin.math.abs
+import kotlin.math.atan2
 
 /**
  * modified OdinFabric (BSD 3-Clause)
@@ -31,6 +35,7 @@ object MazeSolver {
     private var tpPads = setOf<BlockPos>()
     private var correctPortals = listOf<BlockPos>()
     private var visited = CopyOnWriteArraySet<BlockPos>()
+    private var best: BlockPos? = null
 
     private var walking = false
     private var nextMove = false
@@ -48,6 +53,7 @@ object MazeSolver {
         visited.addAll(tpPads.filter { AABB.unitCubeFromLowerCorner(Vec3(x, y, z)).inflate(1.0, 0.0, 1.0).intersects(AABB(it)) ||
                 mc.player?.boundingBox?.inflate(1.0, 0.0, 1.0)?.intersects(AABB(it)) == true })
         getCorrectPortals(Vec3(x, y, z), packet.change.yRot, packet.change.xRot)
+        best = getBestPad(Vec3(x, y, z), packet.change.yRot)
 
         stop()
         scheduleTask {
@@ -67,7 +73,7 @@ object MazeSolver {
         }
     }
 
-    fun onRenderWorld(ctx: WorldRenderContext, mazeColourOne: Colour, mazeColourMultiple: Colour, mazeColourVisited: Colour) {
+    fun onRenderWorld(ctx: WorldRenderContext, mazeColourOne: Colour, mazeColourMultiple: Colour, mazeColourVisited: Colour, showTracer: Boolean, tracerColour: Colour) {
         if (Dungeon.currentRoom?.name != "Teleport Maze") return
         tpPads.forEach {
             val aabb = it.bounds?.move(it) ?: it.aabb
@@ -76,6 +82,11 @@ object MazeSolver {
                 in visited -> ctx.drawFilledBox(aabb, mazeColourVisited, true)
                 else -> ctx.drawFilledBox(aabb, Colour.WHITE.withAlpha(0.5f), true)
             }
+        }
+
+        if (showTracer) {
+            val target = best ?: return
+            ctx.drawTracer(Vec3(target.x + 0.5, target.y + 0.8, target.z + 0.5), tracerColour, depth = false)
         }
     }
 
@@ -114,6 +125,7 @@ object MazeSolver {
 
         val currentPad = tpPads.minByOrNull { pos.distanceToSqr(Vec3.atCenterOf(it)) } ?: return null
         val currentCell = realCells.find { currentPad in it } ?: return null
+        best?.takeIf { it in currentCell && it !in visited }?.let { return it }
 
         if (correctPortals.size == 1) {
             val correctPad = correctPortals.first()
@@ -123,6 +135,20 @@ object MazeSolver {
         val unvisited = currentCell.filter { it !in visited }
         return unvisited.find { it.x != currentPad.x && it.z != currentPad.z }
             ?: unvisited.maxByOrNull { pos.distanceToSqr(Vec3.atCenterOf(it)) }
+    }
+
+    private fun getBestPad(pos: Vec3, yaw: Float): BlockPos? {
+        val currentPad = tpPads.minByOrNull { pos.distanceToSqr(Vec3.atCenterOf(it)) } ?: return null
+        val currentCell = realCells.find { currentPad in it } ?: return null
+
+        if (currentCell.size == 1) return null
+        val candidates = currentCell.filter { it != currentPad && it !in visited }
+
+        return candidates.firstOrNull { it in correctPortals }
+            ?: candidates.minByOrNull {
+                val targetYaw = (atan2(it.center.z - pos.z, it.center.x - pos.x) * 180.0 / Math.PI).toFloat() - 90f
+                abs(Mth.wrapDegrees(targetYaw) - Mth.wrapDegrees(yaw))
+            }
     }
 
     private fun stop() {
@@ -136,6 +162,7 @@ object MazeSolver {
         stop()
         correctPortals = listOf()
         visited = CopyOnWriteArraySet()
+        best = null
         nextMove = false
     }
 
