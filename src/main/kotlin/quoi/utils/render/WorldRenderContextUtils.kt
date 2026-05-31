@@ -203,6 +203,7 @@ fun LevelRenderContext.drawStyledBox(style: String, box: AABB, colour: Colour, f
             drawFilledBox(box, fillColour, depth)
             drawWireFrameBox(box, colour, thickness, depth)
         }
+        "Filled" -> drawFilledBox(box, fillColour, depth)
     }
 }
 
