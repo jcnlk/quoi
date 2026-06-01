@@ -27,6 +27,7 @@ import quoi.api.skyblock.dungeon.odonscanning.tiles.OdonRoom
 import quoi.api.skyblock.dungeon.odonscanning.tiles.RoomState
 import quoi.api.skyblock.invoke
 import quoi.module.Module
+import quoi.module.impl.misc.Test
 import quoi.module.settings.Setting.Companion.json
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.module.settings.UIComponent.Companion.visibleIf
@@ -83,7 +84,8 @@ object DungeonESP : Module(
     private val mimicColour by colourPicker("Mimic colour", Colour.RED, true, "ESP color for mimic chests.").childOf(::mimicHighlight)
     private val mimicFillColour by colourPicker("Mimic fill colour", Colour.RED.withAlpha(60), true, "Fill color for mimic chests.").childOf(::mimicHighlight).visibleIf { mimicStyle.selected == "Filled box" }
 
-    private var currentEntities = mutableMapOf<Int, EspMob>()
+    var currentEntities = mutableMapOf<Int, EspMob>()
+        private set
     private val mimicChests = mutableSetOf<BlockPos>()
 
     override fun onEnable() {
@@ -100,6 +102,7 @@ object DungeonESP : Module(
         scheduleLoop(10) {
             if (!Dungeon.inClear) return@scheduleLoop
             updateEntities()
+            Test.collectMobs()
         }
 
         on<WorldEvent.Change> {
@@ -272,7 +275,7 @@ object DungeonESP : Module(
         return res
     }
 
-    private data class EspMob(val entity: LivingEntity, val colour: Colour, val fillColour: Colour, val room: OdonRoom?)
+    data class EspMob(val entity: LivingEntity, val colour: Colour, val fillColour: Colour, val room: OdonRoom?)
 
     private val Entity.isWitherBoss get() = this is WitherBoss && !this.isInvisible && this.invulnerableTicks != 800
 }
