@@ -106,6 +106,11 @@ open class Hud(
             addTransform(it)
         }
 
+        init {
+            scaleX = this@Hud.scale.value
+            scaleY = this@Hud.scale.value
+        }
+
         override fun getDefaultPositions() = Pair(Undefined, Undefined)
 
         override fun prePosition() {
@@ -136,10 +141,10 @@ open class Hud(
 
         fun clampToParent(): Boolean {
             val p = parent ?: return false
-            val maxX = maxOf(0f, p.width - screenWidth())
-            val maxY = maxOf(0f, p.height - screenHeight())
-            val clampedX = x.coerceIn(0f, maxX)
-            val clampedY = y.coerceIn(0f, maxY)
+            val (minX, maxX) = xBounds()
+            val (minY, maxY) = yBounds()
+            val clampedX = x.coerceIn(minX, maxX)
+            val clampedY = y.coerceIn(minY, maxY)
             if (clampedX == x && clampedY == y) return false
 
             constraints.x = clampedX.px
@@ -160,6 +165,21 @@ open class Hud(
         }
 
         fun hasPixelPosition() = constraints.x is Pixel && constraints.y is Pixel
+
+        fun xBounds(): Pair<Float, Float> {
+            val p = parent ?: return 0f to 0f
+            return axisBounds(p.width, screenWidth())
+        }
+
+        fun yBounds(): Pair<Float, Float> {
+            val p = parent ?: return 0f to 0f
+            return axisBounds(p.height, screenHeight())
+        }
+
+        private fun axisBounds(parentSize: Float, elementSize: Float): Pair<Float, Float> {
+            val max = parentSize - elementSize
+            return if (max >= 0f) 0f to max else max to 0f
+        }
     }
 
     open class Scope(element: Element, val preview: Boolean) : ElementScope<Element>(element) {
