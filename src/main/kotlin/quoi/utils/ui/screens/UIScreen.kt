@@ -17,7 +17,7 @@ import net.minecraft.network.chat.Component
 class UIScreen(val instance: AbobaUI.Instance, val background: Boolean = true ) : Screen(Component.literal(instance.title)) {
 
     override fun init() {
-        instance.init(width * sf, height * sf)
+        instance.init(mc.window.width, mc.window.height)
     }
 
     override fun extractRenderState(ctx: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, deltaTicks: Float) {

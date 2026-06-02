@@ -41,12 +41,14 @@ import quoi.module.impl.render.ClickGui.clickGui
 import quoi.utils.ui.screens.UIScreen.Companion.open
 import kotlin.collections.forEach
 import kotlin.math.abs
+import kotlin.math.roundToInt
 
 object HudManager { // todo add hud grouping
     val huds = arrayListOf<Hud>()
     var stupid = false
 
     private var overlay: UIOverlay? = null
+    private var reinitGeneration = 0
 
     private var selected: Popup? = null
     private var lineX: Float = -1f
@@ -83,6 +85,7 @@ object HudManager { // todo add hud grouping
             return
         }
 
+        overlay?.close()
         overlay = UIOverlay(aloba {
             huds.forEach { hud ->
                 if (hud.inContainer) return@forEach
@@ -94,9 +97,17 @@ object HudManager { // todo add hud grouping
     }
 
     fun reinit(immediately: Boolean = true) {
+        val generation = ++reinitGeneration
         overlay?.close()
-        if (immediately) mc.execute { init() }
-        else scheduleTask { mc.execute { init() } }
+        overlay = null
+        if (immediately) mc.execute {
+            if (generation == reinitGeneration) init()
+        }
+        else scheduleTask {
+            mc.execute {
+                if (generation == reinitGeneration) init()
+            }
+        }
     }
 
     var hudSettings: Popup? = null
@@ -119,7 +130,7 @@ object HudManager { // todo add hud grouping
 
         onRemove {
             scheduleTask { Config.save() }
-            reinit(immediately = false)
+            reinit()
             if (fromMain) open(clickGui)
         }
 
@@ -145,10 +156,7 @@ object HudManager { // todo add hud grouping
                 onClick(button = 0) {
                     dragging = true
 
-                    if (element.constraints.x !is Pixel) {
-                        element.constraints.x = element.x.px
-                        element.constraints.y = element.y.px
-                    }
+                    element.ensurePixelPosition()
 
                     clickedX = ui.mx - element.x
                     clickedY = ui.my - element.y
@@ -171,8 +179,8 @@ object HudManager { // todo add hud grouping
                     val maxX = maxOf(0f, ui.main.width - element.screenWidth())
                     val maxY = maxOf(0f, ui.main.height - element.screenHeight())
 
-                    element.constraints.x.pixels = newX.coerceIn(0f, maxX)
-                    element.constraints.y.pixels = newY.coerceIn(0f, maxY)
+                    element.constraints.x.pixels = newX.coerceIn(0f, maxX).roundToInt().toFloat()
+                    element.constraints.y.pixels = newY.coerceIn(0f, maxY).roundToInt().toFloat()
 
                     element.redraw()
                     true
@@ -181,7 +189,7 @@ object HudManager { // todo add hud grouping
 //                draggable(moves = element)
 
                 onRemove {
-                    hud.savePosition(element, ui.main.width, ui.main.height)
+                    if (element.hasPixelPosition()) hud.savePosition(element, ui.main.width, ui.main.height)
                 }
 
                 onFocus {
@@ -221,16 +229,13 @@ object HudManager { // todo add hud grouping
                         CatKeys.KEY_DOWN -> 0 to step
                         else -> return@onKeyPressed false
                     }
-                    if (element.constraints.x !is Pixel) {
-                        element.constraints.x = element.x.px
-                        element.constraints.y = element.y.px
-                    }
+                    element.ensurePixelPosition()
 
-                    val newX = (element.constraints.x.pixels + x).coerceIn(0f, ui.main.width - element.width)
-                    val newY = (element.constraints.y.pixels + y).coerceIn(0f, ui.main.height - element.height)
+                    val newX = (element.constraints.x.pixels + x).coerceIn(0f, maxOf(0f, ui.main.width - element.screenWidth()))
+                    val newY = (element.constraints.y.pixels + y).coerceIn(0f, maxOf(0f, ui.main.height - element.screenHeight()))
 
-                    element.constraints.x.pixels = newX
-                    element.constraints.y.pixels = newY
+                    element.constraints.x.pixels = newX.roundToInt().toFloat()
+                    element.constraints.y.pixels = newY.roundToInt().toFloat()
                     element.redraw()
                     true
                 }
@@ -241,8 +246,10 @@ object HudManager { // todo add hud grouping
                     hudSettings?.closePopup()
                     element.moveToTop()
                     hudSettings = settings(at(popupX(), popupY()), hud, { hudSettings = null }, element) {
+                        element.ensurePixelPosition()
                         hud.savePosition(element, ui.main.width, ui.main.height)
                         rebuildHuds()
+                        element.clampToParent()
                     }
                     true
                 }
@@ -251,6 +258,12 @@ object HudManager { // todo add hud grouping
                     val newValue = hud.scale.value + (hud.scale.incrementD * amount)
                     hud.scale.set(newValue)
                     element.scaleTransformation = hud.scale.value
+                    element.clampToParent()
+                }
+
+                operation {
+                    element.clampToParent()
+                    false
                 }
             }
         }

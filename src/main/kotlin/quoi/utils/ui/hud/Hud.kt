@@ -2,8 +2,10 @@ package quoi.utils.ui.hud
 
 import quoi.api.abobaui.constraints.Constraint
 import quoi.api.abobaui.constraints.impl.measurements.Undefined
+import quoi.api.abobaui.constraints.impl.measurements.Pixel
 import quoi.api.abobaui.constraints.impl.size.Bounding
 import quoi.api.abobaui.dsl.constrain
+import quoi.api.abobaui.dsl.px
 import quoi.api.abobaui.dsl.percent
 import quoi.api.abobaui.elements.Element
 import quoi.api.abobaui.elements.ElementScope
@@ -16,6 +18,7 @@ import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.module.settings.impl.TextComponent
 import quoi.module.settings.impl.SliderComponent
 import quoi.utils.ui.settingFromK0
+import kotlin.math.roundToInt
 import kotlin.reflect.KProperty0
 
 open class Hud(
@@ -69,8 +72,10 @@ open class Hud(
     }
 
     open fun savePosition(element: Element, screenWidth: Float, screenHeight: Float) {
-        x.value = (element.x / screenWidth) * 100f
-        y.value = (element.y / screenHeight) * 100f
+        val targetX = ((element.constraints.x as? Pixel)?.pixels ?: element.internalX).roundToInt().toFloat()
+        val targetY = ((element.constraints.y as? Pixel)?.pixels ?: element.internalY).roundToInt().toFloat()
+        x.value = (targetX / screenWidth) * 100f
+        y.value = (targetY / screenHeight) * 100f
     }
 
     private fun addSetting(setting: UIComponent<*>, adding: List<UIComponent<*>> = emptyList()) {
@@ -105,8 +110,8 @@ open class Hud(
 
         override fun prePosition() {
             parent?.let { p ->
-                this.internalX = this.constraints.x.calculatePos(this, true)
-                this.internalY = this.constraints.y.calculatePos(this, false)
+                this.internalX = this.constraints.x.calculatePos(this, true).roundToInt().toFloat()
+                this.internalY = this.constraints.y.calculatePos(this, false).roundToInt().toFloat()
                 this.x = this.internalX + p.x
                 this.y = this.internalY + p.y
             }
@@ -128,6 +133,33 @@ open class Hud(
             scaleTransformation = this@Hud.scale.value
             redraw = true
         }
+
+        fun clampToParent(): Boolean {
+            val p = parent ?: return false
+            val maxX = maxOf(0f, p.width - screenWidth())
+            val maxY = maxOf(0f, p.height - screenHeight())
+            val clampedX = x.coerceIn(0f, maxX)
+            val clampedY = y.coerceIn(0f, maxY)
+            if (clampedX == x && clampedY == y) return false
+
+            constraints.x = clampedX.px
+            constraints.y = clampedY.px
+            internalX = clampedX
+            internalY = clampedY
+            x = clampedX + p.x
+            y = clampedY + p.y
+            redraw()
+            return true
+        }
+
+        fun ensurePixelPosition() {
+            if (constraints.x !is Pixel) {
+                constraints.x = x.px
+                constraints.y = y.px
+            }
+        }
+
+        fun hasPixelPosition() = constraints.x is Pixel && constraints.y is Pixel
     }
 
     open class Scope(element: Element, val preview: Boolean) : ElementScope<Element>(element) {
