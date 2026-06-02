@@ -176,11 +176,11 @@ object HudManager { // todo add hud grouping
                     val newX = ui.mx - clickedX
                     val newY = ui.my - clickedY
 
-                    val maxX = maxOf(0f, ui.main.width - element.screenWidth())
-                    val maxY = maxOf(0f, ui.main.height - element.screenHeight())
+                    val (minX, maxX) = element.xBounds()
+                    val (minY, maxY) = element.yBounds()
 
-                    element.constraints.x.pixels = newX.coerceIn(0f, maxX).roundToInt().toFloat()
-                    element.constraints.y.pixels = newY.coerceIn(0f, maxY).roundToInt().toFloat()
+                    element.constraints.x.pixels = newX.coerceIn(minX, maxX).roundToInt().toFloat()
+                    element.constraints.y.pixels = newY.coerceIn(minY, maxY).roundToInt().toFloat()
 
                     element.redraw()
                     true
@@ -231,8 +231,10 @@ object HudManager { // todo add hud grouping
                     }
                     element.ensurePixelPosition()
 
-                    val newX = (element.constraints.x.pixels + x).coerceIn(0f, maxOf(0f, ui.main.width - element.screenWidth()))
-                    val newY = (element.constraints.y.pixels + y).coerceIn(0f, maxOf(0f, ui.main.height - element.screenHeight()))
+                    val (minX, maxX) = element.xBounds()
+                    val (minY, maxY) = element.yBounds()
+                    val newX = (element.constraints.x.pixels + x).coerceIn(minX, maxX)
+                    val newY = (element.constraints.y.pixels + y).coerceIn(minY, maxY)
 
                     element.constraints.x.pixels = newX.roundToInt().toFloat()
                     element.constraints.y.pixels = newY.roundToInt().toFloat()
@@ -261,10 +263,6 @@ object HudManager { // todo add hud grouping
                     element.clampToParent()
                 }
 
-                operation {
-                    element.clampToParent()
-                    false
-                }
             }
         }
     }
