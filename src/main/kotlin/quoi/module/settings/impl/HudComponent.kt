@@ -69,7 +69,7 @@ class HudComponent<T : Hud>(
                     val dummy = value.settings.first() as UIComponent<*>
                     val asSub = setting in dummy.children && !setting.children.isNotEmpty() && !setting.forceParent
                     setting.render(this, asSub).onEvent(setting.valueUpdated) {
-                        HudManager.reinit()
+                        if (setting !is ColourPickerComponent) HudManager.reinit(immediately = false)
                         true
                     }
                 }

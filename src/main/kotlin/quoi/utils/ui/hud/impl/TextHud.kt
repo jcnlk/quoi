@@ -14,6 +14,7 @@ import quoi.utils.ui.hud.ScopedHud
 import quoi.utils.ui.rendering.Font
 import quoi.utils.ui.rendering.NVGRenderer.customFont
 import quoi.utils.ui.rendering.NVGRenderer.minecraftFont
+import kotlin.math.roundToInt
 
 class TextHud(
     name: String,
@@ -52,8 +53,10 @@ class TextHud(
     override fun savePosition(element: Element, screenWidth: Float, screenHeight: Float) {
         val anchor = /*anchorSetting.selected*/ anchor
 
-        val targetX = element.x + (element.width * anchor.x)
-        val targetY = element.y + (element.height * anchor.y)
+        val elementX = ((element.constraints.x as? quoi.api.abobaui.constraints.impl.measurements.Pixel)?.pixels ?: element.internalX).roundToInt().toFloat()
+        val elementY = ((element.constraints.y as? quoi.api.abobaui.constraints.impl.measurements.Pixel)?.pixels ?: element.internalY).roundToInt().toFloat()
+        val targetX = elementX + (element.width * anchor.x)
+        val targetY = elementY + (element.height * anchor.y)
 
         x.value = (targetX / screenWidth) * 100f
         y.value = (targetY / screenHeight) * 100f

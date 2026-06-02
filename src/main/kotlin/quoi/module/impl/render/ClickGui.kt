@@ -8,7 +8,6 @@ import quoi.api.ServerInfo.averagePing
 import quoi.api.ServerInfo.averageTps
 import quoi.api.ServerInfo.currentPing
 import quoi.api.ServerInfo.currentTps
-import quoi.api.ServerInfo.medianPing
 import quoi.api.abobaui.AbobaUI
 import quoi.api.abobaui.constraints.impl.measurements.Animatable
 import quoi.api.abobaui.constraints.impl.positions.Centre
@@ -48,14 +47,12 @@ import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.StringUtils.percentColour
 import quoi.utils.StringUtils.toFixed
 import quoi.utils.ThemeManager.theme
-import quoi.utils.WorldUtils.day
 import quoi.utils.ui.elements.themedInput
 import quoi.utils.ui.hud.HudManager
 import quoi.utils.ui.onHover
 import quoi.utils.ui.rendering.NVGRenderer
 import quoi.utils.ui.rendering.NVGRenderer.defaultFont
 import quoi.utils.ui.screens.UIScreen.Companion.open
-import quoi.utils.ui.textPair
 import java.net.URI
 
 @AlwaysActive
@@ -102,51 +99,6 @@ object ClickGui : Module(
     val threads by slider("Threads", 6, 1, 16, desc = "Number of CPU threads to use for simultaneous path expansion.").childOf(::pathSett)
     val timeout by slider("Timeout", 670L, 200L, 1000L, 50L, unit = "ms", desc = "Maximum time allowed for the pathfinder to search before giving up.").childOf(::pathSett)
 
-
-    private val fpsHud by textHud("Fps display") {
-        textPair(
-            string = "Fps:",
-            supplier = { mc.fps },
-            labelColour = colour,
-            shadow = shadow,
-            font = font
-        )
-    }.setting()
-
-    private val pingType by selector("Ping type", PingType.Average)
-    private val pingHud by textHud("Ping display") {
-        visibleIf { !mc.isSingleplayer }
-        textPair(
-            string = "Ping:",
-            supplier = { (if (preview) 69.420 else pingType.selected.value()).formatPing },
-            labelColour = colour,
-            shadow = shadow,
-            font = font
-        )
-    }.withSettings(::pingType).setting()
-
-    private val tpsType by selector("Tps type", TpsType.Average)
-    private val tpsHud by textHud("Tps display") {
-        visibleIf { !mc.isSingleplayer }
-        textPair(
-            string = "Tps:",
-            supplier = { if (preview) 17.56f.formatTps(2) else tpsType.selected.value().formatTps(2) },
-            labelColour = colour,
-            shadow = shadow,
-            font = font
-        )
-    }.withSettings(::tpsType).setting()
-
-    private val dayHud by textHud("Day display") {
-        textPair(
-            string = "Day:",
-            supplier = { mc.level?.day },
-            labelColour = colour,
-            shadow = shadow,
-            font = font
-        )
-    }.setting()
-
     private val categoryData by MapSetting("category data", mutableMapOf<Category, CategoryData>()).also { setting ->
         Category.entries.forEach {
             setting.value[it] = CategoryData(x = 10f + 265f * it.ordinal, y = 10f, extended = true)
@@ -184,7 +136,6 @@ object ClickGui : Module(
         ui.debug = Test.uiDebug
         onRemove {
             Config.save()
-            HudManager.reinit(immediately = false)
         }
 
         for (category in Category.entries) {
@@ -470,14 +421,4 @@ object ClickGui : Module(
         val defaultY = y
     }
 
-    private enum class PingType(val value: () -> Double) {
-        Average({ averagePing }),
-        Current({ currentPing }),
-        Median({ medianPing })
-    }
-
-    private enum class TpsType(val value: () -> Float) {
-        Average({ averageTps }),
-        Current({ currentTps })
-    }
 }

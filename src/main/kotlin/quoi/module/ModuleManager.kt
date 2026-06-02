@@ -91,6 +91,7 @@ object ModuleManager {
             CustomMainMenu,
             NickHider,
             ClickGui,
+            InfoHud,
             PlayerESP,
             Trajectories,
             EtherwarpOverlay,
