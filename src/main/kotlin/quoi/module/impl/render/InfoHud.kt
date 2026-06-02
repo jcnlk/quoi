@@ -22,7 +22,6 @@ import quoi.utils.ui.rendering.NVGRenderer
 object InfoHud : Module(
     name = "Info HUD",
     desc = "Shows useful information on the screen.",
-    toggled = true
 ) {
     private val nameColour by colourPicker("Name colour", Colour.RGB(50, 150, 220), desc = "Colour of the stat labels.")
     private val direction by selector("Direction", Direction.Horizontal)
