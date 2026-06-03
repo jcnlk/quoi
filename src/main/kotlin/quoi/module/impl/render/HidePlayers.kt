@@ -7,18 +7,18 @@ import quoi.api.skyblock.Location
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.M7Phases
 import quoi.module.Module
-import quoi.module.settings.UIComponent.Companion.childOf
+import quoi.module.settings.UIComponent.Companion.visibleIf
 
 object HidePlayers : Module(
     "Hide Players",
 ) {
     private val hideAll by switch("Hide all", desc = "Hides all players, regardless of distance.")
     private val distance by slider("Distance", 3.0, 0.0, 32.0, 0.5, desc = "The number of blocks away to hide players.", unit = " blocks")
-        .childOf(::hideAll) { !it }
+        .visibleIf { !hideAll }
     private val clickThrough by switch("Click Through", desc = "Allows clicking through players.")
     private val dungeonOnly by switch("Dungeon only", desc = "Only hides players in dungeons.")
     private val bossOnly by switch("Boss only", desc = "Only hides players in boss.")
-    private val onlyDevs by switch("only at Devs", desc = "Only hides players when standing at ss or fourth device.")
+    private val onlyDevs by switch("Only at Devs", desc = "Only hides players when standing at ss or fourth device.")
 
     init {
         on<RenderEvent.Entity> {
