@@ -90,6 +90,7 @@ object ModuleManager {
             RenderOptimiser,
             CustomMainMenu,
             NickHider,
+            HidePlayers,
             ClickGui,
             InfoHud,
             PlayerESP,
