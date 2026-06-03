@@ -21,7 +21,7 @@ object InvincibilityTimer : Module(
     "Invincibility Timer",
     desc = "Gives visual information about your invincibility times."
 ) {
-    private val invincibilityAnnounce by switch("Announce Invincibility", true, desc = "Announces when you get invincibility in party chat.")
+    private val invincibilityAnnounce by switch("Announce Invincibility", desc = "Announces when you get invincibility in party chat.")
     private val dungeonOnly by switch("Dungeons only", desc = "Active in dungeons only.")
     private val bossOnly by switch("Boss only", desc = "Active in boss room only.")
 //    private val serverTicks by BooleanSetting("Use server ticks", desc = "Uses server ticks instead of real time.")
