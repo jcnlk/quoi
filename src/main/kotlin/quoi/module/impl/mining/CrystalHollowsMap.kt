@@ -13,8 +13,10 @@ import quoi.api.events.WorldEvent
 import quoi.api.skyblock.Island
 import quoi.module.Module
 import quoi.module.impl.mining.CrystalHollowsScanner.foundRouteBlocks
+import quoi.module.impl.mining.CrystalHollowsScanner.foundStructures
 import quoi.module.impl.mining.CrystalHollowsScanner.routeScanner
 import quoi.module.impl.mining.CrystalHollowsScanner.scannedChunks
+import quoi.module.impl.mining.CrystalHollowsScanner.structureScanner
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.module.settings.UIComponent.Companion.visibleIf
 import quoi.utils.EntityUtils.playerEntities
@@ -47,6 +49,7 @@ object CrystalHollowsMap : Module(
     private val drawChunks by switch("Draw loaded chunks").childOf(::other) // fixme
     private val chunksCol by colourPicker("Loaded chunks colour", Colour.PURPLE.withAlpha(0.33f), allowAlpha = true).childOf(::other) { drawChunks }
     private val drawRouteBlocks by switch("Draw route blocks").childOf(::other) { routeScanner }
+    private val drawStructures by switch("Draw structures").childOf(::other) { structureScanner }
 
     private val hollowsMap by hud("Hollows map", toggleable = false) { // todo add more stuff
         if (preview) image(
@@ -55,7 +58,7 @@ object CrystalHollowsMap : Module(
         )
     }.withSettings(
         ::iconScale, ::drawPlayers, ::onlyGriefed, ::drawOutOfRange, ::drawNames, ::textScale,
-        ::other, ::drawChunks, ::chunksCol, ::drawRouteBlocks
+        ::other, ::drawChunks, ::chunksCol, ::drawRouteBlocks, ::drawStructures
     ).setting()
 
     const val X_MIN = 202
@@ -143,7 +146,26 @@ object CrystalHollowsMap : Module(
                 )
             }
         }
+        if (drawStructures) drawStructures()
         if (drawPlayers) drawPlayers()
+    }
+
+    private fun GuiGraphics.drawStructures() {
+        foundStructures.forEach { (structure, positions) ->
+            positions.forEach { pos ->
+                rect(
+                    x = pos.x.mapX - 3,
+                    y = pos.z.mapZ - 3,
+                    width = 6,
+                    height = 6,
+                    colour = structure.colour.rgb
+                )
+                withMatrix(pos.x.mapX, pos.z.mapZ, textScale) {
+                    pose().translate(0f, 5f)
+                    drawText(structure.displayName, -structure.displayName.width() / 2f, 0, structure.colour.rgb)
+                }
+            }
+        }
     }
 
     private fun GuiGraphics.drawPlayers() {
