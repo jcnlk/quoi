@@ -41,7 +41,7 @@ object CrystalHollowsScanner : Module(
     "Crystal Hollows Scanner",
     area = Island.CrystalHollows
 ) {
-    private val structureScanner by switch("Structure scanner")
+    val structureScanner by switch("Structure scanner")
     val routeScanner by switch("Route scanner")
     private val style by selector("Style", "Box", arrayListOf("Box", "Filled box"), desc = "Esp render style to be used.").visibleIf { routeScanner }
     private val distCols by switch("Distance colours").visibleIf { routeScanner }
@@ -51,7 +51,7 @@ object CrystalHollowsScanner : Module(
     private val thickness by slider("Thickness", 4f, 1f, 8f, 1f).visibleIf { routeScanner }
 
     val scannedChunks = HashSet<Long>()
-    private val foundStructures = ConcurrentHashMap<Structure, MutableList<BlockPos>>()
+    val foundStructures = ConcurrentHashMap<Structure, MutableList<BlockPos>>()
     val foundRouteBlocks = mutableListOf<BlockPos>()
 
     init {
