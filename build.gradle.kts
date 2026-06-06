@@ -48,8 +48,8 @@ loom {
                 "-Dmixin.debug.export=true",
                 "-Ddevauth.enabled=true",
                 "-Ddevauth.account=${providers.gradleProperty("devauth_account").orElse("main").get()}",
-                // JetBrains Runtime only; Temurin/OpenJDK reject this flag. IntelliJ run configs use JBR.
                 "-XX:+AllowEnhancedClassRedefinition",
+                "-XX:+IgnoreUnrecognizedVMOptions", // JetBrains Runtime only; Temurin/OpenJDK reject this flag. IntelliJ run configs use JBR.
             )
         )
     }
