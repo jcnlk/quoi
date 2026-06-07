@@ -147,7 +147,7 @@ object PuzzleSolvers : Module(
             if (fillSolver)    IceFillSolver.onRenderWorld(ctx, fillColour)
             if (beamsSolver)   BeamsSolver.onRenderWorld(ctx, beamsStyle.selected, beamsTracer, beamsAlpha)
             if (boulderSolver) BoulderSolver.onRenderWorld(ctx, boulderShowAll, boulderStyle.selected, boulderColour)
-            if (blazeSolver)   BlazeSolver.onRenderWorld(ctx, blazeLineNext, blazeLineAmount, blazeStyle.selected, blazeFirstColour, blazeSecondColour, blazeThirdColour, blazeAllColour, blazeAnnounce, blazeLineWidth, blazeReposition)
+            if (blazeSolver)   BlazeSolver.onRenderWorld(ctx, blazeLineNext, blazeLineAmount, blazeStyle.selected, blazeFirstColour, blazeSecondColour, blazeThirdColour, blazeAllColour, blazeAnnounce, blazeLineWidth, blazeAuto, blazeReposition)
             if (mazeSolver)    MazeSolver.onRenderWorld(ctx, mazeColourOne, mazeColourMultiple, mazeColourVisited, mazeTracer, mazeTracerColour)
             if (pathSolver)    IcePathSolver.onRenderWorld(ctx, pathColour)
             if (weirdosSolver) WeirdosSolver.onRenderWorld(ctx, weirdosColour, weirdosWrongColour, weirdosStyle.selected)
