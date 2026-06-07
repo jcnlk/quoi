@@ -170,7 +170,7 @@ object MineshaftESP : Module(
     }
 
     private val Entity.cleanName: String
-        get() = (customName ?: displayName ?: name).string.noControlCodes
+        get() = (customName ?: displayName ?: name).string.noControlCodes.trim()
 
     private fun ArmorStand.getMineshaftType(): MineshaftType? {
         val helmet = getItemBySlot(EquipmentSlot.HEAD).takeUnless { it.isEmpty } ?: return null
