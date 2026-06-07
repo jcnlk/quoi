@@ -61,14 +61,14 @@ object MineshaftESP : Module(
     private val bowmanColour by colourPicker("Glacite Bowman", Colour.CYAN, true, "ESP color for Glacite Bowmen.").json("Glacite Bowman colour").childOf(::mobColours)
     private val caverColour by colourPicker("Glacite Caver", Colour.CYAN, true, "ESP color for Glacite Cavers.").json("Glacite Caver colour").childOf(::mobColours)
     private val mageColour by colourPicker("Glacite Mage", Colour.CYAN, true, "ESP color for Glacite Mages.").json("Glacite Mage colour").childOf(::mobColours)
-    private val littlefoodColour by colourPicker("Littlefood", Colour.CYAN, true, "ESP color for Littlefood.").json("Littlefood colour").childOf(::mobColours)
+    private val littlefootColour by colourPicker("Littlefoot", Colour.CYAN, true, "ESP color for Littlefoot.").json("Littlefoot colour").childOf(::mobColours)
     private val muttColour by colourPicker("Glacite Mutt", Colour.CYAN, true, "ESP color for Glacite Mutts.").json("Glacite Mutt colour").childOf(::mobColours)
 
     private val mobFillColors by text("Fill colours").childOf(::mobEsp).visibleIf { mobStyle.selected != "Box" }
     private val bowmanFillColour by colourPicker("Glacite Bowman", Colour.CYAN.withAlpha(0.24f), true, "Fill color for Glacite Bowmen.").json("Glacite Bowman fill colour").childOf(::mobFillColors)
     private val caverFillColour by colourPicker("Glacite Caver", Colour.CYAN.withAlpha(0.24f), true, "Fill color for Glacite Cavers.").json("Glacite Caver fill colour").childOf(::mobFillColors)
     private val mageFillColour by colourPicker("Glacite Mage", Colour.CYAN.withAlpha(0.24f), true, "Fill color for Glacite Mages.").json("Glacite Mage fill colour").childOf(::mobFillColors)
-    private val littlefoodFillColour by colourPicker("Littlefood", Colour.CYAN.withAlpha(0.24f), true, "Fill color for Littlefood.").json("Littlefood fill colour").childOf(::mobFillColors)
+    private val littlefootFillColour by colourPicker("Littlefoot", Colour.CYAN.withAlpha(0.24f), true, "Fill color for Littlefoot.").json("Littlefoot fill colour").childOf(::mobFillColors)
     private val muttFillColour by colourPicker("Glacite Mutt", Colour.CYAN.withAlpha(0.24f), true, "Fill color for Glacite Mutts.").json("Glacite Mutt fill colour").childOf(::mobFillColors)
 
     private val waypoints = linkedMapOf<BlockPos, MineshaftType>()
@@ -210,7 +210,7 @@ object MineshaftESP : Module(
         GLACITE_BOWMAN("Glacite Bowman"),
         GLACITE_CAVER("Glacite Caver"),
         GLACITE_MAGE("Glacite Mage"),
-        LITTLEFOOD("Littlefood"),
+        LITTLEFOOT("Littlefoot"),
         GLACITE_MUTT("Glacite Mutt");
 
         companion object {
@@ -222,7 +222,7 @@ object MineshaftESP : Module(
         EntityEspType.GLACITE_BOWMAN -> bowmanColour
         EntityEspType.GLACITE_CAVER -> caverColour
         EntityEspType.GLACITE_MAGE -> mageColour
-        EntityEspType.LITTLEFOOD -> littlefoodColour
+        EntityEspType.LITTLEFOOT -> littlefootColour
         EntityEspType.GLACITE_MUTT -> muttColour
     }
 
@@ -230,7 +230,7 @@ object MineshaftESP : Module(
         EntityEspType.GLACITE_BOWMAN -> bowmanFillColour
         EntityEspType.GLACITE_CAVER -> caverFillColour
         EntityEspType.GLACITE_MAGE -> mageFillColour
-        EntityEspType.LITTLEFOOD -> littlefoodFillColour
+        EntityEspType.LITTLEFOOT -> littlefootFillColour
         EntityEspType.GLACITE_MUTT -> muttFillColour
     }
 }
