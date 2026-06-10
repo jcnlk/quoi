@@ -21,7 +21,7 @@
 - `/quoi hotbar <save|load|list|delete|setmsg|setfloor|setclass> ...` - manages Auto Hotbar presets
 - `/quoi emote <add|remove|list|clear> ...` - manages custom emotes
 - `/quoi chatfilter <add|remove|list|show|status|clear> ...` - manages custom chat filters
-- `/quoi petkeybinds <add|get|list|remove|clear> ...` - manages pet keybind entries
+- `/quoi petkeybinds <add|get|list|remove|clear|addfromuuidname|removefromuuidname> ...` - manages pet keybind entries
 - `/quoi antiafk <delay>` - runs the anti-AFK helper
 - `/quoi findlobby <area> <day|server|player> <value>` - searches for matching lobbies
 - `/route <em|add|rm|restore|clear|edit|editdb|chain|convert|reload> ...` - Auto Routes editor/runtime command set
@@ -168,6 +168,10 @@
   - Replaces the vanilla main menu with a Quoi-styled one.
 - **Etherwarp Overlay**
   - Renders a box at the location where the etherwarp is going to be at.
+- **Hide Players**
+  - Hides players in the world.
+- **Info HUD**
+  - Shows useful information on the screen.
 - **Name Tags**
   - Customisable nametags for entities.
 - **Nick Hider**
