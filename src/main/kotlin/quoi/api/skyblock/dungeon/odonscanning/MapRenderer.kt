@@ -1,6 +1,5 @@
 package quoi.api.skyblock.dungeon.odonscanning
 
-import net.minecraft.client.gui.components.PlayerFaceRenderer
 import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket
 import net.minecraft.resources.Identifier
 import net.minecraft.world.level.saveddata.maps.MapDecorationTypes
@@ -213,7 +212,7 @@ object MapRenderer {
                                     if (border) {
                                         ctx.rect(w - t / 2, h - t / 2, w + t.toInt(), h + t.toInt(), col.rgb)
                                     }
-                                    PlayerFaceRenderer.draw(ctx, it, w, h, w)
+                                    ctx.drawImage(WHITE_MARKER, 0, 0, w, h)
                                 } ?: ctx.drawImage(WHITE_MARKER, 0, 0, w, h)
                                 else -> ctx.drawImage(WHITE_MARKER, 0, 0, w, h)
                             }

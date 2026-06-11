@@ -156,7 +156,7 @@ object ItemAnimations : Module(
         if (!mc.options.cameraType.isFirstPerson) return
         if (!isHoldingFishingRod(player)) return
 
-        val camera = mc.gameRenderer.mainCamera
+        val camera = mc.gameRenderer.mainCamera()
         val left = camera.leftVector()
         val up = camera.upVector()
         val look = player.lookAngle

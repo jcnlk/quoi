@@ -1,6 +1,5 @@
 package quoi.module.impl.render
 
-import net.fabricmc.fabric.api.client.screen.v1.Screens
 import net.minecraft.client.gui.components.AbstractWidget
 import net.minecraft.client.gui.screens.TitleScreen
 import quoi.api.colour.Colour
@@ -81,11 +80,8 @@ object CustomMainMenu : Module(
         on<GuiEvent.Draw> {
             if (screen !is TitleScreen) return@on
 
-            val extraButtons = Screens.getButtons(screen)
-                .filter(::isExternalTitleButton)
-
             cancel()
-            if (mc.screen !is CustomMainMenuScreen) mc.setScreen(CustomMainMenuScreen(extraButtons))
+            if (mc.gui.screen() !is CustomMainMenuScreen) mc.gui.setScreen(CustomMainMenuScreen(emptyList()))
         }
     }
 

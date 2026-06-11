@@ -1,5 +1,7 @@
 package quoi.utils.skyblock.player
 
+import quoi.utils.center
+
 import net.minecraft.client.KeyMapping
 import net.minecraft.client.player.LocalPlayer
 import net.minecraft.core.BlockPos

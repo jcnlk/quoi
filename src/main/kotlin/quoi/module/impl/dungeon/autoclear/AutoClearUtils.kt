@@ -1,5 +1,7 @@
 package quoi.module.impl.dungeon.autoclear
 
+import quoi.utils.center
+
 import net.minecraft.core.BlockPos
 import net.minecraft.world.phys.Vec3
 import quoi.api.colour.Colour

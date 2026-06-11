@@ -1,8 +1,10 @@
 package quoi.module.impl.dungeon.puzzlesolvers
 
+import quoi.utils.center
+
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
-import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext
+import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext
 import net.minecraft.client.player.LocalPlayer
 import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ClientboundSoundPacket
@@ -83,7 +85,7 @@ object BeamsSolver {
         }
     }
 
-    fun onRenderWorld(ctx: WorldRenderContext, style: String, beamsTracer: Boolean, beamsAlpha: Float) {
+    fun onRenderWorld(ctx: LevelRenderContext, style: String, beamsTracer: Boolean, beamsAlpha: Float) {
         if (Dungeon.currentRoom?.name != "Creeper Beams" || currentLanternPairs.isEmpty()) return
 
         currentLanternPairs.entries.forEach { positions ->
@@ -148,7 +150,7 @@ object BeamsSolver {
     fun onTick(player: LocalPlayer, shootCd: Long, missCd: Long) {
         val room = Dungeon.currentRoom ?: return
         if (room.name != "Creeper Beams" || currentLanternPairs.isEmpty()) return
-        if (mc.screen != null) return
+        if (mc.gui.screen() != null) return
         if (solvedPairs >= 4) return
 
         val start = room.getRealCoords(BlockPos(16, 74, 14))

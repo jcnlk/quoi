@@ -21,11 +21,11 @@ public class KeyboardHandlerMixin {
             cancellable = true
     )
     private void quoi$onKey(long window, int action, net.minecraft.client.input.KeyEvent input, CallbackInfo ci) {
-        if (mc.screen != null) {
+        if (mc.gui.screen() != null) {
             if (action == 1) {
-                if (new GuiEvent.Key.Press(mc.screen, input.input()).post()) ci.cancel();
+                if (new GuiEvent.Key.Press(mc.gui.screen(), input.input()).post()) ci.cancel();
             } else if (action == 0) {
-                if (new GuiEvent.Key.Release(mc.screen, input.input()).post()) ci.cancel();
+                if (new GuiEvent.Key.Release(mc.gui.screen(), input.input()).post()) ci.cancel();
             }
             return;
         }
@@ -42,7 +42,7 @@ public class KeyboardHandlerMixin {
             cancellable = true
     )
     public void quoi$onKeyPressed(long window, CharacterEvent characterEvent, CallbackInfo ci) {
-        if (mc.screen == null || !characterEvent.isAllowedChatCharacter()) return;
-        if (new GuiEvent.Char(mc.screen, (char) characterEvent.codepoint()).post()) ci.cancel();
+        if (mc.gui.screen() == null || !characterEvent.isAllowedChatCharacter()) return;
+        if (new GuiEvent.Char(mc.gui.screen(), (char) characterEvent.codepoint()).post()) ci.cancel();
     }
 }

@@ -20,11 +20,11 @@ object StringUtils {
 
     val Component.formattedString: String get() = buildString {
         val rgbMap = ChatFormatting.entries
-            .mapNotNull { it.color?.let { color -> color to it } }
+            .mapNotNull { formatting -> net.minecraft.network.chat.TextColor.fromLegacyFormat(formatting)?.getValue()?.let { it to formatting } }
             .toMap()
 
         visit<Unit>({ style, content ->
-            style.color?.value?.let { rgbMap[it]?.let(::append) }
+            style.getColor()?.value?.let { rgbMap[it]?.let(::append) }
             if (style.isBold) append(ChatFormatting.BOLD)
             if (style.isItalic) append(ChatFormatting.ITALIC)
             if (style.isUnderlined) append(ChatFormatting.UNDERLINE)

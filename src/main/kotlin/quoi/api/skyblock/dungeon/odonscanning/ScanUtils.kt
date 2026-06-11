@@ -186,7 +186,7 @@ object ScanUtils {
                 val block = chunk.level.getBlockState(mutableBlockPos.set(x, 69, z)).block
                 val type = when (block) {
                     Blocks.COAL_BLOCK -> DoorType.WITHER
-                    Blocks.RED_TERRACOTTA -> DoorType.BLOOD
+                    Blocks.DYED_TERRACOTTA.red() -> DoorType.BLOOD
                     Blocks.INFESTED_CHISELED_STONE_BRICKS -> DoorType.ENTRANCE
                     else -> DoorType.NORMAL
                 }
@@ -280,10 +280,10 @@ object ScanUtils {
         room.rotation = Rotations.entries.dropLast(1).find { rotation ->
             room.tiles.any { component ->
                 BlockPos(component.x + rotation.x, roomHeight, component.z + rotation.z).let { blockPos ->
-                    level.getBlockState(blockPos)?.block == Blocks.BLUE_TERRACOTTA && (room.tiles.size == 1 || horizontals.all { facing ->
+                    level.getBlockState(blockPos)?.block == Blocks.DYED_TERRACOTTA.blue() && (room.tiles.size == 1 || horizontals.all { facing ->
                         level.getBlockState(
                             blockPos.offset((if (facing.axis == Direction.Axis.X) facing.stepX else 0), 0, (if (facing.axis == Direction.Axis.Z) facing.stepZ else 0))
-                        )?.block?.equalsOneOf(Blocks.AIR, Blocks.BLUE_TERRACOTTA) == true
+                        )?.block?.equalsOneOf(Blocks.AIR, Blocks.DYED_TERRACOTTA.blue()) == true
                     }).also { isCorrectClay -> if (isCorrectClay) room.clayPos = blockPos }
                 }
             }

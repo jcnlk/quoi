@@ -119,7 +119,7 @@ object Inventory : Module(
                                             if (stack.isEmpty) return
                                             withScale {
                                                 ctx.pose().scale(2f, 2f)
-                                                ctx.renderItem(stack, 2, 2)
+                                                ctx.item(stack, 2, 2)
                                                 if (stack.count > 1) {
                                                     val t = stack.count.toString()
                                                     ctx.drawText(t, 20 - t.width(), 20 - mc.font.lineHeight)
@@ -164,7 +164,7 @@ object Inventory : Module(
 
     init {
         on<TickEvent.End> {
-            if (mc.screen !is AbstractContainerScreen<*> || !searchBar.enabled || searchText.isEmpty()) return@on
+            if (mc.gui.screen() !is AbstractContainerScreen<*> || !searchBar.enabled || searchText.isEmpty()) return@on
             highlightSlots.clear()
 
             val queries = searchText.split(",").map(::normaliseSearchText).filter(String::isNotEmpty)

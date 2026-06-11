@@ -10,8 +10,8 @@ import quoi.module.impl.render.ClickGui.prefixText
 import quoi.utils.StringUtils.noControlCodes
 import com.mojang.authlib.GameProfile
 import net.fabricmc.fabric.impl.command.client.ClientCommandInternals
-import net.minecraft.client.GuiMessage
-import net.minecraft.client.GuiMessageTag
+import net.minecraft.client.multiplayer.chat.GuiMessage
+import net.minecraft.client.multiplayer.chat.GuiMessageTag
 import net.minecraft.network.chat.*
 
 object ChatUtils {
@@ -19,14 +19,14 @@ object ChatUtils {
         = literal("[").withColor(bracketsColour.rgb)
             .append(literal(text).withColor(prefixColour.rgb))
             .append("]").withColor(bracketsColour.rgb)
-    val chatGui get() = mc.gui?.chat!!
+    val chatGui get() = mc.gui.hud.chat
 
     fun literal(string: String): MutableComponent {
         return Component.literal(string.replace("&", "§"))
     }
 
     fun removeLines(id: Int, text: String): Boolean {
-        return removeLines { it.id == id || it.content?.string?.noControlCodes == text }
+        return removeLines { it.id == id || it.content().string.noControlCodes == text }
     }
 
     fun removeLines(id: Int): Boolean {
@@ -57,7 +57,7 @@ object ChatUtils {
     fun editLines(cb: (GuiMessage) -> Boolean, replaceWith: Component): Boolean {
         var editedLine = false
         val indicator =
-            if (mc.isSingleplayer) GuiMessageTag.systemSinglePlayer()
+            if (mc.hasSingleplayerServer()) GuiMessageTag.systemSinglePlayer()
             else GuiMessageTag.system()
         val messageList = chatGui.messages.listIterator()
 
@@ -68,7 +68,7 @@ object ChatUtils {
             editedLine = true
             messageList.remove()
 
-            val line = GuiMessage(msg.addedTime, replaceWith, null, indicator)
+            val line = GuiMessage(msg.addedTime(), replaceWith, null, msg.source(), indicator)
             line.id = msg.id
             messageList.add(line)
         }
@@ -122,7 +122,7 @@ object ChatUtils {
         }.also { chatStyle?.let(it::setStyle) }
 
         mc.execute {
-            id?.let { chatGui.add(text, it) } ?: chatGui.addMessage(text)
+            id?.let { chatGui.add(text, it) } ?: chatGui.addClientSystemMessage(text)
         }
     }
 }

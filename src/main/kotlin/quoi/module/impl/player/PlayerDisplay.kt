@@ -163,7 +163,7 @@ object PlayerDisplay : Module(
                 override fun drawCtx() {
                     withScale {
                         ctx.pose().scale(2f, 2f)
-                        ctx.renderItem(ItemStack(Blocks.CHEST), 0, 0)
+                        ctx.item(ItemStack(Blocks.CHEST), 0, 0)
                     }
                 }
             }.add()
@@ -225,7 +225,7 @@ object PlayerDisplay : Module(
         }
     }
 
-    /*private fun GuiGraphics.drawBar(width: Int, colour: Colour) {
+    /*private fun GuiGraphicsExtractor.drawBar(width: Int, colour: Colour) {
         val bW = BAR_WIDTH * 2
         val bH = BAR_HEIGHT * 2
         fill(0, 0, bW, bH, Colour.RGB(35, 35, 35).rgb)
@@ -290,8 +290,8 @@ object PlayerDisplay : Module(
 //        size(previewText())
         width { previewText().width() }
         visibleIf { inSkyblock && visibility() }
-        render { drawString(text(), 0, 0, colour.invoke().rgb) }
-        preview { drawString(previewText(), 0, 0, colour.invoke().rgb) }
+        render { text(text(), 0, 0, colour.invoke().rgb) }
+        preview { text(previewText(), 0, 0, colour.invoke().rgb) }
     }*/
 
     fun text(

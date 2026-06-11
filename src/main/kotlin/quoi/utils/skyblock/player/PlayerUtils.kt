@@ -46,9 +46,9 @@ object PlayerUtils {
         stayAlive: Int = 20,
         fadeOut: Int = 0,
     ) {
-        mc.gui.setTimes(fadeIn, stayAlive, fadeOut)
-        mc.gui.setTitle(literal(title))
-        mc.gui.setSubtitle(literal(subtitle))
+        mc.gui.hud.setTimes(fadeIn, stayAlive, fadeOut)
+        mc.gui.hud.setTitle(literal(title))
+        mc.gui.hud.setSubtitle(literal(subtitle))
         if (playSound) {
             SoundUtils.play(sound, volume, pitch)
         }

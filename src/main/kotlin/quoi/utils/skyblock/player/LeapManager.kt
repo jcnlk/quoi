@@ -80,7 +80,7 @@ object LeapManager { // still schizophrenia
             if (leapCD > 0) leapCD -= 1
 
             val pending = pendingLeap
-            if (pending != null && mc.screen == null && ContainerUtils.containerId == -1) {
+            if (pending != null && mc.gui.screen() == null && ContainerUtils.containerId == -1) {
                 doLeap(pending.target, pending.onLeap)
                 pendingLeap = null
             }
@@ -98,7 +98,7 @@ object LeapManager { // still schizophrenia
 
 //        if (teammate.name !in WorldUtils.players.map { it.profile.name }) return modMessage("&c Failed to leap! &r$target &cnot found")
 
-        if (mc.screen != null || ContainerUtils.containerId != -1) {
+        if (mc.gui.screen() != null || ContainerUtils.containerId != -1) {
             pendingLeap = PendingLeap(teammate, onLeap)
             modMessage("&eQueued leap to ${formatName(teammate)}")
         } else doLeap(teammate, onLeap)

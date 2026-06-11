@@ -2,7 +2,7 @@ package quoi.module.impl.dungeon.puzzlesolvers
 
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
-import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext
+import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext
 import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket
 import net.minecraft.world.phys.AABB
@@ -56,7 +56,7 @@ object BoulderSolver {
         }?.toMutableList() ?: mutableListOf()
     }
 
-    fun onRenderWorld(ctx: WorldRenderContext, showAllClicks: Boolean, style: String, colour: Colour) {
+    fun onRenderWorld(ctx: LevelRenderContext, showAllClicks: Boolean, style: String, colour: Colour) {
         if (Dungeon.currentRoom?.name != "Boulder" || currentPositions.isEmpty()) return
 
         if (showAllClicks) currentPositions.forEach {

@@ -98,7 +98,7 @@ object Location {
         }
 
         EventBus.on<ServerEvent.Connect> {
-            if (mc.isSingleplayer) {
+            if (mc.hasSingleplayerServer()) {
                 currentArea = Island.SinglePlayer
                 return@on
             }

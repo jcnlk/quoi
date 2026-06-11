@@ -74,7 +74,7 @@ abstract class Module(
     }
 
     open fun onKeybind() {
-        if (mc.screen != null) return
+        if (mc.gui.screen() != null) return
         toggle()
         toggleMessage()
     }

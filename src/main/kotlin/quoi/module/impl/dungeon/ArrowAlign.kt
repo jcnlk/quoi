@@ -204,20 +204,11 @@ object ArrowAlign : Module(
     private fun clickFrame(frame: CachedFrame) {
         frame.rotation = (frame.rotation + 1) % 8
         mc.connection?.send(
-            ServerboundInteractPacket.createInteractionPacket(
-                frame.entity,
-                player.isShiftKeyDown,
-                InteractionHand.MAIN_HAND,
-                Vec3(0.03125, 0.0, 0.0)
-            )
+            ServerboundInteractPacket(frame.entity.id, InteractionHand.MAIN_HAND, Vec3(0.03125, 0.0, 0.0), player.isShiftKeyDown)
         )
 
         mc.connection?.send(
-            ServerboundInteractPacket.createInteractionPacket(
-                frame.entity,
-                player.isShiftKeyDown,
-                InteractionHand.MAIN_HAND
-            )
+            ServerboundInteractPacket(frame.entity.id, InteractionHand.MAIN_HAND, Vec3.ZERO, player.isShiftKeyDown)
         )
     }
 

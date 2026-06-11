@@ -19,13 +19,14 @@ import java.awt.*;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-import net.minecraft.client.GuiMessage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.ChatComponent;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.multiplayer.chat.GuiMessage;
+import net.minecraft.client.multiplayer.chat.GuiMessageSource;
 import net.minecraft.network.chat.Component;
 
 @Mixin(ChatScreen.class)
@@ -96,7 +97,7 @@ public class ChatScreenMixin extends Screen implements ISearchMode {
     @Unique
     private void toggleSearch(boolean activate) {
         isSearchActive = activate;
-        ChatComponent chatHud = mc.gui.getChat();
+        ChatComponent chatHud = mc.gui.hud.getChat();
         ChatComponentAccessor accessor = (ChatComponentAccessor) chatHud;
 
         if (activate) {
@@ -114,7 +115,7 @@ public class ChatScreenMixin extends Screen implements ISearchMode {
             messageBackup.clear();
 
             for (Component queuedMessage : queuedMessages) {
-                chatHud.addMessage(queuedMessage);
+                chatHud.addClientSystemMessage(queuedMessage);
             }
             queuedMessages.clear();
 
@@ -127,7 +128,7 @@ public class ChatScreenMixin extends Screen implements ISearchMode {
 
     @Unique
     private void doSearch(String query) {
-        ChatComponent chatHud = mc.gui.getChat();
+        ChatComponent chatHud = mc.gui.hud.getChat();
         ChatComponentAccessor accessor = (ChatComponentAccessor) chatHud;
         List<GuiMessage> messages = accessor.getMessages();
 
@@ -150,7 +151,7 @@ public class ChatScreenMixin extends Screen implements ISearchMode {
 
             messages.addAll(filteredResults);
         }
-        messages.addFirst(new GuiMessage(mc.gui.getGuiTicks(), Component.literal("§e§lSEARCH ON"), null, null));
+        messages.addFirst(new GuiMessage(0, Component.literal("§e§lSEARCH ON"), null, GuiMessageSource.SYSTEM_CLIENT, null));
         chatHud.rescaleChat();
     }
 

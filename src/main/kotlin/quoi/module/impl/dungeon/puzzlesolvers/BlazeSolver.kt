@@ -1,6 +1,8 @@
 package quoi.module.impl.dungeon.puzzlesolvers
 
-import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext
+import quoi.utils.center
+
+import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext
 import net.minecraft.client.player.LocalPlayer
 import net.minecraft.core.BlockPos
 import net.minecraft.world.entity.decoration.ArmorStand
@@ -67,7 +69,7 @@ object BlazeSolver { // todo maybe improve terminator shit some day
         if (!this?.name.equalsOneOf("Lower Blaze", "Higher Blaze") ) return@with reset()
     }
 
-    fun onRenderWorld(ctx: WorldRenderContext, blazeLineNext: Boolean, blazeLineAmount: Int, blazeStyle: String, blazeFirstColour: Colour, blazeSecondColour: Colour, blazeThirdColour: Colour, blazeAllColour: Colour, blazeAnnounce: Boolean, blazeLineWidth: Float, autoReposition: Boolean) {
+    fun onRenderWorld(ctx: LevelRenderContext, blazeLineNext: Boolean, blazeLineAmount: Int, blazeStyle: String, blazeFirstColour: Colour, blazeSecondColour: Colour, blazeThirdColour: Colour, blazeAllColour: Colour, blazeAnnounce: Boolean, blazeLineWidth: Float, autoReposition: Boolean) {
         if (!Dungeon.currentRoom?.name.equalsOneOf("Lower Blaze", "Higher Blaze") || blazes.isEmpty()) return
 
         if (autoReposition) {
@@ -106,7 +108,7 @@ object BlazeSolver { // todo maybe improve terminator shit some day
     fun onTick(player: LocalPlayer, shootCd: Long, missCd: Long, autoReposition: Boolean) {
         val room = Dungeon.currentRoom ?: return
         if (!room.name.equalsOneOf("Lower Blaze", "Higher Blaze") || blazes.isEmpty()) return
-        if (mc.screen != null) return
+        if (mc.gui.screen() != null) return
 
         repositionTicker?.let {
             if (it.tick()) scheduleTask { repositionTicker = null }

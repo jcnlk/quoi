@@ -18,7 +18,7 @@ import quoi.utils.ui.rendering.NVGRenderer.minecraftFont
 import kotlin.reflect.KProperty0
 import kotlin.reflect.jvm.isAccessible
 
-inline val inHudEditor get() = mc.screen?.title?.string == "Quoi! hud editor"
+inline val inHudEditor get() = mc.gui.screen()?.title?.string == "Quoi! hud editor"
 
 inline fun ElementScope<*>.onHover(duration: Float, crossinline block: () -> Unit) {
     onMouseEnter {

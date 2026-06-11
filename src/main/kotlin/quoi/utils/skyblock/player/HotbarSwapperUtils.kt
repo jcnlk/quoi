@@ -1,6 +1,6 @@
 package quoi.utils.skyblock.player
 
-import net.minecraft.world.inventory.ClickType
+import net.minecraft.world.inventory.ContainerInput
 import net.minecraft.world.item.ItemStack
 import quoi.QuoiMod.mc
 import quoi.utils.items
@@ -80,11 +80,11 @@ object HotbarSwapperUtils {
         val player = mc.player ?: return false
         if (hotbarSlot !in HOTBAR_START..HOTBAR_END || inventorySlot !in HOTBAR_START..INVENTORY_END) return false
 
-        mc.gameMode?.handleInventoryMouseClick(
+        mc.gameMode?.handleContainerInput(
             player.inventoryMenu.containerId,
             inventorySlot.toMenuSlot(),
             hotbarSlot,
-            ClickType.SWAP,
+            ContainerInput.SWAP,
             player
         ) ?: return false
 

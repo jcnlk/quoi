@@ -37,14 +37,14 @@ object InteractiveMap : Module(
         .onPress {
             if (!enabled || !Dungeon.inClear || Dungeon.isDead) return@onPress
             if (mapOpen && closeOn.index == 1) {
-                mc.setScreen(null)
-            } else if (mc.screen == null) {
+                mc.gui.setScreen(null)
+            } else if (mc.gui.screen() == null) {
                 open(map(), background = false)
             }
         }
         .onRelease {
             if (!enabled || closeOn.index != 0 || !Dungeon.inClear || Dungeon.isDead) return@onRelease
-            if (mapOpen) mc.setScreen(null)
+            if (mapOpen) mc.gui.setScreen(null)
         }
 
     @Suppress("unused")
@@ -85,7 +85,7 @@ object InteractiveMap : Module(
 //    private val nameScale by slider("Name scale", 0.8f, 0.1f, 3.0f, 0.1f).childOf(::showNames)
 
     private val mapOpen: Boolean
-        get() = mc.screen?.title?.string == "quoi clear map"
+        get() = mc.gui.screen()?.title?.string == "quoi clear map"
 
     init {
         on<PacketEvent.Received, ClientboundForgetLevelChunkPacket> {

@@ -53,6 +53,6 @@ public class MouseHandlerMixin {
     @Unique
     private boolean checkShit(long window) {
         Minecraft mc = Minecraft.getInstance();
-        return window != mc.getWindow().handle() || mc.screen != null;
+        return window != mc.getWindow().handle() || mc.gui.screen() != null;
     }
 }

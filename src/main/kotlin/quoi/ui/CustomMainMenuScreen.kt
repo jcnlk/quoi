@@ -2,7 +2,7 @@ package quoi.ui
 
 import com.mojang.blaze3d.platform.NativeImage
 import net.minecraft.SharedConstants
-import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.components.AbstractWidget
 import net.minecraft.client.gui.components.Tooltip
 import net.minecraft.client.gui.narration.NarrationElementOutput
@@ -56,11 +56,11 @@ class CustomMainMenuScreen(
             y += buttonHeight + BUTTON_GAP
         }
 
-        addButton("Singleplayer") { minecraft?.setScreen(SelectWorldScreen(this)) }
-        addButton("Multiplayer") { minecraft?.setScreen(JoinMultiplayerScreen(this)) }
+        addButton("Singleplayer") { minecraft?.gui?.setScreen(SelectWorldScreen(this)) }
+        addButton("Multiplayer") { minecraft?.gui?.setScreen(JoinMultiplayerScreen(this)) }
         if (CustomMainMenu.showHypixelButton) addButton("Join Hypixel") { joinServer("Hypixel", HYPIXEL_ADDRESS) }
         if (CustomMainMenu.showP3SimButton) addButton("Join P3Sim") { joinServer("P3Sim", P3SIM_ADDRESS) }
-        addButton("Options") { minecraft?.setScreen(OptionsScreen(this, requireNotNull(minecraft).options)) }
+        addButton("Options") { minecraft?.gui?.setScreen(OptionsScreen(this, requireNotNull(minecraft).options, false)) }
         externalTitleButtons.forEach { button ->
             addRenderableWidget(CustomMenuButton(x, y, buttonWidth, buttonHeight, button.message.string.noControlCodes.trim(), ::menuColour) {
                 button.mouseClicked(
@@ -91,8 +91,8 @@ class CustomMainMenuScreen(
         )
     }
 
-    override fun render(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, deltaTicks: Float) {
-        renderBackground(guiGraphics, mouseX, mouseY, deltaTicks)
+    override fun extractRenderState(guiGraphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, deltaTicks: Float) {
+        extractBackground(guiGraphics, mouseX, mouseY, deltaTicks)
         guiGraphics.drawText(
             "${SharedConstants.getCurrentVersion().name()} - Fabric",
             12,
@@ -100,13 +100,13 @@ class CustomMainMenuScreen(
             theme.onSurface.withAlpha(220).rgb,
             shadow = true
         )
-        super.render(guiGraphics, mouseX, mouseY, deltaTicks)
+        super.extractRenderState(guiGraphics, mouseX, mouseY, deltaTicks)
     }
 
-    override fun renderBackground(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, deltaTicks: Float) {
+    override fun extractBackground(guiGraphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, deltaTicks: Float) {
         val background = background()
         if (background != null) drawCover(guiGraphics, background)
-        else minecraft?.gameRenderer?.panorama?.render(guiGraphics, width, height, true)
+        else minecraft?.gameRenderer?.panorama()?.extractRenderState(guiGraphics, width, height)
 
         val dim = (CustomMainMenu.dimAmount.coerceIn(0f, 1f) * 255).toInt() shl 24
         guiGraphics.fill(0, 0, width, height, dim)
@@ -124,7 +124,7 @@ class CustomMainMenuScreen(
         )
     }
 
-    private fun drawCover(guiGraphics: GuiGraphics, image: Identifier) {
+    private fun drawCover(guiGraphics: GuiGraphicsExtractor, image: Identifier) {
         val scale = max(width / loadedImageWidth.toFloat(), height / loadedImageHeight.toFloat())
         val drawWidth = (loadedImageWidth * scale).toInt()
         val drawHeight = (loadedImageHeight * scale).toInt()
@@ -230,7 +230,7 @@ class CustomMainMenuScreen(
         private val colour: () -> Colour,
         private val action: () -> Unit,
     ) : AbstractWidget(x, y, width, height, Component.literal(label)) {
-        override fun renderWidget(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, deltaTicks: Float) {
+        override fun extractWidgetRenderState(guiGraphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, deltaTicks: Float) {
             val accent = colour()
             val fill = if (isHoveredOrFocused) accent.withAlpha(60).rgb else theme.surface.withAlpha(35).rgb
             val outline = if (isHoveredOrFocused) accent.rgb else accent.withAlpha(210).rgb

@@ -1,6 +1,6 @@
 package quoi.module.impl.misc.riftsolvers
 
-import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext
+import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext
 import net.minecraft.client.player.LocalPlayer
 import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ClientboundSoundPacket
@@ -153,7 +153,7 @@ object RedGreenSolver {
 
     fun onScreen() = if (isActive) reset() else null
 
-    fun onRenderWorld(ctx: WorldRenderContext) {
+    fun onRenderWorld(ctx: LevelRenderContext) {
         if (!isActive) {
             rooms.forEach { room ->
                 ctx.drawFilledBox(room.start.aabb, Colour.GREEN, depth = true)
@@ -292,13 +292,13 @@ object RedGreenSolver {
                     Side.LEFT -> -104.0
                     Side.RIGHT -> -110.0
                     null -> {
-                        val is104 = BlockPos(player.x, player.y, -104.0).state.block == Blocks.RED_STAINED_GLASS
+                        val is104 = BlockPos(player.x, player.y, -104.0).state.block == Blocks.STAINED_GLASS.red()
                         if (is104) -104.0 else -110.0
                     }
                 }
 
                 val pos = BlockPos(player.x, player.y, z)
-                return if (pos.state.block == Blocks.RED_STAINED_GLASS) Vec3.atCenterOf(pos) else null
+                return if (pos.state.block == Blocks.STAINED_GLASS.red()) Vec3.atCenterOf(pos) else null
             }
         }
 

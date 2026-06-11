@@ -27,22 +27,22 @@ object FuckDiorite : Module(
     private val GLASS_STATE = Blocks.GLASS.defaultBlockState()
 
     private val STAINED_GLASS_BLOCKS = arrayOf(
-        Blocks.WHITE_STAINED_GLASS,
-        Blocks.ORANGE_STAINED_GLASS,
-        Blocks.MAGENTA_STAINED_GLASS,
-        Blocks.LIGHT_BLUE_STAINED_GLASS,
-        Blocks.YELLOW_STAINED_GLASS,
-        Blocks.LIME_STAINED_GLASS,
-        Blocks.PINK_STAINED_GLASS,
-        Blocks.GRAY_STAINED_GLASS,
-        Blocks.LIGHT_GRAY_STAINED_GLASS,
-        Blocks.CYAN_STAINED_GLASS,
-        Blocks.PURPLE_STAINED_GLASS,
-        Blocks.BLUE_STAINED_GLASS,
-        Blocks.BROWN_STAINED_GLASS,
-        Blocks.GREEN_STAINED_GLASS,
-        Blocks.RED_STAINED_GLASS,
-        Blocks.BLACK_STAINED_GLASS
+        Blocks.STAINED_GLASS.white(),
+        Blocks.STAINED_GLASS.orange(),
+        Blocks.STAINED_GLASS.magenta(),
+        Blocks.STAINED_GLASS.lightBlue(),
+        Blocks.STAINED_GLASS.yellow(),
+        Blocks.STAINED_GLASS.lime(),
+        Blocks.STAINED_GLASS.pink(),
+        Blocks.STAINED_GLASS.gray(),
+        Blocks.STAINED_GLASS.lightGray(),
+        Blocks.STAINED_GLASS.cyan(),
+        Blocks.STAINED_GLASS.purple(),
+        Blocks.STAINED_GLASS.blue(),
+        Blocks.STAINED_GLASS.brown(),
+        Blocks.STAINED_GLASS.green(),
+        Blocks.STAINED_GLASS.red(),
+        Blocks.STAINED_GLASS.black()
     )
 
     val COLS = listOf(

@@ -259,7 +259,7 @@ object Test : Module("Test", desc = "Dev module for testing.") {
         Data("   Levers", { "${Dungeon.p3Section.levers}/2" }, { p3Section }),
         Data("   Device", { "${Dungeon.p3Section.device}" }, { p3Section }),
         Data("   Gate", { Dungeon.p3Section.gate }, { p3Section }),
-        Data("Container", { "${mc.screen != null} | ${ContainerUtils.containerId}" }, { container })
+        Data("Container", { "${mc.gui.screen() != null} | ${ContainerUtils.containerId}" }, { container })
     )
     private data class Data(val name: String, val value: () -> Any?, val enabled: () -> Boolean)
 

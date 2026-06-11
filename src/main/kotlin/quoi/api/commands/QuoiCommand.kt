@@ -1,5 +1,7 @@
 package quoi.api.commands
 
+import quoi.utils.center
+
 import quoi.QuoiMod.mc
 import quoi.api.commands.internal.BaseCommand
 import quoi.api.commands.internal.GreedyString
@@ -215,9 +217,17 @@ object QuoiCommand {
                 modMessage(ChatReplacements.removeCustomFilter(index))
             }.description("Removes a custom chat filter by index.")
 
-            chatFilter.sub("remove") { mode: String, pattern: GreedyString ->
-                modMessage(ChatReplacements.removeCustomFilter(mode, pattern.string))
-            }.description("Removes a custom chat filter by mode and exact message.").suggests("mode", "clean", "regex")
+            val removeFilter = chatFilter.sub("remove") {
+                modMessage("&cUsage: &e/quoi chatfilter remove <index>&c, &e/quoi chatfilter remove clean <message>&c, or &e/quoi chatfilter remove regex <pattern>")
+            }.description("Removes a custom chat filter.")
+
+            removeFilter.sub("clean") { pattern: GreedyString ->
+                modMessage(ChatReplacements.removeCustomFilter("clean", pattern.string))
+            }.description("Removes a clean custom chat filter by exact message.")
+
+            removeFilter.sub("regex") { pattern: GreedyString ->
+                modMessage(ChatReplacements.removeCustomFilter("regex", pattern.string))
+            }.description("Removes a regex custom chat filter by exact pattern.")
 
             chatFilter.sub("list") {
                 modMessage(ChatReplacements.listCustomFilters(), id = "chatfilter".hashCode())
@@ -300,7 +310,7 @@ object QuoiCommand {
         devCommand.register()
 
         BaseCommand("clearchat") {
-            mc.gui.chat.clearMessages(false)
+            mc.gui.hud.chat.clearMessages(false)
             Chat.chatList.clear()
             modMessage("Cleared chat.")
         }.register()

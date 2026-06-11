@@ -29,7 +29,7 @@ object AutoBookCombine : Module(
 
     init {
         on<TickEvent.End> {
-            val screen = mc.screen as? AbstractContainerScreen<*>
+            val screen = mc.gui.screen() as? AbstractContainerScreen<*>
             if (!Location.inSkyblock || screen?.title?.string != "Anvil") {
                 if (wasInAnvil) reset()
                 wasInAnvil = false

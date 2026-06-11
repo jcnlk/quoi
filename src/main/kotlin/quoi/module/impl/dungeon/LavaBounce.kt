@@ -88,7 +88,7 @@ object LavaBounce : Module(
         }
 
         on<TickEvent.Start> {
-            if (mc.screen != null || !inBoss || floor?.floorNumber != 7) return@on
+            if (mc.gui.screen() != null || !inBoss || floor?.floorNumber != 7) return@on
 
             if (auto) tickAuto()
             if (triggerbot) tickTriggerbot()

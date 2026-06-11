@@ -33,7 +33,7 @@ object TerminalAura : Module(
     init {
 
         on<TickEvent.Start> {
-            if (!Dungeon.inP3 || Dungeon.inTerminal || Dungeon.isDead || mc.screen != null) return@on
+            if (!Dungeon.inP3 || Dungeon.inTerminal || Dungeon.isDead || mc.gui.screen() != null) return@on
             if (System.currentTimeMillis() - lastClick < auraDelay) return@on
 
             if (leapDelayEnabled) {
@@ -67,12 +67,7 @@ object TerminalAura : Module(
 
                 val hitVec = hitResult.get()
 
-                val packet = ServerboundInteractPacket.createInteractionPacket(
-                    entity,
-                    player.isShiftKeyDown,
-                    InteractionHand.MAIN_HAND,
-                    hitVec
-                )
+                val packet = ServerboundInteractPacket(entity.id, InteractionHand.MAIN_HAND, hitVec.subtract(entity.position()), player.isShiftKeyDown)
 
                 mc.connection?.send(packet)
                 player.swing(InteractionHand.MAIN_HAND)

@@ -5,8 +5,8 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.gen.Invoker;
 
 import java.util.List;
-import net.minecraft.client.GuiMessage;
 import net.minecraft.client.gui.components.ChatComponent;
+import net.minecraft.client.multiplayer.chat.GuiMessage;
 
 @Mixin(ChatComponent.class)
 public interface ChatComponentAccessor {
@@ -24,9 +24,6 @@ public interface ChatComponentAccessor {
 
     @Invoker("getLineHeight")
     int quoi$getChatLineHeight();
-
-    @Invoker("isChatHidden")
-    boolean quoi$isChatHidden();
 
     @Invoker
     void invokeRefreshTrimmedMessages();

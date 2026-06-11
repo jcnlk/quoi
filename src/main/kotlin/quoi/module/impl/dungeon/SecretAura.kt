@@ -1,5 +1,7 @@
 package quoi.module.impl.dungeon
 
+import quoi.utils.center
+
 import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet
 import net.minecraft.core.BlockPos
@@ -114,7 +116,7 @@ object SecretAura : Module(
         on<TickEvent.End> {
             if (ClearExecutor.active) return@on
             if (!inSkyblock ||
-                (mc.screen != null && !inContainer) ||
+                (mc.gui.screen() != null && !inContainer) ||
                 (dungeonsOnly && !inDungeons) ||
                 (Dungeon.inBoss && !inBoss)
             ) return@on

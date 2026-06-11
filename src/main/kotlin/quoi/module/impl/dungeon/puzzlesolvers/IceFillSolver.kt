@@ -4,7 +4,7 @@ import com.google.gson.GsonBuilder
 import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement
-import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext
+import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext
 import net.minecraft.client.player.LocalPlayer
 import net.minecraft.core.BlockPos
 import net.minecraft.world.level.block.Blocks
@@ -57,7 +57,7 @@ object IceFillSolver {
         }
     }
 
-    fun onRenderWorld(ctx: WorldRenderContext, colour: Colour) {
+    fun onRenderWorld(ctx: LevelRenderContext, colour: Colour) {
         if (!currentPatterns.isEmpty() && Dungeon.currentRoom?.name == "Ice Fill")
             ctx.drawLine(currentPatterns, colour, true)
     }
@@ -90,7 +90,7 @@ object IceFillSolver {
     private var lastIndex = -1
 
     fun onTick(player: LocalPlayer, delay: Int, reposition: Boolean) {
-        if (mc.screen != null) return
+        if (mc.gui.screen() != null) return
         if (currentPatterns.isEmpty() || Dungeon.currentRoom?.name != "Ice Fill") return
         if (Dungeon.currentRoom?.getRealCoords(BlockPos(15, 71, 26))?.state?.block == Blocks.PACKED_ICE) return
 

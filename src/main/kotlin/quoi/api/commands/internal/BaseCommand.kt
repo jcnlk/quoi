@@ -2,7 +2,7 @@ package quoi.api.commands.internal
 
 
 import quoi.utils.ChatUtils.modMessage
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.literal
+import net.fabricmc.fabric.api.client.command.v2.ClientCommands.literal
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback
 
 class BaseCommand(
@@ -30,7 +30,7 @@ class BaseCommand(
         }
 
 //        node.then( // todo figure a way to handle this without the console spam..
-//            ClientCommandManager.argument("invalid", StringArgumentType.greedyString())
+//            ClientCommands.argument("invalid", StringArgumentType.greedyString())
 //                .executes { ctx -> executeSafe(ctx) { modMessage(buildHelpMessage()) } }
 //        )
 

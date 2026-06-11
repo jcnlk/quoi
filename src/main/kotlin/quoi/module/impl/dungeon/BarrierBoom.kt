@@ -25,7 +25,7 @@ object BarrierBoom : Module( // todo move to triggerbot module
 
     init {
         on<TickEvent.Start> {
-            if (mc.screen != null || isDead || !inP3 || p3Section.number !in 1..3 || p3Section.gate) return@on
+            if (mc.gui.screen() != null || isDead || !inP3 || p3Section.number !in 1..3 || p3Section.gate) return@on
 
             val result = mc.hitResult
             if (result is BlockHitResult && result.type == HitResult.Type.BLOCK) {

@@ -73,7 +73,7 @@ enum class Structure( // todo cleanup some day
     KING(
         Colour.MINECRAFT_YELLOW,
         listOf(
-            Blocks.RED_WOOL,
+            Blocks.WOOL.red(),
             Blocks.DARK_OAK_STAIRS,
             Blocks.DARK_OAK_STAIRS,
             Blocks.DARK_OAK_STAIRS
@@ -102,7 +102,7 @@ enum class Structure( // todo cleanup some day
     FAIRY_GROTTO( // todo figure specific types of grottos
         Colour.PINK,
         listOf(
-            Blocks.MAGENTA_STAINED_GLASS
+            Blocks.STAINED_GLASS.magenta()
         ),
         StructureType.FAIRY_GROTTO, CrystalHollowsQuarter.ANY, "Fairy Grotto", 0, 0, 0, canBeMultiple = true
     ),
@@ -128,8 +128,8 @@ enum class Structure( // todo cleanup some day
         listOf(
             Blocks.STONE,
             Blocks.LANTERN,
-            Blocks.MAGENTA_STAINED_GLASS,
-            Blocks.MAGENTA_STAINED_GLASS_PANE,
+            Blocks.STAINED_GLASS.magenta(),
+            Blocks.STAINED_GLASS_PANE.magenta(),
         ),
         StructureType.FAIRY_GROTTO, CrystalHollowsQuarter.ANY, "Ruins Grotto 1", 0, 0, 0, canBeMultiple = true
     ),
@@ -140,9 +140,9 @@ enum class Structure( // todo cleanup some day
             Blocks.STONE,
             Blocks.LANTERN,
             Blocks.COARSE_DIRT,
-            Blocks.MAGENTA_STAINED_GLASS,
+            Blocks.STAINED_GLASS.magenta(),
             null,
-            Blocks.MAGENTA_STAINED_GLASS,
+            Blocks.STAINED_GLASS.magenta(),
         ),
         StructureType.FAIRY_GROTTO, CrystalHollowsQuarter.ANY, "Ruins Grotto 2", 0, 0, 0, canBeMultiple = true
     ),
@@ -154,8 +154,8 @@ enum class Structure( // todo cleanup some day
             Blocks.DIRT,
             Blocks.MOSSY_COBBLESTONE,
             Blocks.MOSSY_COBBLESTONE,
-            Blocks.MAGENTA_STAINED_GLASS,
-            Blocks.MAGENTA_STAINED_GLASS_PANE
+            Blocks.STAINED_GLASS.magenta(),
+            Blocks.STAINED_GLASS_PANE.magenta()
         ),
         StructureType.FAIRY_GROTTO, CrystalHollowsQuarter.ANY, "Ruins Grotto 3", 0, 0, 0, canBeMultiple = true
     ),
@@ -167,10 +167,10 @@ enum class Structure( // todo cleanup some day
             Blocks.STONE,
             Blocks.CLAY,
             Blocks.LANTERN,
-            Blocks.MAGENTA_STAINED_GLASS,
-            Blocks.MAGENTA_STAINED_GLASS,
-            Blocks.MAGENTA_STAINED_GLASS,
-            Blocks.MAGENTA_STAINED_GLASS,
+            Blocks.STAINED_GLASS.magenta(),
+            Blocks.STAINED_GLASS.magenta(),
+            Blocks.STAINED_GLASS.magenta(),
+            Blocks.STAINED_GLASS.magenta(),
         ),
         StructureType.FAIRY_GROTTO, CrystalHollowsQuarter.ANY, "Shrine Grotto", 0, 0, 0, canBeMultiple = true
     ),
@@ -180,12 +180,12 @@ enum class Structure( // todo cleanup some day
         listOf(
             Blocks.POLISHED_ANDESITE,
             Blocks.STONE_BRICKS,
-            Blocks.MAGENTA_STAINED_GLASS,
-            Blocks.MAGENTA_STAINED_GLASS,
-            Blocks.MAGENTA_STAINED_GLASS,
-            Blocks.MAGENTA_STAINED_GLASS_PANE,
-            Blocks.MAGENTA_STAINED_GLASS_PANE,
-            Blocks.MAGENTA_STAINED_GLASS_PANE,
+            Blocks.STAINED_GLASS.magenta(),
+            Blocks.STAINED_GLASS.magenta(),
+            Blocks.STAINED_GLASS.magenta(),
+            Blocks.STAINED_GLASS_PANE.magenta(),
+            Blocks.STAINED_GLASS_PANE.magenta(),
+            Blocks.STAINED_GLASS_PANE.magenta(),
             null, null, null, null, null, null,
             Blocks.LANTERN,
         ),
@@ -195,7 +195,7 @@ enum class Structure( // todo cleanup some day
     WATERFALL_GROTTO(
         Colour.PINK,
         listOf(
-            Blocks.MAGENTA_STAINED_GLASS,
+            Blocks.STAINED_GLASS.magenta(),
             Blocks.STONE, Blocks.STONE, Blocks.STONE, Blocks.STONE, Blocks.STONE,
             Blocks.STONE, Blocks.STONE, Blocks.STONE, Blocks.STONE, Blocks.STONE,
             Blocks.STONE, Blocks.STONE, Blocks.STONE, Blocks.STONE, Blocks.STONE,
@@ -265,7 +265,7 @@ enum class Structure( // todo cleanup some day
             Blocks.WATER,
             null, null, null, null, null, null, null,
             Blocks.STONE,
-            Blocks.CYAN_TERRACOTTA,
+            Blocks.DYED_TERRACOTTA.cyan(),
             Blocks.STONE_BRICKS,
             Blocks.STONE,
             Blocks.FIRE
@@ -336,7 +336,7 @@ enum class Structure( // todo cleanup some day
             Blocks.JUNGLE_STAIRS,
             Blocks.JUNGLE_PLANKS,
             Blocks.GLOWSTONE,
-            Blocks.WHITE_CARPET,
+            Blocks.CARPET.white(),
             null,
             Blocks.JUNGLE_SLAB,
             null,
@@ -417,7 +417,7 @@ enum class Structure( // todo cleanup some day
             Blocks.JUNGLE_LOG,
             Blocks.JUNGLE_LOG,
             Blocks.HAY_BLOCK,
-            Blocks.YELLOW_TERRACOTTA
+            Blocks.DYED_TERRACOTTA.yellow()
         ),
         StructureType.CH_MOB_SPOTS, CrystalHollowsQuarter.JUNGLE, "Odawa", 0, 0, 0
     ),
@@ -508,11 +508,11 @@ enum class Structure( // todo cleanup some day
         Colour.CYAN,
         listOf(
             Blocks.STONE,
-            Blocks.RED_TERRACOTTA,
-            Blocks.RED_TERRACOTTA,
-            Blocks.RED_TERRACOTTA,
+            Blocks.DYED_TERRACOTTA.red(),
+            Blocks.DYED_TERRACOTTA.red(),
+            Blocks.DYED_TERRACOTTA.red(),
             Blocks.SKELETON_SKULL,
-            Blocks.RED_WOOL
+            Blocks.WOOL.red()
         ),
         StructureType.GOLDEN_DRAGON, CrystalHollowsQuarter.ANY, "Golden Dragon", 0, -3, 5
     )

@@ -12,6 +12,7 @@
   ],
   "client": [
     "AbstractContainerScreenMixin",
+    "AbstractRecipeBookScreenMixin",
     "AvatarMixin",
     "BlockBehaviourMixin",
     "ButtonBlockMixin",
@@ -55,12 +56,14 @@
     "WallSkullBlockMixin",
     "accessors.ChatComponentAccessor",
     "accessors.AbstractContainerScreenAccessor",
+    "accessors.GuiGraphicsExtractorAccessor",
     "accessors.InventoryAccessor",
     "accessors.KeyMappingAccessor",
     "accessors.LocalPlayerAccessor",
     "accessors.RenderSetupAccessor",
     "accessors.RenderTypeAccessor",
     "accessors.MultiPlayerGameModeAccessor",
-    "accessors.ImageButtonAccessor"
+    "accessors.ImageButtonAccessor",
+    "accessors.RecipeBookComponentAccessor"
   ]
 }

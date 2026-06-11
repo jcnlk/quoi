@@ -50,7 +50,7 @@ object AutoGFS : Module( // untested
             if (commandCooldown > 0) commandCooldown--
 
             if (dungeonsOnly && !Dungeon.inDungeons) return@on
-            if (Dungeon.isDead || !Location.inSkyblock || mc.screen != null) return@on
+            if (Dungeon.isDead || !Location.inSkyblock || mc.gui.screen() != null) return@on
             if (!SkyblockPlayer.canUseCommands || commandCooldown > 0) return@on
 
             if (++tickCount < when (mode.selected) {

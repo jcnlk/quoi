@@ -1,5 +1,7 @@
 package quoi.module.impl.dungeon
 
+import quoi.utils.center
+
 import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket
 import net.minecraft.world.InteractionHand

@@ -1,6 +1,8 @@
 package quoi.module.impl.dungeon.puzzlesolvers
 
-import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext
+import quoi.utils.center
+
+import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext
 import net.minecraft.client.player.LocalPlayer
 import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ClientboundPlayerPositionPacket
@@ -73,7 +75,7 @@ object MazeSolver {
         }
     }
 
-    fun onRenderWorld(ctx: WorldRenderContext, mazeColourOne: Colour, mazeColourMultiple: Colour, mazeColourVisited: Colour, showTracer: Boolean, tracerColour: Colour) {
+    fun onRenderWorld(ctx: LevelRenderContext, mazeColourOne: Colour, mazeColourMultiple: Colour, mazeColourVisited: Colour, showTracer: Boolean, tracerColour: Colour) {
         if (Dungeon.currentRoom?.name != "Teleport Maze") return
         tpPads.forEach {
             val aabb = it.bounds?.move(it) ?: it.aabb
@@ -93,7 +95,7 @@ object MazeSolver {
     fun onTick(player: LocalPlayer) {
         if (Dungeon.currentRoom?.name != "Teleport Maze") return
         if (visited.isEmpty()) return
-        if (mc.screen != null) stop().also { return }
+        if (mc.gui.screen() != null) stop().also { return }
 
         if (nextMove) {
             val targetPos = getPad(player.position())

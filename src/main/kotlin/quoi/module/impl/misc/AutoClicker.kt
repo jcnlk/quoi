@@ -57,7 +57,7 @@ object AutoClicker: Module(
     }
 
     private fun shouldClick(isLeft: Boolean): Boolean {
-        if (mc.screen != null) return false
+        if (mc.gui.screen() != null) return false
         if (blockDungeonBreaker && player.mainHandItem.skyblockId == "DUNGEONBREAKER") return false
 
         val favList = if (isLeft) favLeft else favRight
@@ -71,7 +71,7 @@ object AutoClicker: Module(
     }
 
     private fun shouldTerminatorClick(): Boolean {
-        if (mc.screen != null) return false
+        if (mc.gui.screen() != null) return false
         return player.mainHandItem.skyblockId == "TERMINATOR" && mc.options.keyUse.isDown
     }
 
@@ -129,7 +129,7 @@ object AutoClicker: Module(
                 lastHeldSlot = currentSlot
             }
 
-            if (mc.screen != null) {
+            if (mc.gui.screen() != null) {
                 reset()
                 return@on
             }

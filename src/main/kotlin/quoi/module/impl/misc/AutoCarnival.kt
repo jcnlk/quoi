@@ -1,5 +1,7 @@
 package quoi.module.impl.misc
 
+import quoi.utils.center
+
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.monster.zombie.Zombie
 import net.minecraft.world.item.Items

@@ -69,7 +69,7 @@ object AutoWardrobe : Module(
     }
 
     private fun onWardrobeKey(slot: Int) {
-        if (!enabled || mc.screen != null) return
+        if (!enabled || mc.gui.screen() != null) return
         WardrobeUtils.equip(slot, preventMoving, disableUnequip)
     }
 }

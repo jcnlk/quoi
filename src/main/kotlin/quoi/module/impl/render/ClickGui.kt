@@ -411,7 +411,7 @@ object ClickGui : Module(
     private fun Float.formatTps(decimals: Int = 0) = (this - 15).percentColour(5.0) + this.toFixed(decimals) // fixme
 
     fun reopen() {
-        mc.setScreen(null)
+        mc.gui.setScreen(null)
         clickGui = clickGui()
         open(clickGui)
     }

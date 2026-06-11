@@ -7,11 +7,6 @@ import net.minecraft.client.renderer.rendertype.RenderType
 import quoi.mixins.accessors.RenderSetupAccessor
 import quoi.mixins.accessors.RenderTypeAccessor
 
-/**
- * 1.21.11 hides the RenderType factory, so use mixin invokers to keep custom
- * no-depth pipelines working instead of falling back to vanilla depth-tested
- * layers like linesTranslucent/debugQuads.
- */
 object CustomRenderLayer {
     private fun create(
         name: String,
@@ -19,7 +14,6 @@ object CustomRenderLayer {
         configure: RenderSetup.RenderSetupBuilder.() -> Unit = {}
     ): RenderType {
         val setup = RenderSetupAccessor.invokeBuilder(pipeline)
-            .bufferSize(RenderType.TRANSIENT_BUFFER_SIZE)
             .apply(configure)
             .createRenderSetup()
         return RenderTypeAccessor.invokeCreate(name, setup)

@@ -1,6 +1,6 @@
 package quoi.module.impl.render
 
-import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext
+import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext
 import net.minecraft.core.Direction
 import net.minecraft.world.entity.decoration.ArmorStand
 import net.minecraft.world.entity.projectile.arrow.AbstractArrow
@@ -77,7 +77,7 @@ object Trajectories : Module(
         }
     }
 
-    private fun renderTrajectory(ctx: WorldRenderContext, isPearl: Boolean, useCharge: Boolean = false) {
+    private fun renderTrajectory(ctx: LevelRenderContext, isPearl: Boolean, useCharge: Boolean = false) {
         val (points, hit) = calculateTrajectory(isPearl = isPearl, useCharge = useCharge)
 
         if (lines) {
@@ -178,7 +178,7 @@ object Trajectories : Module(
         return points to null
     }
 
-    private fun WorldRenderContext.drawPlaneCollision(hit: BlockHitResult) {
+    private fun LevelRenderContext.drawPlaneCollision(hit: BlockHitResult) {
         val (from, to) = when (hit.direction) {
             Direction.DOWN, Direction.UP ->
                 hit.location.addVec(-0.15 * planeSize, -0.02, -0.15 * planeSize) to
@@ -198,7 +198,7 @@ object Trajectories : Module(
         )
     }
 
-    private fun WorldRenderContext.drawCollisionBoxes(isPearl: Boolean) {
+    private fun LevelRenderContext.drawCollisionBoxes(isPearl: Boolean) {
         if (isPearl) {
             pearlImpactBox?.let { box ->
                 drawWireFrameBox(box, colour, lineWidth, depth)
