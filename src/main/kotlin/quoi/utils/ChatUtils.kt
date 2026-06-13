@@ -9,6 +9,7 @@ import quoi.module.impl.render.ClickGui.prefixColour
 import quoi.module.impl.render.ClickGui.prefixText
 import quoi.utils.StringUtils.noControlCodes
 import com.mojang.authlib.GameProfile
+import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 import net.fabricmc.fabric.impl.command.client.ClientCommandInternals
 import net.minecraft.client.multiplayer.chat.GuiMessage
 import net.minecraft.client.multiplayer.chat.GuiMessageTag
@@ -81,11 +82,16 @@ object ChatUtils {
     fun command(command: String, client: Boolean = false) {
         val cmd = command.removePrefix("/")
         if (!client) mc.player?.connection?.sendCommand(cmd)
-        else ClientCommandInternals.executeCommand(cmd)
+        else executeClientCommand(cmd)
     }
 
     fun commandAny(command: String) {
-        if (!ClientCommandInternals.executeCommand(command)) command(command)
+        if (!executeClientCommand(command)) command(command)
+    }
+
+    private fun executeClientCommand(command: String): Boolean {
+        val source = mc.connection?.suggestionsProvider as? FabricClientCommandSource ?: return false
+        return ClientCommandInternals.executeCommand(command, source, null)
     }
 
     fun say(message: String) = mc.connection?.sendChat(message)
