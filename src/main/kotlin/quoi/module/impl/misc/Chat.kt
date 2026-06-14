@@ -44,6 +44,7 @@ object Chat : Module(
 
     private val infiniteChatLimit by switch("Infinite chat limit", desc = "Keeps all chat messages instead of trimming chat history at 100 messages.")
     private val keepHistory by switch("Keep history", desc = "Keeps chat history when vanilla tries to clear it on disconnect.")
+    private val disableAutoScroll by switch("Disable auto scroll", desc = "Prevents chat from scrolling to the latest message when a new message arrives.")
 
     private val copyChat by switch("Copy chat", desc = "Copies chat on right click (hold ctrl to copy with colour codes).")
     private val copyChatKey by keybind("Copy key", CatKeys.MOUSE_RIGHT).includingOnly(CatKeys.MOUSE_RIGHT, CatKeys.MOUSE_LEFT, *CatKeyboard.modifierCodes).childOf(::copyChat)
@@ -192,6 +193,10 @@ object Chat : Module(
 
     fun keepsChatHistory(): Boolean {
         return enabled && keepHistory
+    }
+
+    fun disablesAutoScroll(): Boolean {
+        return enabled && disableAutoScroll
     }
 
     // compact chat
