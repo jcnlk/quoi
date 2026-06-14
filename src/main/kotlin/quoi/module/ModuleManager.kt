@@ -54,6 +54,7 @@ object ModuleManager {
             BloodCamp,
             WarpCooldown,
             AutoFragRun,
+            AutoCroesus,
 
             // MISC
             Test,

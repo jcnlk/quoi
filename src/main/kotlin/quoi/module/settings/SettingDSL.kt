@@ -32,6 +32,9 @@ abstract class SettingsDSL {
     protected fun <T> selector(name: String, default: T, options: List<T>, desc: String = "") =
         SelectorComponent(name, default, options, desc)
 
+    protected fun <T> multiSelect(name: String, default: Set<T>, options: List<T>, desc: String = "") =
+        MultiSelectComponent(name, default, options, desc)
+
     protected fun <E : Enum<E>> selector(name: String, default: E, desc: String = "") =
         SelectorComponent(name, default, default.declaringJavaClass.enumConstants.toList(), desc)
 
