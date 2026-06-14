@@ -6,6 +6,8 @@ import quoi.mixininterfaces.IChatComponent;
 import quoi.mixininterfaces.ISearchMode;
 import quoi.module.impl.misc.Chat;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -134,6 +136,18 @@ public abstract class ChatComponentMixin implements IChatComponent {
     )
     private boolean focusWhenPeeking(boolean original) {
         return original || Chat.INSTANCE.isDown();
+    }
+
+    @WrapOperation(
+            method = "addMessageToDisplayQueue",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/gui/components/ChatComponent;scrollChat(I)V"
+            )
+    )
+    private void disableAutoScroll(ChatComponent instance, int amount, Operation<Void> original) {
+        if (Chat.INSTANCE.disablesAutoScroll()) return;
+        original.call(instance, amount);
     }
 
     @ModifyExpressionValue(
