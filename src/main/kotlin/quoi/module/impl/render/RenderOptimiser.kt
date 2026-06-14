@@ -3,15 +3,19 @@ package quoi.module.impl.render
 import net.fabricmc.fabric.api.client.screen.v1.Screens
 import net.minecraft.client.gui.components.ImageButton
 import net.minecraft.client.gui.screens.recipebook.RecipeBookComponent
+import net.minecraft.network.chat.Component
+import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket
 import net.minecraft.core.particles.ParticleTypes
 import net.minecraft.network.protocol.game.ClientboundLevelParticlesPacket
 import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket
 import net.minecraft.network.protocol.game.ClientboundUpdateMobEffectPacket
+import net.minecraft.network.syncher.EntityDataSerializers
 import net.minecraft.world.effect.MobEffects
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.EquipmentSlot
+import net.minecraft.world.entity.decoration.ArmorStand
 import quoi.api.events.GuiEvent
 import quoi.api.events.PacketEvent
 import quoi.api.skyblock.Island
@@ -20,8 +24,10 @@ import quoi.api.skyblock.Location.subarea
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.M7Phases
 import quoi.module.Module
+import quoi.utils.skyblock.item.ItemUtils.skyblockId
 import quoi.utils.skyblock.item.ItemUtils.texture
 import quoi.utils.textures
+import java.util.Optional
 
 object RenderOptimiser : Module(
     "Render Optimiser",
@@ -35,6 +41,7 @@ object RenderOptimiser : Module(
     private val hideLightning by switch("Hide lightning", desc = "Disables lightning rendering.")
     private val hideWeaver by switch("Hide soul weaver", desc = "Disables soul weaver skulls rendering.")
     private val hideFairy by switch("Hide healer fairy", desc = "Disables healer fairy rendering.")
+    private val hideHealerOrbs by switch("Hide healer orbs", desc = "Hides healer support orbs in dungeons.")
     private val hideRecipeBook by switch("Hide recipe book", desc = "Disables recipe book rendering.")
     private val hideBlindness by switch("Hide blindness", desc = "Disabled blindness effect rendering.")
     private val hideParticles by switch("Hide particles", desc = "Hides particles everywhere except floor 7 phase 5.")
@@ -45,6 +52,16 @@ object RenderOptimiser : Module(
 
     private const val HEALER_FAIRY_TEXTURE = "ewogICJ0aW1lc3RhbXAiIDogMTcxOTQ2MzA5MTA0NywKICAicHJvZmlsZUlkIiA6ICIyNjRkYzBlYjVlZGI0ZmI3OTgxNWIyZGY1NGY0OTgyNCIsCiAgInByb2ZpbGVOYW1lIiA6ICJxdWludHVwbGV0IiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzJlZWRjZmZjNmExMWEzODM0YTI4ODQ5Y2MzMTZhZjdhMjc1MmEzNzZkNTM2Y2Y4NDAzOWNmNzkxMDhiMTY3YWUiCiAgICB9CiAgfQp9"
     private const val SOUL_WEAVER_TEXTURE = "eyJ0aW1lc3RhbXAiOjE1NTk1ODAzNjI1NTMsInByb2ZpbGVJZCI6ImU3NmYwZDlhZjc4MjQyYzM5NDY2ZDY3MjE3MzBmNDUzIiwicHJvZmlsZU5hbWUiOiJLbGxscmFoIiwic2lnbmF0dXJlUmVxdWlyZWQiOnRydWUsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS8yZjI0ZWQ2ODc1MzA0ZmE0YTFmMGM3ODViMmNiNmE2YTcyNTYzZTlmM2UyNGVhNTVlMTgxNzg0NTIxMTlhYTY2In19fQ=="
+    private val HEALER_ORB_IDS = setOf(
+        "DUNGEON_BLUE_SUPPORT_ORB",
+        "DUNGEON_RED_SUPPORT_ORB",
+        "DUNGEON_GREEN_SUPPORT_ORB",
+    )
+    private val HEALER_ORB_NAMES = listOf(
+        "ABILITY DAMAGE",
+        "DAMAGE",
+        "DEFENSE",
+    )
 
 
     init {
@@ -66,6 +83,25 @@ object RenderOptimiser : Module(
                             (hideWeaver && slot.first == EquipmentSlot.HEAD && texture == SOUL_WEAVER_TEXTURE)
                         ) mc.execute { level.removeEntity(packet.entity, Entity.RemovalReason.DISCARDED) }
                     }
+
+                    if (hideHealerOrbs) {
+                        packet.slots.forEach { slot ->
+                            val item = slot.second
+                            if (slot.first != EquipmentSlot.HEAD || item.isEmpty || item.skyblockId !in HEALER_ORB_IDS) return@forEach
+                            mc.execute { level.removeEntity(packet.entity, Entity.RemovalReason.DISCARDED) }
+                        }
+                    }
+                }
+
+                is ClientboundSetEntityDataPacket -> {
+                    if (!hideHealerOrbs || !Dungeon.inDungeons) return@on
+                    val entity = level.getEntity(packet.id) as? ArmorStand ?: return@on
+                    val hasHealerOrbName = packet.packedItems().any { item ->
+                        if (item.serializer() != EntityDataSerializers.OPTIONAL_COMPONENT) return@any false
+                        val name = ((item.value() as? Optional<*>)?.orElse(null) as? Component)?.string ?: return@any false
+                        HEALER_ORB_NAMES.any { name.startsWith(it) }
+                    }
+                    if (hasHealerOrbName) mc.execute { level.removeEntity(entity.id, Entity.RemovalReason.DISCARDED) }
                 }
 
                 is ClientboundUpdateMobEffectPacket -> {
@@ -75,10 +111,20 @@ object RenderOptimiser : Module(
                 }
 
                 is ClientboundLevelParticlesPacket -> {
+                    val isGeyserFishingParticle =
+                        currentArea.isArea(Island.CrimsonIsle) &&
+                        subarea?.contains("Blazing Volcano", ignoreCase = true) == true &&
+                        packet.particle.type == ParticleTypes.CLOUD &&
+                        packet.count == 15 &&
+                        packet.maxSpeed == 0.05f &&
+                        packet.xDist == 0.1f &&
+                        packet.yDist == 0.6f &&
+                        packet.zDist == 0.1f
+
                     if (hideParticles &&
                         !currentArea.isArea(Island.Garden) &&
                         Dungeon.getF7Phase() != M7Phases.P5 &&
-                        !packet.isGeyserFishingParticle()
+                        !isGeyserFishingParticle
                     ) cancel()
                     else if (hidePotionBubbles && packet.particle.type == ParticleTypes.ENTITY_EFFECT) cancel()
                 }
@@ -93,18 +139,6 @@ object RenderOptimiser : Module(
                 .firstOrNull { it.textures == RecipeBookComponent.RECIPE_BUTTON_SPRITES }
                 ?.visible = false
         }
-    }
-
-    private fun ClientboundLevelParticlesPacket.isGeyserFishingParticle(): Boolean {
-        if (!currentArea.isArea(Island.CrimsonIsle)) return false
-        if (subarea?.contains("Blazing Volcano", ignoreCase = true) != true) return false
-
-        return particle.type == ParticleTypes.CLOUD &&
-            count == 15 &&
-            maxSpeed == 0.05f &&
-            xDist == 0.1f &&
-            yDist == 0.6f &&
-            zDist == 0.1f
     }
 
     @JvmStatic
