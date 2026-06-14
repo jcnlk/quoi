@@ -81,7 +81,7 @@ object PetUtils {
     }
 
     private suspend fun switchPetNow(name: String, item: String?): PetSwitchResult {
-        val items = ContainerUtils.getContainerItems("petsmenu", "Pets")
+        val items = ContainerUtils.getContainerItems("petsmenu", "Pets") // TODO: support "(1/2) Pets"
         if (items.isEmpty()) {
             return PetSwitchResult.failure("Timed out opening Pets")
         }

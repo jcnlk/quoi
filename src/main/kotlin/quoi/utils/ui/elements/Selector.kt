@@ -10,6 +10,7 @@ import quoi.api.abobaui.elements.impl.Block.Companion.outline
 import quoi.api.abobaui.elements.impl.Scrollable.Companion.scroll
 import quoi.api.abobaui.elements.impl.popup
 import quoi.api.colour.Colour
+import quoi.api.colour.colour
 import quoi.api.input.CursorShape
 import quoi.utils.ThemeManager.theme
 import quoi.utils.ui.cursor
@@ -17,12 +18,14 @@ import quoi.utils.ui.cursor
 inline fun <T> ElementScope<*>.selector(
     entries: List<T>,
     selected: Int? = null,
+    noinline selectedIndices: () -> Set<Int> = { selected?.let(::setOf) ?: emptySet() },
     displayString: (T) -> String = { it.toString() },
     colour: Colour = theme.surfaceContainerHighest,
     outline: Colour = theme.outline,
     thickness: Constraint.Measurement = 2.px,
     pos: Positions = at(),
     size: Sizes = size(130.px, 30.px),
+    closeOnSelect: Boolean = true,
     crossinline onSelect: (T) -> Unit,
 ) = popup(copies(), smooth = false) {
 
@@ -50,10 +53,9 @@ inline fun <T> ElementScope<*>.selector(
         val scrollable = scrollable(size(w = size.width, h = h)) {
             column {
                 entries.forEachIndexed { i, comp ->
-                    val col = if (selected == i) theme.primaryContainer else colour
                     block(
                         size,
-                        colour = col,
+                        colour = colour { if (i in selectedIndices()) theme.primaryContainer.rgb else colour.rgb },
                         3.5.radius()
                     ) {
 //                        hoverEffect(1.1f)
@@ -61,12 +63,13 @@ inline fun <T> ElementScope<*>.selector(
 
                         text(
                             string = displayString(comp),
-                            colour = if (selected == i) theme.onPrimaryContainer else theme.onSurface
+                            colour = colour { if (i in selectedIndices()) theme.onPrimaryContainer.rgb else theme.onSurface.rgb }
                         )
 
                         onClick {
                             onSelect(comp)
-                            closePopup()
+                            if (closeOnSelect) closePopup()
+                            else element.parent?.redraw = true
                             true
                         }
                     }
