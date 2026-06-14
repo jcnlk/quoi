@@ -4,7 +4,6 @@ import quoi.api.events.RenderEvent;
 import quoi.module.impl.misc.ChatReplacements;
 import quoi.module.impl.player.PlayerDisplay;
 import quoi.module.impl.player.PlayerDisplay.HudType;
-import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -15,6 +14,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.ArrayList;
@@ -87,15 +87,16 @@ public class GuiMixin {
         if (PlayerDisplay.shouldCancelHud(HudType.MOUNT_HEALTH)) ci.cancel();
     }
 
-    @ModifyExpressionValue(
-            method = "renderPlayerHealth",
+    @ModifyArg(
+            method = "extractPlayerHealth",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/world/entity/player/Player;hasEffect(Lnet/minecraft/core/Holder;)Z"
-            )
+                    target = "Lnet/minecraft/client/gui/Gui;extractHearts(Lnet/minecraft/client/gui/GuiGraphicsExtractor;Lnet/minecraft/world/entity/player/Player;IIIIFIIIZ)V"
+            ),
+            index = 5
     )
-    private boolean disableRegenBounce(boolean original) {
-        return !PlayerDisplay.shouldCancelHud(HudType.REGEN_BOUNCE) && original;
+    private int disableRegenBounce(int heartOffsetIndex) {
+        return PlayerDisplay.shouldCancelHud(HudType.REGEN_BOUNCE) ? -1 : heartOffsetIndex;
     }
 
     @Unique private static final Pattern DATE_LINE_PATTERN = Pattern.compile("^(\\d{2}/\\d{2}/\\d{2}).*$");
