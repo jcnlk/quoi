@@ -2,6 +2,8 @@ package quoi.module.impl.player
 
 import quoi.api.skyblock.Location.inSkyblock
 import quoi.api.skyblock.Location.onModernIsland
+import quoi.api.skyblock.Island
+import quoi.api.skyblock.Location.currentArea
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf
 
@@ -17,10 +19,14 @@ object Tweaks : Module(
     @JvmStatic val disableCrawling by switch("Disable crawling", desc = "Disables crawling animation (does not disable swimming).").childOf(::skyblockOnly)
     @JvmStatic val disableItemCooldowns by switch("Disable item cooldowns", desc = "Disables item cooldowns such as ender pearls.").childOf(::skyblockOnly)
     @JvmStatic val fixInteract by switch("Fix interaction", desc = "Fixes a bug where you can't interact when SA jumps the player.").childOf(::skyblockOnly) // todo move to no interact module
+    @JvmStatic val fixCrimsonIsleFog by switch("Fix Crimson Isle fog", desc = "Removes the Night Vision fog effect on Crimson Isle.").childOf(::skyblockOnly)
 
     @JvmStatic
     fun should(condition: Boolean): Boolean = this.enabled && condition // idkman
 
     @JvmStatic
     fun shouldSb(condition: Boolean): Boolean = this.enabled && inSkyblock && !onModernIsland && condition
+
+    @JvmStatic
+    fun shouldFixCrimsonIsleFog(): Boolean = shouldSb(fixCrimsonIsleFog) && currentArea.isArea(Island.CrimsonIsle)
 }
