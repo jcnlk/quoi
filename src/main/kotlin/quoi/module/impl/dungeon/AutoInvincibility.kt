@@ -33,7 +33,8 @@ import quoi.utils.ui.hud.impl.TextHud
 
 object AutoInvincibility : Module(
     "Auto Invincibility",
-    desc = "Automatically swaps to invincibility items."
+    desc = "Automatically swaps to invincibility items.",
+    tag = Tag.LEGACY
 ) {
 
     private val useSpiritMask by switch("Spirit Mask", false, desc = "Equips Spirit Mask after proccing.")
