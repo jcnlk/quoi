@@ -59,6 +59,7 @@ object DungeonBreaker : Module(
 
     private val zeroPingDungeonBreaker by switch("Zero ping", desc = "Insta-mine blocks.")
     private val onlyWhenFatigue by switch("Fatigue only", desc = "Only insta-mine blocks when mining fatigue is applied.").childOf(::zeroPingDungeonBreaker)
+    private val disableInInventory by switch("Disable in inventory", desc = "Prevents dungeon breaker from working while inside of an inventory.")
 
     private val triggerBot by switch("Triggerbot", desc = "Mines preset blocks when looking at them.")
     private val triggerBotDelay by slider("Delay", 0, 0, 10, 1, desc = "Delay before mining the looked-at block.", unit = " ticks").childOf(::triggerBot)
@@ -81,6 +82,7 @@ object DungeonBreaker : Module(
     private val toggleBlock by keybind("Toggle block", CatKeys.KEY_NONE, desc = "Adds or removes the block you are currently looking at.")
         .onPress {
             if (!enabled || !inBoss || floor?.floorNumber != 7) return@onPress
+            if (disableInGUI()) return@onPress
             toggleLookedBlock()
         }
 
@@ -98,6 +100,7 @@ object DungeonBreaker : Module(
     init {
         on<PacketEvent.Sent, ServerboundPlayerActionPacket> {
             if (!zeroPingDungeonBreaker) return@on
+            if (disableInGUI()) return@on
             if (onlyWhenFatigue && !player.hasEffect(MobEffects.MINING_FATIGUE)) return@on
             if (packet.action != ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK) return@on
 
@@ -143,6 +146,7 @@ object DungeonBreaker : Module(
 
         on<TickEvent.Start> {
             if ((!autoDb && !triggerBot) || !inBoss || floor?.floorNumber != 7) return@on
+            if (disableInGUI()) return@on
             if (dbBlocks.isEmpty()) return@on
 
             if (autoDb) tickAutoDb()
@@ -176,6 +180,8 @@ object DungeonBreaker : Module(
         if (result !is BlockHitResult || result.type != HitResult.Type.BLOCK) return null
         return result.blockPos
     }
+
+    private fun disableInGUI() = disableInInventory && mc.gui.screen() != null
 
     private fun tickTriggerBot() {
         val pos = lookedBlock()?.takeIf { it in dbBlocks && isMineableDbBlock(it) }
