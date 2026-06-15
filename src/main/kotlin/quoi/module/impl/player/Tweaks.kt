@@ -28,5 +28,5 @@ object Tweaks : Module(
     fun shouldSb(condition: Boolean): Boolean = this.enabled && inSkyblock && !onModernIsland && condition
 
     @JvmStatic
-    fun shouldFixCrimsonIsleFog(): Boolean = shouldSb(fixCrimsonIsleFog) && currentArea.isArea(Island.CrimsonIsle)
+    fun shouldFixCrimsonIsleFog(): Boolean = should(fixCrimsonIsleFog) && inSkyblock && currentArea.isArea(Island.CrimsonIsle)
 }
