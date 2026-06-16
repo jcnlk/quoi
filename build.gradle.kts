@@ -15,6 +15,7 @@ repositories {
             includeGroup("me.djtheredstoner")
         }
     }
+    maven("https://maven.terraformersmc.com/")
 }
 
 dependencies {
@@ -25,6 +26,7 @@ dependencies {
     implementation("net.fabricmc.fabric-api:fabric-api:${property("fabric_api_version")}")
     runtimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.2")
     runtimeOnly("org.apache.httpcomponents:httpclient:4.5.14")
+    compileOnly("com.terraformersmc:modmenu:${property("modmenu_version")}")
 
     implementation("io.github.classgraph:classgraph:4.8.184")
     include("io.github.classgraph:classgraph:4.8.184")
