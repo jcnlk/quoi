@@ -11,6 +11,7 @@ version = property("mod_version") as String
 repositories {
     mavenCentral()
     maven("https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1")
+    maven("https://maven.terraformersmc.com/")
 }
 
 base {
@@ -30,6 +31,7 @@ dependencies {
     modImplementation("net.fabricmc.fabric-api:fabric-api:${property("fabric_api_version")}")
     modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:${property("devauth_version")}")
     runtimeOnly("org.apache.httpcomponents:httpclient:${property("httpclient_version")}")
+    modCompileOnly("com.terraformersmc:modmenu:${property("modmenu_version")}")
 
     property("classgraph_version").let {
         modImplementation("io.github.classgraph:classgraph:$it")

@@ -5,11 +5,20 @@
   "name": "${mod_name}",
   "description": "\uD83D\uDC38",
   "authors": [
-    "frogs"
+    "frogs",
+    "jcnlk"
   ],
+  "contact": {
+    "homepage": "https://github.com/jcnlk/quoi",
+    "issues": "https://github.com/jcnlk/quoi/issues"
+  },
+  "license": "GPL-3.0-only",
   "icon": "assets/quoi/icon.png",
   "environment": "*",
   "entrypoints": {
+    "modmenu": [
+      "quoi.compat.ModMenuIntegration"
+    ],
     "client": [
       {
         "adapter": "kotlin",
