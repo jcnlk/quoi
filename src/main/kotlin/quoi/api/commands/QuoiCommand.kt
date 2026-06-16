@@ -184,56 +184,6 @@ object QuoiCommand {
             }.description("Targets Player ESP to a specific player and enables it.")
                 .suggests("name") { WorldUtils.players.map { it.profile.name } }
 
-            val emote = sub("emote").description("Manages custom emotes for Chat Replacements.")
-
-            emote.sub("add") { input: GreedyString ->
-                val parts = input.string.trim().split(Regex("\\s+"), limit = 2)
-                if (parts.size < 2) return@sub modMessage("&cUsage: &e/quoi emote add <trigger> <replacement>")
-
-                modMessage(ChatReplacements.addCustomEmote(parts[0], parts[1]))
-            }.description("Adds a custom emote.")
-
-            emote.sub("remove") { trigger: GreedyString ->
-                modMessage(ChatReplacements.removeCustomEmote(trigger.string))
-            }.description("Removes a custom emote by trigger.").suggests("trigger") { ChatReplacements.customEmoteKeys() }
-
-            emote.sub("list") {
-                modMessage(ChatReplacements.listCustomEmotes(), id = "custom_emotes".hashCode())
-            }.description("Shows all saved custom emotes.")
-
-            emote.sub("clear") {
-                modMessage(ChatReplacements.clearCustomEmotes())
-            }.description("Clears all saved custom emotes.")
-
-            val chatFilter = sub("chatfilter").description("Manages custom chat filters for Chat Replacements.")
-
-            chatFilter.sub("add") { mode: String, pattern: GreedyString ->
-                modMessage(ChatReplacements.addCustomFilter(mode, pattern.string))
-            }.description("Adds a custom chat filter.").suggests("mode", "clean", "regex")
-
-            chatFilter.sub("remove") { index: Int ->
-                modMessage(ChatReplacements.removeCustomFilter(index))
-            }.description("Removes a custom chat filter by index.")
-
-            chatFilter.sub("remove") { mode: String, pattern: GreedyString ->
-                modMessage(ChatReplacements.removeCustomFilter(mode, pattern.string))
-            }.description("Removes a custom chat filter by mode and exact message.").suggests("mode", "clean", "regex")
-
-            chatFilter.sub("list") {
-                modMessage(ChatReplacements.listCustomFilters(), id = "chatfilter".hashCode())
-            }.description("Shows all saved custom chat filters.")
-
-            chatFilter.sub("show") {
-                modMessage(ChatReplacements.listCustomFilters(), id = "chatfilter".hashCode())
-            }.description("Shows all saved custom chat filters.")
-
-            chatFilter.sub("status") {
-                modMessage(ChatReplacements.customFilterStatus())
-            }.description("Shows the current custom chat filter status.")
-
-            chatFilter.sub("clear") {
-                modMessage(ChatReplacements.clearCustomFilters())
-            }.description("Clears all saved custom chat filters.")
         }
 
         command.sub("findlobby") { area: String, criteria: String, value: String ->
