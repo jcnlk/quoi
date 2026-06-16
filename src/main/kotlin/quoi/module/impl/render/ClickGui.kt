@@ -120,6 +120,10 @@ object ClickGui : Module(
             modMessage("Tps: ${currentTps.formatTps()}&r, Average: ${averageTps.formatTps(2)}")
         }.description("Shows tps.")
 
+        command.sub("fps") {
+            modMessage("FPS: &a${mc.fps}")
+        }.description("Shows fps.")
+
         command.sub("ping") {
             modMessage("Ping: ${currentPing.formatPing}&r, Average: ${averagePing.formatPing}")
         }.description("Shows ping.")
