@@ -19,8 +19,6 @@
 - `/quoi autosell <add|remove|clear|list> [item]` - manages the Auto Sell item list
 - `/quoi ac <add|remove|clear> <left|right>` - manages Auto Clicker item whitelists
 - `/quoi hotbar <save|load|list|delete|setmsg|setfloor|setclass> ...` - manages Auto Hotbar presets
-- `/quoi emote <add|remove|list|clear> ...` - manages custom emotes
-- `/quoi chatfilter <add|remove|list|show|status|clear> ...` - manages custom chat filters
 - `/quoi petkeybinds <add|get|list|remove|clear|addfromuuidname|removefromuuidname> ...` - manages pet keybind entries
 - `/quoi antiafk <delay>` - runs the anti-AFK helper
 - `/quoi findlobby <area> <day|server|player> <value>` - searches for matching lobbies
