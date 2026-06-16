@@ -7,6 +7,7 @@ import quoi.api.colour.withAlpha
 import quoi.api.events.GuiEvent
 import quoi.api.events.TickEvent
 import quoi.module.Module
+import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.module.settings.impl.SelectorComponent
 import quoi.ui.CustomMainMenuScreen
 import quoi.utils.StringUtils.noControlCodes
@@ -66,6 +67,8 @@ object CustomMainMenu : Module(
     val dimAmount by slider("Background dim", 0.2f, 0f, 0.95f, 0.05f)
     val showHypixelButton by switch("Hypixel button", true, desc = "Shows a quick join button for Hypixel.")
     val showP3SimButton by switch("P3Sim button", true, desc = "Shows a quick join button for p3sim.net.")
+    val useEuP3SimServer by switch("Use EU server", false, desc = "Uses eu.p3sim.net for the P3Sim quick join button.")
+        .childOf(::showP3SimButton)
 
     init {
         refreshBackgroundOptions(force = true)

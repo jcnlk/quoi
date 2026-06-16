@@ -59,7 +59,7 @@ class CustomMainMenuScreen(
         addButton("Singleplayer") { minecraft?.gui?.setScreen(SelectWorldScreen(this)) }
         addButton("Multiplayer") { minecraft?.gui?.setScreen(JoinMultiplayerScreen(this)) }
         if (CustomMainMenu.showHypixelButton) addButton("Join Hypixel") { joinServer("Hypixel", HYPIXEL_ADDRESS) }
-        if (CustomMainMenu.showP3SimButton) addButton("Join P3Sim") { joinServer("P3Sim", P3SIM_ADDRESS) }
+        if (CustomMainMenu.showP3SimButton) addButton("Join P3Sim") { joinServer("P3Sim", p3SimAddress()) }
         addButton("Options") { minecraft?.gui?.setScreen(OptionsScreen(this, requireNotNull(minecraft).options, false)) }
         externalTitleButtons.forEach { button ->
             addRenderableWidget(CustomMenuButton(x, y, buttonWidth, buttonHeight, button.message.string.noControlCodes.trim(), ::menuColour) {
@@ -212,9 +212,13 @@ class CustomMainMenuScreen(
     private fun menuColour(): Colour =
         if (CustomMainMenu.autoMenuColour) sampledMenuColour ?: theme.primary else CustomMainMenu.menuColour
 
+    private fun p3SimAddress(): String =
+        if (CustomMainMenu.useEuP3SimServer) EU_P3SIM_ADDRESS else P3SIM_ADDRESS
+
     private companion object {
         const val HYPIXEL_ADDRESS = "mc.hypixel.net"
         const val P3SIM_ADDRESS = "p3sim.net"
+        const val EU_P3SIM_ADDRESS = "eu.p3sim.net"
         const val GITHUB_URL = "https://github.com/jcnlk/quoi"
         const val DISCORD_URL = "https://discord.com/invite/QCWgrQ57pN"
         const val BUTTON_HEIGHT = 20
