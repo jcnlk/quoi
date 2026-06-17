@@ -20,7 +20,7 @@ dependencies {
     implementation("net.fabricmc:fabric-loader:${property("loader_version")}")
     implementation("net.fabricmc:fabric-language-kotlin:${property("fabric_kotlin_version")}")
     implementation("net.fabricmc.fabric-api:fabric-api:${property("fabric_api_version")}")
-    runtimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.1")
+    runtimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.2")
     runtimeOnly("org.apache.httpcomponents:httpclient:4.5.14")
     compileOnly("com.terraformersmc:modmenu:${property("modmenu_version")}")
 
