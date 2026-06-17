@@ -44,7 +44,7 @@ object RenderOptimiser : Module(
     private val hideHealerOrbs by switch("Hide healer orbs", desc = "Hides healer support orbs in dungeons.")
     private val hideRecipeBook by switch("Hide recipe book", desc = "Disables recipe book rendering.")
     private val hideBlindness by switch("Hide blindness", desc = "Disabled blindness effect rendering.")
-    private val hideParticles by switch("Hide particles", desc = "Hides particles everywhere except floor 7 phase 5.")
+    @JvmStatic val hideParticles by switch("Hide particles", desc = "Hides particles everywhere except floor 7 phase 5.")
     @JvmStatic val hidePotionBubbles by switch("Hide potion bubbles", desc = "Hides potion effect particles.")
     @JvmStatic val hideFire by switch("Hide fire overlay", desc = "Disables fire overlay rendering.")
 
