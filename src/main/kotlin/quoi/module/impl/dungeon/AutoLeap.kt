@@ -432,7 +432,7 @@ object AutoLeap : Module(
                 P3Section.S2 -> P3Section.S3
                 P3Section.S3 -> P3Section.S4
                 P3Section.S4 -> P3Section.S4
-                else -> return
+//                else -> return
             }
         } else {
             Dungeon.getP3Section()
