@@ -184,7 +184,7 @@ object Chat : Module(
     }
 
     fun scroll(amount: Int) {
-        chatGui?.scrollChat(if (isShiftDown) amount else amount * 7)
+        chatGui.scrollChat(if (isShiftDown) amount else amount * 7)
     }
 
     fun keepsAllChatMessages(): Boolean {
