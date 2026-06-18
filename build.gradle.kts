@@ -57,6 +57,8 @@ loom {
     runConfigs.named("server") {
         isIdeConfigGenerated = false
     }
+
+    accessWidenerPath = file("src/main/resources/quoi.accesswidener")
 }
 
 afterEvaluate {
