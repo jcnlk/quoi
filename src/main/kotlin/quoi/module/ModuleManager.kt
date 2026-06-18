@@ -53,7 +53,6 @@ object ModuleManager {
             AutoRoutes,
             BloodCamp,
             WarpCooldown,
-            AutoFragRun,
             AutoCroesus,
 
             // MISC
@@ -111,9 +110,6 @@ object ModuleManager {
                 module.register(KeybindComponent("Key bind", it, desc = "Toggles the module"))
             }
         }
-
-//        EventBus.on<AreaEvent.Main> { modules.forEach { it.onToggle(it.enabled) } }
-//        EventBus.on<AreaEvent.Sub> { modules.forEach { it.onToggle(it.enabled) } }
 
         EventBus.on<KeyEvent.Press> { invokeKeybind(key, true) }
         EventBus.on<KeyEvent.Release> { invokeKeybind(key, false) }

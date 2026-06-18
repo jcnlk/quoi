@@ -50,6 +50,7 @@
     "NameTagFeatureRendererMixin",
     "PlayerItemInHandLayerMixin",
     "PlayerMixin",
+    "PreparedTextBuilderMixin",
     "ScreenEffectRendererMixin",
     "ScreenMixin",
     "SkullBlockMixin",
