@@ -13,7 +13,7 @@ import quoi.api.events.DungeonEvent
 import quoi.api.events.PacketEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
-import quoi.api.events.core.EventBus.on
+import quoi.api.events.core.on
 import quoi.api.skyblock.Island
 import quoi.api.skyblock.Location
 import quoi.api.skyblock.dungeon.Dungeon
@@ -314,7 +314,7 @@ object ScanUtils {
 
         for (y in clampedHeight downTo 12) {
             mutableBlockPos.set(vec2.x, y, vec2.z)
-            val block = chunk.getBlockState(mutableBlockPos)?.block
+            val block = chunk.getBlockState(mutableBlockPos).block
             if (block == Blocks.AIR && bedrock >= 2 && y < 69) {
                 sb.append(CharArray(y - 11) { '0' })
                 break
