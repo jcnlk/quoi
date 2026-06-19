@@ -9,7 +9,7 @@ import org.apache.logging.log4j.Logger
 import quoi.annotations.AnnotationLoader
 import quoi.api.commands.QuoiCommand
 import quoi.api.events.GameEvent
-import quoi.api.events.core.EventBus
+import quoi.api.events.core.once
 import quoi.config.Config
 import quoi.module.ModuleManager
 import quoi.utils.ui.hud.HudManager
@@ -31,10 +31,8 @@ object QuoiMod : ClientModInitializer {
         ModuleManager.initialise()
         AnnotationLoader.load()
 
-        var schizophrenia: EventBus.EventListener? = null
-        schizophrenia = EventBus.on<GameEvent.Load> {
+        once<GameEvent.Load> {
             HudManager.init()
-            schizophrenia?.remove()
         }
         QuoiCommand.init()
         Config.load()

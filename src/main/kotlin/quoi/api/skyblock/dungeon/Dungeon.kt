@@ -18,7 +18,7 @@ import quoi.api.colour.withAlpha
 import quoi.api.events.DungeonEvent
 import quoi.api.events.PacketEvent
 import quoi.api.events.WorldEvent
-import quoi.api.events.core.EventBus.on
+import quoi.api.events.core.on
 import quoi.api.skyblock.Island
 import quoi.api.skyblock.Location
 import quoi.api.skyblock.dungeon.odonscanning.ScanUtils
@@ -238,9 +238,8 @@ object Dungeon {
                                     ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER)
                             }) return@on
                         val tabListEntries = entries()
-                            ?.mapNotNull { it.displayName }
-                            ?.ifEmpty { return@on }
-                            ?: return@on
+                            .mapNotNull { it.displayName }
+                            .ifEmpty { return@on }
 
                         val stringEntries = tabListEntries.map { it.string }
                         val colouredEntries = tabListEntries.map { it.string to Colour.RGB(it.siblings.lastOrNull()?.style?.color?.value ?: Colour.WHITE.rgb).withAlpha(1.0f) }
@@ -251,9 +250,9 @@ object Dungeon {
                     }
 
                     is ClientboundSetPlayerTeamPacket -> {
-                        val team = parameters?.orElse(null) ?: return@on
+                        val team = parameters.orElse(null) ?: return@on
 
-                        val text = team.playerPrefix?.string?.noControlCodes?.plus(team.playerSuffix?.string?.noControlCodes) ?: return@on
+                        val text = team.playerPrefix.string.noControlCodes + team.playerSuffix.string.noControlCodes
 
                         floorRegex.find(text)?.groupValues?.get(1)?.let {
                             scope.launch(Dispatchers.IO) { isPaul = false /*hasBonusPaulScore()*/ } // fixme
