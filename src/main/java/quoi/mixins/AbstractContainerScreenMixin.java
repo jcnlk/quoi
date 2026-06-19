@@ -35,11 +35,11 @@ public class AbstractContainerScreenMixin {
 //    }
 
     @Inject(
-            method = "renderSlot",
+            method = "extractSlot",
             at = @At("HEAD"),
             cancellable = true
     )
-    private void quoi$onDrawSlot(GuiGraphicsExtractor context, Slot slot, int x, int y, CallbackInfo ci) {
+    private void quoi$onDrawSlot(GuiGraphicsExtractor context, Slot slot, int mouseX, int mouseY, CallbackInfo ci) {
         if (new GuiEvent.Slot.Draw((Screen) (Object) this, context, slot).post()) ci.cancel();
     }
 
