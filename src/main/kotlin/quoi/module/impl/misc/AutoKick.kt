@@ -1,5 +1,7 @@
 package quoi.module.impl.misc
 
+import quoi.api.events.core.on
+
 import quoi.api.events.ChatEvent
 import quoi.api.events.WorldEvent
 import quoi.api.skyblock.dungeon.DungeonClass

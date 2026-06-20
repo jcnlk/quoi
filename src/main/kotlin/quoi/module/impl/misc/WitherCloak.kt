@@ -1,5 +1,7 @@
 package quoi.module.impl.misc
 
+import quoi.api.events.core.on
+
 import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket
 import net.minecraft.world.entity.monster.Creeper
 import quoi.api.abobaui.constraints.impl.positions.Centre

@@ -1,5 +1,7 @@
 package quoi.module.impl.render
 
+import quoi.api.events.core.on
+
 import net.fabricmc.fabric.api.client.screen.v1.Screens
 import net.minecraft.client.gui.components.AbstractWidget
 import net.minecraft.client.gui.screens.TitleScreen

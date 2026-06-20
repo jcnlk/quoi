@@ -1,5 +1,7 @@
 package quoi.module.impl.render
 
+import quoi.api.events.core.on
+
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext
 import net.minecraft.core.Direction
 import net.minecraft.world.entity.decoration.ArmorStand

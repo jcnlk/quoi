@@ -1,5 +1,7 @@
 package quoi.module.impl.dungeon
 
+import quoi.api.events.core.on
+
 import quoi.api.abobaui.dsl.*
 import quoi.api.abobaui.elements.impl.Text.Companion.shadow
 import quoi.api.abobaui.elements.impl.Text.Companion.textSupplied
