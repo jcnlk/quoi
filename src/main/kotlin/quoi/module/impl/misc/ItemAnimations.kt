@@ -1,5 +1,7 @@
 package quoi.module.impl.misc
 
+import quoi.api.events.core.on
+
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.math.Axis
 import net.minecraft.core.component.DataComponents

@@ -1,5 +1,7 @@
 package quoi.module.impl.dungeon
 
+import quoi.api.events.core.on
+
 import quoi.api.events.ChatEvent
 import quoi.api.skyblock.Island
 import quoi.api.skyblock.dungeon.Dungeon.currentDungeonPlayer
