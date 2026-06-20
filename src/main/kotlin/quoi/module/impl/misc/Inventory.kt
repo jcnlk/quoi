@@ -15,6 +15,7 @@ import quoi.api.colour.*
 import quoi.api.events.GuiEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.core.Priority
+import quoi.api.events.core.on
 import quoi.api.input.CursorShape
 import quoi.module.Module
 import quoi.utils.StringUtils.noControlCodes
