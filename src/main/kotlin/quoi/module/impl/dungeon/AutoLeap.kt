@@ -37,7 +37,6 @@ import quoi.utils.ui.hud.impl.TextHud
  * add other pre4 done detection methods
  * option to create custom fast/auto leaps (maybe; prob use custom triggers for that)
  * move some stuff to utils
- * recode at some point
  */
 
 // Kyleen (maybe)
