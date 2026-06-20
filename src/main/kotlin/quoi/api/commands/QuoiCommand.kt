@@ -186,13 +186,6 @@ object QuoiCommand {
                 }
             }.description("Targets Player ESP to a specific player and enables it.")
                 .suggests("name") { WorldUtils.players.map { it.profile.name } }
-
-            "fork" {
-                modMessage(
-                    "Since the main project is inactive and has several issues, I highly recommend switching to jcnlk’s fork: &b&nhttps://github.com/jcnlk/quoi",
-                    chatStyle = Style.EMPTY.withClickEvent(ClickEvent.OpenUrl(URI("https://github.com/jcnlk/quoi")))
-                )
-            }.description("Fork info.")
         }
 
         command.sub("findlobby") { area: String, criteria: String, value: String ->
