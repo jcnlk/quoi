@@ -266,7 +266,10 @@ enum class P3Section(val number: Int, val reqTerminals: Int) {
                 }
             }
 
-            if (current == total && total > 0) DungeonEvent.SectionComplete(this).post()
+            if (current == total && total > 0) {
+                DungeonEvent.SectionComplete(this).post()
+                if (this != S4 && gate) DungeonEvent.SectionComplete.Full(this).post()
+            }
         }
 
         if (gateRegex.matches(msg)) {
