@@ -1,5 +1,7 @@
 package quoi.module.impl.dungeon
 
+import quoi.api.events.core.on
+
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.BlockHitResult

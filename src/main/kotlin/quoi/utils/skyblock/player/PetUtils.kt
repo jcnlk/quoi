@@ -1,5 +1,7 @@
 package quoi.utils.skyblock.player
 
+import quoi.api.events.core.EventListener
+
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import net.minecraft.world.item.ItemStack
@@ -22,7 +24,7 @@ import quoi.utils.skyblock.player.MovementUtils.stop
 import java.util.ArrayDeque
 
 @Init
-object PetUtils {
+object PetUtils : EventListener {
     private val petQueue = ArrayDeque<PetRequest>()
     private var inProgress = false
     private var preventMoveCurrent = true

@@ -1,5 +1,6 @@
 package quoi.module.impl.render
 
+import quoi.api.events.core.on
 import net.minecraft.client.gui.components.AbstractWidget
 import net.minecraft.client.gui.screens.TitleScreen
 import quoi.api.colour.Colour
