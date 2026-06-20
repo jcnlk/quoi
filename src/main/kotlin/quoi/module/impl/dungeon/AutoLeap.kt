@@ -1,5 +1,6 @@
 package quoi.module.impl.dungeon
 
+import net.minecraft.client.KeyMapping
 import net.minecraft.world.phys.Vec3
 import quoi.api.abobaui.constraints.Positions
 import quoi.api.abobaui.dsl.at
@@ -47,8 +48,7 @@ object AutoLeap : Module(
 ) {
     private val leapMode by selector("Leap mode", "Name", listOf("Name", "Class"), "Leap mode for the module.").open()
     private val fastDelay by slider("Delay", 250L, 100L, 500L, 50L)
-    private val preventMoving by switch("Prevent moving", true, desc = "Stops movement while leaping.")
-    private val blockInputs by switch("Block inputs", true, desc = "Blocks keyboard and mouse input while leaping.")
+    private val blockInputs by switch("Block inputs", desc = "Blocks keyboard and mouse input while leaping.")
 
     private val doorOpenerLeap by switch("Door opener leap", desc = "Outside of F7 boss, fast leap to the last wither door opener.")
     private val disableAfterBloodOpen by switch("Disable after Blood Open", desc = "Disables Door Fast Leap after the Blood Room has been opened.").childOf(::doorOpenerLeap)
@@ -130,11 +130,9 @@ object AutoLeap : Module(
     private var leapHudText: String? = null
     private var leapHudShownAt = 0L
     private var blockingGameInput = false
-    private var leapBlockUntil = 0L
     private var melodyTarget: String? = null
 
-    private val leapHudDuration = 1_500L
-    private val leapBlockDuration = 1_000L
+    private const val LEAP_DURATION_HUD = 1_500L
     private val melodyProgress = setOf("1/4", "2/4", "3/4", "25%", "50%", "75%")
 
     override fun onDisable() {
@@ -156,6 +154,17 @@ object AutoLeap : Module(
     )
 
     init {
+        command.sub("leap") { target: String ->
+            val clazz = DungeonClass.entries.firstOrNull {
+                it != DungeonClass.Unknown && it.name.equals(target, ignoreCase = true)
+            }
+            LeapManager.leap(clazz ?: target)
+        }.description("Leaps to a dungeon teammate by name or class.")
+            .suggests("target") {
+                dungeonTeammatesNoSelf.map { it.name } +
+                        DungeonClass.entries.filter { it != DungeonClass.Unknown }.map { it.name }
+            }
+
         on<WorldEvent.Change> {
             arghCount = 0
             crystalCount = 0
@@ -164,13 +173,10 @@ object AutoLeap : Module(
         }
 
         on<TickEvent.Start> {
-            if (leapHudText != null && System.currentTimeMillis() - leapHudShownAt > leapHudDuration) {
+            if (leapHudText != null && System.currentTimeMillis() - leapHudShownAt > LEAP_DURATION_HUD) {
                 leapHudText = null
             }
-            if (blockingGameInput && System.currentTimeMillis() >= leapBlockUntil) {
-                blockingGameInput = false
-            }
-            if ((preventMoving || blockInputs) && blockingGameInput) player.stop()
+            if (blockingGameInput) player.stop()
         }
 
         on<KeyEvent.Press> {
@@ -306,17 +312,14 @@ object AutoLeap : Module(
     }
 
     private fun leap(target: Any) {
-        LeapManager.leap(target) {
-            showLeapHud(target)
-            startLeapBlock()
-        }
-    }
-
-    private fun startLeapBlock() {
-        if (!preventMoving && !blockInputs) return
-
-        blockingGameInput = true
-        leapBlockUntil = System.currentTimeMillis() + leapBlockDuration
+        LeapManager.leap(
+            target,
+            onMenuOpen = {
+                showLeapHud(target)
+                blockingGameInput = true
+            },
+            onMenuClose = ::stopLeapBlock
+        )
     }
 
     private fun showLeapHud(target: Any) {
@@ -324,15 +327,17 @@ object AutoLeap : Module(
         leapHudShownAt = System.currentTimeMillis()
     }
 
-    private fun clearLeapHud() {
+    private fun resetLeapState() {
+        stopLeapBlock()
+        melodyTarget = null
         leapHudText = null
     }
 
-    private fun resetLeapState() {
+    private fun stopLeapBlock() {
+        if (!blockingGameInput) return
+
         blockingGameInput = false
-        leapBlockUntil = 0L
-        melodyTarget = null
-        clearLeapHud()
+        KeyMapping.setAll()
     }
 
     private fun formatTarget(target: Any): String {
