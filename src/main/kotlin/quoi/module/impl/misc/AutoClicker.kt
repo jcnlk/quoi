@@ -83,9 +83,9 @@ object AutoClicker: Module(
     }
 
     init {
-        val ac = command.sub("ac").description("Auto Clicker module settings.")
+        val autoclicker = command.sub("autoclicker").description("Auto Clicker module settings.")
 
-        ac.sub("add") { button: String ->
+        autoclicker.sub("add") { button: String ->
             stupid(button) { list ->
                 val held = heldItemKey() ?: return@stupid modMessage("&cYou are not holding an item!")
                 if (list.contains(held)) return@stupid modMessage("&cThis item is already in the $button list!")
@@ -94,7 +94,7 @@ object AutoClicker: Module(
                 modMessage("&aAdded ${player.mainHandItem.displayName.formattedString} &ato $button list!")
             }
         }.suggests("button", "left", "right")
-        ac.sub("remove") { button: String ->
+        autoclicker.sub("remove") { button: String ->
             stupid(button) { list ->
                 val held = heldItemKey() ?: return@stupid modMessage("&cYou are not holding an item!")
                 if (!list.remove(held)) return@stupid modMessage("&cThis item is not in the $button list!")
@@ -102,7 +102,7 @@ object AutoClicker: Module(
                 modMessage("&aRemoved ${player.mainHandItem.displayName.formattedString} &afrom $button list!")
             }
         }.suggests("button", "left", "right")
-        ac.sub("clear") { button: String ->
+        autoclicker.sub("clear") { button: String ->
             stupid(button) { list ->
                 list.clear()
                 modMessage("&aCleared the $button list!")
