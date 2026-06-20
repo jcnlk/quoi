@@ -54,6 +54,9 @@ object ContainerUtils {
                 is ClientboundContainerSetSlotPacket -> {
                     if (packet.containerId == containerId) lastStateId = packet.stateId
                 }
+                is ClientboundContainerSetContentPacket -> {
+                    if (packet.containerId == containerId) lastStateId = packet.stateId
+                }
             }
         }
         on<PacketEvent.Sent> (Priority.HIGHEST + 1) {
@@ -225,8 +228,11 @@ object ContainerUtils {
         mc.gameMode?.handleInventoryMouseClick(containerId, slot, button, clickType, this)
     }
 
-    fun click(slot: Int, button: Int = 0, shift: Boolean = false): Boolean {
+    fun click(slot: Int, button: Int = 0, shift: Boolean = false, afterClick: (() -> Unit)? = null): Boolean {
         if (containerId == -1) return false
+        val connection = mc.connection ?: return false
+        val clickContainerId = containerId
+        val clickStateId = lastStateId
 
         val clickType = when {
             button == 2 -> ClickType.CLONE
@@ -235,10 +241,10 @@ object ContainerUtils {
         }
 
         scheduleTask {
-            mc.connection?.send(
+            connection.send(
                 ServerboundContainerClickPacket(
-                    containerId,
-                    lastStateId,
+                    clickContainerId,
+                    clickStateId,
                     slot.toShort(),
                     button.toByte(),
                     clickType,
@@ -246,6 +252,7 @@ object ContainerUtils {
                     HashedStack.EMPTY
                 )
             )
+            afterClick?.invoke()
         }
         return true
     }

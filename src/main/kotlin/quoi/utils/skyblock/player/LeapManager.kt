@@ -1,5 +1,7 @@
 package quoi.utils.skyblock.player
 
+import net.minecraft.network.protocol.game.ClientboundContainerClosePacket
+import net.minecraft.network.protocol.game.ClientboundContainerSetContentPacket
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
 import quoi.QuoiMod.mc
@@ -7,6 +9,7 @@ import quoi.annotations.Init
 import quoi.api.events.ChatEvent
 import quoi.api.events.PacketEvent
 import quoi.api.events.TickEvent
+import quoi.api.events.WorldEvent
 import quoi.api.events.core.on
 import quoi.api.events.core.Priority
 import quoi.api.skyblock.dungeon.Dungeon.dungeonTeammatesNoSelf
@@ -20,12 +23,16 @@ import quoi.utils.StringUtils.noControlCodes
 
 @Init
 object LeapManager { // still schizophrenia
-    private var leapQueue = mutableListOf<String>()
     private var menuOpened = false
-    private var inProgress = false
+    private var menuId = -1
 
-    private data class PendingLeap(val target: DungeonPlayer, val onLeap: (() -> Unit)?)
+    private data class PendingLeap(
+        val target: DungeonPlayer,
+        val onMenuOpen: (() -> Unit)?,
+        val onMenuClose: (() -> Unit)?
+    )
 
+    private var activeLeap: PendingLeap? = null
     private var pendingLeap: PendingLeap? = null
 
     var lastLeap = 0L
@@ -34,35 +41,34 @@ object LeapManager { // still schizophrenia
     var leapCD = 0.0
         private set
 
-    private val currentLeap get() = leapQueue[0]
-    private val inQueue get() = leapQueue.isNotEmpty() // seems useless
+    private val inProgress get() = activeLeap != null
 
     init {
         on<PacketEvent.Received> (Priority.LOWEST) {
             when (packet) {
                 is ClientboundContainerSetSlotPacket -> {
-                    if (!inQueue || !menuOpened) return@on
-
-                    val slot = packet.slot
-                    val stack = packet.item
-                    if (stack.isEmpty) return@on
-
-                    if (slot > 35) {
-                        modMessage("§cFailed to leap! ${formatName(currentLeap)} §cnot found!")
-                        reloadGui()
-                        return@on
-                    }
+                    if (!menuOpened || packet.containerId != menuId || packet.slot !in 0..35 || packet.item.isEmpty) return@on
                     cancel()
-                    if (stack.displayName.string.contains(currentLeap)) {
-                        ContainerUtils.click(slot)
-                        reloadGui()
+                    selectTarget(packet.slot, packet.item.displayName.string)
+                }
+                is ClientboundContainerSetContentPacket -> {
+                    if (!menuOpened || packet.containerId != menuId) return@on
+                    cancel()
+                    packet.items.take(36).forEachIndexed { slot, stack ->
+                        if (!stack.isEmpty) selectTarget(slot, stack.displayName.string)
                     }
                 }
                 is ClientboundOpenScreenPacket -> {
-                    if (!inQueue) return@on
+                    if (!inProgress) return@on
                     if (!packet.title.string.contains("Leap")) return@on
                     menuOpened = true
+                    menuId = packet.containerId
+                    activeLeap?.onMenuOpen?.invoke()
                     cancel()
+                }
+                is ClientboundContainerClosePacket -> {
+                    if (!menuOpened || packet.containerId != menuId) return@on
+                    failActiveLeap("leap menu closed before the target was selected")
                 }
             }
         }
@@ -72,8 +78,13 @@ object LeapManager { // still schizophrenia
             if (message.noControlCodes == "You cannot use this in a solo dungeon!" ||
                 message.noControlCodes == "There are no other players to teleport to!") { // probably will never happen on main server
                 modMessage("&cFailed to leap! You're in a solo dungeon!")
-                reloadGui()
+                resetActiveLeap()
             }
+        }
+
+        on<WorldEvent.Change> {
+            pendingLeap = null
+            resetActiveLeap()
         }
 
         on<TickEvent.Server> {
@@ -81,47 +92,65 @@ object LeapManager { // still schizophrenia
 
             val pending = pendingLeap
             if (pending != null && mc.screen == null && ContainerUtils.containerId == -1) {
-                doLeap(pending.target, pending.onLeap)
+                doLeap(pending)
                 pendingLeap = null
             }
         }
     }
 
-    fun leap(target: Any, onLeap: (() -> Unit)? = null) {
+    fun leap(target: Any, onMenuOpen: (() -> Unit)? = null, onMenuClose: (() -> Unit)? = null) {
         if (!inDungeons || target == DungeonClass.Unknown) return
 
         val teammate = when (target) {
-            is String -> dungeonTeammatesNoSelf.firstOrNull { it.name.equals(target, true) }
-            is DungeonClass -> dungeonTeammatesNoSelf.firstOrNull { it.clazz == target }
+            is String -> dungeonTeammatesNoSelf.firstOrNull { !it.isDead && it.name.equals(target, true) }
+            is DungeonClass -> dungeonTeammatesNoSelf.firstOrNull { !it.isDead && it.clazz == target }
             else -> null
         } ?: return modMessage("&cFailed to leap! ${formatTarget(target)} &cnot found")
 
-//        if (teammate.name !in WorldUtils.players.map { it.profile.name }) return modMessage("&c Failed to leap! &r$target &cnot found")
-
         if (mc.screen != null || ContainerUtils.containerId != -1) {
-            pendingLeap = PendingLeap(teammate, onLeap)
+            pendingLeap = PendingLeap(teammate, onMenuOpen, onMenuClose)
             modMessage("&eQueued leap to ${formatName(teammate)}")
-        } else doLeap(teammate, onLeap)
+        } else doLeap(PendingLeap(teammate, onMenuOpen, onMenuClose))
     }
 
-    private fun doLeap(target: DungeonPlayer, onLeap: (() -> Unit)? = null) {
+    private fun doLeap(leap: PendingLeap) {
         if (inProgress) return
         if (leapCD > 0) {
             modMessage("&cFailed to leap! On cooldown: ${"%.1f".format(leapCD / 20.0)}s")
             return
         }
 
-        inProgress = true
+        activeLeap = leap
         val r = SwapManager.swapById("INFINITE_SPIRIT_LEAP", "SPIRIT_LEAP").success
         scheduleTask {
-            if (!r) { inProgress = false; return@scheduleTask }
+            if (activeLeap !== leap) return@scheduleTask
+            if (!r) {
+                resetActiveLeap()
+                return@scheduleTask
+            }
             PlayerUtils.interact()
-            lastLeap = System.currentTimeMillis()
-            leapCD = 48 * getMageCooldownMultiplier()
-            onLeap?.invoke()
-            modMessage("&aLeaping to ${formatName(target)}")
+            scheduleTask(20) {
+                if (activeLeap === leap) failActiveLeap("target not found in leap menu")
+            }
         }
-        leapQueue.add(target.name)
+    }
+
+    private fun selectTarget(slot: Int, itemName: String) {
+        val leap = activeLeap ?: return
+        if (!itemName.contains(leap.target.name, ignoreCase = true)) return
+        menuOpened = false
+        if (!ContainerUtils.click(slot, afterClick = { completeActiveLeap(leap) })) {
+            return failActiveLeap("could not click target slot")
+        }
+    }
+
+    private fun completeActiveLeap(leap: PendingLeap) {
+        if (activeLeap !== leap) return
+
+        lastLeap = System.currentTimeMillis()
+        leapCD = 48 * getMageCooldownMultiplier()
+        modMessage("&aLeaping to ${formatName(leap.target)}")
+        resetActiveLeap()
     }
 
     private fun formatTarget(target: Any): String {
@@ -141,9 +170,17 @@ object LeapManager { // still schizophrenia
         return "&${player.clazz.colourCode}${player.name}"
     }
 
-    private fun reloadGui() {
+    private fun failActiveLeap(reason: String) {
+        val leap = activeLeap ?: return
+        modMessage("&cFailed to leap to ${formatName(leap.target)}&c: $reason")
+        resetActiveLeap()
+    }
+
+    private fun resetActiveLeap() {
+        val leap = activeLeap
         menuOpened = false
-        leapQueue.removeFirst()
-        inProgress = false
+        menuId = -1
+        activeLeap = null
+        leap?.onMenuClose?.invoke()
     }
 }
