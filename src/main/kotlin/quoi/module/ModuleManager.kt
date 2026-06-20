@@ -25,6 +25,7 @@ object ModuleManager {
             LeapMenu,
             ArrowAlign,
             AutoLeap,
+            AutoDoorOpener,
             AutoCloseChest,
             FullBlockHitboxes,
             DungeonAbilities,
