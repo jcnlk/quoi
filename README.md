@@ -200,7 +200,7 @@
 </details>
 
 ## Development
-- Requires Java `21`
+- Requires Java `25`
 - Build with `./gradlew build`
 - Run the client in a dev environment with `./gradlew runClient`
 
