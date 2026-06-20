@@ -1,5 +1,7 @@
 package quoi.module.impl.misc
 
+import quoi.api.events.core.on
+
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.network.protocol.game.ClientboundSoundPacket
 import net.minecraft.world.entity.EquipmentSlot

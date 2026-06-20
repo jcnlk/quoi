@@ -1,5 +1,7 @@
 package quoi.module.impl.misc
 
+import quoi.api.events.core.on
+
 import net.minecraft.client.KeyMapping
 import quoi.api.abobaui.dsl.px
 import quoi.api.abobaui.elements.impl.Text.Companion.shadow

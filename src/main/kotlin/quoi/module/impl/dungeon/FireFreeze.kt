@@ -1,5 +1,7 @@
 package quoi.module.impl.dungeon
 
+import quoi.api.events.core.on
+
 import kotlinx.coroutines.launch
 import net.minecraft.world.phys.Vec3
 import quoi.QuoiMod.scope

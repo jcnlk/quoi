@@ -1,5 +1,7 @@
 package quoi.utils.skyblock.player
 
+import quoi.api.events.core.EventListener
+
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket
@@ -28,7 +30,7 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 @Init
-object WardrobeUtils {
+object WardrobeUtils : EventListener {
     private val queue = ArrayDeque<WardrobeRequest>()
     private var inProgress = false
     private var preventMoveCurrent = true

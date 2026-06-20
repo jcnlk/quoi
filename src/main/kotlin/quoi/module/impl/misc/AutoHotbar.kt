@@ -1,5 +1,7 @@
 package quoi.module.impl.misc
 
+import quoi.api.events.core.on
+
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import quoi.QuoiMod

@@ -1,5 +1,7 @@
 package quoi.module.impl.mining
 
+import quoi.api.events.core.on
+
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.world.entity.player.Inventory
 import net.minecraft.world.item.ItemStack
