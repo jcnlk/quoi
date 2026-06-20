@@ -427,13 +427,7 @@ object AutoLeap : Module(
         val targetSection = if (forceS1) {
             P3Section.S1
         } else if (completedSection != null && completedSection != P3Section.Unknown) {
-            when (completedSection) {
-                P3Section.S1 -> P3Section.S2
-                P3Section.S2 -> P3Section.S3
-                P3Section.S3 -> P3Section.S4
-                P3Section.S4 -> P3Section.S4
-//                else -> return
-            }
+            completedSection
         } else {
             Dungeon.getP3Section()
         }
