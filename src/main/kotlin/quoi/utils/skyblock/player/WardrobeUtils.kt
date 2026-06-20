@@ -53,7 +53,13 @@ object WardrobeUtils {
     }
 
     @JvmOverloads
-    fun equip(slot: Int, preventMove: Boolean = true, disableUnequip: Boolean = false): Boolean {
+    fun equip(
+        slot: Int,
+        preventMove: Boolean = true,
+        disableUnequip: Boolean = false,
+        onMenuOpen: (() -> Unit)? = null,
+        onMenuClose: (() -> Unit)? = null,
+    ): Boolean {
         if (slot !in 1..9) {
             modMessage("&cInvalid wardrobe slot. Use &e/quoi wardrobe <1-9>&c.")
             return false
@@ -68,7 +74,7 @@ object WardrobeUtils {
             return false
         }
 
-        queue += WardrobeRequest(slot, preventMove, disableUnequip)
+        queue += WardrobeRequest(slot, preventMove, disableUnequip, onMenuOpen, onMenuClose)
         processQueue()
         return true
     }
@@ -85,7 +91,11 @@ object WardrobeUtils {
                 currentSlot = request.slot
                 preventMoveCurrent = request.preventMove
 
-                val result = equipNow(request.slot, request.disableUnequip)
+                val result = try {
+                    equipNow(request.slot, request.disableUnequip, request.onMenuOpen)
+                } finally {
+                    request.onMenuClose?.invoke()
+                }
                 modMessage(result.chatMessage)
                 wait(2)
             }
@@ -94,9 +104,9 @@ object WardrobeUtils {
         }
     }
 
-    private suspend fun equipNow(slot: Int, disableUnequip: Boolean): EquipResult {
+    private suspend fun equipNow(slot: Int, disableUnequip: Boolean, onMenuOpen: (() -> Unit)?): EquipResult {
         val targetSlot = slot + 35
-        val items = getContainerItems("wardrobe", "Wardrobe (1/3)") // TODO: match with regex ig
+        val items = getContainerItems("wardrobe", "Wardrobe (1/3)", onMenuOpen = onMenuOpen)
         if (items.isEmpty()) {
             closeContainer()
             return EquipResult.failure("Timed out waiting for wardrobe.")
@@ -203,6 +213,8 @@ object WardrobeUtils {
         val slot: Int,
         val preventMove: Boolean,
         val disableUnequip: Boolean,
+        val onMenuOpen: (() -> Unit)?,
+        val onMenuClose: (() -> Unit)?,
     )
 
     private enum class WardrobeState {

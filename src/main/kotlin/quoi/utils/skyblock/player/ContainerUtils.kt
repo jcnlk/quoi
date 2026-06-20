@@ -164,7 +164,13 @@ object ContainerUtils {
      *    If you want to automatically close
      *    it after fetching, use [getContainerItemsClose] instead.
      */
-    suspend fun getContainerItems(command: String, containerName: String, slots: Int = 54, timeout: Int = 20): List<ItemStack?> = suspendCoroutine { cont ->
+    suspend fun getContainerItems(
+        command: String,
+        containerName: String,
+        slots: Int = 54,
+        timeout: Int = 20,
+        onMenuOpen: (() -> Unit)? = null,
+    ): List<ItemStack?> = suspendCoroutine { cont ->
         val items = MutableList<ItemStack?>(slots) { null }
         var windowId: Int? = null
         var complete = false
@@ -175,6 +181,7 @@ object ContainerUtils {
             if (packet !is ClientboundOpenScreenPacket) return@until false
             if (packet.title.string != containerName) return@until false
             windowId = packet.containerId
+            onMenuOpen?.invoke()
             cancel()
             true
         }
