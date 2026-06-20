@@ -14,7 +14,6 @@ import quoi.api.events.AreaEvent
 import quoi.api.events.RenderEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
-import quoi.api.events.core.EventBus
 import quoi.api.skyblock.Island
 import quoi.module.Module
 import quoi.module.settings.Setting.Companion.json
@@ -74,17 +73,11 @@ object MineshaftESP : Module(
     private val waypoints = linkedMapOf<BlockPos, MineshaftType>()
 
     init {
-        events.add(EventBus.on<WorldEvent.Change>(
-            callback = { waypoints.clear() },
-            add = false
-        ))
+        on<WorldEvent.Change> { waypoints.clear() }
 
-        events.add(EventBus.on<AreaEvent.Main>(
-            callback = {
-                if (this.area != Island.Mineshaft) waypoints.clear()
-            },
-            add = false
-        ))
+        on<AreaEvent.Main> {
+            if (this.area != Island.Mineshaft) waypoints.clear()
+        }
 
         on<TickEvent.End> {
             if (player.tickCount % 20 != 0) return@on

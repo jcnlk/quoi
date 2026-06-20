@@ -10,7 +10,7 @@ import quoi.api.commands.QuoiCommand
 import quoi.api.commands.internal.GreedyString
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
-import quoi.api.events.core.EventBus.on
+import quoi.api.events.core.on
 import quoi.module.impl.misc.PetKeybinds.petMap
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.Scheduler.wait

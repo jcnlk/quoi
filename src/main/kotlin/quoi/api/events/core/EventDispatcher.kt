@@ -159,4 +159,5 @@ object EventDispatcher {
             }
             else -> false
         }
+    }
 }

@@ -10,7 +10,8 @@ import quoi.api.commands.QuoiCommand
 import quoi.api.events.PacketEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
-import quoi.api.events.core.EventBus.on
+import quoi.api.events.core.Subscription
+import quoi.api.events.core.on
 import quoi.api.events.core.Priority
 import quoi.api.skyblock.Location.inSkyblock
 import quoi.utils.ChatUtils.modMessage
@@ -155,7 +156,7 @@ object WardrobeUtils {
         }
 
         var resumed = false
-        var listener: quoi.api.events.core.EventBus.EventListener? = null
+        var listener: Subscription<PacketEvent.Received>? = null
         listener = on<PacketEvent.Received>(Priority.LOWEST) {
             val packet = packet as? ClientboundContainerSetSlotPacket ?: return@on
             if (packet.containerId != currentContainerId) return@on
@@ -165,7 +166,7 @@ object WardrobeUtils {
             val state = item?.wardrobeState() ?: WardrobeState.UNKNOWN
             if (state == WardrobeState.EMPTY || state == WardrobeState.UNKNOWN) return@on
 
-            listener?.remove()
+            listener?.unregister()
             if (resumed) return@on
             resumed = true
             cont.resume(item)
@@ -174,7 +175,7 @@ object WardrobeUtils {
         scheduleTask(timeout) {
             if (resumed) return@scheduleTask
             resumed = true
-            listener?.remove()
+            listener?.unregister()
             cont.resume(null)
         }
     }
