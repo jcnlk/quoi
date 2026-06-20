@@ -35,6 +35,7 @@ import quoi.utils.ui.rendering.NVGRenderer
 import quoi.utils.ui.screens.UIContainer
 import quoi.utils.ui.screens.UIOverlay
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
+import quoi.api.events.core.EventListener
 import quoi.api.events.core.on
 import quoi.module.impl.misc.Test
 import quoi.module.impl.render.ClickGui.clickGui
@@ -43,7 +44,7 @@ import kotlin.collections.forEach
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
-object HudManager { // todo add hud grouping
+object HudManager : EventListener { // todo add hud grouping
     val huds = arrayListOf<Hud>()
     var stupid = false
 

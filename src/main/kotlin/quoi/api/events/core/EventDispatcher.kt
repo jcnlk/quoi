@@ -39,6 +39,9 @@ import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.item.ItemEntity
 import quoi.QuoiMod
 
+/**
+ * Bridges fabric's own event hooks and packet handling.
+ */
 object EventDispatcher {
     var totalTicks = 0
         private set
@@ -123,7 +126,7 @@ object EventDispatcher {
             is ClientboundTakeItemEntityPacket -> {
                 if (mc.player == null || !Dungeon.inClear) return false
                 val itemEntity = mc.level?.getEntity(packet.itemId) as? ItemEntity ?: return false
-                if (itemEntity.item?.hoverName?.string?.containsOneOf(dungeonItemDrops, true) == true && itemEntity.distanceTo(mc.player as Entity) <= 6)
+                if (itemEntity.item.hoverName.string.containsOneOf(dungeonItemDrops, true) && itemEntity.distanceTo(mc.player as Entity) <= 6)
                     DungeonEvent.Secret.Item(itemEntity).post()
                 else false
             }
@@ -131,7 +134,7 @@ object EventDispatcher {
                 if (mc.player == null || !Dungeon.inClear) return false
                 packet.entityIds.forEach { id ->
                     val entity = mc.level?.getEntity(id) as? ItemEntity ?: return@forEach
-                    if (entity.item?.hoverName?.string?.containsOneOf(dungeonItemDrops, true) == true && entity.distanceTo(mc.player as Entity) <= 6)
+                    if (entity.item.hoverName.string.containsOneOf(dungeonItemDrops, true) && entity.distanceTo(mc.player as Entity) <= 6)
                         DungeonEvent.Secret.Item(entity).post()
                 }
                 false

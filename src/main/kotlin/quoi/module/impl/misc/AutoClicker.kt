@@ -8,6 +8,7 @@ import quoi.api.events.MouseEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
 import quoi.api.input.CatKeys
+import quoi.api.events.core.on
 import quoi.config.Config
 import quoi.module.Module
 import quoi.module.settings.Setting.Companion.json
