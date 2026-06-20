@@ -10,6 +10,7 @@ import quoi.api.events.ChatEvent
 import quoi.api.events.PacketEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
+import quoi.api.events.core.EventListener
 import quoi.api.events.core.on
 import quoi.api.events.core.Priority
 import quoi.api.skyblock.dungeon.Dungeon.dungeonTeammatesNoSelf
@@ -22,7 +23,7 @@ import quoi.utils.Scheduler.scheduleTask
 import quoi.utils.StringUtils.noControlCodes
 
 @Init
-object LeapManager { // still schizophrenia
+object LeapManager : EventListener { // still schizophrenia
     private var menuOpened = false
     private var menuId = -1
 

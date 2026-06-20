@@ -3,6 +3,7 @@ package quoi.module.impl.misc
 import quoi.api.events.ChatEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
+import quoi.api.events.core.on
 import quoi.api.skyblock.Location
 import quoi.api.skyblock.SkyblockPlayer
 import quoi.api.skyblock.dungeon.Dungeon

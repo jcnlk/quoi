@@ -11,6 +11,7 @@ import quoi.QuoiMod.mc
 import quoi.annotations.Init
 import quoi.api.events.KeyEvent
 import quoi.api.events.WorldEvent
+import quoi.api.events.core.EventListener
 import quoi.api.events.core.on
 import quoi.api.input.MutableInput
 import quoi.utils.Scheduler.scheduleTask
@@ -26,7 +27,7 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 
 @Init
-object MovementUtils {
+object MovementUtils : EventListener {
 
     private var movementTask: (LocalPlayer.(MutableInput) -> Boolean)? = null
     private var currentInput: MutableInput? = null

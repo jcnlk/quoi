@@ -15,6 +15,7 @@ import quoi.api.animations.Animation
 import quoi.api.colour.Colour
 import quoi.api.colour.withAlpha
 import quoi.api.events.*
+import quoi.api.events.core.on
 import quoi.api.skyblock.Island
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.invoke

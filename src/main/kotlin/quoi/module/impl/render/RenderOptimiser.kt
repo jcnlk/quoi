@@ -17,6 +17,7 @@ import quoi.api.events.PacketEvent
 import quoi.api.skyblock.Island
 import quoi.api.skyblock.Location.currentArea
 import quoi.api.skyblock.Location.subarea
+import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.M7Phases
 import quoi.module.Module
