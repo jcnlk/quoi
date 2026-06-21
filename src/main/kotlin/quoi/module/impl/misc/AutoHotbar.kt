@@ -47,8 +47,7 @@ import kotlin.random.Random
 
 object AutoHotbar : Module(
     "Auto Hotbar",
-    desc = "Saves and equips hotbar presets.",
-    tag = Tag.BETA
+    desc = "Saves and equips hotbar presets."
 ) {
     private val blockInput by switch("Block input", false, desc = "Blocks keyboard and mouse input during hotbar correction passes.")
     private val swapPassDelay by slider("Swap pass delay", 5, 0, 20, 1, desc = "Base delay in ticks before each hotbar correction pass.")
