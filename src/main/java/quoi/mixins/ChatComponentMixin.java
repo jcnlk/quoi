@@ -119,11 +119,10 @@ public abstract class ChatComponentMixin implements IChatComponent {
     @ModifyVariable(
             method = "extractRenderState",
             at = @At("HEAD"),
-            argsOnly = true,
-            ordinal = 0
+            argsOnly = true
     )
-    private boolean renderFocused(boolean focused) {
-        return focused || Chat.INSTANCE.isDown();
+    private ChatComponent.DisplayMode renderFocused(ChatComponent.DisplayMode mode) {
+        return Chat.INSTANCE.displayMode(mode);
     }
 
     @ModifyExpressionValue(

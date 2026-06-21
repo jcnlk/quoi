@@ -185,6 +185,10 @@ object Chat : Module(
         return this.enabled && chatPeek && this.peekKey.isDown()
     }
 
+    fun displayMode(mode: ChatComponent.DisplayMode): ChatComponent.DisplayMode {
+        return if (isDown()) ChatComponent.DisplayMode.FOREGROUND else mode
+    }
+
     fun scroll(amount: Int) {
         chatGui.scrollChat(if (isShiftDown) amount else amount * 7)
     }
