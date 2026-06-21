@@ -1,5 +1,6 @@
 package quoi.api.commands
 
+import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.network.chat.ClickEvent
 import net.minecraft.network.chat.Style
 import quoi.QuoiMod.mc
@@ -20,7 +21,9 @@ import quoi.module.impl.render.PlayerESP
 import quoi.utils.ChatUtils.command
 import quoi.utils.ChatUtils.literal
 import quoi.utils.ChatUtils.modMessage
+import quoi.utils.LegacyIdMapper
 import quoi.utils.Scheduler.scheduleLoop
+import quoi.utils.Scheduler.scheduleTask
 import quoi.utils.WorldUtils
 import quoi.utils.WorldUtils.day
 import quoi.utils.skyblock.player.MovementUtils.hold
@@ -38,6 +41,7 @@ import quoi.api.events.core.until
 import quoi.api.skyblock.dungeon.Dungeon.currentRoom
 import quoi.utils.StringUtils.capitaliseFirst
 import quoi.utils.addVec
+import quoi.utils.skyblock.PartyUtils
 import quoi.utils.skyblock.player.RotationUtils.rotate
 import java.net.URI
 import kotlin.collections.sortedBy
@@ -162,6 +166,28 @@ object QuoiCommand : EventListener {
             "rotate" { yaw: Float, pitch: Float ->
                 mc.player?.rotate(yaw, pitch)
             }
+
+            "id" {
+                val hit = mc.hitResult as? BlockHitResult
+                    ?: return@invoke modMessage("&cYou are not looking at a block.")
+                val state = mc.level?.getBlockState(hit.blockPos)
+                    ?: return@invoke modMessage("&cNo world is loaded.")
+
+                modMessage(LegacyIdMapper.getId(state), prefix = "")
+            }
+
+            "blockinfo" {
+                val hit = mc.hitResult as? BlockHitResult
+                    ?: return@invoke modMessage("&cYou are not looking at a block.")
+                val state = mc.level?.getBlockState(hit.blockPos)
+                    ?: return@invoke modMessage("&cNo world is loaded.")
+                val name = BuiltInRegistries.BLOCK.getKey(state.block)
+                val stateInfo = state.toString().substringAfter('[', "").let {
+                    if (it.isEmpty()) "" else " [${it.removeSuffix("]")}]"
+                }
+
+                modMessage("$name (${LegacyIdMapper.getId(state)})$stateInfo", prefix = "")
+            }
         }
 
         with(command) {
@@ -256,6 +282,23 @@ object QuoiCommand : EventListener {
             mc.gui.chat.clearMessages(false)
             Chat.chatList.clear()
             modMessage("Cleared chat.")
+        }.register()
+
+        BaseCommand("lsb") {
+            command("l")
+            scheduleTask(10) { command("play sb") }
+        }.register()
+
+        BaseCommand("ld") {
+            command("l")
+            scheduleTask(10) { command("play sb") }
+            scheduleTask(30) { command("warp dungeon_hub") }
+        }.register()
+
+        BaseCommand("ptr") {
+            val target = PartyUtils.membersNoSelf.randomOrNull()
+                ?: return@BaseCommand modMessage("&cParty empty!")
+            command("p transfer $target")
         }.register()
 
         Floors.entries.forEach { floor ->
