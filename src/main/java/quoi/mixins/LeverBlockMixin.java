@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class LeverBlockMixin {
     @Inject(method = "getShape", at = @At("HEAD"), cancellable = true)
     private void onGetShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context, CallbackInfoReturnable<VoxelShape> cir) {
-        if (FullBlockHitboxes.getShouldExpandHitboxes()) {
+        if (FullBlockHitboxes.shouldExpandHitbox(FullBlockHitboxes.BlockType.Levers)) {
             cir.setReturnValue(Shapes.block());
         }
     }
