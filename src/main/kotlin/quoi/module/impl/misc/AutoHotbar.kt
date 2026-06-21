@@ -1,5 +1,6 @@
 package quoi.module.impl.misc
 
+import net.minecraft.client.KeyMapping
 import quoi.api.events.core.on
 
 import kotlinx.coroutines.Job
@@ -42,7 +43,6 @@ import kotlin.random.Random
 /*
  * TODO:
  *  integrate into custom triggers
- *  working invalk method (maybe)
  */
 
 object AutoHotbar : Module(
@@ -50,17 +50,18 @@ object AutoHotbar : Module(
     desc = "Saves and equips hotbar presets.",
     tag = Tag.BETA
 ) {
-    private val preventMovement by switch("Prevent movement", true, desc = "Stops your movement while a hotbar swap is in progress. &cDisabling this is very likely to send you to limbo.")
-    private val blockInput by switch("Block input", false, desc = "Blocks keyboard and mouse input while a hotbar swap is in progress.")
+    private val blockInput by switch("Block input", false, desc = "Blocks keyboard and mouse input during hotbar correction passes.")
     private val swapPassDelay by slider("Swap pass delay", 5, 0, 20, 1, desc = "Base delay in ticks before each hotbar correction pass.")
     private val passDelayRandomness by slider("Pass delay randomness", 3, 0, 20, 1, desc = "Adds 0 to this many random ticks to each correction pass delay.")
     private val clickDelay by slider("Click delay", 2, 0, 10, 1, desc = "Base delay in ticks after each hotbar swap click.")
     private val clickDelayRandomness by slider("Click delay randomness", 2, 0, 10, 1, desc = "Adds 0 to this many random ticks after each hotbar swap click.")
+    private val postSwapDelay by slider("Post swap delay", 5, 0, 20, 1, desc = "Delay in ticks after the final hotbar swap before movement and input are restored.")
     private val presetsSetting = register(ListSetting<HotbarPreset, MutableList<HotbarPreset>>("Presets", mutableListOf()))
     private val presets get() = presetsSetting.value
     private val validFloors = listOf("f1", "f2", "f3", "f4", "f5", "f6", "f7", "m1", "m2", "m3", "m4", "m5", "m6", "m7")
     private val validClasses = listOf("healer", "mage", "berserk", "archer", "tank")
     private var swapJob: Job? = null
+    private var blockingGameInput = false
 
     private val hud by textHud("Auto Hotbar HUD", Colour.WHITE, font = TextHud.HudFont.Minecraft) {
         visibleIf { this@AutoHotbar.enabled && (preview || isSwapping) }
@@ -117,7 +118,7 @@ object AutoHotbar : Module(
         }
 
         on<TickEvent.Start> {
-            if ((preventMovement || blockInput) && isSwapping) player.stop()
+            if (blockingGameInput) player.stop()
         }
 
         on<WorldEvent.Change> {
@@ -125,24 +126,29 @@ object AutoHotbar : Module(
         }
 
         on<KeyEvent.Press> {
-            if (blockInput && isSwapping) cancel()
+            if (blockInput && blockingGameInput) cancel()
         }
 
         on<KeyEvent.Release> {
-            if (blockInput && isSwapping) cancel()
+            if (blockInput && blockingGameInput) cancel()
         }
 
         on<MouseEvent.Click> {
-            if (blockInput && isSwapping) cancel()
+            if (blockInput && blockingGameInput) cancel()
         }
 
         on<MouseEvent.Scroll> {
-            if (blockInput && isSwapping) cancel()
+            if (blockInput && blockingGameInput) cancel()
         }
 
         on<MouseEvent.Move> {
-            if (blockInput && isSwapping) cancel()
+            if (blockInput && blockingGameInput) cancel()
         }
+    }
+
+    override fun onDisable() {
+        stopSwapping()
+        super.onDisable()
     }
 
     private fun save(name: String) {
@@ -169,7 +175,6 @@ object AutoHotbar : Module(
                 beginSwap(preset.name)
                 modMessage("&aEquipping preset &e${preset.name}&a.")
 
-                if (preventMovement) player.stop()
                 runSwapPasses(preset)
                 modMessage("&aPreset &e${preset.name} &aequipped.")
             } finally {
@@ -182,6 +187,7 @@ object AutoHotbar : Module(
     private fun stopSwapping() {
         swapJob?.cancel()
         swapJob = null
+        stopInputBlock()
         endSwap()
     }
 
@@ -197,20 +203,41 @@ object AutoHotbar : Module(
     }
 
     private suspend fun runSwapPasses(preset: HotbarPreset) {
-        listOf(true, false, true).forEach { includeHotbar ->
-            waitRandomDelay(swapPassDelay, passDelayRandomness)
-            runPass(preset, includeHotbar)
+        val passes = listOf(true, false, true)
+        waitRandomDelay(swapPassDelay, passDelayRandomness)
+
+        blockingGameInput = true
+        player.stop()
+        try {
+            var swapped = false
+            passes.forEachIndexed { index, includeHotbar ->
+                if (index > 0) waitRandomDelay(swapPassDelay, passDelayRandomness)
+                swapped = runPass(preset, includeHotbar) || swapped
+            }
+            if (swapped) wait(postSwapDelay)
+        } finally {
+            stopInputBlock()
         }
     }
 
-    private suspend fun runPass(preset: HotbarPreset, includeHotbar: Boolean) {
+    private fun stopInputBlock() {
+        if (!blockingGameInput) return
+
+        blockingGameInput = false
+        KeyMapping.setAll()
+    }
+
+    private suspend fun runPass(preset: HotbarPreset, includeHotbar: Boolean): Boolean {
         val interacted = mutableSetOf<Int>()
+        var swapped = false
         for (slot in HOTBAR_START..HOTBAR_END) {
             val item = preset.slots.getOrNull(slot) ?: HotbarItem()
             if (setSlot(slot, item, interacted, includeHotbar)) {
+                swapped = true
                 waitRandomDelay(clickDelay, clickDelayRandomness)
             }
         }
+        return swapped
     }
 
     private fun setSlot(slot: Int, item: HotbarItem, interacted: MutableSet<Int>, includeHotbar: Boolean): Boolean {
