@@ -40,7 +40,12 @@ public class ButtonBlockMixin {
 
     @Inject(method = "getShape", at = @At("HEAD"), cancellable = true)
     private void onGetShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context, CallbackInfoReturnable<VoxelShape> cir) {
-        if (FullBlockHitboxes.getShouldExpandHitboxes()) {
+        if (FullBlockHitboxes.shouldExpandHitbox(FullBlockHitboxes.BlockType.Buttons)) {
+            if (FullBlockHitboxes.shouldUseFullBlockButtonHitbox()) {
+                cir.setReturnValue(Shapes.block());
+                return;
+            }
+
             AttachFace face = state.getValue(ButtonBlock.FACE);
 
             switch (face) {
