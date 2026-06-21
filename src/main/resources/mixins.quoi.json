@@ -46,6 +46,7 @@
     "LocalPlayerMixin",
     "MouseHandlerMixin",
     "MultiPlayerGameModeMixin",
+    "MushroomBlockMixin",
     "NameTagFeatureRendererMixin",
     "PlayerItemInHandLayerMixin",
     "PlayerMixin",
