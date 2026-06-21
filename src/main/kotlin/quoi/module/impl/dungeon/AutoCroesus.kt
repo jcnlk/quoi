@@ -167,7 +167,9 @@ object AutoCroesus : Module(
     }
 
     private fun registerCommands() {
-        val ac = command.sub("autocroesus").description("Auto Croesus controls.")
+        val ac = command.sub("autocroesus")
+            .description("Auto Croesus controls.")
+            .requires("&cAuto Croesus module is disabled!") { enabled }
 
         ac.sub("go") {
             startWithPriceUpdate()
@@ -215,13 +217,14 @@ object AutoCroesus : Module(
     }
 
     private fun startFromKeybind() {
-        if (mc.screen != null) return
+        if (!enabled || mc.screen != null) return
         startWithPriceUpdate()
     }
 
     private fun startWithPriceUpdate() {
         log.clear()
         SkyblockPrices.ensureFresh { success ->
+            if (!enabled) return@ensureFresh
             if (!success) return@ensureFresh modMessage("&cAuto Croesus could not update prices.")
             claiming = true
             modMessage("&aAuto Croesus activated.")
