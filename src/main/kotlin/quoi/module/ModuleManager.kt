@@ -107,6 +107,8 @@ object ModuleManager : EventListener {
             GrieferTracker,
         )
 
+        modules.filter { it.alwaysActive }.forEach { it.onEnable() }
+
         modules.forEach { module ->
             module.keybinding.let {
                 module.register(KeybindComponent("Key bind", it, desc = "Toggles the module"))
