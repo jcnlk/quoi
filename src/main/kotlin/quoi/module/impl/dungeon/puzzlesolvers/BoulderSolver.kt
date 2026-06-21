@@ -8,8 +8,17 @@ import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket
 import net.minecraft.world.phys.AABB
 import quoi.QuoiMod.logger
 import quoi.api.colour.Colour
+import quoi.api.colour.withAlpha
+import quoi.api.events.DungeonEvent
+import quoi.api.events.PacketEvent
+import quoi.api.events.RenderEvent
+import quoi.api.events.WorldEvent
+import quoi.api.events.core.Event
+import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.odonscanning.tiles.OdonRoom
+import quoi.module.settings.UIComponent.Companion.childOf
+import quoi.module.settings.group.SettingGroup
 import quoi.utils.WorldUtils.state
 import quoi.utils.render.drawStyledBox
 import java.io.InputStreamReader
@@ -20,7 +29,12 @@ import java.nio.charset.StandardCharsets
  * copyright (c) 2025-2026 odtheking
  * original: https://github.com/odtheking/Odin/blob/main/src/main/kotlin/com/odtheking/odin/features/impl/dungeon/puzzlesolvers/BoulderSolver.kt
  */
-object BoulderSolver {
+object BoulderSolver : SettingGroup(PuzzleSolvers, "Boulder") {
+    private val solver by switch("Solver", desc = "Shows the solution for the boulder puzzle.")
+    private val showAll by switch("Show all clicks", desc = "Shows all clicks instead of only the next click.").childOf(::solver)
+    private val style by selector("Style", "Box", arrayListOf("Box", "Filled box", "Filled"), desc = "Render style to be used.").childOf(::solver)
+    private val colour by colourPicker("Colour", Colour.MINECRAFT_GREEN.withAlpha(0.5f), true, desc = "Colour for the boulder solver.").childOf(::solver)
+
     private data class BoxPosition(val render: AABB, val click: BlockPos)
 
     private val gson = GsonBuilder().setPrettyPrinting().create()
@@ -37,6 +51,28 @@ object BoulderSolver {
             logger.error("Error loading boulder solutions", e)
             solutions = emptyMap()
         }
+
+        on<DungeonEvent.Room.Enter> {
+            onRoomEnter(room)
+        }
+
+        on<RenderEvent.World> {
+            if (solver) onRenderWorld(ctx, showAll, style.selected, colour)
+        }
+
+        on<PacketEvent.Sent, ServerboundUseItemOnPacket> {
+            if (solver) onInteract(packet)
+        }
+
+        on<WorldEvent.Change> {
+            reset()
+        }
+    }
+
+    override fun shouldHandle(event: Event): Boolean {
+        if (!super.shouldHandle(event)) return false
+        if (event is DungeonEvent.Room.Enter || event is WorldEvent.Change) return true
+        return Dungeon.currentRoom?.name == "Boulder"
     }
 
     fun onRoomEnter(room: OdonRoom?) = with(room) {

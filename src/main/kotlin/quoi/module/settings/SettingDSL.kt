@@ -96,7 +96,7 @@ abstract class SettingsDSL {
                         ?: SoundEvent.createVariableRangeEvent(ResourceLocation.parse(customSound.value))
                 else
                     sound.selected.sound
-            Triple(soundEvent ?: SoundEvents.BLAZE_HURT, soundVolume.value, soundPitch.value)
+            Triple(soundEvent, soundVolume.value, soundPitch.value)
         }
 
         +button("Test sound") { SoundUtils.play(settings) }
