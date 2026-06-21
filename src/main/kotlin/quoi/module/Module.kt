@@ -65,10 +65,6 @@ abstract class Module(
     @Transient
     val alwaysActive = this::class.java.isAnnotationPresent(AlwaysActive::class.java)
 
-    init {
-        if (alwaysActive) onEnable()
-    }
-
     val settings: ArrayList<Setting<*>> = ArrayList()
 
     open fun onEnable() {}
