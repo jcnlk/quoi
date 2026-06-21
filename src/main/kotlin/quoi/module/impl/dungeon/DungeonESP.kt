@@ -48,7 +48,7 @@ import quoi.utils.render.drawStyledBox
 object DungeonESP : Module(
     "Dungeon ESP",
     desc = "Highlights various dungeon entities.",
-    area = Island.Dungeon(inClear = true)
+    area = Island.Dungeon()
 ) { // todo recode
     private val teammateClassGlow by switch("Teammate class glow", true, desc = "Highlights dungeon teammates based on their class colour.")
     private val starEsp by switch("Starred mobs")
