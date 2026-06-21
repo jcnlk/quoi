@@ -52,7 +52,7 @@ public class GuiMixin {
     }
 
     @Inject(
-            method = "renderArmor",
+            method = "extractArmor",
             at = @At("HEAD"),
             cancellable = true
     )
@@ -70,7 +70,7 @@ public class GuiMixin {
     }
 
     @Inject(
-            method = "renderFood",
+            method = "extractFood",
             at = @At("HEAD"),
             cancellable = true
     )
