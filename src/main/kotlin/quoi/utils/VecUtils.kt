@@ -72,7 +72,7 @@ inline val BlockPos.center: Vec3 get() = Vec3(x + 0.5, y + 0.5, z + 0.5)
 inline val BlockPos.bounds: AABB? get() {
     return mc.level?.let { level ->
         level.getBlockState(this).getShape(level, this).singleEncompassing()
-            ?.takeIf { !it.isEmpty }?.bounds()
+            .takeIf { !it.isEmpty }?.bounds()
     }
 }
 
