@@ -37,7 +37,7 @@ import quoi.utils.ui.hud.impl.TextHud
  * auto leap delay (?)
  * add other pre4 done detection methods
  * option to create custom fast/auto leaps (maybe; prob use custom triggers for that)
- * move some stuff to utils
+ * move some stuff to utilsa
  */
 
 // Kyleen (maybe)
@@ -140,18 +140,18 @@ object AutoLeap : Module(
         super.onDisable()
     }
 
-    private val doNotLeapLocations = listOf(
-        Vec3(108.5, 120.0, 94.5) to 1.5, // at ss
-        Vec3(58.5, 109.0, 131.5) to 1.5, // at ee2
-        Vec3(60.5, 132.0, 140.5) to 1.5, // at ee2 high / levers dev
-        Vec3(69.5, 109.0, 122.5) to 1.0, // ee2 safe spot 1
-        Vec3(48.5, 109.0, 122.5) to 1.0, // ee2 safe spot 2
-        Vec3(2.5, 109.0, 104.5) to 1.5,  // at ee3
-        Vec3(18.5, 121.0, 99.5) to 3.0,  // ee3 safe spot
-        Vec3(1.5, 120.0, 77.5) to 3.0,   // arrows dev
-        Vec3(58.5, 123.0, 122.5) to 0.3, // entering core
-        Vec3(54.5, 115.0, 51.5) to 1.5   // at core
-    )
+//    private val doNotLeapLocations = listOf(
+//        Vec3(108.5, 120.0, 94.5) to 1.5, // at ss
+//        Vec3(58.5, 109.0, 131.5) to 1.5, // at ee2
+//        Vec3(60.5, 132.0, 140.5) to 1.5, // at ee2 high / levers dev
+//        Vec3(69.5, 109.0, 122.5) to 1.0, // ee2 safe spot 1
+//        Vec3(48.5, 109.0, 122.5) to 1.0, // ee2 safe spot 2
+//        Vec3(2.5, 109.0, 104.5) to 1.5,  // at ee3
+//        Vec3(18.5, 121.0, 99.5) to 3.0,  // ee3 safe spot
+//        Vec3(1.5, 120.0, 77.5) to 3.0,   // arrows dev
+//        Vec3(58.5, 123.0, 122.5) to 0.3, // entering core
+//        Vec3(54.5, 115.0, 51.5) to 1.5   // at core
+//    )
 
     init {
         command.sub("leap") { target: String ->
@@ -424,9 +424,9 @@ object AutoLeap : Module(
     private fun handleP3Leap(completedSection: P3Section? = null, forceS1: Boolean = false, autoLeap: Boolean = true) {
         if (autoLeap) {
             if (Dungeon.getP3Section() == P3Section.Unknown) return
-            for ((pos, distSqr) in doNotLeapLocations) {
-                if (player.distanceToSqr(pos) <= distSqr) return
-            }
+//            for ((pos, distSqr) in doNotLeapLocations) {
+//                if (player.distanceToSqr(pos) <= distSqr) return
+//            }
         }
 
         val targetSection = if (forceS1) {
