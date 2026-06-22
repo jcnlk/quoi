@@ -22,6 +22,7 @@ import quoi.api.input.CatKeyboard
 import quoi.api.input.CatKeys
 import quoi.api.skyblock.Island
 import quoi.api.skyblock.SkyblockPrices
+import quoi.api.skyblock.SkyblockPrices.BazaarPriceType
 import quoi.config.configList
 import quoi.module.Module
 import quoi.module.impl.dungeon.autocroesus.AutoCroesusChestParser
@@ -88,6 +89,7 @@ object AutoCroesus : Module(
     private val useChestKeys by switch("Use dungeon chest key", true, desc = "Claims a second profitable chest using a Dungeon Chest Key.")
     private val chestKeyMinProfit by slider("Chest key min profit", 0.2, 0.0, 10.0, 0.1, desc = "Minimum profit required to use a Dungeon Chest Key.", unit = "M")
         .childOf(::useChestKeys)
+    private val bazaarPriceType by selector("Bazaar price", BazaarPriceType.InstaSell, desc = "Bazaar price used for Auto Croesus profit calculations.")
     private val useKismets by switch("Use kismets", false, desc = "Rerolls configured floors when Bedrock profit is below the threshold.")
     private val kismetMinProfit by slider("Kismet min profit", 2.0, 0.0, 10.0, 0.1, desc = "Bedrock chests below this profit are rerolled.", unit = "M")
         .childOf(::useKismets)
@@ -106,7 +108,7 @@ object AutoCroesus : Module(
     private val runLoot by configList<LoggedRun>("autocroesus_loot.json")
 
     private val runChestRegex = Regex("^(?:Master )?Catacombs - Floor [IVX]+$")
-    private val chestParser = AutoCroesusChestParser(worthless)
+    private val chestParser = AutoCroesusChestParser(worthless) { bazaarPriceType.selected }
 
     private val failedIndexes = mutableSetOf<Int>()
     private val loggedIndexes = mutableSetOf<Int>()
@@ -294,7 +296,7 @@ object AutoCroesus : Module(
 
         var totalSellPrice = 0.0
         val itemInfo = loot.map { (id, amount) ->
-            val value = SkyblockPrices.buyPrice(id) ?: 0.0
+            val value = SkyblockPrices.buyPrice(id, bazaarPriceType.selected) ?: 0.0
             totalSellPrice += value * amount
             LootSummaryItem(id, amount, value)
         }.sortedByDescending { it.totalValue }
