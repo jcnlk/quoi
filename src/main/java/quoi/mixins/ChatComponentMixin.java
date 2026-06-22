@@ -124,7 +124,7 @@ public abstract class ChatComponentMixin implements IChatComponent {
             ordinal = 0
     )
     private boolean renderFocused(boolean focused) {
-        return focused || Chat.INSTANCE.isDown();
+        return focused || Chat.isDown();
     }
 
     @ModifyExpressionValue(
@@ -135,7 +135,7 @@ public abstract class ChatComponentMixin implements IChatComponent {
             )
     )
     private boolean focusWhenPeeking(boolean original) {
-        return original || Chat.INSTANCE.isDown();
+        return original || Chat.isDown();
     }
 
     @WrapOperation(
