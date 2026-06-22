@@ -117,12 +117,12 @@ public abstract class ChatComponentMixin implements IChatComponent {
     }
 
     @ModifyVariable(
-            method = "extractRenderState",
+            method = "extractRenderState*",
             at = @At("HEAD"),
             argsOnly = true
     )
     private ChatComponent.DisplayMode renderFocused(ChatComponent.DisplayMode mode) {
-        return Chat.INSTANCE.displayMode(mode);
+        return Chat.displayMode(mode);
     }
 
     @ModifyExpressionValue(
@@ -133,7 +133,7 @@ public abstract class ChatComponentMixin implements IChatComponent {
             )
     )
     private boolean focusWhenPeeking(boolean original) {
-        return original || Chat.INSTANCE.isDown();
+        return original || Chat.isDown();
     }
 
     @WrapOperation(
