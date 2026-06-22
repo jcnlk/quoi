@@ -57,7 +57,10 @@ jobs:
 
       - name: Upload Build Artifacts
         if: always()
-        uses: forgejo/upload-artifact@v6
+        # v5/v6 currently fail on Forgejo 1.22 / runner 12.12 with
+        # "Error unauthorized" during blob upload. Keep v4 until the
+        # Forgejo artifact backend supports the newer upload flow.
+        uses: forgejo/upload-artifact@v4
         with:
           name: quoi-build-artifacts
           path: ci-artifacts/
@@ -72,8 +75,9 @@ jobs:
           if [ "$GITHUB_EVENT_NAME" = "schedule" ]; then
             title="Nightly artifacts"
           fi
+          repo_path="${GITHUB_REPOSITORY#git.jcnlk.com/}"
           {
             echo "### ${title}"
             echo ""
-            echo "[Open artifacts for this run](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})"
+            echo "[Open actions](https://git.jcnlk.com/${repo_path}/actions)"
           } >> "$GITHUB_STEP_SUMMARY"
