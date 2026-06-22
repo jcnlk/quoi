@@ -25,6 +25,6 @@ abstract class DungeonEvent {
     }
 
     class SectionComplete(val section: P3Section) : Event() {
-        class Full(section: P3Section) : Event()
+        class Full(val section: P3Section) : Event()
     }
 }
