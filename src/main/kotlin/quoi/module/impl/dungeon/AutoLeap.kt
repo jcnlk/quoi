@@ -27,7 +27,6 @@ import quoi.module.Module
 import quoi.module.settings.Setting.Companion.json
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.utils.ChatUtils.modMessage
-import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.skyblock.item.ItemUtils.skyblockId
 import quoi.utils.skyblock.player.LeapManager
 import quoi.utils.skyblock.player.MovementUtils.stop
@@ -210,15 +209,15 @@ object AutoLeap : Module(
         on<ChatEvent.Packet> {
             if (!inF7Boss()) return@on
 
-            if (pre4Leap && pre4LeapMelody && "Party" in message.noControlCodes && melodyProgress.any { it in message.noControlCodes }) {
+            if (pre4Leap && pre4LeapMelody && "Party" in unformatted && melodyProgress.any { it in unformatted }) {
                 melodyTarget = Regex("""([A-Za-z0-9_]{3,16}):""")
-                    .findAll(message.noControlCodes)
+                    .findAll(unformatted)
                     .lastOrNull()
                     ?.groupValues
                     ?.get(1)
             }
 
-            if (message.noControlCodes.matches(Regex("\\[BOSS] Storm: (?:Oof|Ouch, that hurt!)"))) {
+            if (unformatted.matches(Regex("\\[BOSS] Storm: (?:Oof|Ouch, that hurt!)"))) {
                 oofCount++
                 if (oofCount == 1 && greenLeap && greenAuto && isInGreenPad()) {
                     leapToConfigured(greenName, greenClass.selected)
@@ -228,44 +227,44 @@ object AutoLeap : Module(
                 }
             }
 
-            if (message.noControlCodes == "⚠ Storm is enraged! ⚠" && purpleLeap && purpleAuto && isInPurplePad()) {
+            if (unformatted == "⚠ Storm is enraged! ⚠" && purpleLeap && purpleAuto && isInPurplePad()) {
                 leapToConfigured(purpleName, purpleClass.selected)
             }
 
-            if (message.noControlCodes == "The Energy Laser is charging up!" && p1Leap && p1Auto) {
+            if (unformatted == "The Energy Laser is charging up!" && p1Leap && p1Auto) {
                 crystalCount++
                 if (crystalCount == 2 && isInP1()) {
                     leapToConfigured(p1Name, p1Class.selected)
                 }
             }
 
-            if (message.noControlCodes == "[BOSS] Storm: I'd be happy to show you what that's like!" && predevLeap && predevAuto && isInPredev()) {
+            if (unformatted == "[BOSS] Storm: I'd be happy to show you what that's like!" && predevLeap && predevAuto && isInPredev()) {
                 leapToConfigured(predevName, predevClass.selected)
             }
 
-            if (message.noControlCodes == "[BOSS] Necron: ARGH!" && p5Leap && p5Auto) {
+            if (unformatted == "[BOSS] Necron: ARGH!" && p5Leap && p5Auto) {
                 arghCount++
                 if (arghCount == 2 && isInP4()) {
                     leapToConfigured(p5Name, p5Class.selected)
                 }
             }
 
-            if (message.noControlCodes == "[BOSS] Necron: That's a very impressive trick. I guess I'll have to handle this myself." &&
+            if (unformatted == "[BOSS] Necron: That's a very impressive trick. I guess I'll have to handle this myself." &&
                 middleLeap && middleAuto && isOutsideMiddle()
             ) {
                 leapToConfigured(middleName, middleClass.selected)
             }
 
-            val relicPickup = Regex("^([A-Za-z0-9_]{3,16}) picked the Corrupted (?:\\w+) Relic!$").matchEntire(message.noControlCodes)
+            val relicPickup = Regex("^([A-Za-z0-9_]{3,16}) picked the Corrupted (?:\\w+) Relic!$").matchEntire(unformatted)
             if (relicPickup != null && relicLeap && relicAuto && relicPickup.groupValues[1] == player.name.string && isInRelic()) {
                 leapToConfigured(relicName, relicClass.selected)
             }
 
-            if (message.noControlCodes == "The Core entrance is opening!" && p3Leap && p3Auto) {
+            if (unformatted == "The Core entrance is opening!" && p3Leap && p3Auto) {
                 handleP3Leap(completedSection = P3Section.S4)
             }
 
-            val pre4Done = Regex("""(\w+) completed a device! \((.*?)\)""").matchEntire(message.noControlCodes)
+            val pre4Done = Regex("""(\w+) completed a device! \((.*?)\)""").matchEntire(unformatted)
             if (pre4Done != null && pre4Done.groupValues[1] == player.name.string && pre4Leap && pre4Auto) {
                 leapToPre4Target()
             }

@@ -9,6 +9,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import quoi.api.events.KeyEvent;
 import quoi.api.input.MutableInput;
+import quoi.utils.skyblock.player.RotationUtils;
 
 @Mixin(KeyboardInput.class)
 public class KeyboardInputMixin {
@@ -21,7 +22,9 @@ public class KeyboardInputMixin {
             )
     )
     private void onTick(KeyboardInput instance, Input input, Operation<Void> original) {
-        KeyEvent.Input event = new KeyEvent.Input(input, new MutableInput(input));
+        MutableInput mutInput = new MutableInput(input);
+        RotationUtils.adjustInputFromDirection(mutInput);
+        KeyEvent.Input event = new KeyEvent.Input(input, mutInput);
         event.post();
         // Preserve downstream KeyboardInput mixins instead of short-circuiting the field write.
         original.call(instance, event.getInput().toInput());

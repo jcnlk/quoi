@@ -38,6 +38,7 @@ import net.minecraft.world.InteractionHand
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.item.ItemEntity
 import quoi.QuoiMod
+import quoi.utils.StringUtils.noControlCodes
 
 /**
  * Bridges fabric's own event hooks and packet handling.
@@ -121,7 +122,8 @@ object EventDispatcher {
             }
             is ClientboundSystemChatPacket -> {
                 val text = packet.content
-                if (packet.overlay) ChatEvent.ActionBar(text.string, text).post() else ChatEvent.Packet(text.string, text).post()
+                val string = text.string
+                if (packet.overlay) ChatEvent.ActionBar(string, text).post() else ChatEvent.Packet(string, string.noControlCodes, text).post()
             }
             is ClientboundTakeItemEntityPacket -> {
                 if (mc.player == null || !Dungeon.inClear) return false

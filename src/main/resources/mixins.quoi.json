@@ -54,6 +54,7 @@
     "PreparedTextBuilderMixin",
     "ScreenEffectRendererMixin",
     "ScreenMixin",
+    "ServerboundUseItemPacketMixin",
     "SkullBlockMixin",
     "WallSkullBlockMixin",
     "accessors.ChatComponentAccessor",
