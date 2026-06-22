@@ -2,10 +2,14 @@ package quoi.module.impl.dungeon.autocroesus
 
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import quoi.api.skyblock.SkyblockPrices
+import quoi.api.skyblock.SkyblockPrices.BazaarPriceType
 import quoi.utils.StringUtils.noControlCodes
 import kotlin.math.roundToInt
 
-internal class AutoCroesusChestParser(private val worthless: Collection<String>) {
+internal class AutoCroesusChestParser(
+    private val worthless: Collection<String>,
+    private val bazaarPriceType: () -> BazaarPriceType,
+) {
     private val chestNameRegex = Regex("^(Wood|Gold|Diamond|Emerald|Obsidian|Bedrock)$")
     private val enchantedBookRegex = Regex("^Enchanted Book \\(([\\w ]+) ([IVX\\d]+)\\)$")
     private val formattedBookRegex = Regex("^(?:§.)*Enchanted Book \\((§d§l)?([\\w ]+) ([IVX\\d]+)(?:§.)*\\)$")
@@ -70,7 +74,7 @@ internal class AutoCroesusChestParser(private val worthless: Collection<String>)
                     line == "FREE" -> chest.cost = 0
                     costRegex.matches(line) -> chest.cost = costRegex.matchEntire(line)!!.groupValues[1].replace(",", "").toInt()
                     line == "Dungeon Chest Key" -> {
-                        val keyPrice = SkyblockPrices.buyPrice("DUNGEON_CHEST_KEY")
+                        val keyPrice = SkyblockPrices.buyPrice("DUNGEON_CHEST_KEY", bazaarPriceType())
                             ?: return ChestParseResult(error = "Could not find price for Dungeon Chest Key")
                         chest.cost += keyPrice.roundToInt()
                     }
@@ -101,7 +105,7 @@ internal class AutoCroesusChestParser(private val worthless: Collection<String>)
                     ?: return ParsedReward.Error("Could not parse book tier \"$line\"")
                 val normal = "ENCHANTMENT_${cleanName}_$tier"
                 val ultimate = "ENCHANTMENT_ULTIMATE_${cleanName}_$tier".replace("ULTIMATE_ULTIMATE_", "ULTIMATE_")
-                val id = if (SkyblockPrices.buyPrice(normal) != null) normal else ultimate
+                val id = if (SkyblockPrices.buyPrice(normal, bazaarPriceType()) != null) normal else ultimate
                 id to 1
             }
             formattedEssenceRegex.matches(formattedLine) -> {
@@ -129,7 +133,7 @@ internal class AutoCroesusChestParser(private val worthless: Collection<String>)
         }
 
         val (id, amount) = idAndAmount
-        val price = if (worthless.containsId(id)) 0.0 else SkyblockPrices.buyPrice(id)
+        val price = if (worthless.containsId(id)) 0.0 else SkyblockPrices.buyPrice(id, bazaarPriceType())
             ?: return ParsedReward.Error("Could not find price for \"$line\" ($id)")
         return ParsedReward.Item(ChestItem(id, line, amount, price.roundToInt()))
     }
