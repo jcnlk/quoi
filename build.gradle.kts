@@ -45,37 +45,48 @@ loom {
     mixin.useLegacyMixinAp.set(true)
     mixin.defaultRefmapName.set("mixins.quoi.refmap.json")
 
-    runConfigs.named("client") {
-        isIdeConfigGenerated = true
-        runDir = "runs/${project.property("minecraft_version")}"
-        vmArgs.addAll(
-            arrayOf(
+    runs {
+        named("client") {
+            generateRunConfig.set(true)
+            runDirectory.set(layout.projectDirectory.dir("runs/${project.property("minecraft_version")}"))
+            jvmArguments.addAll(
                 "-Dmixin.debug.export=true",
                 "-Ddevauth.enabled=true",
                 "-Ddevauth.account=${providers.gradleProperty("devauth_account").orElse("main").get()}",
                 "-XX:+AllowEnhancedClassRedefinition",
                 "-XX:+IgnoreUnrecognizedVMOptions", // JetBrains Runtime only; Temurin/OpenJDK reject this flag. IntelliJ run configs use JBR.
             )
-        )
+            jvmArguments.add(
+                providers.provider {
+                    "-javaagent:${configurations.compileClasspath.get().find { it.name.contains("sponge-mixin") }}"
+                }
+            )
+        }
+
+        named("server") {
+            generateRunConfig.set(false)
+        }
     }
 
-    runConfigs.named("server") {
-        isIdeConfigGenerated = false
-    }
-
-    accessWidenerPath = file("src/main/resources/quoi.accesswidener")
-}
-
-afterEvaluate {
-    loom.runs.named("client") {
-        vmArg("-javaagent:${configurations.compileClasspath.get().find { it.name.contains("sponge-mixin") }}")
-    }
+    accessWidenerPath.set(file("src/main/resources/quoi.accesswidener"))
 }
 
 tasks {
     processResources {
+        val properties = listOf(
+            "mod_id",
+            "mod_version",
+            "mod_name",
+            "loader_version",
+            "fabric_api_version",
+            "minecraft_version",
+            "fabric_kotlin_version",
+        ).associateWith { providers.gradleProperty(it).get() }
+
+        inputs.properties(properties)
+
         filesMatching("fabric.mod.json") {
-            expand(getProperties())
+            expand(properties)
         }
     }
 
