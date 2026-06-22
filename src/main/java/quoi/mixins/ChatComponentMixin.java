@@ -134,7 +134,7 @@ public abstract class ChatComponentMixin implements IChatComponent {
             )
     )
     private boolean focusWhenPeeking(boolean original) {
-        return original || Chat.INSTANCE.isDown();
+        return original || Chat.isDown();
     }
 
     @WrapOperation(
