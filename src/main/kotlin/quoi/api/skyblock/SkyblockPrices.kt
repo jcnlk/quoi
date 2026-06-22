@@ -35,7 +35,9 @@ object SkyblockPrices {
     @Volatile
     private var lastUpdate = 0L
     @Volatile
-    private var bazaarPrices = emptyMap<String, Double>()
+    private var bazaarSellPrices = emptyMap<String, Double>()
+    @Volatile
+    private var bazaarBuyPrices = emptyMap<String, Double>()
     @Volatile
     private var lowestBins = emptyMap<String, Double>()
     @Volatile
@@ -68,7 +70,9 @@ object SkyblockPrices {
                 val items = getJson(ITEMS_URL).asJsonObject
                 val bins = getJson(LOWEST_BINS_URL).asJsonObject
 
-                bazaarPrices = parseBazaar(bazaar)
+                val bazaarPrices = parseBazaar(bazaar)
+                bazaarSellPrices = bazaarPrices.sell
+                bazaarBuyPrices = bazaarPrices.buy
                 skyblockItems = parseItems(items)
                 lowestBins = parseLowestBins(bins)
                 lastUpdate = System.currentTimeMillis()
@@ -89,8 +93,11 @@ object SkyblockPrices {
         }
     }
 
-    fun buyPrice(itemId: String, useSellOrder: Boolean = true): Double? {
-        val bazaar = bazaarPrices[itemId]
+    fun buyPrice(itemId: String, bazaarPriceType: BazaarPriceType = BazaarPriceType.InstaSell): Double? {
+        val bazaar = when (bazaarPriceType) {
+            BazaarPriceType.SellOffer -> bazaarBuyPrices[itemId]
+            BazaarPriceType.InstaSell -> bazaarSellPrices[itemId]
+        }
         if (bazaar != null) return bazaar
         return lowestBins[itemId]
     }
@@ -112,22 +119,33 @@ object SkyblockPrices {
         return JsonParser.parseString(response.body())
     }
 
-    private fun parseBazaar(root: JsonObject): Map<String, Double> {
-        val products = root["products"]?.asJsonObject ?: return emptyMap()
-        return buildMap {
-            products.entrySet().forEach { (itemId, dataElement) ->
-                val data = dataElement.asJsonObject
-                val buySummary = data["buy_summary"]?.asJsonArray
-                val quickStatus = data["quick_status"]?.asJsonObject
-                val fallback = quickStatus?.get("buyPrice")?.asDouble ?: 0.0
-                val sampled = buySummary
-                    ?.take(5)
-                    ?.mapNotNull { it.asJsonObject["pricePerUnit"]?.asDouble }
-                    ?.takeIf { it.isNotEmpty() }
-                    ?.average()
-                put(itemId, sampled ?: fallback)
-            }
+    private fun parseBazaar(root: JsonObject): BazaarPrices {
+        val products = root["products"]?.asJsonObject ?: return BazaarPrices()
+        val sell = mutableMapOf<String, Double>()
+        val buy = mutableMapOf<String, Double>()
+        products.entrySet().forEach { (itemId, dataElement) ->
+            val data = dataElement.asJsonObject
+            val quickStatus = data["quick_status"]?.asJsonObject
+
+            val sellSummary = data["sell_summary"]?.asJsonArray
+            val sellFallback = quickStatus?.get("sellPrice")?.asDouble ?: 0.0
+            val sellSampled = sellSummary
+                ?.take(5)
+                ?.mapNotNull { it.asJsonObject["pricePerUnit"]?.asDouble }
+                ?.takeIf { it.isNotEmpty() }
+                ?.average()
+            sell[itemId] = sellSampled ?: sellFallback
+
+            val buySummary = data["buy_summary"]?.asJsonArray
+            val buyFallback = quickStatus?.get("buyPrice")?.asDouble ?: 0.0
+            val buySampled = buySummary
+                ?.take(5)
+                ?.mapNotNull { it.asJsonObject["pricePerUnit"]?.asDouble }
+                ?.takeIf { it.isNotEmpty() }
+                ?.average()
+            buy[itemId] = buySampled ?: buyFallback
         }
+        return BazaarPrices(sell, buy)
     }
 
     private fun parseLowestBins(root: JsonObject): Map<String, Double> =
@@ -146,7 +164,8 @@ object SkyblockPrices {
     private fun loadCache() {
         val cache = ConfigSystem.load(cacheFile) { PriceCache() }
         lastUpdate = cache.lastUpdate
-        bazaarPrices = cache.bazaarPrices
+        bazaarSellPrices = cache.bazaarSellPrices.ifEmpty { cache.bazaarSellOfferPrices.ifEmpty { cache.bazaarPrices } }
+        bazaarBuyPrices = cache.bazaarBuyPrices.ifEmpty { cache.bazaarInstaSellPrices.ifEmpty { cache.bazaarPrices } }
         lowestBins = cache.lowestBins
         skyblockItems = cache.skyblockItems
     }
@@ -156,7 +175,8 @@ object SkyblockPrices {
             cacheFile,
             PriceCache(
                 lastUpdate = lastUpdate,
-                bazaarPrices = bazaarPrices,
+                bazaarSellPrices = bazaarSellPrices,
+                bazaarBuyPrices = bazaarBuyPrices,
                 lowestBins = lowestBins,
                 skyblockItems = skyblockItems,
             )
@@ -166,9 +186,23 @@ object SkyblockPrices {
     data class PriceCache(
         val lastUpdate: Long = 0L,
         val bazaarPrices: Map<String, Double> = emptyMap(),
+        val bazaarSellOfferPrices: Map<String, Double> = emptyMap(),
+        val bazaarInstaSellPrices: Map<String, Double> = emptyMap(),
+        val bazaarSellPrices: Map<String, Double> = emptyMap(),
+        val bazaarBuyPrices: Map<String, Double> = emptyMap(),
         val lowestBins: Map<String, Double> = emptyMap(),
         val skyblockItems: Map<String, SkyblockItem> = emptyMap(),
     )
+
+    data class BazaarPrices(
+        val sell: Map<String, Double> = emptyMap(),
+        val buy: Map<String, Double> = emptyMap(),
+    )
+
+    enum class BazaarPriceType {
+        SellOffer,
+        InstaSell,
+    }
 
     data class SkyblockItem(val id: String, val name: String)
 }
