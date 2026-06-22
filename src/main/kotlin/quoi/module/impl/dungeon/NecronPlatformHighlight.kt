@@ -14,7 +14,6 @@ import quoi.api.skyblock.dungeon.M7Phases
 import quoi.api.skyblock.invoke
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf
-import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.render.drawFilledBox
 import quoi.utils.render.drawWireFrameBox
 
@@ -58,7 +57,7 @@ object NecronPlatformHighlight : Module( // todo rename maybe question mark
         }
 
         on<ChatEvent.Packet> {
-            if (message.noControlCodes == "[BOSS] Goldor: Necron, forgive me.") {
+            if (unformatted == "[BOSS] Goldor: Necron, forgive me.") {
                 shouldHighlightBlocks = false
                 disabledUntilWorldSwitch = true
             }
