@@ -46,6 +46,7 @@ import quoi.api.vec.Vec2i
 import quoi.module.impl.dungeon.autoclear.pathToDoor
 import quoi.module.impl.dungeon.autoclear.pathToRoom
 import quoi.utils.equalsOneOf
+import quoi.utils.level
 import quoi.utils.rad
 import quoi.utils.render.DrawContextUtils.drawImage
 import quoi.utils.render.DrawContextUtils.rect
@@ -402,7 +403,7 @@ object MapRenderer {
 
     fun update(packet: ClientboundMapItemDataPacket) {
         if (packet.mapId.id and 1000 != 0) return
-        val colours = mc.level?.getMapData(packet.mapId)?.colors ?: return
+        val colours = level.getMapData(packet.mapId)?.colors ?: return
 
         if (startCoords == null) {
             val (greenStart, greenLength) = findGreenRoom(colours)

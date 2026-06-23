@@ -1,7 +1,6 @@
 package quoi.api.autoroutes.nodes
 
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext
-import net.minecraft.client.player.LocalPlayer
 import net.minecraft.core.BlockPos
 import quoi.QuoiMod.mc
 import quoi.api.autoroutes.RouteNode
@@ -42,12 +41,12 @@ class BreakerNode : RouteNode() {
         realBlocks = blocks.map { room.getRealCoords(it) }
     }
 
-    override fun checkAwaits(player: LocalPlayer): Boolean {
-        if (!inside(player)) return false
-        return super.checkAwaits(player)
+    override fun checkAwaits(): Boolean {
+        if (!inside()) return false
+        return super.checkAwaits()
     }
 
-    override fun execute(player: LocalPlayer, pos: MutableVec3): Boolean {
+    override fun execute(pos: MutableVec3): Boolean {
         if (active) return false
         if (blocks.isEmpty()) return true
         val breakerSlot = PlayerUtils.breakerSlot ?: return true
@@ -88,7 +87,7 @@ class BreakerNode : RouteNode() {
 
     override fun render(ctx: WorldRenderContext, style: String, colour: Colour, fillColour: Colour, activeColour: Colour, thickness: Float) {
         super.render(ctx, style, colour, fillColour, activeColour, thickness)
-        if (!inside(mc.player!!) && AutoRoutes.breakerRing == null) return
+        if (!inside() && AutoRoutes.breakerRing == null) return
         for (pos in realBlocks) {
             val aabb = pos.aabb
             if (pos.state.isAir) {
