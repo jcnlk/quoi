@@ -14,8 +14,8 @@ import quoi.api.skyblock.Location.inSkyblock
 import quoi.api.skyblock.Location.subarea
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.module.ModuleManager
-import quoi.module.impl.misc.Chat
 import quoi.module.impl.misc.ChatReplacements
+import quoi.module.impl.misc.chat.Chat
 import quoi.module.impl.render.ClickGui.clickGui
 import quoi.module.impl.render.PlayerESP
 import quoi.utils.ChatUtils.command
@@ -39,6 +39,7 @@ import quoi.api.events.core.EventDispatcher
 import quoi.api.events.core.EventListener
 import quoi.api.events.core.until
 import quoi.api.skyblock.dungeon.Dungeon.currentRoom
+import quoi.module.impl.misc.chat.impl.CompactChat
 import quoi.utils.StringUtils.capitaliseFirst
 import quoi.utils.addVec
 import quoi.utils.skyblock.PartyUtils
@@ -280,7 +281,7 @@ object QuoiCommand : EventListener {
 
         BaseCommand("clearchat") {
             mc.gui.chat.clearMessages(false)
-            Chat.chatList.clear()
+            CompactChat.chatList.clear()
             modMessage("Cleared chat.")
         }.register()
 
