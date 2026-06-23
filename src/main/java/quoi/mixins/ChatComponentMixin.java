@@ -4,11 +4,9 @@ import quoi.api.events.ChatEvent;
 import quoi.mixininterfaces.IGuiMessage;
 import quoi.mixininterfaces.IChatComponent;
 import quoi.mixininterfaces.ISearchMode;
-import quoi.module.impl.misc.Chat;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -29,6 +27,10 @@ import net.minecraft.client.gui.components.ChatComponent;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MessageSignature;
+import quoi.module.impl.misc.chat.impl.ChatPeek;
+import quoi.module.impl.misc.chat.impl.DisableAutoScroll;
+import quoi.module.impl.misc.chat.impl.InfiniteChatLimit;
+import quoi.module.impl.misc.chat.impl.KeepChatHistory;
 
 @Mixin(ChatComponent.class)
 public abstract class ChatComponentMixin implements IChatComponent {
@@ -122,7 +124,7 @@ public abstract class ChatComponentMixin implements IChatComponent {
             argsOnly = true
     )
     private ChatComponent.DisplayMode renderFocused(ChatComponent.DisplayMode mode) {
-        return Chat.displayMode(mode);
+        return ChatPeek.displayMode(mode);
     }
 
     @ModifyExpressionValue(
@@ -133,7 +135,7 @@ public abstract class ChatComponentMixin implements IChatComponent {
             )
     )
     private boolean focusWhenPeeking(boolean original) {
-        return original || Chat.isDown();
+        return original || ChatPeek.isDown();
     }
 
     @WrapOperation(
@@ -144,7 +146,7 @@ public abstract class ChatComponentMixin implements IChatComponent {
             )
     )
     private void disableAutoScroll(ChatComponent instance, int amount, Operation<Void> original) {
-        if (Chat.INSTANCE.disablesAutoScroll()) return;
+        if (DisableAutoScroll.disablesAutoScroll()) return;
         original.call(instance, amount);
     }
 
@@ -165,7 +167,7 @@ public abstract class ChatComponentMixin implements IChatComponent {
             expect = 2
     )
     private int applyInfiniteChatLimit(int size) {
-        return Chat.INSTANCE.keepsAllChatMessages() ? 0 : size;
+        return InfiniteChatLimit.keepsAllChatMessages() ? 0 : size;
     }
 
     @Inject(
@@ -174,7 +176,7 @@ public abstract class ChatComponentMixin implements IChatComponent {
             cancellable = true
     )
     private void keepChatHistory(boolean clearRecentChat, CallbackInfo ci) {
-        if (clearRecentChat && Chat.INSTANCE.keepsChatHistory()) {
+        if (clearRecentChat && KeepChatHistory.keepsChatHistory()) {
             ci.cancel();
         }
     }
