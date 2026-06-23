@@ -45,6 +45,7 @@ import quoi.utils.skyblock.player.SwapResult
 import java.util.*
 
 // modified https://github.com/Hypericat/NoobRoutes/blob/main/src/main/kotlin/noobroutes/features/dungeon/SecretAura.kt
+@Suppress("UNNECESSARY_SAFE_CALL")
 object SecretAura : Module(
     "Secret Aura",
     desc = "Automatically collects secrets."
@@ -280,7 +281,7 @@ object SecretAura : Module(
             Blocks.CHEST, Blocks.TRAPPED_CHEST, Blocks.LEVER -> true
             Blocks.REDSTONE_BLOCK -> redstoneKey
             is SkullBlock -> {
-                (mc.level?.getBlockEntity(position) as? SkullBlockEntity)?.ownerProfile?.partialProfile()?.id
+                (level.getBlockEntity(position) as? SkullBlockEntity)?.ownerProfile?.partialProfile()?.id
                     ?.equalsOneOf(WITHER_ESSENCE, REDSTONE_KEY) ?: false
             }
             else -> false
@@ -288,8 +289,7 @@ object SecretAura : Module(
     }
 
     private fun handleChangedBlock(packetState: BlockState, pos: BlockPos) {
-        val level = mc.level ?: return
-        val state = level.getBlockState(pos)
+        val state = pos.state
         val currentBlock = state.block
 
         if (currentBlock === Blocks.LEVER) {
