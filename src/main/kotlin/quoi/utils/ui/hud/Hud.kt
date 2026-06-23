@@ -1,5 +1,6 @@
 package quoi.utils.ui.hud
 
+import quoi.QuoiMod.mc
 import quoi.api.abobaui.constraints.Constraint
 import quoi.api.abobaui.constraints.impl.measurements.Undefined
 import quoi.api.abobaui.constraints.impl.measurements.Pixel
@@ -17,6 +18,7 @@ import quoi.module.settings.UIComponent
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.module.settings.impl.TextComponent
 import quoi.module.settings.impl.SliderComponent
+import quoi.utils.inGame
 import quoi.utils.ui.settingFromK0
 import kotlin.math.roundToInt
 import kotlin.reflect.KProperty0
@@ -187,7 +189,7 @@ open class Hud(
         inline fun ElementScope<*>.visibleIf(crossinline block: () -> Boolean) {
             if (!preview) {
                 operation {
-                    element.enabled = block()
+                    if (inGame) element.enabled = block()
                     false
                 }
             }
