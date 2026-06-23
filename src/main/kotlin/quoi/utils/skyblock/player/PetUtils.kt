@@ -23,13 +23,19 @@ import quoi.utils.skyblock.player.ContainerUtils.closeContainer
 import quoi.utils.skyblock.player.MovementUtils.stop
 import java.util.ArrayDeque
 
+/**
+ * TODO:
+ *  add block input option
+ */
+
 @Init
 object PetUtils : EventListener {
+    private const val PETS_MENU_TITLE = """(?:\(\d+/\d+\) )?Pets"""
+
     private val petQueue = ArrayDeque<PetRequest>()
     private var inProgress = false
-    private var preventMoveCurrent = true
+    private var blockingMovement = false
     private var switchingPetName: String? = null
-        private set
 
     init {
         QuoiCommand.command.sub("pet") { name: GreedyString ->
@@ -38,7 +44,7 @@ object PetUtils : EventListener {
 
         on<TickEvent.Start> {
             val player = mc.player ?: return@on
-            if (preventMoveCurrent && inProgress) player.stop()
+            if (blockingMovement) player.stop()
         }
 
         on<WorldEvent.Change> {
@@ -67,57 +73,61 @@ object PetUtils : EventListener {
         scope.launch(Dispatchers.IO) {
             while (petQueue.isNotEmpty()) {
                 val request = petQueue.removeFirst()
-                preventMoveCurrent = request.preventMove
                 switchingPetName = request.name
 
-                val result = switchPetNow(request.name, request.item)
+                val result = switchPetNow(request.name, request.item, request.preventMove)
                 modMessage(result.chatMessage)
                 switchingPetName = null
                 wait(2)
             }
 
             switchingPetName = null
-            preventMoveCurrent = true
+            stopMovementBlock()
             inProgress = false
         }
     }
 
-    private suspend fun switchPetNow(name: String, item: String?): PetSwitchResult {
-        val items = ContainerUtils.getContainerItems("petsmenu", "Pets") // TODO: support "(1/2) Pets"
+    private suspend fun switchPetNow(name: String, item: String?, preventMove: Boolean): PetSwitchResult {
+        val items = ContainerUtils.getContainerItems(
+            "petsmenu",
+            Regex(PETS_MENU_TITLE),
+            onMenuOpen = { blockingMovement = preventMove },
+        )
         if (items.isEmpty()) {
+            stopMovementBlock()
             return PetSwitchResult.failure("Timed out opening Pets")
         }
 
         val slot = petSlots.firstOrNull { index ->
             val pet = items.getOrNull(index) ?: return@firstOrNull false
-            val petName = pet.displayName?.string?.let(::cleanPetName) ?: return@firstOrNull false
+            val petName = cleanPetName(pet.displayName.string)
             petName.contains(name, ignoreCase = true) && pet.matchesPetItem(item)
         }
 
         if (slot == null) {
-            closeContainer()
+            closePetMenu()
             return PetSwitchResult.failure("Couldn't find ${petLabel(name, item)}")
         }
 
         val pet = items[slot] ?: run {
-            closeContainer()
+            closePetMenu()
             return PetSwitchResult.failure("Couldn't read ${petLabel(name, item)}")
         }
 
         return when {
             pet.isEquippedPet() -> {
-                closeContainer()
+                closePetMenu()
                 PetSwitchResult.alreadyEquipped(petLabel(name, item))
             }
 
-            pet.isSummonablePet() && ContainerUtils.click(slot) -> PetSwitchResult.success(petLabel(name, item))
+            pet.isSummonablePet() && ContainerUtils.click(slot, afterClick = ::stopMovementBlock) -> PetSwitchResult.success(petLabel(name, item))
             pet.isSummonablePet() -> {
-                closeContainer()
+                closePetMenu()
                 PetSwitchResult.failure("Failed to click ${petLabel(name, item)}")
             }
 
             else -> {
-                closeContainer()
+                closePetMenu()
                 PetSwitchResult.failure("${petLabel(name, item)} is not summonable")
             }
         }
@@ -140,10 +150,19 @@ object PetUtils : EventListener {
 
     private fun petLabel(name: String, item: String?): String = item?.let { "$name ($it)" } ?: name
 
+    private fun closePetMenu() {
+        closeContainer()
+        stopMovementBlock()
+    }
+
+    private fun stopMovementBlock() {
+        blockingMovement = false
+    }
+
     private fun resetState() {
         petQueue.clear()
         inProgress = false
-        preventMoveCurrent = true
+        stopMovementBlock()
         switchingPetName = null
     }
 
