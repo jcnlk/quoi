@@ -170,6 +170,23 @@ object ContainerUtils : EventListener {
         slots: Int = 54,
         timeout: Int = 20,
         onMenuOpen: (() -> Unit)? = null,
+    ): List<ItemStack?> = getContainerItems(
+        command,
+        Regex(Regex.escape(containerName)),
+        slots,
+        timeout,
+        onMenuOpen,
+    )
+
+    /**
+     * Opens a container via a command and fetches its items into a list when its title matches [containerName].
+     */
+    suspend fun getContainerItems(
+        command: String,
+        containerName: Regex,
+        slots: Int = 54,
+        timeout: Int = 20,
+        onMenuOpen: (() -> Unit)? = null,
     ): List<ItemStack?> = suspendCoroutine { cont ->
         val items = MutableList<ItemStack?>(slots) { null }
         var windowId: Int? = null
@@ -179,7 +196,7 @@ object ContainerUtils : EventListener {
 
         val openSub = until<PacketEvent.Received> (Priority.LOWEST) {
             if (packet !is ClientboundOpenScreenPacket) return@until false
-            if (packet.title.string != containerName) return@until false
+            if (!containerName.matches(packet.title.string)) return@until false
             windowId = packet.containerId
             onMenuOpen?.invoke()
             cancel()
