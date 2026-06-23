@@ -46,7 +46,7 @@ object ChatUtils {
             removedLine = true
         }
 
-        if (removedLine) chatGui.refreshTrimmedMessages()
+        if (removedLine) mc.gui.chat.refreshTrimmedMessages()
 
         return removedLine
     }
@@ -60,7 +60,7 @@ object ChatUtils {
         val indicator =
             if (mc.hasSingleplayerServer()) GuiMessageTag.systemSinglePlayer()
             else GuiMessageTag.system()
-        val messageList = chatGui.messages.listIterator()
+        val messageList = mc.gui.chat.messages.listIterator()
 
         while (messageList.hasNext()) {
             val msg = messageList.next()
@@ -74,7 +74,7 @@ object ChatUtils {
             messageList.add(line)
         }
 
-        if (editedLine) chatGui.refreshTrimmedMessages()
+        if (editedLine) mc.gui.chat.refreshTrimmedMessages()
 
         return editedLine
     }
@@ -94,7 +94,7 @@ object ChatUtils {
         return ClientCommandInternals.executeCommand(command, source, null)
     }
 
-    fun say(message: String) = mc.connection?.sendChat(message)
+    fun say(message: String) = connection.sendChat(message)
 
     fun button(text: String, command: String, hoverText: String? = null, action: ClickEvent.Action = ClickEvent.Action.RUN_COMMAND): MutableComponent {
         val literal = literal(text)
@@ -128,7 +128,7 @@ object ChatUtils {
         }.also { chatStyle?.let(it::setStyle) }
 
         mc.execute {
-            id?.let { chatGui.add(text, it) } ?: chatGui.addClientSystemMessage(text)
+            id?.let { mc.gui.chat.add(text, it) } ?: mc.gui.chat.addClientSystemMessage(text)
         }
     }
 }

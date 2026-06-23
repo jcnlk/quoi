@@ -80,7 +80,7 @@ object SecretTriggerBot : Module(
         action {
             val result = mc.hitResult
             if (result is BlockHitResult && result.blockPos == pos) {
-                mc.gameMode?.useItemOn(player, InteractionHand.MAIN_HAND, result)
+                gameMode.useItemOn(player, InteractionHand.MAIN_HAND, result)
                 player.swing(InteractionHand.MAIN_HAND)
                 clickedBlocks.add(pos)
             }

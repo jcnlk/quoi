@@ -1,4 +1,4 @@
-package quoi.module.impl.dungeon
+package quoi.module.impl.dungeon.floor7
 
 import net.minecraft.network.protocol.game.ServerboundInteractPacket
 import net.minecraft.world.InteractionHand
@@ -16,6 +16,7 @@ import quoi.utils.minFovDot
 import quoi.utils.skyblock.player.LeapManager
 
 // Kyleen
+@Suppress("UNNECESSARY_SAFE_CALL")
 object TerminalAura : Module(
     "Terminal Aura",
     desc = "Automatically opens terminals.",
@@ -70,7 +71,7 @@ object TerminalAura : Module(
 
                 val packet = ServerboundInteractPacket(entity.id, InteractionHand.MAIN_HAND, hitVec.subtract(entity.position()), player.isShiftKeyDown)
 
-                mc.connection?.send(packet)
+                connection.send(packet)
                 player.swing(InteractionHand.MAIN_HAND)
 
                 lastClick = System.currentTimeMillis()
