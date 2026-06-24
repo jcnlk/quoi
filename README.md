@@ -7,6 +7,7 @@
 ## Commands
 - `/quoi` - opens the Click GUI
 - `/quoi hud` - opens the HUD editor
+- `/quoi fps` - prints current FPS
 - `/quoi ping` - prints current and average ping
 - `/quoi tps` - prints current and average TPS
 - `/quoi toggle <module>` - toggles a module by name
@@ -14,10 +15,12 @@
 - `/quoi pet <name>` - queues a pet swap by name
 - `/quoi wardrobe <1-9>` - equips a wardrobe slot
 - `/quoi equip <mask>` - equips Bonzo/Spirit Mask
+- `/quoi leap <name|class>` - leaps to a dungeon teammate
 - `/quoi order [p1] [p2] [p3] [p4]` - shows or sets Leap Menu custom order
 - `/quoi clearaura` - clears Secret Aura state
+- `/quoi autocroesus <go|forcego|api|reset|copylog|loot|alwaysbuy|worthless> ...` - controls Auto Croesus
 - `/quoi autosell <add|remove|clear|list> [item]` - manages the Auto Sell item list
-- `/quoi ac <add|remove|clear> <left|right>` - manages Auto Clicker item whitelists
+- `/quoi autoclicker <add|remove|clear> <left|right>` - manages Auto Clicker item whitelists
 - `/quoi hotbar <save|load|list|delete|setmsg|setfloor|setclass> ...` - manages Auto Hotbar presets
 - `/quoi petkeybinds <add|get|list|remove|clear|addfromuuidname|removefromuuidname> ...` - manages pet keybind entries
 - `/quoi antiafk <delay>` - runs the anti-AFK helper
@@ -25,6 +28,9 @@
 - `/route <em|add|rm|restore|clear|edit|editdb|chain|convert|reload> ...` - Auto Routes editor/runtime command set
 - `/grieferpro` or `/gp <add|update|remove|get|list|donotgrief> ...` - manages the Griefer Tracker player list
 - `/clearchat` - clears the in-game chat
+- `/lsb` - reconnects to SkyBlock
+- `/ld` - reconnects to the Dungeon Hub
+- `/ptr` - transfers the party to a random member
 - `/f0` to `/f7`, `/m1` to `/m7` - quick dungeon floor instance commands
 
 ## Features
@@ -35,8 +41,10 @@
   - Automatically completes arrows align device.
 - **Auto Close Chest**
   - Automatically closes secret chests.
-- **Auto Frag Run**
-  - Automates F7 frag runs.
+- **Auto Croesus**
+  - Automatically claims profitable Croesus dungeon chests.
+- **Auto Door Opener**
+  - Automatically opens nearby Wither and Blood doors.
 - **Auto Invincibility**
   - Automatically swaps to invincibility items.
 - **Auto Leap**
