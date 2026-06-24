@@ -8,11 +8,7 @@ import quoi.api.events.core.on
 import quoi.api.input.CatKeys
 import quoi.module.impl.dungeon.*
 import quoi.module.impl.dungeon.autoclear.impl.*
-import quoi.module.impl.dungeon.ArrowAlign
-import quoi.module.impl.dungeon.floor7.FuckDiorite
-import quoi.module.impl.dungeon.floor7.NecronPlatformHighlight
-import quoi.module.impl.dungeon.floor7.SimonSays
-import quoi.module.impl.dungeon.floor7.TerminalAura
+import quoi.module.impl.dungeon.floor7.*
 import quoi.module.impl.dungeon.puzzlesolvers.PuzzleSolvers
 import quoi.module.impl.mining.*
 import quoi.module.impl.misc.*
@@ -41,7 +37,6 @@ object ModuleManager : EventListener {
             SimonSays,
             DungeonBreaker,
             NecronPlatformHighlight,
-//            DungeonMap,
             TerminalAura,
             AutoInvincibility,
             BarrierBoom,
@@ -68,7 +63,7 @@ object ModuleManager : EventListener {
             Chat,
             AutoKick,
             AutoJoinSkyBlock,
-            ChatReplacements, // todo remove/replace
+            ChatReplacements,
             CatMode,
             AutoSell,
             AutoWardrobe,
