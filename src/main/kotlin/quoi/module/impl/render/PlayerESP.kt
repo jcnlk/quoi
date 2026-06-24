@@ -9,6 +9,7 @@ import quoi.module.Module
 import quoi.module.settings.Setting.Companion.json
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.module.settings.UIComponent.Companion.visibleIf
+import quoi.utils.ChatUtils.modMessage
 import quoi.utils.EntityUtils.colourFromDistance
 import quoi.utils.EntityUtils.distanceToCamera
 import quoi.utils.EntityUtils.interpolatedBox
@@ -16,9 +17,15 @@ import quoi.utils.EntityUtils.isVisibleToPlayer
 import quoi.utils.EntityUtils.playerEntitiesNoSelf
 import quoi.utils.EntityUtils.renderPos
 import quoi.utils.StringUtils.noControlCodes
+import quoi.utils.WorldUtils
 import quoi.utils.equalsOneOf
 import quoi.utils.render.drawStyledBox
 import quoi.utils.render.drawTracer
+
+/**
+ * TODO:
+ *  refactor
+ */
 
 object PlayerESP : Module(
     "Player ESP",
@@ -29,7 +36,6 @@ object PlayerESP : Module(
     private val tracerColour by colourPicker("Colour", Colour.WHITE).json("Tracer colour").childOf(::tracerCustomCol)
     private val tracerDistance by slider("Max distance", 256, 0, 256, 1).childOf(::tracer)
     private val tracerThickness by slider("Thickness", 4f, 1f, 8f, 1f).json("Tracer thickness").childOf(::tracer)
-
 
     // todo figure what's going on here. I'm lazy right now
     private val ironmenOnly by switch("Ir*nmen only")
@@ -67,6 +73,19 @@ object PlayerESP : Module(
     }
 
     init {
+        command.sub("playeresp") { name: String ->
+            if (name.equals("clear", true)) {
+                setTargetedPlayer("")
+                modMessage("Player ESP target cleared.")
+            } else {
+                setTargetedPlayer(name)
+                if (!enabled) toggle()
+
+                modMessage("Player ESP now targets §b$targetedPlayerName§r.")
+            }
+        }.description("Targets Player ESP to a specific player and enables it.")
+            .suggests("name") { WorldUtils.players.map { it.profile.name } }
+
         on<RenderEvent.World> {
             playerEntitiesNoSelf.forEach { entity ->
                 if (!matchesFilters(entity.name?.string, entity.displayName?.string)) return@forEach

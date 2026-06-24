@@ -4,12 +4,15 @@ import quoi.api.events.core.EventListener
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import net.minecraft.client.KeyMapping
 import net.minecraft.world.item.ItemStack
 import quoi.QuoiMod.mc
 import quoi.QuoiMod.scope
 import quoi.annotations.Init
 import quoi.api.commands.QuoiCommand
 import quoi.api.commands.internal.GreedyString
+import quoi.api.events.KeyEvent
+import quoi.api.events.MouseEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
 import quoi.api.events.core.on
@@ -23,18 +26,14 @@ import quoi.utils.skyblock.player.ContainerUtils.closeContainer
 import quoi.utils.skyblock.player.MovementUtils.stop
 import java.util.ArrayDeque
 
-/**
- * TODO:
- *  add block input option
- */
-
 @Init
 object PetUtils : EventListener {
     private const val PETS_MENU_TITLE = """(?:\(\d+/\d+\) )?Pets"""
 
     private val petQueue = ArrayDeque<PetRequest>()
     private var inProgress = false
-    private var blockingMovement = false
+    private var blockingGameInput = false
+    private var blockInputsCurrent = false
     private var switchingPetName: String? = null
 
     init {
@@ -44,7 +43,27 @@ object PetUtils : EventListener {
 
         on<TickEvent.Start> {
             val player = mc.player ?: return@on
-            if (blockingMovement) player.stop()
+            if (blockingGameInput) player.stop()
+        }
+
+        on<KeyEvent.Press> {
+            if (blockingGameInput && blockInputsCurrent) cancel()
+        }
+
+        on<KeyEvent.Release> {
+            if (blockingGameInput && blockInputsCurrent) cancel()
+        }
+
+        on<MouseEvent.Click> {
+            if (blockingGameInput && blockInputsCurrent) cancel()
+        }
+
+        on<MouseEvent.Scroll> {
+            if (blockingGameInput && blockInputsCurrent) cancel()
+        }
+
+        on<MouseEvent.Move> {
+            if (blockingGameInput && blockInputsCurrent) cancel()
         }
 
         on<WorldEvent.Change> {
@@ -53,13 +72,13 @@ object PetUtils : EventListener {
     }
 
     @JvmOverloads
-    fun switchPet(name: String, item: String? = null, preventMove: Boolean = true): Boolean {
+    fun switchPet(name: String, item: String? = null, blockInput: Boolean = false): Boolean {
         val cleanedName = cleanPetName(name).trim()
         val cleanedItem = item?.let(::cleanPetItemName)?.takeIf(String::isNotEmpty)
         if (cleanedName.isEmpty()) return false
         if (petQueue.any { it.matches(cleanedName, cleanedItem) }) return false
 
-        petQueue += PetRequest(cleanedName, cleanedItem, preventMove)
+        petQueue += PetRequest(cleanedName, cleanedItem, blockInput)
         processQueue()
         return true
     }
@@ -75,26 +94,26 @@ object PetUtils : EventListener {
                 val request = petQueue.removeFirst()
                 switchingPetName = request.name
 
-                val result = switchPetNow(request.name, request.item, request.preventMove)
+                val result = switchPetNow(request.name, request.item, request.blockInput)
                 modMessage(result.chatMessage)
                 switchingPetName = null
                 wait(2)
             }
 
             switchingPetName = null
-            stopMovementBlock()
+            stopInputBlock()
             inProgress = false
         }
     }
 
-    private suspend fun switchPetNow(name: String, item: String?, preventMove: Boolean): PetSwitchResult {
+    private suspend fun switchPetNow(name: String, item: String?, blockInput: Boolean): PetSwitchResult {
         val items = ContainerUtils.getContainerItems(
             "petsmenu",
             Regex(PETS_MENU_TITLE),
-            onMenuOpen = { blockingMovement = preventMove },
+            onMenuOpen = { startInputBlock(blockInput) },
         )
         if (items.isEmpty()) {
-            stopMovementBlock()
+            stopInputBlock()
             return PetSwitchResult.failure("Timed out opening Pets")
         }
 
@@ -120,7 +139,7 @@ object PetUtils : EventListener {
                 PetSwitchResult.alreadyEquipped(petLabel(name, item))
             }
 
-            pet.isSummonablePet() && ContainerUtils.click(slot, afterClick = ::stopMovementBlock) -> PetSwitchResult.success(petLabel(name, item))
+            pet.isSummonablePet() && ContainerUtils.click(slot, afterClick = ::stopInputBlock) -> PetSwitchResult.success(petLabel(name, item))
             pet.isSummonablePet() -> {
                 closePetMenu()
                 PetSwitchResult.failure("Failed to click ${petLabel(name, item)}")
@@ -152,17 +171,26 @@ object PetUtils : EventListener {
 
     private fun closePetMenu() {
         closeContainer()
-        stopMovementBlock()
+        stopInputBlock()
     }
 
-    private fun stopMovementBlock() {
-        blockingMovement = false
+    private fun stopInputBlock() {
+        if (!blockingGameInput) return
+
+        blockingGameInput = false
+        blockInputsCurrent = false
+        KeyMapping.setAll()
+    }
+
+    private fun startInputBlock(blockInput: Boolean) {
+        blockingGameInput = true
+        blockInputsCurrent = blockInput
     }
 
     private fun resetState() {
         petQueue.clear()
         inProgress = false
-        stopMovementBlock()
+        stopInputBlock()
         switchingPetName = null
     }
 
@@ -186,7 +214,7 @@ object PetUtils : EventListener {
     private data class PetRequest(
         val name: String,
         val item: String?,
-        val preventMove: Boolean,
+        val blockInput: Boolean,
     ) {
         fun matches(name: String, item: String?): Boolean {
             if (!this.name.equals(name, ignoreCase = true)) return false

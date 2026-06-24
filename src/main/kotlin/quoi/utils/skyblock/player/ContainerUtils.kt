@@ -27,6 +27,7 @@ import quoi.utils.skyblock.player.ContainerUtils.getContainerItems
 import quoi.utils.skyblock.player.ContainerUtils.getContainerItemsClose
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
+import java.util.concurrent.atomic.AtomicBoolean
 
 @Init
 object ContainerUtils : EventListener {
@@ -281,10 +282,55 @@ object ContainerUtils : EventListener {
         return true
     }
 
+    /**
+     * Clicks [slot] and waits for the server to reopen [containerName].
+     *
+     * This is useful for menus that rebuild after a click, such as Hypixel's
+     * `/eq` menu. The matching reopen packet is cancelled client-side by
+     * default while [containerId] and the click state continue to be tracked.
+     *
+     * @return `true` when the click was sent and the expected container reopened;
+     * `false` when the click cannot be sent or the reopen times out.
+     */
+    suspend fun clickAndAwaitContainerReopen(
+        slot: Int,
+        containerName: String,
+        timeout: Int = 20,
+        button: Int = 0,
+        shift: Boolean = false,
+        cancelReopen: Boolean = true,
+    ): Boolean = suspendCoroutine { continuation ->
+        val complete = AtomicBoolean()
+        val openSub = until<PacketEvent.Received>(Priority.LOWEST) {
+            if (packet !is ClientboundOpenScreenPacket) return@until false
+            if (!packet.title.string.equals(containerName, ignoreCase = true)) return@until false
+            if (!complete.compareAndSet(false, true)) return@until true
+
+            if (cancelReopen) cancel()
+            continuation.resume(true)
+            true
+        }
+
+        if (!click(slot, button, shift)) {
+            if (complete.compareAndSet(false, true)) {
+                openSub.unregister()
+                continuation.resume(false)
+            }
+            return@suspendCoroutine
+        }
+
+        scheduleTask(timeout) {
+            if (!complete.compareAndSet(false, true)) return@scheduleTask
+            openSub.unregister()
+            continuation.resume(false)
+        }
+    }
+
     fun closeContainer(): Boolean {
-        if (containerId == -1) return false
+        val closingContainerId = containerId
+        if (closingContainerId == -1) return false
         scheduleTask {
-            mc.connection?.send(ServerboundContainerClosePacket(containerId))
+            mc.connection?.send(ServerboundContainerClosePacket(closingContainerId))
         }
 
         return true

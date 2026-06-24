@@ -5,6 +5,7 @@ import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.network.chat.ClickEvent
 import net.minecraft.network.chat.Style
 import quoi.QuoiMod.mc
+import quoi.QuoiMod.scope
 import quoi.api.commands.internal.BaseCommand
 import quoi.api.commands.internal.GreedyString
 import quoi.api.skyblock.Island
@@ -13,6 +14,9 @@ import quoi.api.skyblock.Location.currentArea
 import quoi.api.skyblock.Location.currentServer
 import quoi.api.skyblock.Location.inSkyblock
 import quoi.api.skyblock.Location.subarea
+import quoi.api.skyblock.SkyblockPlayer
+import quoi.api.skyblock.SkyblockPlayer.InvincibilityType
+import quoi.api.skyblock.SkyblockPlayer.Mask
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.module.ModuleManager
 import quoi.module.impl.misc.ChatReplacements
@@ -25,6 +29,7 @@ import quoi.utils.ChatUtils.modMessage
 import quoi.utils.LegacyIdMapper
 import quoi.utils.Scheduler.scheduleLoop
 import quoi.utils.Scheduler.scheduleTask
+import quoi.utils.Scheduler.wait
 import quoi.utils.WorldUtils
 import quoi.utils.WorldUtils.day
 import quoi.utils.skyblock.player.MovementUtils.hold
@@ -47,6 +52,7 @@ import quoi.utils.skyblock.PartyUtils
 import quoi.utils.skyblock.player.RotationUtils.rotate
 import java.net.URI
 import kotlin.collections.sortedBy
+import kotlinx.coroutines.launch
 
 object QuoiCommand : EventListener {
     val command = BaseCommand("quoi", "requise") {
@@ -78,6 +84,47 @@ object QuoiCommand : EventListener {
                 EventDispatcher.onPacketReceived(ClientboundSystemChatPacket(literal(message.string), false))
                 modMessage("simulated: ${message.string}")
             }
+
+            "resetinvincibility" {
+                InvincibilityType.entries.forEach { it.reset() }
+                modMessage("&aReset all invincibility cooldowns.")
+            }.description("Resets every invincibility cooldown.")
+
+            "deathticks" { count: Int ->
+                if (count <= 0) return@invoke modMessage("&cProvide a positive number of death ticks.")
+
+                modMessage("&eStarting $count death ticks.")
+                scope.launch {
+                    repeat(count) {
+                        wait(60)
+
+                        val proccingTypes = buildList {
+                            when (SkyblockPlayer.currentMask) {
+                                Mask.BONZO -> add(InvincibilityType.BONZO)
+                                Mask.SPIRIT -> add(InvincibilityType.SPIRIT)
+                                Mask.NONE -> Unit
+                            }
+                            if (SkyblockPlayer.currentPet.contains("phoenix", ignoreCase = true)) {
+                                add(InvincibilityType.PHOENIX)
+                            }
+                        }.filter { it.currentCooldown <= 0 }
+
+                        if (proccingTypes.isEmpty()) {
+                            modMessage("&cYou died!")
+                            return@launch
+                        }
+
+                        proccingTypes.forEach { type ->
+                            val message = when (type) {
+                                InvincibilityType.BONZO -> "Your Bonzo's Mask saved your life!"
+                                InvincibilityType.SPIRIT -> "Second Wind Activated! Your Spirit Mask saved your life!"
+                                InvincibilityType.PHOENIX -> "Your Phoenix Pet saved you from certain death!"
+                            }
+                            EventDispatcher.onPacketReceived(ClientboundSystemChatPacket(literal(message), false))
+                        }
+                    }
+                }
+            }.description("Simulates death ticks.")
 
             "currentroom" {
                 currentRoom?.let { room ->
@@ -116,7 +163,6 @@ object QuoiCommand : EventListener {
                     currentRoom?.getRelativeCoords(Vec3(it.blockPos))?.let { vec2 ->
                         modMessage("Relative coords: ${vec2.x}, ${vec2.z}")
                     }
-
                 }
             }
 
@@ -202,19 +248,6 @@ object QuoiCommand : EventListener {
             }.suggests { ModuleManager.modules.map { it.name } }.description("Toggles specified module.")
 
             "hud" { open(HudManager.editor()) }.description("Opens Hud editor.")
-
-            "playeresp" { name: String ->
-                if (name.equals("clear", true)) {
-                    PlayerESP.setTargetedPlayer("")
-                    modMessage("Player ESP target cleared.")
-                } else {
-                    PlayerESP.setTargetedPlayer(name)
-                    if (!PlayerESP.enabled) PlayerESP.toggle()
-
-                    modMessage("Player ESP now targets §b" + PlayerESP.targetedPlayerName + "§r.")
-                }
-            }.description("Targets Player ESP to a specific player and enables it.")
-                .suggests("name") { WorldUtils.players.map { it.profile.name } }
         }
 
         command.sub("findlobby") { area: String, criteria: String, value: String ->
