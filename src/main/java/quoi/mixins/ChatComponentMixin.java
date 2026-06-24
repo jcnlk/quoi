@@ -76,7 +76,7 @@ public abstract class ChatComponentMixin implements IChatComponent {
     }
 
     @Inject(
-            method = "addMessageToQueue(Lnet/minecraft/client/GuiMessage;)V",
+            method = "addMessageToQueue(Lnet/minecraft/client/multiplayer/chat/GuiMessage;)V",
             at = @At("TAIL")
     )
     private void onAddMessageAfterNewLine(GuiMessage message, CallbackInfo ci) {
