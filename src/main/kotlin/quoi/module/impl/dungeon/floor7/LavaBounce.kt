@@ -1,6 +1,4 @@
-package quoi.module.impl.dungeon
-
-import quoi.api.events.core.on
+package quoi.module.impl.dungeon.floor7
 
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
@@ -14,22 +12,21 @@ import quoi.api.colour.Colour
 import quoi.api.colour.withAlpha
 import quoi.api.events.RenderEvent
 import quoi.api.events.TickEvent
+import quoi.api.events.core.on
 import quoi.api.input.CatKeys
 import quoi.api.skyblock.Island
+import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.invoke
-import quoi.api.skyblock.dungeon.Dungeon.floor
-import quoi.api.skyblock.dungeon.Dungeon.inBoss
 import quoi.config.configList
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.module.settings.UIComponent.Companion.visibleIf
-import quoi.utils.ChatUtils.modMessage
+import quoi.utils.ChatUtils
 import quoi.utils.aabb
 import quoi.utils.isWithinFov
 import quoi.utils.minFovDot
 import quoi.utils.render.drawFilledBox
 import quoi.utils.render.drawWireFrameBox
-import quoi.utils.skyblock.item.ItemUtils.skyblockId
 import quoi.utils.skyblock.player.PlayerUtils.eyePosition
 import quoi.utils.skyblock.player.SwapManager
 
@@ -47,7 +44,7 @@ object LavaBounce : Module(
     private val useConfig by switch("Use config", desc = "Only uses lava positions configured with Toggle lava.")
     private val toggleLava by keybind("Toggle lava", CatKeys.KEY_NONE, desc = "Adds or removes the lava block you are looking at.")
         .onPress {
-            if (!enabled || !inBoss || floor?.floorNumber != 7) return@onPress
+            if (!enabled || !Dungeon.inBoss || Dungeon.floor?.floorNumber != 7) return@onPress
             toggleLookedLava()
         }
 
@@ -90,7 +87,7 @@ object LavaBounce : Module(
         }
 
         on<TickEvent.Start> {
-            if (mc.gui.screen() != null || !inBoss || floor?.floorNumber != 7) return@on
+            if (mc.gui.screen() != null || !Dungeon.inBoss || Dungeon.floor?.floorNumber != 7) return@on
 
             if (auto) tickAuto()
             if (triggerbot) tickTriggerbot()
@@ -165,21 +162,21 @@ object LavaBounce : Module(
     private fun toggleLookedLava() {
         val result = player.pick(4.5, 1f, true)
         if (result !is BlockHitResult || result.type == HitResult.Type.MISS) {
-            modMessage("&cLook at a lava block to toggle it.")
+            ChatUtils.modMessage("&cLook at a lava block to toggle it.")
             return
         }
 
         val pos = result.blockPos
         if (!level.getBlockState(pos).`is`(Blocks.LAVA)) {
-            modMessage("&cThat block is not lava.")
+            ChatUtils.modMessage("&cThat block is not lava.")
             return
         }
 
         if (lavaBlocks.remove(pos)) {
-            modMessage("&cRemoved lava bounce at &f${pos.x}, ${pos.y}, ${pos.z}&c.")
+            ChatUtils.modMessage("&cRemoved lava bounce at &f${pos.x}, ${pos.y}, ${pos.z}&c.")
         } else {
             lavaBlocks.add(pos.immutable())
-            modMessage("&aAdded lava bounce at &f${pos.x}, ${pos.y}, ${pos.z}&a.")
+            ChatUtils.modMessage("&aAdded lava bounce at &f${pos.x}, ${pos.y}, ${pos.z}&a.")
         }
     }
 
