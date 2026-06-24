@@ -1,7 +1,10 @@
 package quoi.module.impl.misc
 
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import quoi.QuoiMod.scope
 import quoi.api.events.MouseEvent
@@ -68,12 +71,12 @@ object AutoClicker: Module(
     private fun shouldAutoClick(isLeft: Boolean): Boolean {
         val enabled = if (isLeft) leftClick else rightClick
         val keybind = if (isLeft) leftClickKeybind else rightClickKeybind
-        return enabled && keybind.isDown() && shouldClick(isLeft)
+        return this.enabled && !terminatorOnly && enabled && keybind.isDown() && shouldClick(isLeft)
     }
 
     private fun shouldTerminatorClick(): Boolean {
         if (mc.gui.screen() != null) return false
-        return player.mainHandItem.skyblockId == "TERMINATOR" && mc.options.keyUse.isDown
+        return this.enabled && terminatorOnly && player.mainHandItem.skyblockId == "TERMINATOR" && mc.options.keyUse.isDown
     }
 
     private val lookingAtBreakable get() = breakBlocks && player.isLookingAtBreakable
@@ -161,16 +164,16 @@ object AutoClicker: Module(
 
     private fun startClicking(isLeft: Boolean) {
         if (isLeft) {
-            if (leftJob != null) return
+            if (leftJob?.isActive == true) return
             leftJob = scope.launch { click(true) }
         } else {
-            if (rightJob != null) return
+            if (rightJob?.isActive == true) return
             rightJob = scope.launch { click(false) }
         }
     }
 
     private fun startTerminatorClicking() {
-        if (terminatorJob != null) return
+        if (terminatorJob?.isActive == true) return
         terminatorJob = scope.launch { clickTerminator() }
     }
 
@@ -190,7 +193,7 @@ object AutoClicker: Module(
     }
 
     private fun updateMiningState() {
-        val shouldMine = leftJob != null && lookingAtBreakable
+        val shouldMine = leftJob?.isActive == true && lookingAtBreakable
         if (shouldMine == isMining) return
 
         mc.options.keyAttack.isDown = shouldMine
@@ -204,26 +207,49 @@ object AutoClicker: Module(
     }
 
     private suspend fun click(isLeft: Boolean) {
-        while (true) {
-            val shouldContinue = if (isLeft) shouldAutoClick(true) else shouldAutoClick(false)
-            if (!shouldContinue) return
+        val job = currentCoroutineContext()[Job] ?: return
 
-            if (isLeft) {
-                if (!lookingAtBreakable) player.leftClick()
-            } else {
-                player.rightClick()
+        while (job.isActive) {
+            val nextDelay = CompletableDeferred<Long>()
+            mc.execute {
+                if (!job.isActive || !shouldAutoClick(isLeft)) {
+                    nextDelay.complete(-1)
+                    return@execute
+                }
+
+                if (isLeft) {
+                    if (!lookingAtBreakable) player.leftClick()
+                } else {
+                    player.rightClick()
+                }
+
+                nextDelay.complete(randomDelay(if (isLeft) leftCps else rightCps))
             }
 
-            delay(randomDelay(if (isLeft) leftCps else rightCps))
+            val delayMillis = nextDelay.await()
+            if (delayMillis < 0) return
+            delay(delayMillis)
         }
     }
 
     private suspend fun clickTerminator() {
-        while (true) {
-            if (!shouldTerminatorClick()) return
+        val job = currentCoroutineContext()[Job] ?: return
 
-            player.leftClick()
-            delay(max(1.0, (1000.0 / terminatorCps) + ((Random.nextDouble() - 0.5) * 60.0)).toLong())
+        while (job.isActive) {
+            val nextDelay = CompletableDeferred<Long>()
+            mc.execute {
+                if (!job.isActive || !shouldTerminatorClick()) {
+                    nextDelay.complete(-1)
+                    return@execute
+                }
+
+                player.leftClick()
+                nextDelay.complete(max(1.0, (1000.0 / terminatorCps) + ((Random.nextDouble() - 0.5) * 60.0)).toLong())
+            }
+
+            val delayMillis = nextDelay.await()
+            if (delayMillis < 0) return
+            delay(delayMillis)
         }
     }
 
