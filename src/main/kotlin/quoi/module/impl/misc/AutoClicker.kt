@@ -1,17 +1,12 @@
 package quoi.module.impl.misc
 
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import quoi.QuoiMod.scope
 import quoi.api.events.MouseEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
-import quoi.api.input.CatKeys
 import quoi.api.events.core.on
+import quoi.api.input.CatKeys
 import quoi.config.Config
 import quoi.module.Module
 import quoi.module.settings.Setting.Companion.json
@@ -26,6 +21,7 @@ import quoi.utils.skyblock.player.PlayerUtils.leftClick
 import quoi.utils.skyblock.player.PlayerUtils.rightClick
 import kotlin.math.max
 import kotlin.random.Random
+import kotlin.time.Duration.Companion.milliseconds
 
 // https://github.com/Noamm9/CatgirlAddons/blob/main/src/main/kotlin/catgirlroutes/module/impl/misc/AutoClicker.kt
 object AutoClicker: Module(
@@ -228,7 +224,7 @@ object AutoClicker: Module(
 
             val delayMillis = nextDelay.await()
             if (delayMillis < 0) return
-            delay(delayMillis)
+            delay(delayMillis.milliseconds)
         }
     }
 
@@ -249,7 +245,7 @@ object AutoClicker: Module(
 
             val delayMillis = nextDelay.await()
             if (delayMillis < 0) return
-            delay(delayMillis)
+            delay(delayMillis.milliseconds)
         }
     }
 

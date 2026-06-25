@@ -28,7 +28,6 @@ object ItemAnimations : Module(
     "Item Animations",
     desc = "Changes how the held item looks on screen"
 ) {
-
     private var x by slider("X", 0.0f, -1.0f, 1.0f, 0.1)
     private var y by slider("Y", 0.0f, -1.0f, 1.0f, 0.1)
     private var z by slider("Z", 0.0f, -1.0f, 1.0f, 0.1)
@@ -96,11 +95,10 @@ object ItemAnimations : Module(
         return false
     }
 
-    private fun disableSwingRotation(): Boolean = disableSwingRotation(mc.player?.mainHandItem)
+    private fun disableSwingRotation(): Boolean = disableSwingRotation(player.mainHandItem)
 
     private fun getCurrentSwingDuration(): Int {
         if (ignoreEffects) return 6
-        val player = mc.player ?: return 6
         return if (MobEffectUtil.hasDigSpeed(player)) {
             6 - (1 + MobEffectUtil.getDigSpeedAmplification(player))
         } else {
@@ -206,12 +204,11 @@ object ItemAnimations : Module(
         if (!shouldApplyThirdPerson(stack, playerId)) return current
         if (disableSwingRotation(stack)) return 0f
 
-        val localPlayerId = mc.player?.id ?: return current
         val pt = mc.deltaTracker.getGameTimeDeltaPartialTick(false)
-        if (playerId == localPlayerId) return getSwingAnimation(pt)
+        if (playerId == player.id) return getSwingAnimation(pt)
 
         val speed = calcSwingSpeed().takeIf { it != 1.0 } ?: return current.also { thirdPersonSwings.remove(playerId) }
-        val currentTime = (mc.level ?: return current).gameTime.toDouble() + pt
+        val currentTime = level.gameTime.toDouble() + pt
         val existingSwing = thirdPersonSwings[playerId]
         val existingProgress = existingSwing?.progress(currentTime, speed)
 
@@ -233,9 +230,8 @@ object ItemAnimations : Module(
         ((time - startTime) * speed / getCurrentSwingDuration()).toFloat()
 
     private fun shouldApplyThirdPerson(stack: ItemStack, playerId: Int): Boolean {
-        val localPlayerId = mc.player?.id ?: return false
         return enabled &&
-            (if (playerId == localPlayerId) applyInThirdPerson else applyToOtherPlayers) &&
+            (if (playerId == player.id) applyInThirdPerson else applyToOtherPlayers) &&
             (!stack.isEmpty || affectHand()) &&
             (!stack.has(DataComponents.MAP_ID) || affectMap())
     }

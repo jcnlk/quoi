@@ -1,16 +1,14 @@
 package quoi.module.impl.misc
 
-import quoi.api.events.core.on
-
 import quoi.api.events.ChatEvent
 import quoi.api.events.WorldEvent
+import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.DungeonClass
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.utils.ChatUtils.command
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.Scheduler.scheduleTask
-import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.skyblock.PartyUtils
 
 object AutoKick : Module(
@@ -42,15 +40,13 @@ object AutoKick : Module(
         }
 
         on<ChatEvent.Packet> {
-            val cleanMessage = message.noControlCodes
-
-            kickedRegex.find(cleanMessage)?.let {
+            kickedRegex.find(unformatted)?.let {
                 pendingKicks.remove(it.groupValues[2])
                 return@on
             }
 
             if (kickSkyblockerUsers) {
-                skyblockerRegex.find(cleanMessage)?.let {
+                skyblockerRegex.find(unformatted)?.let {
                     requestKick(
                         name = it.groupValues[2],
                         message = "&cKicking ${it.groupValues[2]} for using Skyblocker!",
@@ -63,7 +59,7 @@ object AutoKick : Module(
 
             if (!kickClasses) return@on
 
-            dungeonJoinRegex.find(cleanMessage)?.let {
+            dungeonJoinRegex.find(unformatted)?.let {
                 val name = it.groupValues[2]
                 val clazz = it.groupValues[3]
                 if (!shouldKickClass(clazz)) return@on

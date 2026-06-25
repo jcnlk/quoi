@@ -1,7 +1,6 @@
 package quoi.module.impl.dungeon
 
 import net.minecraft.core.BlockPos
-import net.minecraft.sounds.SoundEvent
 import net.minecraft.world.entity.item.ItemEntity
 import quoi.api.colour.Colour
 import quoi.api.colour.withAlpha
@@ -9,8 +8,8 @@ import quoi.api.events.ChatEvent
 import quoi.api.events.DungeonEvent
 import quoi.api.events.RenderEvent
 import quoi.api.events.WorldEvent
-import quoi.api.skyblock.Island
 import quoi.api.events.core.on
+import quoi.api.skyblock.Island
 import quoi.api.skyblock.dungeon.Dungeon.dungeonItemDrops
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf
@@ -18,7 +17,6 @@ import quoi.utils.EntityUtils.interpolatedBox
 import quoi.utils.Scheduler.scheduleTask
 import quoi.utils.SoundUtils
 import quoi.utils.StringUtils.containsOneOf
-import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.aabb
 import quoi.utils.render.drawFilledBox
 import quoi.utils.render.drawWireFrameBox
@@ -55,15 +53,15 @@ object Secrets : Module(
     init {
         on<DungeonEvent.Secret.Interact> {
             secretHighlight(blockPos)
-            playSecretSound(clickSound)
+            playSecretSound()
         }
 
         on<DungeonEvent.Secret.Item> {
-            playSecretSound(clickSound) // dropSound
+            playSecretSound() // dropSound
         }
 
         on<DungeonEvent.Secret.Bat> {
-            playSecretSound(clickSound) // dropSound?
+            playSecretSound() // dropSound?
         }
 
         on<ChatEvent.Packet> {
@@ -107,9 +105,9 @@ object Secrets : Module(
         }
     }
 
-    private fun playSecretSound(sound: () -> Triple<SoundEvent, Float, Float>) {
+    private fun playSecretSound() {
         if (System.currentTimeMillis() - lastPlayed > 10 && secretChime) {
-            SoundUtils.play(sound)
+            SoundUtils.play(clickSound)
             lastPlayed = System.currentTimeMillis()
         }
     }

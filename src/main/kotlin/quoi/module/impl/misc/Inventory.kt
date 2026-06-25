@@ -34,7 +34,6 @@ object Inventory : Module(
     "Inventory",
     desc = "Various quality of life features for inventory GUIs"
 ) {
-
     private val bgColour by colourPicker("Background colour", Colour.GREY.withAlpha(100), allowAlpha = true)
     private val outlineColour by colourPicker("Outline colour", Colour.GREY.withAlpha(150), allowAlpha = true)
     private val nameColour by colourPicker("Name match", Colour.WHITE.withAlpha(200), allowAlpha = true)
@@ -90,7 +89,6 @@ object Inventory : Module(
             }
         }
     }.container().withSettings(::bgColour, ::outlineColour, ::nameColour, ::loreColour).setting()
-
 
     private val playerModel by switch("Player model")
 
@@ -207,7 +205,6 @@ object Inventory : Module(
             return calculate(s.replaceRange(it.range, calculate(it.groupValues[1]).toString()))
         }
 
-
         listOf("\\^", "[*x/%]", "[+\\-]").forEach { operators ->
             val eqRegex = Regex("""([\d.]+)\s*($operators)\s*([\d.]+)""")
 
@@ -222,7 +219,6 @@ object Inventory : Module(
 
         return s.toDoubleOrNull()
     }
-
 
     data class HighlightSlot(var slot: Int, val colour: Colour)
 }

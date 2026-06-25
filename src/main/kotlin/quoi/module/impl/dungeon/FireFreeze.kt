@@ -1,7 +1,5 @@
 package quoi.module.impl.dungeon
 
-import quoi.api.events.core.on
-
 import kotlinx.coroutines.launch
 import net.minecraft.world.phys.Vec3
 import quoi.QuoiMod.scope
@@ -12,14 +10,13 @@ import quoi.api.colour.Colour
 import quoi.api.events.ChatEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
+import quoi.api.events.core.on
 import quoi.api.skyblock.Island
-import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.invoke
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.Scheduler.wait
-import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.StringUtils.toFixed
 import quoi.utils.ThemeManager.theme
 import quoi.utils.getDirection
@@ -63,12 +60,11 @@ object FireFreeze : Module(
         Vec3(4.5, 71.0, 1.5),
         Vec3(-1.5, 71.0, 1.5),
     )
-    private val repositionRotateDuration = 250.ms
 
     override fun onDisable() {
         if (repositioning) {
             cancelMovementTask()
-            mc.player?.resetInput()
+            player.resetInput()
         }
         resetState()
         super.onDisable()
@@ -80,16 +76,18 @@ object FireFreeze : Module(
         }
 
         on<ChatEvent.Packet> {
-            if (message.noControlCodes != "[BOSS] The Professor: Oh? You found my Guardians' one weakness?") return@on
+            if (unformatted != "[BOSS] The Professor: Oh? You found my Guardians' one weakness?") return@on
 
             startedAt = 110
             remainingTicks = startedAt
             autoTriggered = false
 
             if (autoReposition) {
-                repositionTarget = getBestRepositionTarget()
-                repositioning = repositionTarget != null
-                if (repositioning) startRepositionRotation()
+                repositionTarget = repositionPositions.minByOrNull { player.position().distanceToSqr(it) } ?: return@on
+
+                val target = repositionTarget ?: return@on
+                val dir = getDirection(player.position(), target)
+                player.rotateSmoothly(yaw = dir.yaw, pitch = player.pitch, duration = 250.ms)
             }
         }
 
@@ -97,11 +95,6 @@ object FireFreeze : Module(
             if (!repositioning) return@on
             val target = repositionTarget ?: run {
                 repositioning = false
-                return@on
-            }
-
-            if (!Dungeon.inBoss || !Dungeon.isFloor(3)) {
-                stopReposition()
                 return@on
             }
 
@@ -122,42 +115,26 @@ object FireFreeze : Module(
                 stopReposition()
                 if (autoUse && player.position().distanceToSqr(autoUsePosition) <= 25.0) {
                     autoTriggered = true
-                    triggerAutoUse()
+                    scope.launch {
+                        val swapped = SwapManager.swapById("FIRE_FREEZE_STAFF")
+                        if (!swapped.success) {
+                            modMessage("§cCould not find Fire Freeze Staff in your hotbar.")
+                            return@launch
+                        }
+
+                        if (!swapped.already) wait(1)
+                        player.rightClick()
+                    }
                 }
                 resetTimer()
             }
         }
     }
 
-    private fun triggerAutoUse() {
-        scope.launch {
-            val swapped = SwapManager.swapByName("Fire Freeze Staff")
-            if (!swapped.success) {
-                modMessage("§cCould not find Fire Freeze Staff in your hotbar.")
-                return@launch
-            }
-
-            if (!swapped.already) wait(1)
-            player.rightClick()
-        }
-    }
-
-    private fun getBestRepositionTarget(): Vec3? {
-        val position = mc.player?.position() ?: return null
-        return repositionPositions.minByOrNull { position.distanceToSqr(it) }
-    }
-
-    private fun startRepositionRotation() {
-        val player = mc.player ?: return
-        val target = repositionTarget ?: return
-        val dir = getDirection(player.position(), target)
-        player.rotateSmoothly(yaw = dir.yaw, pitch = player.pitch, duration = repositionRotateDuration)
-    }
-
     private fun stopReposition() {
         if (repositioning) {
             cancelMovementTask()
-            mc.player?.resetInput()
+            player.resetInput()
         }
         cancelRotationTask()
         repositioning = false

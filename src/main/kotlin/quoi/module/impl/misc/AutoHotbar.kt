@@ -1,27 +1,21 @@
 package quoi.module.impl.misc
 
-import net.minecraft.client.KeyMapping
-import quoi.api.events.core.on
-
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import net.minecraft.client.KeyMapping
 import quoi.QuoiMod
 import quoi.api.abobaui.dsl.px
 import quoi.api.abobaui.elements.impl.Text.Companion.shadow
 import quoi.api.abobaui.elements.impl.Text.Companion.textSupplied
 import quoi.api.colour.Colour
 import quoi.api.commands.internal.GreedyString
-import quoi.api.events.ChatEvent
-import quoi.api.events.KeyEvent
-import quoi.api.events.MouseEvent
-import quoi.api.events.TickEvent
-import quoi.api.events.WorldEvent
+import quoi.api.events.*
+import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.module.Module
 import quoi.module.settings.impl.ListSetting
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.Scheduler.wait
-import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.skyblock.player.HotbarItem
 import quoi.utils.skyblock.player.HotbarPreset
 import quoi.utils.skyblock.player.HotbarSwapperUtils
@@ -112,7 +106,7 @@ object AutoHotbar : Module(
         }
 
         on<ChatEvent.Packet> {
-            val preset = presets.firstOrNull { it.message != null && it.message == message.noControlCodes } ?: return@on
+            val preset = presets.firstOrNull { it.message != null && it.message == unformatted} ?: return@on
             load(preset.name)
         }
 
@@ -255,7 +249,7 @@ object AutoHotbar : Module(
     }
 
     private fun clearSlot(slot: Int, interacted: MutableSet<Int>): Boolean {
-        val stack = mc.player?.inventory?.getItem(slot) ?: return false
+        val stack = player.inventory.getItem(slot)
         if (stack.isEmpty) return false
 
         val emptySlot = findEmptyInventorySlot(interacted)

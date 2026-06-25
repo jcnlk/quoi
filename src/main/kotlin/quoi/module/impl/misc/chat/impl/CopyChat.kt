@@ -20,7 +20,6 @@ import quoi.utils.toChatLineMY
 import quoi.utils.visibleMessages
 
 object CopyChat : ToggleableGroup(Chat, "Copy chat", desc = "Copies chat on mouse click.") {
-
     private val copyKey by keybind("Copy key", CatKeys.MOUSE_RIGHT).includingOnly(CatKeys.MOUSE_RIGHT, CatKeys.MOUSE_LEFT, *CatKeyboard.modifierCodes)
     private val copyCodesKey by keybind("Copy with codes key", CatKeys.KEY_NONE).includingOnly(CatKeys.MOUSE_RIGHT, CatKeys.MOUSE_LEFT, *CatKeyboard.modifierCodes)
 

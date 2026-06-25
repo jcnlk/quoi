@@ -2,16 +2,11 @@ package quoi.module.impl.misc.riftsolvers.impl
 
 import net.minecraft.world.phys.Vec3
 import quoi.api.colour.Colour
-import quoi.api.events.ChatEvent
-import quoi.api.events.GuiEvent
-import quoi.api.events.MouseEvent
-import quoi.api.events.RenderEvent
-import quoi.api.events.TickEvent
+import quoi.api.events.*
 import quoi.api.events.core.on
 import quoi.module.impl.misc.riftsolvers.MirrorverseSolvers
 import quoi.module.settings.group.ToggleableGroup
 import quoi.utils.ChatUtils.modMessage
-import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.Vec3
 import quoi.utils.aabb
 import quoi.utils.getDirection
@@ -139,5 +134,4 @@ object LavaParkour : ToggleableGroup(MirrorverseSolvers, "Lava parkour") { // su
         Vec3(-205, 42, -120), Vec3(-209, 43, -120), Vec3(-213, 41, -116), Vec3(-213, 41, -112),
         Vec3(-217, 42, -108), Vec3(-221, 43, -104), Vec3(-223, 43, -104)
     )
-
 }

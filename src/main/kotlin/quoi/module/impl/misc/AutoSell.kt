@@ -1,7 +1,6 @@
 package quoi.module.impl.misc
 
 import quoi.api.events.core.on
-
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.client.gui.screens.inventory.ContainerScreen
 import net.minecraft.client.gui.screens.inventory.InventoryScreen
@@ -119,7 +118,7 @@ object AutoSell : Module(
             if (lastClick != -1L && now - lastClick < nextDelay) return@on
 
             val slot = nextSellSlot(menu) ?: return@on
-            mc.gameMode?.handleInventoryMouseClick(
+            gameMode.handleInventoryMouseClick(
                 menu.containerId,
                 slot.index,
                 clickButton(),
@@ -180,7 +179,7 @@ object AutoSell : Module(
     private fun MutableCollection<String>.removeSellEntry(name: String): Boolean =
         removeAll { normalizeSellEntry(it) == name }
 
-    private fun heldItemName(): String? = mc.player?.mainHandItem?.takeIf { !it.isEmpty }?.sellListName()
+    private fun heldItemName(): String? = player.mainHandItem.takeIf { !it.isEmpty }?.sellListName()
 
     private fun ItemStack.sellListName(): String? =
         normalizeSellEntry(customName?.string ?: hoverName.string, extraAttributes?.getString("modifier")?.orElse(null))
@@ -191,7 +190,7 @@ object AutoSell : Module(
     private fun net.minecraft.client.gui.screens.Screen.cursorSlot(): net.minecraft.world.inventory.Slot? {
         if (this !is InventoryScreen && this !is ContainerScreen) return null
 
-        val window = mc.window ?: return null
+        val window = mc.window
         return (this as AbstractContainerScreenAccessor).`quoi$getSlotAtPos`(
             mc.mouseHandler.getScaledXPos(window),
             mc.mouseHandler.getScaledYPos(window)

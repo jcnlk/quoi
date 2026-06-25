@@ -9,7 +9,6 @@ import quoi.utils.ChatUtils.commandAny
 import quoi.utils.ChatUtils.say
 
 object ChatBypass : ToggleableGroup(Chat, "Chat bypass", desc = "Bypasses chat filters on servers.") {
-
     private val mode by selector("Mode", BypassMode.Cyrillic, desc = "Bypass mode.")
 
     private var bypass = false
