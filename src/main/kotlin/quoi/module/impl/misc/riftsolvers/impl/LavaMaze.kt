@@ -1,17 +1,12 @@
 package quoi.module.impl.misc.riftsolvers.impl
 
 import quoi.api.colour.Colour
-import quoi.api.events.ChatEvent
-import quoi.api.events.GuiEvent
-import quoi.api.events.MouseEvent
-import quoi.api.events.RenderEvent
-import quoi.api.events.TickEvent
+import quoi.api.events.*
 import quoi.api.events.core.on
 import quoi.module.impl.misc.riftsolvers.MirrorverseSolvers
 import quoi.module.settings.group.ToggleableGroup
 import quoi.utils.BlockPos
 import quoi.utils.ChatUtils.modMessage
-import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.aabb
 import quoi.utils.render.drawFilledBox
 import quoi.utils.skyblock.player.MovementUtils.moveTo
@@ -21,7 +16,6 @@ import quoi.utils.skyblock.player.RotationUtils.pitch
 import quoi.utils.skyblock.player.RotationUtils.yaw
 
 object LavaMaze : ToggleableGroup(MirrorverseSolvers, "Lava maze") {
-
     private var active = false
     private var current = 0
     private var waitingTicks = 0

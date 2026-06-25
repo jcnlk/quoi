@@ -9,7 +9,6 @@ import quoi.api.skyblock.SkyblockPlayer
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf
-import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.skyblock.player.PlayerUtils
 
 object AutoGFS : Module( // untested
@@ -37,8 +36,7 @@ object AutoGFS : Module( // untested
 
     init {
         on<ChatEvent.Packet> {
-            val cleanMessage = message.noControlCodes
-            RefillItem.entries.firstOrNull { cleanMessage == "You have no ${it.itemName} in your Sacks!" }?.let {
+            RefillItem.entries.firstOrNull { unformatted == "You have no ${it.itemName} in your Sacks!" }?.let {
                 emptySacks.add(it)
             }
         }

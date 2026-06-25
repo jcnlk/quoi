@@ -15,7 +15,7 @@ object ShadowAssassinAlert : Module(
 ) {
     init {
         on<PacketEvent.Received, ClientboundInitializeBorderPacket> {
-            if (((Dungeon.isFloor(3) || Dungeon.isFloor(2) || Dungeon.isFloor(1)) && Dungeon.inBoss)) return@on
+            if ((Dungeon.isFloor(1, 2, 3) && Dungeon.inBoss)) return@on
             PlayerUtils.setTitle("", "§aShadow Assassin!", playSound = true, stayAlive = 35, fadeOut = 0)
         }
     }

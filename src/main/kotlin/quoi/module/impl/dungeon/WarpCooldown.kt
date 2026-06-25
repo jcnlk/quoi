@@ -1,6 +1,5 @@
 package quoi.module.impl.dungeon
 
-import quoi.api.colour.Colour
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.module.Module
 import quoi.utils.StringUtils
@@ -17,7 +16,6 @@ object WarpCooldown : Module(
             string = "Warp:",
             supplier = { StringUtils.formatTime(Dungeon.warpCooldown) },
             labelColour = colour,
-            valueColour = Colour.WHITE,
             shadow = shadow,
             font = font
         )

@@ -29,7 +29,6 @@ import quoi.utils.skyblock.player.ContainerUtils
 import quoi.utils.skyblock.player.ContainerUtils.clickSlot
 import quoi.utils.skyblock.player.ContainerUtils.getContainerItemsClose
 
-
 /**
  * modified OdinFabric (BSD 3-Clause)
  * copyright (c) 2025-2026 odtheking
@@ -51,7 +50,7 @@ object PetKeybinds : Module(
     }
 
 
-    private val petsRegex = Regex("Pets(?: \\((\\d)/(\\d)\\))?")
+    private val petsRegex = Regex("Pets(?: \\((\\d)/(\\d)\\))?") // TODO: fix regex or whatever
 
     val petMap by MapSetting("PetKeys map", mutableMapOf<String, String>())
 
@@ -61,7 +60,6 @@ object PetKeybinds : Module(
     const val GET_ID = 69
 
     init {
-
         val petCommand = command.sub("petkeybinds").description("Pet Keybinds module settings.")
 
 //        petCommand.sub("summontest") { uuidName: GreedyString ->

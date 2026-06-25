@@ -1,13 +1,11 @@
 package quoi.module.impl.misc
 
-import quoi.api.events.core.on
-
 import quoi.api.events.ChatEvent
+import quoi.api.events.core.on
 import quoi.api.skyblock.SkyblockPlayer.AUTOPET_REGEX
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf
-import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.skyblock.player.PlayerUtils
 
 // THIS IS A TEMP MODULE KYLEAN.
@@ -30,14 +28,13 @@ object Titles : Module("Titles", desc = "temp module") {
         on<ChatEvent.Packet> {
             if (dungeonsOnly && !Dungeon.inDungeons) return@on
             if (bossOnly && !Dungeon.inBoss) return@on
-            val cleanMessage = message.noControlCodes
 
             if (autoPet) {
                 AUTOPET_REGEX.find(message)?.groupValues?.get(1)?.let { stupid(it.trim()) }
             }
 
             if (invincibilityProc) {
-                when (cleanMessage) {
+                when (unformatted) {
                     "Second Wind Activated! Your Spirit Mask saved your life!" ->
                         stupid("§fSpirit")
                     "Your ⚚ Bonzo's Mask saved your life!", "Your Bonzo's Mask saved your life!" ->
@@ -59,9 +56,7 @@ object Titles : Module("Titles", desc = "temp module") {
             sound = sound,
             volume = volume,
             pitch = pitch,
-            fadeIn = 0,
-            stayAlive = (titleDuration * 20).toInt(),
-            fadeOut = 0
+            stayAlive = (titleDuration * 20).toInt()
         )
     }
 }

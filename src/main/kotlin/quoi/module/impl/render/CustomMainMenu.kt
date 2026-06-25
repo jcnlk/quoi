@@ -19,7 +19,7 @@ import net.minecraft.util.Util
 
 object CustomMainMenu : Module(
     "Custom Main Menu",
-    desc = "Replaces the vanilla main menu with a Quoi-styled one."
+    desc = "Replaces the vanilla main menu with a custom one."
 ) {
     private const val VANILLA_BACKGROUND = "Vanilla"
     private val SUPPORTED_BACKGROUND_EXTENSIONS = setOf("png", "jpg", "jpeg")
@@ -127,5 +127,4 @@ object CustomMainMenu : Module(
         if (normalised in NON_CUSTOM_TITLE_BUTTONS) return false
         return label !in VANILLA_TITLE_BUTTONS
     }
-
 }

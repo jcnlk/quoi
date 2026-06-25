@@ -1,7 +1,6 @@
 package quoi.module.impl.dungeon
 
 import quoi.api.events.core.on
-
 import net.minecraft.core.BlockPos
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.level.block.Blocks
@@ -13,6 +12,7 @@ import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.odonscanning.ScanUtils
 import quoi.api.skyblock.dungeon.odonscanning.tiles.DoorType
 import quoi.api.skyblock.dungeon.odonscanning.tiles.OdonDoor
+import quoi.api.skyblock.invoke
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.visibleIf
 import quoi.utils.WorldUtils.state
@@ -22,7 +22,7 @@ import kotlin.math.abs
 object AutoDoorOpener : Module(
     "Auto Door Opener",
     desc = "Automatically opens nearby Wither and Blood doors.",
-    area = Island.Dungeon
+    area = Island.Dungeon(inClear = true)
 ) {
     private val mode by selector(
         "Mode",
@@ -33,14 +33,14 @@ object AutoDoorOpener : Module(
     private val auraRange by slider("Range", 5.0, 2.0, 6.0, 0.1, desc = "Maximum distance for opening a door.")
         .visibleIf { mode.selected == "Aura" }
     private val retryDelay by slider("Retry delay", 500, 100, 2000, 50, unit = "ms", desc = "Delay between attempts to open a door.")
-    private val swing by switch("Swing hand", true, desc = "Swings the hand when opening a door.")
+    private val swing by switch("Swing hand", desc = "Swings the hand when opening a door.")
 
     private val doorTypes = setOf(DoorType.WITHER, DoorType.BLOOD)
     private var lastClick = 0L
 
     init {
         on<TickEvent.End> {
-            if (!Dungeon.inClear || Dungeon.isDead || mc.screen != null) return@on
+            if (Dungeon.isDead || mc.screen != null) return@on
 
             val now = System.currentTimeMillis()
             if (now - lastClick < retryDelay) return@on

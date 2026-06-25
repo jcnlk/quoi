@@ -27,7 +27,6 @@ import quoi.utils.scaledHeight
 import quoi.utils.scaledWidth
 
 object CraftRoom : ToggleableGroup(MirrorverseSolvers, "Craft room") {
-
     private val mobs by switch("Show mobs")
     private val recipe by switch("Show recipes")
 

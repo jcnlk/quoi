@@ -47,7 +47,7 @@ object ChatReplacements : Module("Chat Replacements", desc = "temp") { // THIS I
 
             if (chatEmotes) {
                 val defaultMessage = replaceDefaultEmotes(replacedMessage)
-                replaced = replaced || defaultMessage != replacedMessage
+                replaced = defaultMessage != replacedMessage
                 replacedMessage = defaultMessage
             }
 
@@ -110,7 +110,7 @@ object ChatReplacements : Module("Chat Replacements", desc = "temp") { // THIS I
         ":skull:" to "☠"
     )
 
-    private val dungeonPrefix = "§dDungeon§f >"
+    private const val DUNGEON_PREFIX = "§dDungeon§f >"
 
     private val rareDropsToRemove = listOf(
         "RARE DROP! Machine Gun Shortbow",
@@ -139,8 +139,8 @@ object ChatReplacements : Module("Chat Replacements", desc = "temp") { // THIS I
         Regex("^RIGHT CLICK on a WITHER door.*"),
         Regex("^(.+) has obtained Superboom TNT(.+)"),
         Regex("^RIGHT CLICK on the BLOOD DOOR.*"),
-        Regex("^     Granted you .+\\.$"),
-        Regex("^     Also granted you .+ & .+\\."),
+        Regex("^ {5}Granted you .+\\.$"),
+        Regex("^ {5}Also granted you .+ & .+\\."),
         Regex("^A Blessing of .+ was picked up!$"),
         Regex("^.+ has obtained Blessing of .+!"),
         Regex("^has obtained Revive Stone!"),
@@ -222,7 +222,7 @@ object ChatReplacements : Module("Chat Replacements", desc = "temp") { // THIS I
         Regex("^ESSENCE! .+"),
         Regex("◕ .+"),
         Regex("Warping..."),
-        Regex("  ➤ .+"),
+        Regex(" {2}➤ .+"),
         Regex("✦ .+"),
         Regex("\\[SKULL] .+"),
         Regex("Someone else is currently reviving that player!"),
@@ -362,7 +362,7 @@ object ChatReplacements : Module("Chat Replacements", desc = "temp") { // THIS I
         Regex("Used Healing Circle!"),
         Regex("Healing Circle is now available!"),
         Regex("\\[BOSS] .+"),
-        Regex("  ൠ .+"),
+        Regex(" {2}ൠ .+"),
         Regex("Your Garden is no longer infested and your ☘ Farming Fortune has returned to normal!"),
         Regex("Party Finder > Your dungeon group is full! Click here to warp to the dungeon!"),
         Regex("You formed a tether with .+!"),
@@ -416,7 +416,7 @@ object ChatReplacements : Module("Chat Replacements", desc = "temp") { // THIS I
         Regex("^Livid's .+"),
         Regex("^Sadan's .+"),
         Regex("A Crypt Wither Skull exploded, hitting you for .+"),
-        Regex("     Granted you .+ ❁ Strength."),
+        Regex(" {5}Granted you .+ ❁ Strength."),
         Regex("A mystical force prevents you digging in this room!"),
         Regex("Mute silenced you!"),
         Regex("A Event: New Year's Celebration! A"),
@@ -432,9 +432,9 @@ object ChatReplacements : Module("Chat Replacements", desc = "temp") { // THIS I
         Regex("A Prince falls. +1 Bonus Score"),
         Regex("\\[NPC] .+"),
         Regex("\\[SkyBlockAPI] Loaded some data from pv! \\(hover\\)"),
-        Regex("  Clicking sketchy links can result in your account"),
-        Regex("  being stolen!"),
-        Regex("  Link looks suspicious\\? - Don't click it!"),
+        Regex(" {2}Clicking sketchy links can result in your account"),
+        Regex(" {2}being stolen!"),
+        Regex(" {2}Link looks suspicious\\? - Don't click it!"),
         Regex("✆ .+"),
         Regex(" ☺ .+"),
         Regex("You used a .+!"),
@@ -494,7 +494,7 @@ External links from untrusted sources should be avoided.
         if (cleanerDungeons) {
             for (r in toReplace) {
                 val m = r.pattern.find(noCodes) ?: continue
-                modMessage(m.value.replace(r.pattern, r.replacement), prefix = dungeonPrefix)
+                modMessage(m.value.replace(r.pattern, r.replacement), prefix = DUNGEON_PREFIX)
                 return true
             }
             if (rareDropsToRemove.contains(noCodes)) return true

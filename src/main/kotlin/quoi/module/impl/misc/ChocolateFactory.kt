@@ -1,7 +1,6 @@
 package quoi.module.impl.misc
 
 import quoi.api.events.core.on
-
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.network.protocol.game.ClientboundSoundPacket
 import net.minecraft.world.entity.EquipmentSlot
@@ -72,14 +71,14 @@ object ChocolateFactory : Module(
         Island.DungeonHub,
         Island.Hub,
         Island.BackwaterBayou
-    )
+    ) // TODO: update this list
     private val eggMessage = Regex(".*(A|found|collected).+Chocolate (Breakfast|Lunch|Dinner|Brunch|Déjeuner|Supper).*")
 
-    private const val dinnerEggTexture =
+    private const val DINNER_EGG_TEXTURE =
         "ewogICJ0aW1lc3RhbXAiIDogMTcxMTQ2MjY0OTcwMSwKICAicHJvZmlsZUlkIiA6ICI3NGEwMzQxNWY1OTI0ZTA4YjMyMGM2MmU1NGE3ZjJhYiIsCiAgInByb2ZpbGVOYW1lIiA6ICJNZXp6aXIiLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZTVlMzYxNjU4MTlmZDI4NTBmOTg1NTJlZGNkNzYzZmY5ODYzMTMxMTkyODNjMTI2YWNlMGM0Y2M0OTVlNzZhOCIKICAgIH0KICB9Cn0"
-    private const val lunchEggTexture =
+    private const val LUNCH_EGG_TEXTURE =
         "ewogICJ0aW1lc3RhbXAiIDogMTcxMTQ2MjU2ODExMiwKICAicHJvZmlsZUlkIiA6ICI3NzUwYzFhNTM5M2Q0ZWQ0Yjc2NmQ4ZGUwOWY4MjU0NiIsCiAgInByb2ZpbGVOYW1lIiA6ICJSZWVkcmVsIiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzdhZTZkMmQzMWQ4MTY3YmNhZjk1MjkzYjY4YTRhY2Q4NzJkNjZlNzUxZGI1YTM0ZjJjYmM2NzY2YTAzNTZkMGEiCiAgICB9CiAgfQp9"
-    private const val breakfastEggTexture =
+    private const val BREAKFAST_EGG_TEXTURE =
         "ewogICJ0aW1lc3RhbXAiIDogMTcxMTQ2MjY3MzE0OSwKICAicHJvZmlsZUlkIiA6ICJiN2I4ZTlhZjEwZGE0NjFmOTY2YTQxM2RmOWJiM2U4OCIsCiAgInByb2ZpbGVOYW1lIiA6ICJBbmFiYW5hbmFZZzciLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYTQ5MzMzZDg1YjhhMzE1ZDAzMzZlYjJkZjM3ZDhhNzE0Y2EyNGM1MWI4YzYwNzRmMWI1YjkyN2RlYjUxNmMyNCIKICAgIH0KICB9Cn0"
 
     init {
@@ -109,7 +108,7 @@ object ChocolateFactory : Module(
         }
 
         on<ChatEvent.Packet> {
-            val match = eggMessage.find(message.noControlCodes) ?: return@on
+            val match = eggMessage.find(unformatted) ?: return@on
             val action = match.groupValues.getOrNull(1)
             if (!action.equals("found", true) && !action.equals("collected", true)) return@on
 
@@ -152,13 +151,13 @@ object ChocolateFactory : Module(
         val screen = mc.screen as? AbstractContainerScreen<*> ?: return
         if (screen.title.string != "Chocolate Factory") return
 
-        if (autoTimeTower && shouldActivateTimeTower(screen.menu.getSlot(39)?.item)) {
-            mc.gameMode?.handleInventoryMouseClick(screen.menu.containerId, 39, 1, ClickType.PICKUP, player)
+        if (autoTimeTower && shouldActivateTimeTower(screen.menu.getSlot(39).item)) {
+            gameMode.handleInventoryMouseClick(screen.menu.containerId, 39, 1, ClickType.PICKUP, player)
             return
         }
 
         if (clickFactory) {
-            mc.gameMode?.handleInventoryMouseClick(screen.menu.containerId, 13, 1, ClickType.PICKUP, player)
+            gameMode.handleInventoryMouseClick(screen.menu.containerId, 13, 1, ClickType.PICKUP, player)
         }
 
         if (!claimStrays) return
@@ -167,31 +166,31 @@ object ChocolateFactory : Module(
             slot.item.hoverName.string.containsOneOf("CLICK ME!", "Golden Rabbit")
         } ?: return
 
-        mc.gameMode?.handleInventoryMouseClick(screen.menu.containerId, found.index, 0, ClickType.PICKUP, player)
+        gameMode.handleInventoryMouseClick(screen.menu.containerId, found.index, 0, ClickType.PICKUP, player)
     }
 
     private fun tickUpgrades() {
         val screen = mc.screen as? AbstractContainerScreen<*> ?: return
         if (screen.title.string != "Chocolate Factory") return
 
-        chocolate = screen.menu.getSlot(13)?.item?.hoverName?.string
-            ?.replace(Regex("\\D"), "")
-            ?.toLongOrNull()
+        chocolate = screen.menu.getSlot(13).item.hoverName.string
+            .replace(Regex("\\D"), "")
+            .toLongOrNull()
             ?: 0L
 
         val bestUpgrade = findBestUpgrade(screen.menu) ?: return
         if (autoUpgrade && chocolate >= bestUpgrade.cost) {
-            mc.gameMode?.handleInventoryMouseClick(screen.menu.containerId, bestUpgrade.slot, 2, ClickType.CLONE, player)
+            gameMode.handleInventoryMouseClick(screen.menu.containerId, bestUpgrade.slot, 2, ClickType.CLONE, player)
         }
     }
 
     private fun findBestUpgrade(menu: net.minecraft.world.inventory.AbstractContainerMenu): UpgradeCandidate? {
-        val chocolatePerSecond = parseChocolatePerSecond(menu.getSlot(13)?.item ?: return null) ?: return null
-        val totalMultiplier = parseTotalMultiplier(menu.getSlot(45)?.item ?: return null) ?: return null
+        val chocolatePerSecond = parseChocolatePerSecond(menu.getSlot(13).item) ?: return null
+        val totalMultiplier = parseTotalMultiplier(menu.getSlot(45).item) ?: return null
         if (chocolatePerSecond <= 0.0 || totalMultiplier <= 0.0) return null
 
         val rawChocolatePerSecond = chocolatePerSecond / totalMultiplier
-        val timeTowerItem = menu.getSlot(39)?.item
+        val timeTowerItem = menu.getSlot(39).item
         val timeTowerLevel = parseUpgradeTier(timeTowerItem)
         val timeTowerActive = isTimeTowerActive(timeTowerItem)
         val baseMultiplier = (totalMultiplier - if (timeTowerActive) timeTowerLevel * 0.1 else 0.0).coerceAtLeast(0.0)
@@ -275,22 +274,20 @@ object ChocolateFactory : Module(
         return item.lore
             ?.asSequence()
             ?.map { it.noControlCodes }
-            ?.mapNotNull { line ->
+            ?.firstNotNullOfOrNull { line ->
                 chocolatePerSecondPattern.find(line)?.groupValues?.getOrNull(1)
                     ?.replace(",", "")
                     ?.toDoubleOrNull()
             }
-            ?.firstOrNull()
     }
 
     private fun parseTotalMultiplier(item: ItemStack): Double? {
         return item.lore
             ?.asSequence()
             ?.map { it.noControlCodes }
-            ?.mapNotNull { line ->
+            ?.firstNotNullOfOrNull { line ->
                 totalMultiplierPattern.find(line)?.groupValues?.getOrNull(1)?.toDoubleOrNull()
             }
-            ?.firstOrNull()
     }
 
     private fun parseUpgradeTier(item: ItemStack?): Int {
@@ -303,8 +300,7 @@ object ChocolateFactory : Module(
         return (item?.lore
             ?.asSequence()
             ?.map { it.noControlCodes }
-            ?.mapNotNull { line -> timeTowerStatusPattern.find(line)?.groupValues?.getOrNull(1) }
-            ?.firstOrNull()) == "ACTIVE"
+            ?.firstNotNullOfOrNull { line -> timeTowerStatusPattern.find(line)?.groupValues?.getOrNull(1) }) == "ACTIVE"
     }
 
     private fun shouldActivateTimeTower(item: ItemStack?): Boolean {
@@ -316,10 +312,9 @@ object ChocolateFactory : Module(
         return item?.lore
             ?.asSequence()
             ?.map { it.noControlCodes }
-            ?.mapNotNull { line ->
+            ?.firstNotNullOfOrNull { line ->
                 timeTowerChargesPattern.find(line)?.groupValues?.getOrNull(1)?.toIntOrNull()
             }
-            ?.firstOrNull()
     }
 
     private fun scanForEggs() {
@@ -351,11 +346,11 @@ object ChocolateFactory : Module(
         val type: String,
         val colour: Colour
     ) {
-        Breakfast(breakfastEggTexture, "§6Breakfast Egg", Colour.MINECRAFT_GOLD),
-        Lunch(lunchEggTexture, "§9Lunch Egg", Colour.MINECRAFT_BLUE),
-        Dinner(dinnerEggTexture, "§aDinner Egg", Colour.MINECRAFT_GREEN),
-        Brunch(breakfastEggTexture, "§6Brunch Egg", Colour.MINECRAFT_GOLD),
-        Dejeuner(lunchEggTexture, "§9Déjeuner Egg", Colour.MINECRAFT_BLUE),
-        Supper(dinnerEggTexture, "§aSupper Egg", Colour.MINECRAFT_GREEN);
+        Breakfast(BREAKFAST_EGG_TEXTURE, "§6Breakfast Egg", Colour.MINECRAFT_GOLD),
+        Lunch(LUNCH_EGG_TEXTURE, "§9Lunch Egg", Colour.MINECRAFT_BLUE),
+        Dinner(DINNER_EGG_TEXTURE, "§aDinner Egg", Colour.MINECRAFT_GREEN),
+        Brunch(BREAKFAST_EGG_TEXTURE, "§6Brunch Egg", Colour.MINECRAFT_GOLD),
+        Dejeuner(LUNCH_EGG_TEXTURE, "§9Déjeuner Egg", Colour.MINECRAFT_BLUE),
+        Supper(DINNER_EGG_TEXTURE, "§aSupper Egg", Colour.MINECRAFT_GREEN);
     }
 }
