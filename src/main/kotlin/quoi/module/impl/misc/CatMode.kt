@@ -43,7 +43,7 @@ object CatMode : Module(
             if (!meowSound || packet.sound == SoundEvents.CAT_AMBIENT_BABY) return@on
 
             cancel()
-            mc.level?.playLocalSound(
+            level.playLocalSound(
                 packet.x,
                 packet.y,
                 packet.z,

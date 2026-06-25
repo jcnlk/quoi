@@ -1,14 +1,18 @@
 package quoi.module.impl.dungeon
 
-import quoi.api.events.core.on
-
 import quoi.api.events.ChatEvent
+import quoi.api.events.core.on
 import quoi.api.skyblock.Island
 import quoi.api.skyblock.dungeon.Dungeon.currentDungeonPlayer
 import quoi.api.skyblock.dungeon.Dungeon.isDead
 import quoi.api.skyblock.dungeon.DungeonClass
 import quoi.module.Module
-import quoi.utils.StringUtils.noControlCodes
+
+/**
+ * TODO:
+ *  add more messages
+ *  support tank
+ */
 
 // Kyleen
 object DungeonAbilities : Module(
@@ -21,7 +25,7 @@ object DungeonAbilities : Module(
     init {
         on<ChatEvent.Packet> {
             if (isDead) return@on
-            when (message.noControlCodes) {
+            when (unformatted) {
                 "[BOSS] Goldor: You have done it, you destroyed the factory…" -> {
                     dropItem()
                 }
@@ -34,6 +38,6 @@ object DungeonAbilities : Module(
 
     private fun dropItem() {
         if (!autoWish || currentDungeonPlayer.clazz != DungeonClass.Healer) return
-        mc.player?.drop(false)
+        player.drop(false)
     }
 }

@@ -1,7 +1,6 @@
 package quoi.module.impl.misc
 
 import quoi.api.events.core.on
-
 import quoi.api.events.ServerEvent
 import quoi.api.events.TickEvent
 import quoi.api.skyblock.Location

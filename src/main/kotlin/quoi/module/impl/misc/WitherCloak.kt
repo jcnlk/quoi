@@ -1,7 +1,6 @@
 package quoi.module.impl.misc
 
 import quoi.api.events.core.on
-
 import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket
 import net.minecraft.world.entity.monster.Creeper
 import quoi.api.abobaui.constraints.impl.positions.Centre
@@ -70,7 +69,7 @@ object WitherCloak : Module(
 
     init {
         on<ChatEvent.Packet> {
-            when (message.noControlCodes) {
+            when (unformatted) {
                 "Creeper Veil Activated!" -> inCloak = true
                 "Creeper Veil De-activated!" -> disableCloak(5_000L)
                 "Creeper Veil De-activated! (Expired)",
@@ -123,7 +122,6 @@ object WitherCloak : Module(
     }
 
     private fun triggerAutoCloak() {
-        val player = mc.player ?: return
         val originalSlot = player.inventory.selectedSlot
         val swap = SwapManager.swapById("WITHER_CLOAK")
         if (!swap.success) return
@@ -132,7 +130,7 @@ object WitherCloak : Module(
         autoCloakSwapBackSlot = originalSlot
 
         scheduleTask(autoDelay) {
-            if (!enabled || !autoCloakScheduled || mc.player == null) return@scheduleTask
+            if (!enabled || !autoCloakScheduled) return@scheduleTask
 
             modMessage("&aCloaking!")
             PlayerUtils.interact()
@@ -143,7 +141,7 @@ object WitherCloak : Module(
             autoCloakScheduled = false
             autoCloakSwapBackSlot = -1
 
-            if (slot !in 0..8 || mc.player == null || !enabled) return@scheduleTask
+            if (slot !in 0..8 || !enabled) return@scheduleTask
             SwapManager.swapToSlot(slot)
         }
     }

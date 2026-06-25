@@ -28,7 +28,6 @@ object HidePlayers : Module(
             if (dungeonOnly && !Dungeon.inDungeons) return@on
             if (bossOnly && !Dungeon.inBoss) return@on
 
-            val player = mc.player ?: return@on
             val entity = entity
 
             if (
@@ -44,7 +43,6 @@ object HidePlayers : Module(
     }
 
     private fun isAtDevs(): Boolean {
-        val player = mc.player ?: return false
         if (Dungeon.getF7Phase() != M7Phases.P3) return false
 
         return player.distanceToSqr(108.63, 120.0, 94.0) <= 1.8 * 1.8 ||

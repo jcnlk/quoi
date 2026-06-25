@@ -3,8 +3,8 @@ package quoi.module.impl.render
 import net.fabricmc.fabric.api.client.screen.v1.Screens
 import net.minecraft.client.gui.components.ImageButton
 import net.minecraft.client.gui.screens.recipebook.RecipeBookComponent
-import net.minecraft.network.protocol.game.ClientboundAddEntityPacket
 import net.minecraft.core.particles.ParticleTypes
+import net.minecraft.network.protocol.game.ClientboundAddEntityPacket
 import net.minecraft.network.protocol.game.ClientboundLevelParticlesPacket
 import net.minecraft.network.protocol.game.ClientboundUpdateMobEffectPacket
 import net.minecraft.world.effect.MobEffects
@@ -14,16 +14,20 @@ import net.minecraft.world.entity.decoration.ArmorStand
 import quoi.api.events.GuiEvent
 import quoi.api.events.PacketEvent
 import quoi.api.events.RenderEvent
+import quoi.api.events.core.on
 import quoi.api.skyblock.Island
 import quoi.api.skyblock.Location.currentArea
-import quoi.api.skyblock.Location.subarea
-import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.M7Phases
 import quoi.module.Module
-import quoi.utils.skyblock.item.ItemUtils.texture
 import quoi.utils.StringUtils.noControlCodes
+import quoi.utils.skyblock.item.ItemUtils.texture
 import quoi.utils.textures
+
+/**
+ * TODO:
+ *  use SettingsGroup
+ */
 
 object RenderOptimiser : Module(
     "Render Optimiser",
@@ -63,7 +67,6 @@ object RenderOptimiser : Module(
 
     init {
         on<PacketEvent.Received> {
-            if (mc.player == null) return@on
             when(packet) {
                 is ClientboundAddEntityPacket -> {
                     if (hideFallingBlocks && packet.type == EntityType.FALLING_BLOCK ||

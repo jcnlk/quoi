@@ -51,7 +51,6 @@ object Trajectories : Module(
 
     init {
         on<TickEvent.End> {
-            val player = mc.player ?: return@on
             lastCharge = charge
             val useCount = player.useItemRemainingTicks
             charge = min((72000 - useCount) / 20f, 1.0f) * 2f
@@ -65,7 +64,6 @@ object Trajectories : Module(
             impactBoxes.clear()
             pearlImpactBox = null
 
-            val player = mc.player ?: return@on
             val heldItem = player.mainHandItem
 
             if (bows && heldItem.item is BowItem) {
@@ -96,9 +94,6 @@ object Trajectories : Module(
     }
 
     private fun calculateTrajectory(isPearl: Boolean, useCharge: Boolean = false): Pair<List<Vec3>, BlockHitResult?> {
-        val player = mc.player ?: return emptyList<Vec3>() to null
-        val level = mc.level ?: return emptyList<Vec3>() to null
-
         val yawRadians = Math.toRadians(player.yRot.toDouble())
         val spawnOffset = Vec3(
             -cos(yawRadians) * 0.16,

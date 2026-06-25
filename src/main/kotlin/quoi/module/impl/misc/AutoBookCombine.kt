@@ -1,7 +1,6 @@
 package quoi.module.impl.misc
 
 import quoi.api.events.core.on
-
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.core.component.DataComponents
 import net.minecraft.world.item.ItemStack
