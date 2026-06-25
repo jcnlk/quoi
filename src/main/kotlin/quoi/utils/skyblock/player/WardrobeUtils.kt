@@ -20,7 +20,7 @@ import quoi.utils.ChatUtils.modMessage
 import quoi.utils.Scheduler.scheduleTask
 import quoi.utils.Scheduler.wait
 import quoi.utils.StringUtils.noControlCodes
-import quoi.utils.skyblock.player.ContainerUtils.click
+import quoi.utils.skyblock.player.ContainerUtils.clickAndAwaitContainerReopen
 import quoi.utils.skyblock.player.ContainerUtils.containerId
 import quoi.utils.skyblock.player.ContainerUtils.closeContainer
 import quoi.utils.skyblock.player.ContainerUtils.getContainerItems
@@ -31,6 +31,8 @@ import kotlin.coroutines.suspendCoroutine
 
 @Init
 object WardrobeUtils : EventListener {
+    private const val MENU_TITLE = "(1/3) Armor Sets"
+
     private val queue = ArrayDeque<WardrobeRequest>()
     private var inProgress = false
     private var preventMoveCurrent = true
@@ -108,7 +110,7 @@ object WardrobeUtils : EventListener {
 
     private suspend fun equipNow(slot: Int, disableUnequip: Boolean, onMenuOpen: (() -> Unit)?): EquipResult {
         val targetSlot = slot + 35
-        val items = getContainerItems("wardrobe", "(1/3) Armor Sets", onMenuOpen = onMenuOpen)
+        val items = getContainerItems("wardrobe", MENU_TITLE, onMenuOpen = onMenuOpen)
         if (items.isEmpty()) {
             closeContainer()
             return EquipResult.failure("Timed out waiting for wardrobe.")
@@ -150,12 +152,11 @@ object WardrobeUtils : EventListener {
             }
         }
 
-        if (!click(targetSlot)) {
+        if (!clickAndAwaitContainerReopen(targetSlot, MENU_TITLE)) {
             closeContainer()
             return EquipResult.failure("Failed to click wardrobe slot $slot.")
         }
 
-        wait(2)
         closeContainer()
         return EquipResult.success(slot)
     }
