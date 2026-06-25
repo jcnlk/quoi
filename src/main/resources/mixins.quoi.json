@@ -13,7 +13,6 @@
   "client": [
     "AbstractContainerScreenMixin",
     "AbstractRecipeBookScreenMixin",
-    "AvatarMixin",
     "BlockBehaviourMixin",
     "ButtonBlockMixin",
     "CameraMixin",
