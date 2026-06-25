@@ -1,6 +1,5 @@
 package quoi.utils.ui.hud
 
-import quoi.QuoiMod.mc
 import quoi.api.abobaui.constraints.Constraint
 import quoi.api.abobaui.constraints.impl.measurements.Undefined
 import quoi.api.abobaui.constraints.impl.measurements.Pixel
@@ -42,9 +41,16 @@ open class Hud(
     var inContainer = false
         private set
 
+    var element: Element? = null
+    var scope: Scope? = null
+
     init {
         check(!HudManager.stupid) { "ABOBA | too late $name" }
         HudManager.huds.add(this)
+    }
+
+    fun rebuild() {
+        scope?.let { element?.rebuild(it) }
     }
 
     fun container(): Hud {
@@ -116,6 +122,13 @@ open class Hud(
         override fun getDefaultPositions() = Pair(Undefined, Undefined)
 
         override fun prePosition() {
+            if (constraints.width.reliesOnChildren()) {
+                width = constraints.width.calculateSize(this, true)
+            }
+            if (constraints.height.reliesOnChildren()) {
+                height = constraints.height.calculateSize(this, false)
+            }
+
             parent?.let { p ->
                 this.internalX = this.constraints.x.calculatePos(this, true).roundToInt().toFloat()
                 this.internalY = this.constraints.y.calculatePos(this, false).roundToInt().toFloat()
@@ -135,6 +148,8 @@ open class Hud(
         }
 
         fun rebuild(scope: Scope) {
+            this.constraints.x = this@Hud.x.value.percent
+            this.constraints.y = this@Hud.y.value.percent
             removeAll()
             builder.invoke(scope)
             scaleTransformation = this@Hud.scale.value
@@ -206,5 +221,5 @@ private val IsolatedBounding = object : Constraint.Size {
         return Bounding.calculateSize(element, horizontal)
     }
 
-    override fun reliesOnChildren(): Boolean = false
+    override fun reliesOnChildren(): Boolean = true
 }
