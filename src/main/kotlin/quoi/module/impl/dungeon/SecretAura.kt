@@ -36,14 +36,9 @@ import quoi.module.settings.UIComponent.Companion.visibleIf
 import quoi.utils.*
 import quoi.utils.EntityUtils.getEntities
 import quoi.utils.WorldUtils.state
-import quoi.utils.aabb
-import quoi.utils.equalsOneOf
-import quoi.utils.isWithinFov
-import quoi.utils.minFovDot
-import quoi.utils.skyblock.player.PlayerUtils.eyePosition
-import quoi.utils.skyblock.player.interact.AuraManager
 import quoi.utils.skyblock.player.SwapManager
 import quoi.utils.skyblock.player.SwapResult
+import quoi.utils.skyblock.player.interact.AuraManager
 import java.util.*
 
 // modified https://github.com/Hypericat/NoobRoutes/blob/main/src/main/kotlin/noobroutes/features/dungeon/SecretAura.kt

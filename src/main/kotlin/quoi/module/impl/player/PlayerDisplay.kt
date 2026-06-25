@@ -34,7 +34,6 @@ object PlayerDisplay : Module(
     "Player Display",
     desc = "Hud displays for various skyblock stats."
 ) {
-
     private const val BAR_WIDTH = 150f
     private const val BAR_HEIGHT = 14f
 

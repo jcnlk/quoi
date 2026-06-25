@@ -32,7 +32,6 @@ import quoi.module.impl.misc.Test
 import quoi.module.settings.Setting.Companion.json
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.module.settings.UIComponent.Companion.visibleIf
-import quoi.utils.EntityUtils
 import quoi.utils.EntityUtils.getEntities
 import quoi.utils.EntityUtils.getEntity
 import quoi.utils.EntityUtils.interpolatedBox
@@ -245,8 +244,6 @@ object DungeonESP : Module(
 
     private fun scanLoadedMimicChests() {
         if (!mimicHighlight) return
-        val level = mc.level ?: return
-        val player = mc.player ?: return
         val center = player.blockPosition()
         val radius = mc.options.effectiveRenderDistance
 

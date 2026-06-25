@@ -26,7 +26,6 @@ import quoi.utils.skyblock.player.interact.AuraManager
 import quoi.utils.vec3
 
 object RedGreen : ToggleableGroup(MirrorverseSolvers, "Red green") {
-
     private val actionsDelay by slider("Action delay", 3, 2, 5, 1, unit = "t")
     private val interactDelay by slider("Interact delay", 0, 0, 5, 1, unit = "t")
 

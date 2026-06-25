@@ -9,7 +9,6 @@ import quoi.utils.ChatUtils
 import quoi.utils.StringUtils.noControlCodes
 
 object AutoDialogue : ToggleableGroup(Chat, "Auto dialogue", desc = "Automatically continues dialogues with NPCs.") {
-
     init {
         on<ChatEvent.Receive> {
             message.noControlCodes.takeIf { it.startsWith("Select an option: ") && "[BARBARIANS] [MAGES]" !in it }?.let {

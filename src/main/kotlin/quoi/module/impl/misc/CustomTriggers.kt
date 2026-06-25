@@ -65,7 +65,6 @@ object CustomTriggers : Module(
         }
     }
 
-
     init {
         TriggerManager.init()
 
@@ -93,7 +92,6 @@ object CustomTriggers : Module(
      */
 
     private fun triggerUi() = aboba("Custom Triggers") {
-        
 //        ui.debug = true
         
         onRemove {
@@ -120,7 +118,6 @@ object CustomTriggers : Module(
                     radius = 10.radius()
                 )
                 group(size(Copying - 8.percent, Copying - 2.percent)) {
-
                     groupArea = refreshableGroup(size(Copying, Fill)) {
                         val scrollable = scrollable(constrain(y = 0.px, w = Copying, h = Copying)) {
                             val constraints = constrain(2.px, 2.px, Copying - 4.px, Bounding + 2.px)
@@ -160,8 +157,6 @@ object CustomTriggers : Module(
                                         }
                                     }
                                 }
-
-
                             }
                         }
 
@@ -295,7 +290,6 @@ object CustomTriggers : Module(
         )
 
         column(size(w = Copying)) {
-
             sectionRow(45.px, gap = 4.px) {
                 divider(10.px)
 
@@ -393,8 +387,6 @@ object CustomTriggers : Module(
 
                 cursor(CursorShape.HAND)
             }
-
-
 
             column(constrain(x = 3.percent, w = Copying - 6.percent, h = height), gap = 20.px) {
                 divider(15.px)
@@ -619,8 +611,6 @@ object CustomTriggers : Module(
                 divider(5.px)
 
             }
-
         }
-
     }
 }

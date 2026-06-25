@@ -213,7 +213,6 @@ object ClickGui : Module(
             draggable(button = 1)
 
             row(at(x = Centre), gap = 10.px) {
-
                 mapOf(
                     "Hud editor" to { open(HudManager.editor(fromMain = true)) },
                     "Discord" to { Util.getPlatform().openUri(URI("https://discord.com/invite/QCWgrQ57pN")) }
@@ -424,5 +423,4 @@ object ClickGui : Module(
         val defaultX = x
         val defaultY = y
     }
-
 }

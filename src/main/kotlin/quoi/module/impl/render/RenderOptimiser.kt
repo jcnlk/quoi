@@ -16,8 +16,6 @@ import net.minecraft.world.entity.decoration.ArmorStand
 import quoi.api.events.PacketEvent
 import quoi.api.skyblock.Island
 import quoi.api.skyblock.Location.currentArea
-import quoi.api.skyblock.Location.subarea
-import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.M7Phases
 import quoi.module.Module
@@ -25,6 +23,11 @@ import quoi.utils.skyblock.item.ItemUtils.skyblockId
 import quoi.utils.skyblock.item.ItemUtils.texture
 import net.minecraft.world.entity.EntityType.getKey
 import java.util.Optional
+
+/**
+ * TODO:
+ *  use SettingsGroup
+ */
 
 object RenderOptimiser : Module(
     "Render Optimiser",
@@ -62,7 +65,6 @@ object RenderOptimiser : Module(
 
     init {
         on<PacketEvent.Received> {
-            if (mc.player == null) return@on
             when(packet) {
                 is ClientboundAddEntityPacket -> {
                     val entityPath = getKey(packet.type).path

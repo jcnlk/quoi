@@ -19,7 +19,6 @@ import quoi.utils.skyblock.player.PlayerUtils.leftClick
 import quoi.utils.skyblock.player.RotationUtils.rotate
 
 object TinyDancer : ToggleableGroup(MirrorverseSolvers, "Tiny dancer") {
-
     private val sneakDelay by slider("Sneak delay", 2, 0, 20, 1, unit = "t")
     private val jumpDelay by slider("Jump delay", 2, 0, 20, 1, unit = "t")
     private val punchDelay by slider("Punch delay", 4, 0, 20, 1, unit = "t")

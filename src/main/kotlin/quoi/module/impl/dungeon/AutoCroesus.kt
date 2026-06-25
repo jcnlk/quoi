@@ -53,13 +53,17 @@ import quoi.utils.skyblock.item.ItemUtils.lore
 import quoi.utils.skyblock.player.ContainerUtils
 import kotlin.math.roundToInt
 
+/**
+ * TODO:
+ *  better /quoi worthless and /quoi alwaysbuy handling
+ */
+
 // UnclaimedBloom6
 // original: https://github.com/UnclaimedBloom6/RandomStuff/tree/main/AutoCroesus
 object AutoCroesus : Module(
     "Auto Croesus",
     desc = "Automatically claims profitable Croesus dungeon chests.",
-    area = Island.DungeonHub,
-    tag = Tag.BETA
+    area = Island.DungeonHub
 ) {
     private val clickDelay by slider("Click delay", 500L, 50L, 1_000L, 50L, desc = "Delay between automatic clicks.", unit = "ms")
     private val profitOverlay by textHud("Auto Croesus profit", Colour.WHITE) {
@@ -378,7 +382,7 @@ object AutoCroesus : Module(
 
         modMessage("&aAuto Croesus finished. All chests looted.")
         reset()
-        mc.connection?.send(ServerboundContainerClosePacket(container.menu.containerId))
+        connection.send(ServerboundContainerClosePacket(container.menu.containerId))
         mc.gui.setScreen(null)
     }
 
@@ -471,7 +475,7 @@ object AutoCroesus : Module(
                 canKismet = false
                 modMessage("&cNo Kismet Feather found. Auto Croesus disabled kismet claims for this session.")
                 currentChest = null
-                mc.connection?.send(ServerboundContainerClosePacket(container.menu.containerId))
+                connection.send(ServerboundContainerClosePacket(container.menu.containerId))
                 mc.gui.setScreen(null)
                 return
             }
@@ -521,7 +525,7 @@ object AutoCroesus : Module(
             ?: return false
         if (displayEntity.customName?.string != "Croesus") return false
 
-        mc.connection?.send(
+        connection.send(
             ServerboundInteractPacket(entity.id, InteractionHand.MAIN_HAND, Vec3(0.0, 0.0, 0.0), player.isShiftKeyDown)
         )
         return true
