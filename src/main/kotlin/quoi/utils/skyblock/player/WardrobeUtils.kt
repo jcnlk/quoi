@@ -108,7 +108,7 @@ object WardrobeUtils : EventListener {
 
     private suspend fun equipNow(slot: Int, disableUnequip: Boolean, onMenuOpen: (() -> Unit)?): EquipResult {
         val targetSlot = slot + 35
-        val items = getContainerItems("wardrobe", "Wardrobe (1/3)", onMenuOpen = onMenuOpen)
+        val items = getContainerItems("wardrobe", "(1/3) Armor Sets", onMenuOpen = onMenuOpen)
         if (items.isEmpty()) {
             closeContainer()
             return EquipResult.failure("Timed out waiting for wardrobe.")
