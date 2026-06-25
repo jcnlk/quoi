@@ -44,7 +44,7 @@ import kotlin.collections.forEach
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
-object HudManager : EventListener { // todo add hud grouping
+object HudManager : EventListener {
     val huds = arrayListOf<Hud>()
     var stupid = false
 
