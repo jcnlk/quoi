@@ -2,7 +2,12 @@ pluginManagement {
     repositories {
         mavenCentral()
         gradlePluginPortal()
-        maven("https://maven.fabricmc.net")
+        maven("https://maven.fabricmc.net") {
+            content {
+                includeGroup("fabric-loom")
+                includeGroupByRegex("net\\.fabricmc.*")
+            }
+        }
     }
 
     val loomVersion = providers.gradleProperty("loom_version").get()
