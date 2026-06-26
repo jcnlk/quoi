@@ -48,7 +48,7 @@ object DungeonBreaker : Module(
     area = Island.Dungeon
 ) {
     private val chargesHud by textHud("Charges display") {
-        visibleIf { inDungeons && getBreakerCharges(player.mainHandItem) > 0 }
+        visibleIf { getBreakerCharges(player.mainHandItem) > 0 }
         textPair(
             string = "Charges:",
             supplier = { getBreakerCharges(player.mainHandItem) },
