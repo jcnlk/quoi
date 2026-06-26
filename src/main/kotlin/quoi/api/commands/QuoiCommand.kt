@@ -20,7 +20,7 @@ import quoi.api.skyblock.dungeon.Dungeon
 import quoi.module.ModuleManager
 import quoi.module.impl.misc.ChatReplacements
 import quoi.module.impl.misc.chat.Chat
-import quoi.module.impl.render.ClickGui.clickGui
+import quoi.module.impl.render.clickgui.ClickGui.clickGui
 import quoi.module.impl.render.PlayerESP
 import quoi.utils.ChatUtils.command
 import quoi.utils.ChatUtils.literal
