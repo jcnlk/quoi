@@ -2,7 +2,11 @@ pluginManagement {
     repositories {
         mavenCentral()
         gradlePluginPortal()
-        maven("https://maven.fabricmc.net")
+        maven("https://maven.fabricmc.net") {
+            content {
+                includeGroupByRegex("net\\.fabricmc.*")
+            }
+        }
     }
 
     val loom_version: String by settings

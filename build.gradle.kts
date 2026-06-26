@@ -10,7 +10,11 @@ version = property("mod_version") as String
 
 repositories {
     mavenCentral()
-    maven("https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1")
+    maven("https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1") {
+        content {
+            includeGroup("me.djtheredstoner")
+        }
+    }
 }
 
 dependencies {
@@ -65,8 +69,19 @@ afterEvaluate {
 
 tasks {
     processResources {
+        val properties = listOf(
+            "mod_id",
+            "mod_version",
+            "mod_name",
+            "loader_version",
+            "fabric_api_version",
+            "fabric_kotlin_version",
+        ).associateWith { providers.gradleProperty(it).get() }
+
+        inputs.properties(properties)
+
         filesMatching("fabric.mod.json") {
-            expand(getProperties())
+            expand(properties)
         }
     }
 
