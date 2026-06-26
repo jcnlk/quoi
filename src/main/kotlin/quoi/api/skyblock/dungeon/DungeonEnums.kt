@@ -6,7 +6,7 @@ import net.minecraft.world.entity.player.PlayerSkin
 import quoi.api.events.DungeonEvent
 import quoi.api.events.core.EventDispatcher
 import quoi.api.skyblock.dungeon.odonscanning.MapRenderer.mapSize
-import quoi.module.impl.render.ClickGui
+import quoi.module.impl.render.clickgui.impl.VisualsSettings.classColors
 import quoi.utils.EntityUtils.playerEntities
 import quoi.api.vec.Vec2i
 
@@ -125,15 +125,15 @@ enum class DungeonClass(
 
     val colour: Colour
         get() = when {
-            ClickGui.classColors.selected == "Noamm Style" && this == Archer -> Berserk.hypixelColour
-            ClickGui.classColors.selected == "Noamm Style" && this == Berserk -> Archer.hypixelColour
+            classColors.selected == "Noamm Style" && this == Archer -> Berserk.hypixelColour
+            classColors.selected == "Noamm Style" && this == Berserk -> Archer.hypixelColour
             else -> hypixelColour
         }
 
     val colourCode: Char
         get() = when {
-            ClickGui.classColors.selected == "Noamm Style" && this == Archer -> Berserk.hypixelColourCode
-            ClickGui.classColors.selected == "Noamm Style" && this == Berserk -> Archer.hypixelColourCode
+            classColors.selected == "Noamm Style" && this == Archer -> Berserk.hypixelColourCode
+            classColors.selected == "Noamm Style" && this == Berserk -> Archer.hypixelColourCode
             else -> hypixelColourCode
         }
 }
