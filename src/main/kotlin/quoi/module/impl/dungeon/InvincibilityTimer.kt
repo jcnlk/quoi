@@ -30,8 +30,8 @@ object InvincibilityTimer : Module(
     val mageReduction by switch("Mage reduction", desc = "Accounts for mage cooldown reduction.")
     val cataLevel by slider("Catacombs level", 0, 0, 50, desc = "Catacombs level for Bonzo's mask ability.")
 
-    private val hud by textHud("Invincibility timer", Colour.PINK) {
-        visibleIf { this@InvincibilityTimer.enabled && inSkyblock && (!bossOnly || inBoss) && (!dungeonOnly || inDungeons || bossOnly) }
+    private val hud by textHud("Invincibility timer", Colour.PINK, toggleable = false) {
+        visibleIf { inSkyblock && (!bossOnly || inBoss) && (!dungeonOnly || inDungeons || bossOnly) }
         column {
             SkyblockPlayer.InvincibilityType.entries.forEach { type ->
                 val (col, time) = type.getTime()
