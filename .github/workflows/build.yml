@@ -7,6 +7,13 @@ on:
       - 1.21.11
       - 26.1.x
       - 26.2
+    paths-ignore:
+      - "**/*.md"
+      - ".forgejo/**"
+      - ".github/dependabot.yml"
+      - ".gitignore"
+      - ".run/**"
+      - "LICENSE"
   pull_request:
   schedule:
     - cron: "0 3 * * *"
@@ -44,12 +51,13 @@ jobs:
         with:
           cache-provider: enhanced
           cache-read-only: ${{ github.event_name != 'push' }}
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
       - name: Build Mod
-        run: ./gradlew build --stacktrace
+        run: ./gradlew build --build-cache --configuration-cache --stacktrace
 
       - name: Stage Build Artifacts
-        if: always()
+        if: ${{ !cancelled() && (github.event_name != 'pull_request' || failure()) }}
         run: |
           rm -rf ci-artifacts
           mkdir -p ci-artifacts/reports
@@ -61,7 +69,7 @@ jobs:
           fi
 
       - name: Upload Build Artifacts
-        if: always()
+        if: ${{ !cancelled() && (github.event_name != 'pull_request' || failure()) }}
         uses: actions/upload-artifact@v7.0.1
         with:
           name: quoi-build-artifacts
@@ -71,7 +79,7 @@ jobs:
           retention-days: 14
 
       - name: Add Artifact Link
-        if: always()
+        if: ${{ !cancelled() && github.event_name != 'pull_request' }}
         run: |
           title="Build artifacts"
           if [ "$GITHUB_EVENT_NAME" = "schedule" ]; then

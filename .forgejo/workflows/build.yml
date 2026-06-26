@@ -2,6 +2,12 @@ name: Build
 
 on:
   push:
+    paths-ignore:
+      - "**/*.md"
+      - ".github/**"
+      - ".gitignore"
+      - ".run/**"
+      - "LICENSE"
   pull_request:
   schedule:
     - cron: "0 3 * * *"
@@ -29,7 +35,7 @@ jobs:
         uses: gradle/actions/wrapper-validation@v6.2.0
 
       - name: Set Up Java 21
-        uses: actions/setup-java@v5.3.0
+        uses: actions/setup-java@v5.4.0
         with:
           distribution: temurin
           java-version: "21"
@@ -41,10 +47,10 @@ jobs:
           cache-read-only: ${{ github.event_name != 'push' }}
 
       - name: Build Mod
-        run: ./gradlew build --stacktrace
+        run: ./gradlew build --build-cache --configuration-cache --stacktrace
 
       - name: Stage Build Artifacts
-        if: always()
+        if: ${{ !cancelled() && (github.event_name != 'pull_request' || failure()) }}
         run: |
           rm -rf ci-artifacts
           mkdir -p ci-artifacts/reports
@@ -56,7 +62,7 @@ jobs:
           fi
 
       - name: Upload Build Artifacts
-        if: always()
+        if: ${{ !cancelled() && (github.event_name != 'pull_request' || failure()) }}
         # v5/v6 currently fail on Forgejo 1.22 / runner 12.12 with
         # "Error unauthorized" during blob upload. Keep v4 until the
         # Forgejo artifact backend supports the newer upload flow.
@@ -69,7 +75,7 @@ jobs:
           retention-days: 14
 
       - name: Add Artifact Link
-        if: always()
+        if: ${{ !cancelled() && github.event_name != 'pull_request' }}
         run: |
           title="Build artifacts"
           if [ "$GITHUB_EVENT_NAME" = "schedule" ]; then
