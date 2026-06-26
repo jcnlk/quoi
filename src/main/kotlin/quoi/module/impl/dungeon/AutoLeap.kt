@@ -143,11 +143,7 @@ object AutoLeap : Module(
     private val doNotLeapLocations = listOf(
         Vec3(58.5, 109.0, 131.5) to 1.5, // at ee2
         Vec3(60.5, 132.0, 140.5) to 1.5, // at ee2 high / levers dev
-        Vec3(69.5, 109.0, 122.5) to 1.0, // ee2 safe spot 1
-        Vec3(48.5, 109.0, 122.5) to 1.0, // ee2 safe spot 2
         Vec3(2.5, 109.0, 104.5) to 1.5,  // at ee3
-        Vec3(18.5, 121.0, 99.5) to 3.0,  // ee3 safe spot
-        Vec3(1.5, 120.0, 77.5) to 3.0,   // arrows dev
         Vec3(58.5, 123.0, 122.5) to 0.3, // entering core
         Vec3(54.5, 115.0, 51.5) to 1.5   // at core
     )
