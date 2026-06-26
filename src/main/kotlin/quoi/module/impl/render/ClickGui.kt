@@ -8,6 +8,7 @@ import quoi.api.ServerInfo.averagePing
 import quoi.api.ServerInfo.averageTps
 import quoi.api.ServerInfo.currentPing
 import quoi.api.ServerInfo.currentTps
+import quoi.api.ServerInfo.medianPing
 import quoi.api.abobaui.AbobaUI
 import quoi.api.abobaui.constraints.impl.measurements.Animatable
 import quoi.api.abobaui.constraints.impl.positions.Centre
@@ -39,6 +40,7 @@ import quoi.module.impl.misc.Test
 import quoi.module.settings.Setting.Companion.json
 import quoi.module.settings.UIComponent
 import quoi.module.settings.UIComponent.Companion.childOf
+import quoi.module.settings.UIComponent.Companion.visibleIf
 import quoi.module.settings.impl.MapSetting
 import quoi.module.settings.impl.SelectorComponent
 import quoi.utils.ChatUtils.modMessage
@@ -47,19 +49,26 @@ import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.StringUtils.percentColour
 import quoi.utils.StringUtils.toFixed
 import quoi.utils.ThemeManager.theme
+import quoi.utils.WorldUtils.day
+import quoi.utils.ui.data.Anchor
+import quoi.utils.ui.elements.clock
 import quoi.utils.ui.elements.themedInput
 import quoi.utils.ui.hud.HudManager
+import quoi.utils.ui.hud.impl.TextHud
 import quoi.utils.ui.onHover
 import quoi.utils.ui.rendering.NVGRenderer
 import quoi.utils.ui.rendering.NVGRenderer.defaultFont
 import quoi.utils.ui.screens.UIScreen.Companion.open
+import quoi.utils.ui.textPair
 import java.net.URI
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 
 @AlwaysActive
 object ClickGui : Module(
     "Click GUI",
     key = CatKeys.KEY_RIGHT_SHIFT
-) {
+) { // todo cleanup a bit
     val forceSkyblock by switch("Force skyblock")
     val forceDungeons by switch("Force dungeon").onValueChanged { old, new -> if (new) Dungeon.setFloor(dungeonFloor.selected) }
     val dungeonFloor: SelectorComponent<Floor> by selector("Floor", Floor.F7).childOf(::forceDungeons).onValueChanged { old, new ->
@@ -98,6 +107,71 @@ object ClickGui : Module(
     val hWeight by slider("Guess weight", 6.7, 1.0, 15.0, 0.1, desc = "Higher values make the search much faster.").childOf(::pathSett)
     val threads by slider("Threads", 6, 1, 16, desc = "Number of CPU threads to use for simultaneous path expansion.").childOf(::pathSett)
     val timeout by slider("Timeout", 670L, 200L, 1000L, 50L, unit = "ms", desc = "Maximum time allowed for the pathfinder to search before giving up.").childOf(::pathSett)
+
+    private val t12 = DateTimeFormatter.ofPattern("hh:mm a")
+    private val t24 = DateTimeFormatter.ofPattern("HH:mm")
+    private val clockType by segmented("Type", "Text", listOf("Text", "Clock²"))
+    private val clockFormat by switch("Twelve hours")
+    private val clockCol by colourPicker("Colour", Colour.WHITE).visibleIf { clockType.selected == "Text" }
+    private val clockShadow by switch("Shadow", true).visibleIf { clockType.selected == "Text" }
+    private val clockFont by segmented("Font", TextHud.HudFont.Minecraft).visibleIf { clockType.selected == "Text" }
+    private val clockAnchor by selector("Anchor", Anchor.TopLeft).visibleIf { clockType.selected == "Text" }
+    private val clockSpeed by slider("Speed", 0.4, 0.1, 1.0, 0.1, unit = "s").visibleIf { clockType.selected != "Text" }
+    private val timeHud by hud("Time display") {
+        if (clockType.selected == "Text") {
+            textPair(
+                string = "Time:",
+                supplier = { LocalTime.now().format(if (clockFormat) t12 else t24) },
+                labelColour = clockCol,
+                shadow = clockShadow,
+                font = clockFont.selected.get()
+            )
+        } else clock(clockFormat, clockSpeed)
+    }.withSettings(::clockType, ::clockFormat, ::clockCol, ::clockShadow, ::clockFont, ::clockAnchor, ::clockSpeed).setting()
+
+    private val fpsHud by textHud("Fps display") {
+        textPair(
+            string = "Fps:",
+            supplier = { mc.fps },
+            labelColour = colour,
+            shadow = shadow,
+            font = font
+        )
+    }.setting()
+
+    private val pingType by selector("Ping type", PingType.Average)
+    private val pingHud by textHud("Ping display") {
+        visibleIf { !mc.isSingleplayer }
+        textPair(
+            string = "Ping:",
+            supplier = { (if (preview) 69.420 else pingType.selected.value()).formatPing },
+            labelColour = colour,
+            shadow = shadow,
+            font = font
+        )
+    }.withSettings(::pingType).setting()
+
+    private val tpsType by selector("Tps type", TpsType.Average)
+    private val tpsHud by textHud("Tps display") {
+        visibleIf { !mc.isSingleplayer }
+        textPair(
+            string = "Tps:",
+            supplier = { if (preview) 17.56f.formatTps(2) else tpsType.selected.value().formatTps(2) },
+            labelColour = colour,
+            shadow = shadow,
+            font = font
+        )
+    }.withSettings(::tpsType).setting()
+
+    private val dayHud by textHud("Day display") {
+        textPair(
+            string = "Day:",
+            supplier = { level.day },
+            labelColour = colour,
+            shadow = shadow,
+            font = font
+        )
+    }.setting()
 
     private val categoryData by MapSetting("category data", mutableMapOf<Category, CategoryData>()).also { setting ->
         Category.entries.forEach {
@@ -412,6 +486,17 @@ object ClickGui : Module(
     }%.2f §7ms".format(this)
 
     private fun Float.formatTps(decimals: Int = 0) = (this - 15).percentColour(5.0) + this.toFixed(decimals) // fixme
+
+    private enum class PingType(val value: () -> Double) {
+        Average({ averagePing }),
+        Current({ currentPing }),
+        Median({ medianPing })
+    }
+
+    private enum class TpsType(val value: () -> Float) {
+        Average({ averageTps }),
+        Current({ currentTps })
+    }
 
     fun reopen() {
         mc.setScreen(null)
