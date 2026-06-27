@@ -52,7 +52,6 @@ object LeapMenu : Module(
     private val botRight by keybind("Bottom right", CatKeys.KEY_4, desc = "Leaps to the fourth person in the menu.").excluding(CatKeys.KEY_E)
 
     init {
-
         command.sub("order") { p1: String?, p2: String?, p3: String?, p4: String? ->
             val players = listOf(p1, p2, p3, p4).map { it?.lowercase() ?: "_" }
             if (players.all { it == "_" }) {

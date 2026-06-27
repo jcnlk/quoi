@@ -30,7 +30,6 @@ import quoi.utils.render.DrawContextUtils.drawPlayerHead
 import quoi.utils.render.DrawContextUtils.drawText
 import quoi.utils.render.DrawContextUtils.rect
 import quoi.utils.render.DrawContextUtils.withMatrix
-import quoi.utils.ui.rendering.NVGRenderer.createImage
 import quoi.utils.ui.rendering.NVGRenderer.image
 import java.util.*
 import quoi.module.impl.mining.CrystalHollowsScanner.enabled as chScanner
@@ -117,7 +116,6 @@ object CrystalHollowsMap : Module(
     }
 
     private fun GuiGraphics.renderMap() {
-
         drawImage(MAP_IMAGE, 0, 0, MAP_SIZE, MAP_SIZE)
 
         if (drawChunks) {

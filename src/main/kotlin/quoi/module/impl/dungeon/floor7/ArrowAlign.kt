@@ -1,4 +1,4 @@
-package quoi.module.impl.dungeon
+package quoi.module.impl.dungeon.floor7
 
 import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ServerboundInteractPacket
