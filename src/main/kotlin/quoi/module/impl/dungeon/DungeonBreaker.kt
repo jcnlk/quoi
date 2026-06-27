@@ -11,12 +11,11 @@ import net.minecraft.world.phys.Vec3
 import quoi.api.colour.Colour
 import quoi.api.colour.withAlpha
 import quoi.api.events.*
-import quoi.api.input.CatKeys
 import quoi.api.events.core.on
+import quoi.api.input.CatKeys
 import quoi.api.skyblock.Island
 import quoi.api.skyblock.dungeon.Dungeon.floor
 import quoi.api.skyblock.dungeon.Dungeon.inBoss
-import quoi.api.skyblock.dungeon.Dungeon.inDungeons
 import quoi.api.skyblock.dungeon.Dungeon.isProtectedBlock
 import quoi.config.configList
 import quoi.module.Module
@@ -28,13 +27,13 @@ import quoi.utils.WorldUtils.state
 import quoi.utils.aabb
 import quoi.utils.isWithinFov
 import quoi.utils.minFovDot
-import quoi.utils.skyblock.player.PlayerUtils.eyePosition
 import quoi.utils.render.drawFilledBox
 import quoi.utils.render.drawWireFrameBox
 import quoi.utils.skyblock.item.ItemUtils.getBreakerCharges
-import quoi.utils.skyblock.player.interact.AuraManager
 import quoi.utils.skyblock.player.PlayerUtils
+import quoi.utils.skyblock.player.PlayerUtils.eyePosition
 import quoi.utils.skyblock.player.SwapManager
+import quoi.utils.skyblock.player.interact.AuraManager
 import quoi.utils.ui.textPair
 
 /*
