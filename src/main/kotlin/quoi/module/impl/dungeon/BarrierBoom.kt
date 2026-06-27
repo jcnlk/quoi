@@ -1,7 +1,6 @@
 package quoi.module.impl.dungeon
 
 import quoi.api.events.core.on
-
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.BlockHitResult
@@ -37,7 +36,7 @@ object BarrierBoom : Module( // todo move to triggerbot module
                     val swap = SwapManager.swapById("INFINITE_SUPERBOOM_TNT", "SUPERBOOM_TNT")
 
                     if (swap == SwapResult.SUCCESS || swap == SwapResult.ALREADY_SELECTED) {
-                        mc.gameMode?.startDestroyBlock(result.blockPos, result.direction)
+                        gameMode.startDestroyBlock(result.blockPos, result.direction)
                         player.swing(InteractionHand.MAIN_HAND)
                         hasClickedBarrier = true
                     }
