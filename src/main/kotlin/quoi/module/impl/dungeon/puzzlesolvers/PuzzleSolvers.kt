@@ -6,6 +6,7 @@ import quoi.api.skyblock.Island
 import quoi.api.skyblock.invoke
 import quoi.config.ConfigSystem.gson
 import quoi.module.Module
+import quoi.module.impl.dungeon.puzzlesolvers.impl.Boulder
 import quoi.module.impl.dungeon.puzzlesolvers.impl.CreeperBeams
 import quoi.module.impl.dungeon.puzzlesolvers.impl.Blaze
 import quoi.module.impl.dungeon.puzzlesolvers.impl.IceFill
@@ -36,7 +37,7 @@ object PuzzleSolvers : Module(
         CreeperBeams,
         Blaze,
         IcePath,
-        BoulderSolver
+        Boulder
     )
 
     private val bowDropdown by text("Bow settings").visibleIf { CreeperBeams.auto || Blaze.auto || IcePath.auto }

@@ -9,7 +9,6 @@ import quoi.api.events.AreaEvent
 import quoi.api.events.core.Priority
 import quoi.api.events.core.on
 import quoi.api.skyblock.Island
-import quoi.api.skyblock.dungeon.Dungeon.inDungeons
 import quoi.api.skyblock.dungeon.P3Section
 import quoi.module.Module
 import quoi.utils.Scheduler.scheduleTask

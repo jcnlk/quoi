@@ -41,7 +41,6 @@ object SimonSays : Module(
     desc = "Automatically completes Simon says device.",
     area = Island.Dungeon(7)
 ) {
-
     private val solver by switch("Solver")
     private val firstCol by colourPicker("First colour", Colour.GREEN.withAlpha(0.5f), allowAlpha = true).childOf(::solver)
     private val secondCol by colourPicker("Second colour", Colour.YELLOW.withAlpha(0.5f), allowAlpha = true).childOf(::solver)

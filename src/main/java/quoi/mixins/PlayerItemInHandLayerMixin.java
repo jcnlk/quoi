@@ -5,7 +5,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.layers.PlayerItemInHandLayer;
 import net.minecraft.client.renderer.entity.state.AvatarRenderState;
-import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.Avatar;
 import net.minecraft.world.item.ItemStack;

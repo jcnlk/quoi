@@ -1,7 +1,6 @@
 package quoi.module.impl.dungeon
 
 import quoi.api.events.core.on
-
 import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket
 import net.minecraft.network.protocol.game.ClientboundSectionBlocksUpdatePacket

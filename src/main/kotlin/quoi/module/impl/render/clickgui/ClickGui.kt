@@ -185,8 +185,7 @@ object ClickGui : Module(
             row(at(x = Centre), gap = 10.px) {
                 mapOf(
                     "Hud editor" to { open(HudManager.editor(fromMain = true)) },
-                    "Discord" to { Util.getPlatform().openUri(URI("https://discord.com/invite/QCWgrQ57pN")) },
-                    "Fork" to { Util.getPlatform().openUri(URI("https://github.com/jcnlk/quoi")) }
+                    "Discord" to { Util.getPlatform().openUri(URI("https://discord.com/invite/QCWgrQ57pN")) }
                 ).forEach { (text, block) ->
                     block(
                         size(w = 105.px, h = 40.px),
