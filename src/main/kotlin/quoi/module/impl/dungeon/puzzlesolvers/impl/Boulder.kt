@@ -1,4 +1,4 @@
-package quoi.module.impl.dungeon.puzzlesolvers
+package quoi.module.impl.dungeon.puzzlesolvers.impl
 
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
@@ -17,6 +17,7 @@ import quoi.api.events.core.Event
 import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.odonscanning.tiles.OdonRoom
+import quoi.module.impl.dungeon.puzzlesolvers.PuzzleSolvers
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.module.settings.group.SettingGroup
 import quoi.utils.WorldUtils.state
@@ -29,7 +30,7 @@ import java.nio.charset.StandardCharsets
  * copyright (c) 2025-2026 odtheking
  * original: https://github.com/odtheking/Odin/blob/main/src/main/kotlin/com/odtheking/odin/features/impl/dungeon/puzzlesolvers/BoulderSolver.kt
  */
-object BoulderSolver : SettingGroup(PuzzleSolvers, "Boulder") {
+object Boulder : SettingGroup(PuzzleSolvers, "Boulder") {
     private val solver by switch("Solver", desc = "Shows the solution for the boulder puzzle.")
     private val showAll by switch("Show all clicks", desc = "Shows all clicks instead of only the next click.").childOf(::solver)
     private val style by selector("Style", "Box", arrayListOf("Box", "Filled box", "Filled"), desc = "Render style to be used.").childOf(::solver)

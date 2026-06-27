@@ -1,6 +1,5 @@
 package quoi.mixins;
 
-import quoi.api.events.RenderEvent;
 import quoi.module.impl.misc.ChatReplacements;
 import quoi.module.impl.player.PlayerDisplay;
 import quoi.module.impl.player.PlayerDisplay.HudType;

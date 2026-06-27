@@ -22,7 +22,6 @@ object TerminalAura : Module(
     desc = "Automatically opens terminals.",
     area = Island.Dungeon(7, inBoss = true)
 ) {
-
     private val auraDistance by slider("Distance", 4.0, 0.0, 4.0, 0.1)
     private val auraDelay by slider("Delay", 750, 0, 2000, 50)
     private val auraFov by slider("Aura FOV", 360, 10, 360, 1, unit = "°")
@@ -33,7 +32,6 @@ object TerminalAura : Module(
     private var lastClick = 0L
 
     init {
-
         on<TickEvent.Start> {
             if (!Dungeon.inP3 || Dungeon.inTerminal || Dungeon.isDead || mc.gui.screen() != null) return@on
             if (System.currentTimeMillis() - lastClick < auraDelay) return@on

@@ -117,7 +117,6 @@ object CrystalHollowsMap : Module(
     }
 
     private fun GuiGraphicsExtractor.renderMap() {
-
         drawImage(MAP_IMAGE, 0, 0, MAP_SIZE, MAP_SIZE)
 
         if (drawChunks) {
