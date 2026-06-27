@@ -283,11 +283,15 @@ object ContainerUtils : EventListener {
     }
 
     /**
-     * Clicks [slot] and waits for the server to reopen [containerName].
+     * Clicks [slot] and waits for the server to reopen [containerName]. When
+     * [closeBeforeReopen] is enabled, the current container is closed directly
+     * after the click.
      *
      * This is useful for menus that rebuild after a click, such as Hypixel's
-     * `/eq` menu. The matching reopen packet is cancelled client-side by
-     * default while [containerId] and the click state continue to be tracked.
+     * `/eq` menu. Closing immediately avoids leaving the old menu open while
+     * waiting for the rebuild. The matching reopen packet is cancelled
+     * client-side by default while [containerId] and the click state continue
+     * to be tracked.
      *
      * @return `true` when the click was sent and the expected container reopened;
      * `false` when the click cannot be sent or the reopen times out.
@@ -299,6 +303,8 @@ object ContainerUtils : EventListener {
         button: Int = 0,
         shift: Boolean = false,
         cancelReopen: Boolean = true,
+        closeBeforeReopen: Boolean = true,
+        onClickSent: (() -> Unit)? = null,
     ): Boolean = suspendCoroutine { continuation ->
         val complete = AtomicBoolean()
         val openSub = until<PacketEvent.Received>(Priority.LOWEST) {
@@ -311,7 +317,16 @@ object ContainerUtils : EventListener {
             true
         }
 
-        if (!click(slot, button, shift)) {
+        val clickSent = click(slot, button, shift, afterClick = {
+            if (closeBeforeReopen) {
+                val clickedContainerId = containerId
+                if (clickedContainerId != -1) {
+                    mc.connection?.send(ServerboundContainerClosePacket(clickedContainerId))
+                }
+            }
+            onClickSent?.invoke()
+        })
+        if (!clickSent) {
             if (complete.compareAndSet(false, true)) {
                 openSub.unregister()
                 continuation.resume(false)
