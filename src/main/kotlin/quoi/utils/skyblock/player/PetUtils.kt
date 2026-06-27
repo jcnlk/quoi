@@ -18,6 +18,7 @@ import quoi.api.events.WorldEvent
 import quoi.api.events.core.on
 import quoi.module.impl.misc.PetKeybinds.petMap
 import quoi.utils.ChatUtils.modMessage
+import quoi.utils.Scheduler.scheduleTask
 import quoi.utils.Scheduler.wait
 import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.skyblock.item.ItemUtils.lore
@@ -139,7 +140,7 @@ object PetUtils : EventListener {
                 PetSwitchResult.alreadyEquipped(petLabel(name, item))
             }
 
-            pet.isSummonablePet() && ContainerUtils.click(slot, afterClick = ::stopInputBlock) -> PetSwitchResult.success(petLabel(name, item))
+            pet.isSummonablePet() && ContainerUtils.click(slot, afterClick = { scheduleTask(1, server = true) { stopInputBlock() } }) -> PetSwitchResult.success(petLabel(name, item))
             pet.isSummonablePet() -> {
                 closePetMenu()
                 PetSwitchResult.failure("Failed to click ${petLabel(name, item)}")
