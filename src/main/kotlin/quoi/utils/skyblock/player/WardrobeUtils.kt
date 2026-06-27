@@ -20,12 +20,13 @@ import quoi.utils.ChatUtils.modMessage
 import quoi.utils.Scheduler.scheduleTask
 import quoi.utils.Scheduler.wait
 import quoi.utils.StringUtils.noControlCodes
-import quoi.utils.skyblock.player.ContainerUtils.click
+import quoi.utils.skyblock.player.ContainerUtils.clickAndAwaitContainerReopen
 import quoi.utils.skyblock.player.ContainerUtils.containerId
 import quoi.utils.skyblock.player.ContainerUtils.closeContainer
 import quoi.utils.skyblock.player.ContainerUtils.getContainerItems
 import quoi.utils.skyblock.player.MovementUtils.stop
 import java.util.*
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -92,11 +93,18 @@ object WardrobeUtils : EventListener {
                 val request = queue.removeFirst()
                 currentSlot = request.slot
                 preventMoveCurrent = request.preventMove
+                val menuClosed = AtomicBoolean()
+                val onMenuClosed = {
+                    if (menuClosed.compareAndSet(false, true)) {
+                        preventMoveCurrent = false
+                        request.onMenuClose?.invoke()
+                    }
+                }
 
                 val result = try {
-                    equipNow(request.slot, request.disableUnequip, request.onMenuOpen)
+                    equipNow(request.slot, request.disableUnequip, request.onMenuOpen, onMenuClosed)
                 } finally {
-                    request.onMenuClose?.invoke()
+                    onMenuClosed()
                 }
                 modMessage(result.chatMessage)
                 wait(2)
@@ -106,7 +114,12 @@ object WardrobeUtils : EventListener {
         }
     }
 
-    private suspend fun equipNow(slot: Int, disableUnequip: Boolean, onMenuOpen: (() -> Unit)?): EquipResult {
+    private suspend fun equipNow(
+        slot: Int,
+        disableUnequip: Boolean,
+        onMenuOpen: (() -> Unit)?,
+        onMenuClosed: () -> Unit,
+    ): EquipResult {
         val targetSlot = slot + 35
         val items = getContainerItems("wardrobe", "Wardrobe (1/3)", onMenuOpen = onMenuOpen)
         if (items.isEmpty()) {
@@ -150,12 +163,11 @@ object WardrobeUtils : EventListener {
             }
         }
 
-        if (!click(targetSlot)) {
+        if (!clickAndAwaitContainerReopen(targetSlot, "Wardrobe (1/3)", onClickSent = onMenuClosed)) {
             closeContainer()
             return EquipResult.failure("Failed to click wardrobe slot $slot.")
         }
 
-        wait(2)
         closeContainer()
         return EquipResult.success(slot)
     }
