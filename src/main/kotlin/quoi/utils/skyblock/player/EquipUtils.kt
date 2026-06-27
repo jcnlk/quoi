@@ -123,9 +123,16 @@ object EquipUtils : EventListener {
             ).isEmpty()) return EquipResult(success = false)
 
             val equippedNames = mutableListOf<String>()
-            for (target in targets) {
+            for ((index, target) in targets.withIndex()) {
                 val menuSlot = target.inventorySlot.toEquipmentMenuSlot()
-                if (!ContainerUtils.clickAndAwaitContainerReopen(menuSlot, MENU_TITLE, shift = true)) {
+                if (!ContainerUtils.clickAndAwaitContainerReopen(
+                        menuSlot,
+                        MENU_TITLE,
+                        shift = true,
+                        closeBeforeReopen = index == targets.lastIndex,
+                        onClickSent = if (index == targets.lastIndex) ::stopInputBlock else null,
+                    )
+                ) {
                     return EquipResult(success = false, equippedNames)
                 }
                 equippedNames += target.displayName

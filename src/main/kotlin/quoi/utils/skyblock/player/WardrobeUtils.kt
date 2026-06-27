@@ -26,6 +26,7 @@ import quoi.utils.skyblock.player.ContainerUtils.closeContainer
 import quoi.utils.skyblock.player.ContainerUtils.getContainerItems
 import quoi.utils.skyblock.player.MovementUtils.stop
 import java.util.*
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -94,11 +95,18 @@ object WardrobeUtils : EventListener {
                 val request = queue.removeFirst()
                 currentSlot = request.slot
                 preventMoveCurrent = request.preventMove
+                val menuClosed = AtomicBoolean()
+                val onMenuClosed = {
+                    if (menuClosed.compareAndSet(false, true)) {
+                        preventMoveCurrent = false
+                        request.onMenuClose?.invoke()
+                    }
+                }
 
                 val result = try {
-                    equipNow(request.slot, request.disableUnequip, request.onMenuOpen)
+                    equipNow(request.slot, request.disableUnequip, request.onMenuOpen, onMenuClosed)
                 } finally {
-                    request.onMenuClose?.invoke()
+                    onMenuClosed()
                 }
                 modMessage(result.chatMessage)
                 wait(2)
@@ -108,7 +116,12 @@ object WardrobeUtils : EventListener {
         }
     }
 
-    private suspend fun equipNow(slot: Int, disableUnequip: Boolean, onMenuOpen: (() -> Unit)?): EquipResult {
+    private suspend fun equipNow(
+        slot: Int,
+        disableUnequip: Boolean,
+        onMenuOpen: (() -> Unit)?,
+        onMenuClosed: () -> Unit,
+    ): EquipResult {
         val targetSlot = slot + 35
         val items = getContainerItems("wardrobe", MENU_TITLE, onMenuOpen = onMenuOpen)
         if (items.isEmpty()) {
@@ -152,7 +165,7 @@ object WardrobeUtils : EventListener {
             }
         }
 
-        if (!clickAndAwaitContainerReopen(targetSlot, MENU_TITLE)) {
+        if (!clickAndAwaitContainerReopen(targetSlot, MENU_TITLE, onClickSent = onMenuClosed)) {
             closeContainer()
             return EquipResult.failure("Failed to click wardrobe slot $slot.")
         }
