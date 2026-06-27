@@ -17,11 +17,6 @@ import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.utils.render.drawFilledBox
 import quoi.utils.render.drawWireFrameBox
 
-/**
- * TODO:
- *  rework active logic (temp fix for now)
- */
-
 // Kyleen
 object NecronPlatformHighlight : Module( // todo rename maybe question mark
     "Necron Platform Highlight",

@@ -2,7 +2,6 @@ package quoi.module.impl.dungeon
 
 import quoi.api.colour.Colour
 import quoi.api.skyblock.Island
-import quoi.api.skyblock.dungeon.Dungeon.inClear
 import quoi.api.skyblock.dungeon.odonscanning.MapRenderer.MapConfig
 import quoi.api.skyblock.dungeon.odonscanning.MapRenderer.renderMap
 import quoi.api.skyblock.invoke

@@ -13,7 +13,6 @@ import quoi.module.impl.dungeon.puzzlesolvers.PuzzleSolvers
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.module.settings.group.SettingGroup
 import quoi.utils.EntityUtils.getEntities
-import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.StringUtils.startsWithOneOf
 import quoi.utils.aabb
 import quoi.utils.render.drawFilledBox
