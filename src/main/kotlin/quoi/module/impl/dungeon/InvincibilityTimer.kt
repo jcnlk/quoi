@@ -25,7 +25,6 @@ object InvincibilityTimer : Module(
     private val invincibilityAnnounce by switch("Announce Invincibility", desc = "Announces when you get invincibility in party chat.")
     private val dungeonOnly by switch("Dungeons only", desc = "Active in dungeons only.")
     private val bossOnly by switch("Boss only", desc = "Active in boss room only.")
-//    private val serverTicks by BooleanSetting("Use server ticks", desc = "Uses server ticks instead of real time.")
     val mageReduction by switch("Mage reduction", desc = "Accounts for mage cooldown reduction.")
     val cataLevel by slider("Catacombs level", 0, 0, 50, desc = "Catacombs level for Bonzo's mask ability.")
 
@@ -33,8 +32,9 @@ object InvincibilityTimer : Module(
         visibleIf { inSkyblock && (!bossOnly || inBoss) && (!dungeonOnly || inDungeons || bossOnly) }
         column {
             SkyblockPlayer.InvincibilityType.entries.forEach { type ->
-                val (col, time) = type.getTime()
-                val displayTime = { time().let { if (font.name == "Minecraft" || it != "✔") it else "√" } }
+                val displayTime = {
+                    type.getTime().let { if (font.name == "Minecraft" || !it.endsWith("✔")) it else "${it.dropLast(1)}√" }
+                }
                 row(gap = 1.px) {
                     block(
                         constraints = constrain(y = Centre - 5.px, w = 10.px, h = 10.px),
@@ -51,7 +51,7 @@ object InvincibilityTimer : Module(
                             supplier = displayTime,
                             font = font,
                             size = 18.px,
-                            colour = colour { col().rgb }
+                            colour = colour
                         ).shadow = shadow
                     }
                 }
