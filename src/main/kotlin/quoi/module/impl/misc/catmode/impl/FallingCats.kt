@@ -1,107 +1,55 @@
-package quoi.module.impl.misc
+package quoi.module.impl.misc.catmode.impl
 
-import net.minecraft.network.chat.Component
-import net.minecraft.network.protocol.game.ClientboundSoundPacket
+import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.resources.Identifier
-import net.minecraft.sounds.SoundEvents
-import net.minecraft.util.FormattedCharSequence
 import quoi.api.events.GuiEvent
-import quoi.api.events.PacketEvent
 import quoi.api.events.core.on
-import quoi.module.Module
-import quoi.module.settings.UIComponent.Companion.childOf
+import quoi.module.impl.misc.catmode.CatMode
+import quoi.module.settings.group.ToggleableGroup
 import quoi.utils.rad
 import quoi.utils.render.DrawContextUtils.drawImage
 import quoi.utils.render.DrawContextUtils.withMatrix
 import kotlin.random.Random
 
-object CatMode : Module(
-    "Cat Mode",
-    desc = "MEOWMEOWMEOWMEOWMEOWMEOWMEOW"
-) {
-    private val meowSound by switch("Meowound", desc = "Meow sound everywhere")
-    private val meowText by switch("Meow meow?", desc = "Meow everywhere")
-    private val fallingCats by switch("Catocalypsis", desc = "THEY'RE EVERYWHERE")
+object FallingCats : ToggleableGroup(CatMode, "Falling cats", desc = "THEY'RE EVERYWHERE") {
     private val darken by switch("Darken", desc = "Makes the kittens darker so they don't distract you.")
-        .childOf(::fallingCats)
-    private val catTexture by selector("Type", CatTexture.Trans, desc = "Texture used for the falling cats.")
-        .childOf(::fallingCats)
+    private val catTexture by selector("Type", CatImage.Trans, desc = "Texture used for the falling cats.")
     private val catSize by slider("Size", 15, 10, 50, 1, desc = "Size of the falling cats.", unit = "px")
-        .childOf(::fallingCats)
     private val catSpeed by slider("Speed", 1.0f, 0.5f, 3.0f, 0.1f, desc = "Speed of the falling cats.")
-        .childOf(::fallingCats)
+
+    override val running: Boolean
+        get() = super.running && inGame
 
     private val renderer = FallingCatsRenderer()
 
     init {
         on<GuiEvent.DrawPost> {
-            if (!fallingCats || mc.level == null) return@on
             renderer.draw(ctx, screen.width, screen.height, catTexture.selected.path, catSize, catSpeed, darken)
         }
-
-        on<PacketEvent.Received, ClientboundSoundPacket> {
-            if (!meowSound || packet.sound == SoundEvents.CAT_AMBIENT) return@on
-
-            cancel()
-            level.playLocalSound(
-                packet.x,
-                packet.y,
-                packet.z,
-                SoundEvents.CAT_AMBIENT,
-                packet.source,
-                packet.volume,
-                packet.pitch,
-                false
-            )
-        }
     }
 
-    @JvmStatic
-    fun replaceText(text: String?): String? {
-        if (text == null || !enabled || !meowText) return text
-        return meowify(text)
-    }
+    @Suppress("unused")
+    private enum class CatImage {
+        Trans,
+        Flushed,
+        Bread,
+        Cut,
+        Toast;
 
-    @JvmStatic
-    fun replaceText(text: FormattedCharSequence): FormattedCharSequence {
-        if (!enabled || !meowText) return text
-
-        val original = buildString {
-            text.accept { _, _, codePoint ->
-                appendCodePoint(codePoint)
-                true
-            }
-        }
-        val replaced = meowify(original)
-        return if (replaced == original) text else Component.literal(replaced).visualOrderText
-    }
-
-    private fun meowify(text: String): String {
-        if (text.isBlank()) return text
-
-        val words = "\\S+".toRegex().findAll(text).count()
-        return if (words == 0) text else List(words) { "meow" }.joinToString(" ")
-    }
-
-    private enum class CatTexture(val path: Identifier) {
-        Trans(Identifier.parse("quoi:ui/fallingkittens/trans.png")),
-        Flushed(Identifier.parse("quoi:ui/fallingkittens/flushed.png")),
-        Bread(Identifier.parse("quoi:ui/fallingkittens/bread.png")),
-        Cut(Identifier.parse("quoi:ui/fallingkittens/cut.png")),
-        Toast(Identifier.parse("quoi:ui/fallingkittens/toast.png")),
+        val path = Identifier.parse("quoi:ui/fallingkittens/${name.lowercase()}.png")
     }
 
     private class FallingCatsRenderer {
         private val kittens = List(150) { Kitten() }
 
         fun draw(
-            ctx: net.minecraft.client.gui.GuiGraphics,
+            ctx: GuiGraphics,
             width: Int,
             height: Int,
             texture: Identifier,
             size: Int,
             speedMultiplier: Float,
-            darken: Boolean
+            darken: Boolean,
         ) {
             if (width <= 0 || height <= 0) return
             kittens.forEach {
@@ -145,10 +93,10 @@ object CatMode : Module(
         }
 
         fun draw(
-            ctx: net.minecraft.client.gui.GuiGraphics,
+            ctx: GuiGraphics,
             texture: Identifier,
             size: Int,
-            darken: Boolean
+            darken: Boolean,
         ) {
             val offset = size / 2f
 
