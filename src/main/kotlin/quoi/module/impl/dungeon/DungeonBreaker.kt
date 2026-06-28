@@ -46,6 +46,7 @@ object DungeonBreaker : Module(
     "Dungeon Breaker",
     area = Island.Dungeon
 ) {
+    @Suppress("unused")
     private val chargesHud by textHud("Charges display") {
         visibleIf { getBreakerCharges(player.mainHandItem) > 0 }
         textPair(
