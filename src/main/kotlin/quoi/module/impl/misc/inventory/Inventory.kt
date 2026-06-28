@@ -1,9 +1,22 @@
-package quoi.module.impl.misc
+package quoi.module.impl.misc.inventory
 
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.world.entity.LivingEntity
 import quoi.api.abobaui.constraints.impl.size.Fill
-import quoi.api.abobaui.dsl.*
+import quoi.api.abobaui.dsl.alignOpposite
+import quoi.api.abobaui.dsl.at
+import quoi.api.abobaui.dsl.constrain
+import quoi.api.abobaui.dsl.focused
+import quoi.api.abobaui.dsl.inset
+import quoi.api.abobaui.dsl.minus
+import quoi.api.abobaui.dsl.onFocusChanged
+import quoi.api.abobaui.dsl.outlineBlock
+import quoi.api.abobaui.dsl.percent
+import quoi.api.abobaui.dsl.px
+import quoi.api.abobaui.dsl.radius
+import quoi.api.abobaui.dsl.size
+import quoi.api.abobaui.dsl.toggle
+import quoi.api.abobaui.dsl.withScale
 import quoi.api.abobaui.elements.Element
 import quoi.api.abobaui.elements.Layout.Companion.divider
 import quoi.api.abobaui.elements.impl.Block.Companion.outline
@@ -11,7 +24,11 @@ import quoi.api.abobaui.elements.impl.Text.Companion.shadow
 import quoi.api.abobaui.elements.impl.Text.Companion.string
 import quoi.api.abobaui.elements.impl.TextInput.Companion.maxWidth
 import quoi.api.abobaui.elements.impl.TextInput.Companion.onTextChanged
-import quoi.api.colour.*
+import quoi.api.colour.Colour
+import quoi.api.colour.colour
+import quoi.api.colour.multiply
+import quoi.api.colour.toHSB
+import quoi.api.colour.withAlpha
 import quoi.api.events.GuiEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.core.Priority
@@ -34,6 +51,7 @@ object Inventory : Module(
     "Inventory",
     desc = "Various quality of life features for inventory GUIs"
 ) {
+
     private val bgColour by colourPicker("Background colour", Colour.GREY.withAlpha(100), allowAlpha = true)
     private val outlineColour by colourPicker("Outline colour", Colour.GREY.withAlpha(150), allowAlpha = true)
     private val nameColour by colourPicker("Name match", Colour.WHITE.withAlpha(200), allowAlpha = true)
@@ -90,6 +108,7 @@ object Inventory : Module(
         }
     }.container().withSettings(::bgColour, ::outlineColour, ::nameColour, ::loreColour).setting()
 
+
     private val playerModel by switch("Player model")
 
     private val inventoryHud by resizableHud("Inventory", colour = Colour.RGB(139, 139, 139).withAlpha(155), outline = Colour.RGB(250, 250, 250).withAlpha(155)) {
@@ -118,7 +137,7 @@ object Inventory : Module(
                                             if (stack.isEmpty) return
                                             withScale {
                                                 ctx.pose().scale(2f, 2f)
-                                                ctx.renderItem(stack, 2, 2)
+                                                ctx.item(stack, 2, 2)
                                                 if (stack.count > 1) {
                                                     val t = stack.count.toString()
                                                     ctx.drawText(t, 20 - t.width(), 20 - mc.font.lineHeight)
@@ -166,10 +185,10 @@ object Inventory : Module(
             if (mc.screen !is AbstractContainerScreen<*> || !searchBar.enabled || searchText.isEmpty()) return@on
             highlightSlots.clear()
 
-            val queries = searchText.split(",").map(::normaliseSearchText).filter(String::isNotEmpty)
+            val queries = searchText.lowercase().split(",").map { it.trim() }
             player.containerMenu.items.forEachIndexed { i, stack ->
-                val name = normaliseSearchText(stack.hoverName.string)
-                val lore = normaliseSearchText(stack.loreString)
+                val name = stack.customName?.string?.lowercase()?.trim().orEmpty()
+                val lore = stack.loreString?.lowercase()?.trim().orEmpty()
                 if (name.isEmpty() && lore.isEmpty()) return@forEachIndexed
                 queries.forEach {
                     matchType(name, lore, it)?.let { lore ->
@@ -190,13 +209,11 @@ object Inventory : Module(
     }
 
     private fun matchType(name: String, lore: String, string: String) = when {
-        string.isEmpty() -> null
-        name.contains(string) -> false
-        lore.contains(string) -> true
+        name.isEmpty() || lore.isEmpty() || string.isEmpty() -> null
+        name.contains(string, true) -> false
+        lore.contains(string, true) -> true
         else -> null
     }
-
-    private fun normaliseSearchText(string: String?) = string.noControlCodes.lowercase().trim()
 
     private fun calculate(string: String): Double? {
         var s = string.replace(",", "")
@@ -204,6 +221,7 @@ object Inventory : Module(
         Regex("""\(([^()]+)\)""").find(s)?.let {
             return calculate(s.replaceRange(it.range, calculate(it.groupValues[1]).toString()))
         }
+
 
         listOf("\\^", "[*x/%]", "[+\\-]").forEach { operators ->
             val eqRegex = Regex("""([\d.]+)\s*($operators)\s*([\d.]+)""")
@@ -219,6 +237,7 @@ object Inventory : Module(
 
         return s.toDoubleOrNull()
     }
+
 
     data class HighlightSlot(var slot: Int, val colour: Colour)
 }

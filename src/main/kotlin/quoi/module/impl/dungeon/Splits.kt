@@ -33,6 +33,7 @@ object Splits : Module( // todo section split info hud, task (terms, levers, dev
 
     private lateinit var refreshable: RefreshableGroup
 
+    @Suppress("unused")
     private val hud by textHud("Splits hud", toggleable = false) {
         refreshable = refreshableGroup(bounds()) {
 
