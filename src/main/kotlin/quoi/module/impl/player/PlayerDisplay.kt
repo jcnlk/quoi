@@ -55,6 +55,7 @@ object PlayerDisplay : Module(
         previewText = { "1,200/10,900" }
     ).childOf(::healthDropdown)
 
+    @Suppress("unused")
     private val healthBar by bar(
         name = "Bar",
         defaultColour = Colour.MINECRAFT_RED,
@@ -62,6 +63,7 @@ object PlayerDisplay : Module(
         max = { SkyblockPlayer.maxHealth }
     ).json("Health bar").childOf(::healthDropdown)
 
+    @Suppress("unused")
     private val effectiveHealth by text(
         name = "Effective",
         defaultColour = Colour.MINECRAFT_DARK_GREEN,
@@ -78,6 +80,7 @@ object PlayerDisplay : Module(
         previewText = { "1,300/10,900" }
     ).childOf(::manaDropdown)
 
+    @Suppress("unused")
     private val manaBar by bar(
         name = "Bar",
         defaultColour = Colour.MINECRAFT_BLUE,
@@ -110,6 +113,7 @@ object PlayerDisplay : Module(
     ).childOf(::otherDropdown)
 
     private val speedPercent by switch("Render speed as a percentage").childOf(::otherDropdown)
+    @Suppress("unused")
     private val speed by text(
         name = "Speed",
         text = { if (speedPercent) "${SkyblockPlayer.speed}%" else "✦${SkyblockPlayer.speed}" },
