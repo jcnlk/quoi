@@ -173,7 +173,7 @@ object ContainerUtils : EventListener {
         onMenuOpen: (() -> Unit)? = null,
     ): List<ItemStack?> = getContainerItems(
         command,
-        Regex(Regex.escape(containerName)),
+        Regex(Regex.escape(containerName), RegexOption.IGNORE_CASE),
         slots,
         timeout,
         onMenuOpen,
@@ -195,17 +195,15 @@ object ContainerUtils : EventListener {
 
         ChatUtils.command(command)
 
-        val openSub = until<PacketEvent.Received> (Priority.LOWEST) {
-            if (packet !is ClientboundOpenScreenPacket) return@until false
-            if (!containerName.matches(packet.title.string)) return@until false
+        val openSub = until<PacketEvent.Received, ClientboundOpenScreenPacket> (Priority.LOWEST) {
+            if (!containerName.containsMatchIn(packet.title.string)) return@until false
             windowId = packet.containerId
             onMenuOpen?.invoke()
             cancel()
             true
         }
 
-        val setSlotSub = until<PacketEvent.Received> (Priority.LOWEST) {
-            if (packet !is ClientboundContainerSetSlotPacket) return@until false
+        val setSlotSub = until<PacketEvent.Received, ClientboundContainerSetSlotPacket> (Priority.LOWEST) {
             if (packet.containerId != windowId) return@until false
             val slot = packet.slot
             if (slot !in 0..<slots) return@until false
