@@ -11,7 +11,6 @@ import quoi.api.commands.parsers.arg
 import quoi.api.events.AreaEvent
 import quoi.api.events.core.on
 import quoi.api.skyblock.Island
-import quoi.api.skyblock.Location.currentArea
 import quoi.api.skyblock.Location.currentServer
 import quoi.config.Config
 import quoi.config.configList
@@ -44,6 +43,7 @@ object GrieferTracker : Module(
     private val griefedPlayers by configList<GriefedPlayer>("griefed_players.json")
     private val dontGrief by ListSetting("Do not grief", mutableListOf("Morph213", "UgduBugdu", "ShortNotice"))
 
+    @Suppress("unused")
     private val hud by textHud("Tracker hud", toggleable = false) {
         column {
             stupid.forEach { (text, supplier) ->

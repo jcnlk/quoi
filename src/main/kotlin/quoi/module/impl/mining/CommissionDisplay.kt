@@ -1,7 +1,6 @@
 package quoi.module.impl.mining
 
 import quoi.api.events.core.on
-
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.world.entity.player.Inventory
 import net.minecraft.world.item.ItemStack
@@ -52,6 +51,7 @@ object CommissionDisplay : Module(
     private val doneCommissionColour by colourPicker("Done commission colour", Colour.GREEN.withAlpha(90), allowAlpha = true)
         .visibleIf { highlightDoneCommissions }
 
+    @Suppress("unused")
     private val hud by textHud("Commision Display", font = TextHud.HudFont.Minecraft, toggleable = false) {
         visibleIf { this@CommissionDisplay.enabled && inCommissionArea() }
 

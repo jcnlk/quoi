@@ -17,6 +17,7 @@ object DungeonMap : Module(
 ) {
 //    private val renderHidden by switch("Render hidden rooms")
 
+    @Suppress("unused")
     private val for_speds by text(
         """
             &c! &rTHIS MODULE IS NOT FINISHED &c!
@@ -65,6 +66,7 @@ object DungeonMap : Module(
     val whenLeap by switch("Only when leap").childOf(::showNames)
     val nameScale by slider("Name scale", 0.8f, 0.1f, 3.0f, 0.1f).childOf(::showNames)
 
+    @Suppress("unused")
     private val map by hud("Dungeon map", toggleable = false) {
         renderMap(config = MapConfig(font = font.selected.get()))
     }.withSettings(

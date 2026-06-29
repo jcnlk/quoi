@@ -36,6 +36,7 @@ object AutoInvincibility : Module(
     private val bossOnly by switch("Boss only", desc = "Only triggers while being in boss room.")
     private val p3Only by switch("Phase 3 only", desc = "Only triggers during phase 3.")
     private val blockInputs by switch("Block inputs", desc = "Blocks keyboard and mouse input while equipping masks or swapping through the pet menu. Does not affect Rod Swap.")
+    @Suppress("unused")
     private val hud by textHud("Swap hud") {
         visibleIf { this@AutoInvincibility.enabled && (preview || swapHudText != null) }
         column {
