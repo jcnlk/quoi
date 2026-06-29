@@ -113,6 +113,7 @@ object AutoLeap : Module(
     private val p5Class by selector("Target", DungeonClass.Unknown).json("P5 leap class").childOf(::p5Leap) { p5Leap && leapMode.selected == "Class" }
     private val relicClass by selector("Target", DungeonClass.Unknown).json("Relic leap class").childOf(::relicLeap) { relicLeap && leapMode.selected == "Class" }
 
+    @Suppress("unused")
     private val hud by textHud("Leap hud", Colour.WHITE, font = TextHud.HudFont.Minecraft) {
         visibleIf { this@AutoLeap.enabled && (preview || leapHudText != null) }
         dynamicTextSupplied(

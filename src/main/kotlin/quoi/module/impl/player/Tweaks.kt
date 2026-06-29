@@ -2,10 +2,9 @@ package quoi.module.impl.player
 
 import quoi.api.events.TickEvent
 import quoi.api.events.core.on
-import quoi.api.skyblock.Location.inSkyblock
-import quoi.api.skyblock.Location.onModernIsland
 import quoi.api.skyblock.Island
 import quoi.api.skyblock.Location.currentArea
+import quoi.api.skyblock.Location.inSkyblock
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf
 

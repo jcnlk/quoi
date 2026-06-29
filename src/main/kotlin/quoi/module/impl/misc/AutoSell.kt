@@ -22,6 +22,11 @@ import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.skyblock.item.ItemUtils.extraAttributes
 import quoi.utils.skyblock.item.ItemUtils.lore
 
+/**
+ * TODO:
+ *  fix some items not working
+ */
+
 object AutoSell : Module(
     "Auto Sell",
     desc = "Automatically sell items in trades and cookie menus. (/quoi autosell)"
@@ -31,6 +36,7 @@ object AutoSell : Module(
     private val randomization by slider("Randomization", 1, 0, 5, 1, desc = "Random delay variance", unit = " ticks")
     private val clickType by selector("Click Type", "Shift", listOf("Shift", "Middle", "Left"), desc = "The type of click to use when selling items.")
     private val inventoryToggleKey by keybind("Toggle hovered item", CatKeys.KEY_NONE, desc = "Adds or removes the hovered item from the auto sell list while an inventory is open.")
+    @Suppress("unused")
     private val addDefaults by button("Add defaults", desc = "Add default dungeon items to the auto sell list.") {
         sellList.addAll(defaultItems)
         modMessage("&aAdded default items to auto sell list")
