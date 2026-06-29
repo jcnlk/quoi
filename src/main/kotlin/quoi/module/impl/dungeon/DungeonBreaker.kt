@@ -80,6 +80,7 @@ object DungeonBreaker : Module(
     private val blockDepth by switch("Block depth check", true, desc = "Renders block highlights with depth check.").childOf(::highlightBlocks)
     private val dbBlocks by configList<BlockPos>("dungeonbreaker_blocks.json")
 
+    @Suppress("unused")
     private val toggleBlock by keybind("Toggle block", CatKeys.KEY_NONE, desc = "Adds or removes the block you are currently looking at.")
         .onPress {
             if (!enabled || !inBoss || floor?.floorNumber != 7) return@onPress
@@ -87,6 +88,7 @@ object DungeonBreaker : Module(
             toggleLookedBlock()
         }
 
+    @Suppress("unused")
     private val clearBlocks by button("Clear blocks", desc = "Clears all dungeon breaker blocks.") {
         clearDbBlocks()
     }

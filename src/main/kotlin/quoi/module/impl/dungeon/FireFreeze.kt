@@ -37,6 +37,7 @@ object FireFreeze : Module(
     private val autoUse by switch("Auto use")
     private val autoReposition by switch("Auto reposition").childOf(::autoUse)
 
+    @Suppress("unused")
     private val hud by textHud("Fire freeze", Colour.WHITE) {
         visibleIf { this@FireFreeze.enabled && (preview || startedAt >= 0) }
         textSupplied(

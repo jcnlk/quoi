@@ -92,7 +92,6 @@ object TickTimers : Module(
         }
     }
 
-
     private fun formatTime(time: Int, max: Int): String {
         val col = when {
             time.toFloat() >= max * 0.66 -> "§a"

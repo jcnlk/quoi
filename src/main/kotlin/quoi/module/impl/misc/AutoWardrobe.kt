@@ -1,7 +1,6 @@
 package quoi.module.impl.misc
 
 import quoi.api.events.core.on
-
 import net.minecraft.client.KeyMapping
 import quoi.api.abobaui.dsl.px
 import quoi.api.abobaui.elements.impl.Text.Companion.shadow
@@ -33,6 +32,7 @@ object AutoWardrobe : Module(
                 .onPress { onWardrobeKey(i) }
         )
     }
+    @Suppress("unused")
     private val hud by textHud("Wardrobe hud", Colour.WHITE, font = TextHud.HudFont.Minecraft) {
         visibleIf { this@AutoWardrobe.enabled && (preview || WardrobeUtils.isBusy()) }
         column {
