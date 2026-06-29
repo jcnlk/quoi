@@ -1,7 +1,6 @@
 package quoi.module.impl.misc
 
 import quoi.api.events.core.on
-
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.math.Axis
 import net.minecraft.core.component.DataComponents
@@ -50,6 +49,7 @@ object ItemAnimations : Module(
     private val noHandSway by switch("No hand sway")
     private val noEatAnimation by switch("No eat animation")
     private val oldSkullSize by switch("1.8 skull size", desc = "Scales held skull items to their 1.8 size.")
+    @Suppress("unused")
     private val reset by button("Reset") { resetSettings() }
 
     private var swinging = false

@@ -115,6 +115,7 @@ object InfoHud : Module(
         }.add()
     }
 
+    @Suppress("unused")
     private val hudSetting by hud.withSettings(::nameColour, ::direction, ::showFps, ::showTps, ::showPing, ::showDay, ::tpsType, ::pingType).setting()
 
     private fun enabledMetrics(): List<Metric> = buildList {
@@ -130,17 +131,20 @@ object InfoHud : Module(
 
     private data class Metric(val label: String, val value: () -> Any?)
 
+    @Suppress("unused")
     private enum class Direction {
         Horizontal,
         Vertical
     }
 
+    @Suppress("unused")
     private enum class PingType(val value: () -> Double) {
         Average({ averagePing }),
         Current({ currentPing }),
         Median({ medianPing })
     }
 
+    @Suppress("unused")
     private enum class TpsType(val value: () -> Float) {
         Average({ averageTps }),
         Current({ currentTps })

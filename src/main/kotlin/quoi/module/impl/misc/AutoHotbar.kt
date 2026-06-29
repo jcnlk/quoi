@@ -56,6 +56,7 @@ object AutoHotbar : Module(
     private var swapJob: Job? = null
     private var blockingGameInput = false
 
+    @Suppress("unused")
     private val hud by textHud("Auto Hotbar HUD", Colour.WHITE, font = TextHud.HudFont.Minecraft) {
         visibleIf { this@AutoHotbar.enabled && (preview || isSwapping) }
         column {

@@ -91,6 +91,7 @@ object ClickGui : Module(
         Data
     )
 
+    @Suppress("unused")
     private val hudEditor by button("Edit HUD") {
         open(HudManager.editor(fromMain = true))
     }

@@ -1,7 +1,6 @@
 package quoi.module.impl.dungeon
 
 import quoi.api.events.core.on
-
 import quoi.api.abobaui.dsl.*
 import quoi.api.abobaui.elements.impl.Text.Companion.shadow
 import quoi.api.abobaui.elements.impl.Text.Companion.textSupplied
@@ -66,6 +65,7 @@ object AutoCroesus : Module(
     area = Island.DungeonHub
 ) {
     private val clickDelay by slider("Click delay", 500L, 50L, 1_000L, 50L, desc = "Delay between automatic clicks.", unit = "ms")
+    @Suppress("unused")
     private val profitOverlay by textHud("Auto Croesus profit", Colour.WHITE) {
         visibleIf { preview || inRunChest() }
         val data = if (preview) previewChestData else currentChestData
@@ -97,12 +97,15 @@ object AutoCroesus : Module(
     private val useKismets by switch("Use kismets", false, desc = "Rerolls configured floors when Bedrock profit is below the threshold.")
     private val kismetMinProfit by slider("Kismet min profit", 2.0, 0.0, 10.0, 0.1, desc = "Bedrock chests below this profit are rerolled.", unit = "M")
         .childOf(::useKismets)
+    @Suppress("unused")
     private val addDefaultAlwaysBuy by button("Add default always buy", desc = "Adds the original Auto Croesus always-buy defaults.") {
         addDefaults("Always buy", alwaysBuy, defaultAutoCroesusAlwaysBuy)
     }
+    @Suppress("unused")
     private val addDefaultWorthless by button("Add default worthless", desc = "Adds the original Auto Croesus worthless defaults.") {
         addDefaults("Worthless", worthless, defaultAutoCroesusWorthless)
     }
+    @Suppress("unused")
     private val startKey by keybind("Start key", CatKeys.KEY_NONE, desc = "Starts Auto Croesus.").onPress(::startFromKeybind)
     private val killSwitch by keybind("Kill switch", CatKeys.KEY_NONE, desc = "Stops the current Auto Croesus claim.")
     private val kismetFloors by multiSelect("Kismet floors", emptySet(), autoCroesusFloors, desc = "Floors where Auto Croesus may use Kismet Feathers.")

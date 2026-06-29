@@ -1,7 +1,6 @@
 package quoi.module.impl.mining
 
 import quoi.api.events.core.on
-
 import net.minecraft.core.BlockPos
 import net.minecraft.client.renderer.blockentity.BeaconRenderer
 import net.minecraft.world.entity.Entity

@@ -36,6 +36,7 @@ object WitherCloak : Module(
     private val autoBossCloak by switch("Auto boss cloak", desc = "Automatically uses Wither Cloak on the F7 boss countdown at 2.")
     private val autoDelay by slider("Delay", 3, 1, 10, 1, unit = "t").childOf(::autoBossCloak)
 
+    @Suppress("unused")
     private val hud by textHud("Wither cloak", Colour.CYAN, font = TextHud.HudFont.Minecraft, toggleable = false) {
         visibleIf { this@WitherCloak.enabled && (preview || inCloak || (timer && remainingCloakMillis() != null)) }
         group {

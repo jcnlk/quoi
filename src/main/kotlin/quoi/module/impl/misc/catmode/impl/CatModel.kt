@@ -4,6 +4,7 @@ import net.minecraft.resources.ResourceLocation
 import quoi.module.impl.misc.catmode.CatMode
 import quoi.module.settings.group.ToggleableGroup
 
+@Suppress("unused")
 object CatModel : ToggleableGroup(CatMode, "Kitty kitty") { // todo figure some day
     private val catModel by selector("Model", CatModel.Tabby)
     private val self by switch("I'm a cat")
