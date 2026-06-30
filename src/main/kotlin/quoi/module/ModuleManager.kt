@@ -86,6 +86,7 @@ object ModuleManager : EventListener {
 //            CustomTriggers,
             MirrorverseSolvers,
             AutoCarnival,
+            AutoAttune,
 
             // PLAYER
             AutoSprint,
