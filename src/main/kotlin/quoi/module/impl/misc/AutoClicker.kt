@@ -29,6 +29,7 @@ object AutoClicker: Module(
     desc = "A simple auto clicker for both left and right click. Activates when the corresponding key is being held down."
 ) {
     private val breakBlocks by switch("Allow breaking blocks", desc = "Allows the player to break blocks.").json("Break blocks")
+    private val stopOnSwap by switch("Stop on item swap", desc = "Stops clicking on item swap.")
     private val favouriteItems by switch("Whitelist only", desc = "Only click when holding a whitelisted item.").json("Favourite items only")
     private val favLeft by ListSetting("FAVOURITE_ITEMS_LEFT", mutableListOf<String>())
     private val favRight by ListSetting("FAVOURITE_ITEMS_RIGHT", mutableListOf<String>())
@@ -124,10 +125,11 @@ object AutoClicker: Module(
 
         on<TickEvent.End> {
             val currentSlot = player.inventory.selectedSlot
-            if (currentSlot != lastHeldSlot) {
+            if (lastHeldSlot == -1) lastHeldSlot = currentSlot
+            if (stopOnSwap && currentSlot != lastHeldSlot) {
                 reset()
-                lastHeldSlot = currentSlot
             }
+            lastHeldSlot = currentSlot
 
             if (mc.gui.screen() != null) {
                 reset()
