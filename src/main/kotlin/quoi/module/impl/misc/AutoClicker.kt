@@ -118,7 +118,7 @@ object AutoClicker: Module(
             val keybind = if (isLeft) leftClickKeybind else rightClickKeybind
             val mouseKey = CatKeys.MOUSE_LEFT + button
 
-            if (enabled && keybind.key == mouseKey && keybind.isModifierDown() && shouldClick(isLeft)) {
+            if (state && enabled && keybind.key == mouseKey && keybind.isModifierDown() && shouldClick(isLeft)) {
                 cancel()
             }
         }
