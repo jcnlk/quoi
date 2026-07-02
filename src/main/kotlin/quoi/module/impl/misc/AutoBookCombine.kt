@@ -7,7 +7,7 @@ import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import net.minecraft.world.item.component.CustomData
 import quoi.api.events.TickEvent
-import quoi.api.skyblock.Location
+import quoi.api.skyblock.location.Location
 import quoi.module.Module
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.skyblock.player.ContainerUtils.clickSlot

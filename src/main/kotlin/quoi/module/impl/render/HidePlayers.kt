@@ -4,8 +4,8 @@ import quoi.api.events.core.on
 
 import net.minecraft.world.entity.player.Player
 import quoi.api.events.RenderEvent
-import quoi.api.skyblock.Island
-import quoi.api.skyblock.Location
+import quoi.api.skyblock.location.Island
+import quoi.api.skyblock.location.Location
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.M7Phases
 import quoi.module.Module
