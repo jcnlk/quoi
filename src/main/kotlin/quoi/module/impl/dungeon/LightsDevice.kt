@@ -14,8 +14,8 @@ import net.minecraft.world.level.block.state.BlockState
 import quoi.api.events.PacketEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
-import quoi.api.skyblock.Island
-import quoi.api.skyblock.invoke
+import quoi.api.skyblock.location.Island
+import quoi.api.skyblock.location.invoke
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.M7Phases
 import quoi.module.Module

@@ -9,7 +9,7 @@ import quoi.api.events.DungeonEvent
 import quoi.api.events.RenderEvent
 import quoi.api.events.WorldEvent
 import quoi.api.events.core.on
-import quoi.api.skyblock.Island
+import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.dungeon.Dungeon.dungeonItemDrops
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf

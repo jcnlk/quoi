@@ -15,7 +15,7 @@ import quoi.api.events.AreaEvent
 import quoi.api.events.RenderEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
-import quoi.api.skyblock.Island
+import quoi.api.skyblock.location.Island
 import quoi.module.Module
 import quoi.module.settings.Setting.Companion.json
 import quoi.module.settings.UIComponent.Companion.childOf
