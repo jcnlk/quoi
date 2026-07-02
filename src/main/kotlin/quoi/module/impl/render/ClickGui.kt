@@ -50,8 +50,8 @@ import quoi.utils.ThemeManager.theme
 import quoi.utils.ui.elements.themedInput
 import quoi.utils.ui.hud.HudManager
 import quoi.utils.ui.onHover
-import quoi.utils.ui.rendering.NVGRenderer
-import quoi.utils.ui.rendering.NVGRenderer.defaultFont
+import quoi.utils.ui.rendering.UIRenderer
+import quoi.utils.ui.rendering.UIRenderer.defaultFont
 import quoi.utils.ui.screens.UIScreen.Companion.open
 import java.net.URI
 
@@ -339,7 +339,7 @@ object ClickGui : Module(
         modules.filter { it.category == category }.sortedWith(moduleComparator())
 
     private fun Module.renderedWidth(): Float =
-        NVGRenderer.textWidth(name, MODULE_TEXT_SIZE, defaultFont)
+        UIRenderer.textWidth(name, MODULE_TEXT_SIZE, defaultFont)
 
     private fun moduleComparator(): Comparator<Module> = when (moduleSorting.selected) {
         "Width (desc)" -> compareByDescending<Module> { it.renderedWidth() }.thenBy { it.name.lowercase() }
@@ -365,7 +365,7 @@ object ClickGui : Module(
 
             val y = (element.y + 7 / 2).px
 
-            val lines = NVGRenderer.wrapText(desc, 200f, 14f, defaultFont)
+            val lines = UIRenderer.wrapText(desc, 200f, 14f, defaultFont)
 
             popup = popup(constrain(x, y, Bounding, Bounding), smooth = false) {
                 block(

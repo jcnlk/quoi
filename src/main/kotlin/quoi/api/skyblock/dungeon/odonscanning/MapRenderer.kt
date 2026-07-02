@@ -50,8 +50,8 @@ import quoi.utils.render.DrawContextUtils.drawImage
 import quoi.utils.render.DrawContextUtils.rect
 import quoi.utils.skyblock.item.ItemUtils.skyblockId
 import quoi.utils.ui.rendering.Font
-import quoi.utils.ui.rendering.NVGRenderer
-import quoi.utils.ui.rendering.NVGRenderer.defaultFont
+import quoi.utils.ui.rendering.UIRenderer
+import quoi.utils.ui.rendering.UIRenderer.defaultFont
 import quoi.utils.ui.watch
 import kotlin.jvm.optionals.getOrNull
 
@@ -373,7 +373,7 @@ object MapRenderer {
         val textSize = 18f * fontScale
 
         lines.forEachIndexed { i, s ->
-            val tw = if (font.name == "Minecraft") s.width(textSize / mc.font.lineHeight) else NVGRenderer.textWidth(s, textSize, font)
+            val tw = if (font.name == "Minecraft") s.width(textSize / mc.font.lineHeight) else UIRenderer.textWidth(s, textSize, font)
             val x = (room.textPlacement.x * scale) + 8f * scale - (tw / 2f)
             val y = (room.textPlacement.z * scale) + 8f * scale - (lines.size * textSize / 2f) + (i * textSize)
 

@@ -10,8 +10,8 @@ import quoi.api.abobaui.dsl.size
 import quoi.api.abobaui.elements.ElementScope
 import quoi.module.settings.UIComponent
 import quoi.utils.ThemeManager.theme
-import quoi.utils.ui.rendering.NVGRenderer
-import quoi.utils.ui.rendering.NVGRenderer.defaultFont
+import quoi.utils.ui.rendering.UIRenderer
+import quoi.utils.ui.rendering.UIRenderer.defaultFont
 
 class TextComponent(
     override val default: String,
@@ -23,7 +23,7 @@ class TextComponent(
     override fun ElementScope<*>.draw(asSub: Boolean): ElementScope<*> = group(size(w = Copying)) {
 
         if (children.isEmpty()) {
-            val lines = NVGRenderer.wrapText(name, this@draw.element.width, theme.textSize.pixels, defaultFont)
+            val lines = UIRenderer.wrapText(name, this@draw.element.width, theme.textSize.pixels, defaultFont)
 
             column(constrain(x = 0.px, y = Centre, w = Copying)) {
                 lines.forEach {

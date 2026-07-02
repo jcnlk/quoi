@@ -14,7 +14,7 @@ import quoi.api.input.CatMouse
 import quoi.api.input.CursorShape
 import quoi.module.settings.UIComponent
 import quoi.utils.ui.rendering.Font
-import quoi.utils.ui.rendering.NVGRenderer.minecraftFont
+import quoi.utils.ui.rendering.UIRenderer.minecraftFont
 import kotlin.reflect.KProperty0
 import kotlin.reflect.jvm.isAccessible
 

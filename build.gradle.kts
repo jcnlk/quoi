@@ -29,16 +29,6 @@ dependencies {
     implementation("io.github.classgraph:classgraph:4.8.184")
     include("io.github.classgraph:classgraph:4.8.184")
 
-    property("minecraft_lwjgl_version").let {
-
-        implementation("org.lwjgl:lwjgl-nanovg:$it")
-        include("org.lwjgl:lwjgl-nanovg:$it")
-
-        listOf("windows", "linux", "macos", "macos-arm64").forEach { v ->
-            implementation("org.lwjgl:lwjgl-nanovg:$it:natives-$v")
-            include("org.lwjgl:lwjgl-nanovg:$it:natives-$v")
-        }
-    }
 }
 
 loom {

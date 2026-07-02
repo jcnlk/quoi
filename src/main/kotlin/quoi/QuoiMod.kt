@@ -12,7 +12,6 @@ import quoi.api.events.core.EventBus
 import quoi.config.Config
 import quoi.module.ModuleManager
 import quoi.utils.ui.hud.HudManager
-import quoi.utils.ui.rendering.NVGSpecialRenderer
 import kotlin.coroutines.EmptyCoroutineContext
 
 object QuoiMod : ClientModInitializer {
@@ -23,7 +22,6 @@ object QuoiMod : ClientModInitializer {
     val logger: Logger = LogManager.getLogger("quoi")
 
     override fun onInitializeClient() {
-        NVGSpecialRenderer.register()
         ModuleManager.initialise()
         AnnotationLoader.load()
 

@@ -27,8 +27,8 @@ import quoi.utils.render.DrawContextUtils.drawPlayerHead
 import quoi.utils.render.DrawContextUtils.drawText
 import quoi.utils.render.DrawContextUtils.rect
 import quoi.utils.render.DrawContextUtils.withMatrix
-import quoi.utils.ui.rendering.NVGRenderer.createImage
-import quoi.utils.ui.rendering.NVGRenderer.image
+import quoi.utils.ui.rendering.UIRenderer.createImage
+import quoi.utils.ui.rendering.UIRenderer.image
 import java.util.*
 import quoi.module.impl.mining.CrystalHollowsScanner.enabled as chScanner
 

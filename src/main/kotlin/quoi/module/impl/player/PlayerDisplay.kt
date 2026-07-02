@@ -27,7 +27,7 @@ import quoi.module.Module
 import quoi.module.settings.Setting.Companion.json
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.utils.commas
-import quoi.utils.ui.rendering.NVGRenderer.minecraftFont
+import quoi.utils.ui.rendering.UIRenderer.minecraftFont
 import kotlin.reflect.KProperty0
 
 object PlayerDisplay : Module(

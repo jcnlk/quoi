@@ -17,7 +17,7 @@ import quoi.api.abobaui.events.Mouse
 import quoi.api.abobaui.transforms.Transform
 import quoi.api.colour.Colour
 import quoi.utils.render.DrawContextUtils.pushScissor
-import quoi.utils.ui.rendering.NVGRenderer
+import quoi.utils.ui.rendering.UIRenderer
 import kotlin.experimental.ExperimentalTypeInference
 
 abstract class Element(
@@ -101,9 +101,9 @@ abstract class Element(
         if (!renders) return
 
         if (ui.nvgPass) {
-            NVGRenderer.push()
+            UIRenderer.push()
 
-            if (scissors) NVGRenderer.pushScissor(x, y, width, height)
+            if (scissors) UIRenderer.pushScissor(x, y, width, height)
 
             shadows?.forEach { it.render() }
 
@@ -125,13 +125,13 @@ abstract class Element(
                     is Layout.Divider -> Colour.RED
                     else -> Colour.BLACK
                 }
-                NVGRenderer.hollowRect(x, y, width, height, 1.0f, col.rgb)
+                UIRenderer.hollowRect(x, y, width, height, 1.0f, col.rgb)
             }
 
             children?.forEach { it.render() }
 
-            if (scissors) NVGRenderer.popScissor()
-            NVGRenderer.pop()
+            if (scissors) UIRenderer.popScissor()
+            UIRenderer.pop()
         } else {
             if (usingCtx) {
                 ctx.pose().pushMatrix()

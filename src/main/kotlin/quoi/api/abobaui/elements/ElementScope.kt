@@ -22,7 +22,7 @@ import quoi.api.colour.Colour
 import quoi.utils.ui.rendering.Font
 import quoi.utils.ui.data.Gradient
 import quoi.utils.ui.rendering.Image
-import quoi.utils.ui.rendering.NVGRenderer
+import quoi.utils.ui.rendering.UIRenderer
 import quoi.utils.ui.data.Radii
 
 open class ElementScope<E : Element>(val element: E) {
@@ -61,7 +61,7 @@ open class ElementScope<E : Element>(val element: E) {
     @AbobaDSL
     inline fun text(
         string: String,
-        font: Font = NVGRenderer.defaultFont,
+        font: Font = UIRenderer.defaultFont,
         colour: Colour = Colour.WHITE,
         pos: Positions = at(Undefined, Undefined),
         size: Constraint.Size = 50.percent,
@@ -105,7 +105,7 @@ open class ElementScope<E : Element>(val element: E) {
     inline fun textInput(
         string: String = "",
         placeholder: String = "",
-        font: Font = NVGRenderer.defaultFont,
+        font: Font = UIRenderer.defaultFont,
         colour: Colour = Colour.WHITE,
         placeHolderColour: Colour = Colour.WHITE,
         caretColour: Colour = Colour.WHITE,

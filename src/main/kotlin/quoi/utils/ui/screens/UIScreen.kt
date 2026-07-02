@@ -6,7 +6,7 @@ import quoi.api.input.CatKeyboard.Modifier.isCtrlDown
 import quoi.api.input.CatKeys
 import quoi.utils.Scheduler.scheduleTask
 import quoi.utils.sf
-import quoi.utils.ui.rendering.NVGSpecialRenderer
+import quoi.utils.ui.rendering.UIRenderer
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.input.CharacterEvent
@@ -23,7 +23,7 @@ class UIScreen(val instance: AbobaUI.Instance, val background: Boolean = true ) 
     override fun extractRenderState(ctx: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, deltaTicks: Float) {
         instance.ctx = ctx
         instance.eventManager.onMouseMove(mouseX * sf.toFloat(), mouseY * sf.toFloat())
-        NVGSpecialRenderer.draw(ctx, 0, 0, ctx.guiWidth(), ctx.guiHeight()) {
+        UIRenderer.frame(ctx) {
             instance.render(true)
         }
         instance.render(false)

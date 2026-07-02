@@ -23,7 +23,7 @@ import quoi.utils.StringUtils.formatTime
 import quoi.utils.StringUtils.parseNumber
 import quoi.utils.WorldUtils
 import quoi.utils.ui.hud.HudManager
-import quoi.utils.ui.rendering.NVGRenderer.minecraftFont
+import quoi.utils.ui.rendering.UIRenderer.minecraftFont
 import quoi.utils.ui.textPair
 
 object GrieferTracker : Module(
