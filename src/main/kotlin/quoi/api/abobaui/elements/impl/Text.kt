@@ -15,7 +15,7 @@ import quoi.api.colour.multiply
 import quoi.utils.StringUtils.width
 import quoi.utils.render.DrawContextUtils.drawText
 import quoi.utils.ui.rendering.Font
-import quoi.utils.ui.rendering.NVGRenderer
+import quoi.utils.ui.rendering.UIRenderer
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.TextColor
 import net.minecraft.util.FormattedCharSequence
@@ -102,16 +102,16 @@ open class Text(
         } else if (font.name != "Minecraft" && ui.nvgPass) {
             if (shadow) {
                 val offset = height / 25f
-                NVGRenderer.formattedText(string, x + offset, y + offset, height, colour.multiply(0.25f), font)
+                UIRenderer.formattedText(string, x + offset, y + offset, height, colour.multiply(0.25f), font)
             }
-            NVGRenderer.formattedText(string, x, y, height, colour, font)
+            UIRenderer.formattedText(string, x, y, height, colour, font)
         }
     }
 
     open fun getTextWidth(): Float = textWidth(text)
 
     protected fun textWidth(string: String) =
-        if (font.name == "Minecraft") text.width(height / mc.font.lineHeight) else NVGRenderer.textWidth(string.noControlCodes, height, font)
+        if (font.name == "Minecraft") text.width(height / mc.font.lineHeight) else UIRenderer.textWidth(string.noControlCodes, height, font)
 
     companion object {
         @AbobaDSL
@@ -132,7 +132,7 @@ open class Text(
         @AbobaDSL
         inline fun ElementScope<*>.textSupplied(
             crossinline supplier: () -> Any?,
-            font: Font = NVGRenderer.defaultFont,
+            font: Font = UIRenderer.defaultFont,
             colour: Colour = Colour.WHITE,
             pos: Positions = at(),
             size: Constraint.Size = 50.percent

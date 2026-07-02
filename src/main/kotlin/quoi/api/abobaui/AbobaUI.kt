@@ -9,7 +9,7 @@ import quoi.api.abobaui.elements.impl.Group
 import quoi.api.abobaui.events.EventManager
 import quoi.api.abobaui.events.Lifetime
 import quoi.api.abobaui.operations.Operation
-import quoi.utils.ui.rendering.NVGRenderer
+import quoi.utils.ui.rendering.UIRenderer
 import net.minecraft.client.gui.GuiGraphicsExtractor
 
 // heavily inspired by stivais' auroraui. I'm too stupid for this
@@ -67,9 +67,9 @@ class AbobaUI(val title: String) {
             }
 //        operations.removeIf { it.run() }
             operations.toList().forEach { if (it.run()) operations.remove(it) }
-            NVGRenderer.push()
+            UIRenderer.push()
             main.render()
-            NVGRenderer.pop()
+            UIRenderer.pop()
         } else {
             main.render()
         }

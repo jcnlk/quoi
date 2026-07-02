@@ -5,7 +5,7 @@ import quoi.api.abobaui.elements.Element
 import quoi.api.colour.Colour
 import quoi.utils.ui.data.Radii
 import quoi.utils.ui.rendering.Image
-import quoi.utils.ui.rendering.NVGRenderer
+import quoi.utils.ui.rendering.UIRenderer
 
 class ImageElement(
     private val image: Image,
@@ -18,16 +18,16 @@ class ImageElement(
 
     init {
 //        registerEvent(Lifetime.Initialised) {
-//            NVGRenderer.createImage(image)
+//            UIRenderer.createImage(image)
 //            false
 //        }
 //        registerEvent(Lifetime.Uninitialised) {
-//            NVGRenderer.deleteImage(image)
+//            UIRenderer.deleteImage(image)
 //            false
 //        }
     }
 
     override fun drawNvg() {
-        NVGRenderer.image(image, x, y, width, height, radius, colour?.rgb)
+        UIRenderer.image(image, x, y, width, height, radius, colour?.rgb)
     }
 }

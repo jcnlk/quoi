@@ -12,8 +12,8 @@ import quoi.utils.ui.data.Anchor
 import quoi.utils.ui.hud.Hud
 import quoi.utils.ui.hud.ScopedHud
 import quoi.utils.ui.rendering.Font
-import quoi.utils.ui.rendering.NVGRenderer.customFont
-import quoi.utils.ui.rendering.NVGRenderer.minecraftFont
+import quoi.utils.ui.rendering.UIRenderer.customFont
+import quoi.utils.ui.rendering.UIRenderer.minecraftFont
 import kotlin.math.roundToInt
 
 class TextHud(

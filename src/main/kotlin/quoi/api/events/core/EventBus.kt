@@ -38,7 +38,6 @@ import net.minecraft.world.InteractionHand
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.item.ItemEntity
 import quoi.QuoiMod
-import quoi.utils.ui.rendering.NVGSpecialRenderer
 import java.util.concurrent.ConcurrentHashMap
 
 // modified zen, their repo is taken down.

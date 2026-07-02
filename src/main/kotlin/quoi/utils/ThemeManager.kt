@@ -7,7 +7,7 @@ import quoi.api.colour.colour
 import quoi.api.colour.toHSB
 import quoi.module.impl.render.ClickGui.seedColour
 import quoi.module.impl.render.ClickGui.selectedTheme
-import quoi.utils.ui.rendering.NVGRenderer.image
+import quoi.utils.ui.rendering.UIRenderer.image
 
 // https://m3.material.io/styles/color
 object ThemeManager {

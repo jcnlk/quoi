@@ -30,7 +30,7 @@ import quoi.utils.ui.delegateClick
 import quoi.utils.ui.hud.GroupHeight
 import quoi.utils.ui.popupY
 import quoi.utils.ui.rendering.Font
-import quoi.utils.ui.rendering.NVGRenderer
+import quoi.utils.ui.rendering.UIRenderer
 import quoi.utils.ui.watch
 import kotlin.math.roundToInt
 import kotlin.reflect.KMutableProperty0
@@ -42,7 +42,7 @@ fun <T : Number> ElementScope<*>.numberInput(
     max: T? = null,
     placeholder: String = "",
     unit: String = "",
-    font: Font = NVGRenderer.defaultFont,
+    font: Font = UIRenderer.defaultFont,
     colour: Colour = theme.onSurface,
     holderColour: Colour = theme.onSurfaceVariant,
     caretColour: Colour = theme.primary,
@@ -121,7 +121,7 @@ fun ElementScope<*>.hexInput(
     value: () -> String,
     allowAlpha: Boolean,
     placeholder: String = if (allowAlpha) "#FFFFFFFF" else "#FFFFFF",
-    font: Font = NVGRenderer.defaultFont,
+    font: Font = UIRenderer.defaultFont,
     colour: Colour = theme.onSurface,
     placeHolderColour: Colour = theme.onSurfaceVariant,
     caretColour: Colour = theme.primary,

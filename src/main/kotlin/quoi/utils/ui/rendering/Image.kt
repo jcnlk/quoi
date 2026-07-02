@@ -1,11 +1,9 @@
 package quoi.utils.ui.rendering
 
 import quoi.utils.WebUtils.setupConnection
-import org.lwjgl.system.MemoryUtil
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.InputStream
-import java.nio.ByteBuffer
 import java.nio.file.Files
 
 /**
@@ -17,20 +15,10 @@ class Image(
     val identifier: String,
     var isSVG: Boolean = false,
     var stream: InputStream = getStream(identifier),
-    private var buffer: ByteBuffer? = null
 ) {
 
     init {
         isSVG = identifier.endsWith(".svg", true)
-    }
-
-    fun buffer(): ByteBuffer {
-        if (buffer == null) {
-            val bytes = stream.readBytes()
-            buffer = MemoryUtil.memAlloc(bytes.size).put(bytes).flip() as ByteBuffer
-            stream.close()
-        }
-        return buffer ?: throw IllegalStateException("Image has no data")
     }
 
     override fun equals(other: Any?): Boolean {

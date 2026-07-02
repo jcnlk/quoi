@@ -9,7 +9,7 @@ import quoi.api.input.CatKeyboard.Modifier.isCtrlDown
 import quoi.api.input.CatKeys
 import quoi.utils.equalsOneOf
 import quoi.utils.height
-import quoi.utils.ui.rendering.NVGSpecialRenderer
+import quoi.utils.ui.rendering.UIRenderer
 import quoi.utils.width
 import net.minecraft.network.protocol.game.ClientboundContainerClosePacket
 import quoi.api.input.CatMouse.mx
@@ -25,7 +25,7 @@ class UIContainer(ui: AbobaUI.Instance, val cancelling: Boolean = true) : UIHand
         ui.ctx = ctx
         mouseMove(mx, my)
 
-        NVGSpecialRenderer.draw(ctx, 0, 0, ctx.guiWidth(), ctx.guiHeight()) {
+        UIRenderer.frame(ctx) {
             ui.render(true)
         }
         ui.render(false)

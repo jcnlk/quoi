@@ -32,7 +32,7 @@ import quoi.utils.StringUtils.toFixed
 import quoi.utils.ThemeManager.theme
 import quoi.utils.ui.popupX
 import quoi.utils.ui.popupY
-import quoi.utils.ui.rendering.NVGRenderer
+import quoi.utils.ui.rendering.UIRenderer
 import quoi.utils.ui.screens.UIContainer
 import quoi.utils.ui.screens.UIOverlay
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
@@ -119,8 +119,8 @@ object HudManager { // todo add hud grouping
 
         object : Element(copies()) {
             override fun drawNvg() {
-                NVGRenderer.line(lineX, 0f, lineX, ui.main.height, 1f, Colour.YELLOW.rgb)
-                NVGRenderer.line(0f, lineY, ui.main.width, lineY, 1f, Colour.YELLOW.rgb)
+                UIRenderer.line(lineX, 0f, lineX, ui.main.height, 1f, Colour.YELLOW.rgb)
+                UIRenderer.line(0f, lineY, ui.main.width, lineY, 1f, Colour.YELLOW.rgb)
             }
         }.add()
 

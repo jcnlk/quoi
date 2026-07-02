@@ -18,7 +18,7 @@ import quoi.utils.StringUtils.dropAt
 import quoi.utils.StringUtils.removeRangeSafe
 import quoi.utils.StringUtils.substringSafe
 import quoi.utils.ui.rendering.Font
-import quoi.utils.ui.rendering.NVGRenderer
+import quoi.utils.ui.rendering.UIRenderer
 
 class TextInput(
     string: String,
@@ -81,11 +81,11 @@ class TextInput(
             val time = System.currentTimeMillis()
 
             val x = x + caretX - offset
-            if (selectionWidth != 0f) NVGRenderer.rect(x, y, selectionWidth, height, caretColour.withAlpha(0.3f).rgb) // ctx.rect(x, y, selectionWidth.roundToInt(), height, SELECTION_COLOR)
+            if (selectionWidth != 0f) UIRenderer.rect(x, y, selectionWidth, height, caretColour.withAlpha(0.3f).rgb) // ctx.rect(x, y, selectionWidth.roundToInt(), height, SELECTION_COLOR)
 
             if (time - caretBlinkTime < 500) {
 //                ctx.drawLine(x, y.toFloat(), x, y.toFloat() + height, Colour.WHITE.rgb, 1f)
-                NVGRenderer.line(x, y, x, y + height, 1f, caretColour.rgb)
+                UIRenderer.line(x, y, x, y + height, 1f, caretColour.rgb)
             } else if (time - caretBlinkTime > 1000) {
                 caretBlinkTime = System.currentTimeMillis()
             }
