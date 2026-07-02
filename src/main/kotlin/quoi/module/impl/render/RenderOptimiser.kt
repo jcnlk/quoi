@@ -14,8 +14,8 @@ import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.decoration.ArmorStand
 import quoi.api.events.PacketEvent
-import quoi.api.skyblock.Island
-import quoi.api.skyblock.Location.currentArea
+import quoi.api.skyblock.location.Island
+import quoi.api.skyblock.location.Location.currentArea
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.M7Phases
 import quoi.module.Module

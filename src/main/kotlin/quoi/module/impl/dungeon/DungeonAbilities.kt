@@ -2,11 +2,11 @@ package quoi.module.impl.dungeon
 
 import quoi.api.events.ChatEvent
 import quoi.api.events.core.on
-import quoi.api.skyblock.Island
+import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.dungeon.Dungeon.currentDungeonPlayer
 import quoi.api.skyblock.dungeon.Dungeon.isDead
 import quoi.api.skyblock.dungeon.DungeonClass
-import quoi.api.skyblock.invoke
+import quoi.api.skyblock.location.invoke
 import quoi.module.Module
 
 // Kyleen

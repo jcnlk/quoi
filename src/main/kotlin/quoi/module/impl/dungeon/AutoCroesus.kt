@@ -19,7 +19,7 @@ import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
 import quoi.api.input.CatKeyboard
 import quoi.api.input.CatKeys
-import quoi.api.skyblock.Island
+import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.SkyblockPrices
 import quoi.api.skyblock.SkyblockPrices.BazaarPriceType
 import quoi.config.configList

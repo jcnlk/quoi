@@ -14,8 +14,8 @@ import quoi.api.events.PacketEvent
 import quoi.api.events.RenderEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
-import quoi.api.skyblock.Island
-import quoi.api.skyblock.Location
+import quoi.api.skyblock.location.Island
+import quoi.api.skyblock.location.Location
 import quoi.module.Module
 import quoi.utils.ChatUtils.literal
 import quoi.utils.EntityUtils.getEntities

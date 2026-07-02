@@ -6,11 +6,11 @@ import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.HitResult
 import quoi.api.events.TickEvent
-import quoi.api.skyblock.Island
+import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.dungeon.Dungeon.inP3
 import quoi.api.skyblock.dungeon.Dungeon.isDead
 import quoi.api.skyblock.dungeon.Dungeon.p3Section
-import quoi.api.skyblock.invoke
+import quoi.api.skyblock.location.invoke
 import quoi.module.Module
 import quoi.utils.skyblock.player.SwapManager
 import quoi.utils.skyblock.player.SwapResult

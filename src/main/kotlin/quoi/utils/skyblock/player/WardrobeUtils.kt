@@ -15,7 +15,7 @@ import quoi.api.events.WorldEvent
 import quoi.api.events.core.Subscription
 import quoi.api.events.core.on
 import quoi.api.events.core.Priority
-import quoi.api.skyblock.Location.inSkyblock
+import quoi.api.skyblock.location.Location.inSkyblock
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.Scheduler.scheduleTask
 import quoi.utils.Scheduler.wait
