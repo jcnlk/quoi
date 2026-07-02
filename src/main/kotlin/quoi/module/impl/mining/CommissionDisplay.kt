@@ -14,9 +14,8 @@ import quoi.api.events.ChatEvent
 import quoi.api.events.GuiEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
-import quoi.api.skyblock.Island
-import quoi.api.skyblock.IslandArea
-import quoi.api.skyblock.Location.currentArea
+import quoi.api.skyblock.location.Island
+import quoi.api.skyblock.location.Location.currentArea
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.visibleIf
 import quoi.utils.StringUtils.noControlCodes
@@ -29,7 +28,7 @@ import quoi.utils.ui.hud.impl.TextHud
 
 object CommissionDisplay : Module(
     "Commision Display",
-    area = IslandArea.MiningIslands,
+    area = Island.Mining,
     desc = "Displays your commissions without you having to open the tab menu!"
 ) {
     private const val MAX_DISPLAYED_COMMISSIONS = 8

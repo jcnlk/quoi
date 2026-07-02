@@ -3,7 +3,7 @@ package quoi.module.impl.misc
 import quoi.api.events.core.on
 import quoi.api.events.ServerEvent
 import quoi.api.events.TickEvent
-import quoi.api.skyblock.Location
+import quoi.api.skyblock.location.Location
 import quoi.module.Module
 import quoi.utils.ChatUtils
 

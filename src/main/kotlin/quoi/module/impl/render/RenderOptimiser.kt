@@ -19,9 +19,9 @@ import net.minecraft.world.entity.decoration.ArmorStand
 import quoi.api.events.GuiEvent
 import quoi.api.events.PacketEvent
 import quoi.api.events.core.on
-import quoi.api.skyblock.Island
-import quoi.api.skyblock.Location.currentArea
-import quoi.api.skyblock.Location.subarea
+import quoi.api.skyblock.location.Island
+import quoi.api.skyblock.location.Location.currentArea
+import quoi.api.skyblock.location.Location.subarea
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.M7Phases
 import quoi.module.Module
