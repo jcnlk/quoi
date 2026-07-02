@@ -119,7 +119,7 @@ object CreeperBeams : SettingGroup(PuzzleSolvers, "Creeper beams"), Repositionab
         }
 
         on<TickEvent.End> {
-            if (!auto || ClearExecutor.active || mc.screen != null || solvedPairs >= 4 || currentLanternPairs.isEmpty()) return@on
+            if (!auto || ClearExecutor.active || mc.gui.screen() != null || solvedPairs >= 4 || currentLanternPairs.isEmpty()) return@on
             val room = Dungeon.currentRoom ?: return@on
 
             val start = room.getRealCoords(BlockPos(16, 74, 14))

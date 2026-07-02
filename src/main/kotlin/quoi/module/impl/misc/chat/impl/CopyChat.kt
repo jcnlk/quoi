@@ -26,20 +26,20 @@ object CopyChat : ToggleableGroup(Chat, "Copy chat", desc = "Copies chat on mous
     init {
         on<GuiEvent.Click> {
             if (!state || screen !is ChatScreen) return@on
-            if (mc.gui.chat.visibleMessages.isEmpty()) return@on
+            if (mc.gui.hud.chat.visibleMessages.isEmpty()) return@on
 
             val isCopyBtn = button == copyKey.key + 100 && copyKey.isModifierDown()
             val isCodeBtn = button == copyCodesKey.key + 100 && copyCodesKey.isModifierDown()
             if (!isCopyBtn && !isCodeBtn) return@on
             cancel()
 
-            val dx = mc.gui.chat.toChatLineMX(mx)
-            val dy = mc.gui.chat.toChatLineMY(my)
-            val idx = mc.gui.chat.getMessageLineIdx(dx, dy)
-            if (idx !in mc.gui.chat.visibleMessages.indices) return@on
+            val dx = mc.gui.hud.chat.toChatLineMX(mx)
+            val dy = mc.gui.hud.chat.toChatLineMY(my)
+            val idx = mc.gui.hud.chat.getMessageLineIdx(dx, dy)
+            if (idx !in mc.gui.hud.chat.visibleMessages.indices) return@on
             if (idx == 0 && dy !in 0.0..1.0 || dx >= ChatComponent.getWidth(mc.options.chatWidth().get()).plus(10)) return@on
 
-            val fullText = mc.gui.chat.getFullText(idx)?.string ?: return@on
+            val fullText = mc.gui.hud.chat.getFullText(idx)?.string ?: return@on
             val finalText = if (isCodeBtn) fullText else fullText.noControlCodes
             mc.keyboardHandler.clipboard = finalText
             ChatUtils.modMessage(

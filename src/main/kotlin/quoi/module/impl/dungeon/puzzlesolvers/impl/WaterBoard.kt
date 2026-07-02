@@ -108,7 +108,7 @@ object WaterBoard : SettingGroup(PuzzleSolvers, "Water board"), Repositionable {
             if (ClearExecutor.active) return@on
             val room = Dungeon.currentRoom ?: return@on
             if (patternIdentifier == -1 || solutions.isEmpty()) return@on
-            if (player.y != 59.0 || mc.screen != null || atChest) return@on
+            if (player.y != 59.0 || mc.gui.screen() != null || atChest) return@on
 
             repositionTicker?.let {
                 if (it.tick()) Scheduler.scheduleTask {
@@ -145,7 +145,7 @@ object WaterBoard : SettingGroup(PuzzleSolvers, "Water board"), Repositionable {
         }
 
         on<TickEvent.End> {
-            if (!triggerbot || mc.screen != null) return@on
+            if (!triggerbot || mc.gui.screen() != null) return@on
             if (patternIdentifier == -1 || solutions.isEmpty()) return@on
 
             val (lever, time) = solutionList.firstOrNull() ?: return@on

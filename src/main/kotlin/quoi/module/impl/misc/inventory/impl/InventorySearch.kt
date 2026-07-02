@@ -107,7 +107,7 @@ object InventorySearch : SettingGroup(Inventory, HudComponent("Search Bar", Hud(
         (component as HudComponent<Hud>).hud = searchBar
 
         on<TickEvent.End> {
-            if (mc.screen !is AbstractContainerScreen<*>) return@on
+            if (mc.gui.screen() !is AbstractContainerScreen<*>) return@on
             if (searchText.isEmpty()) {
                 if (highlightSlots.isNotEmpty()) highlightSlots.clear()
                 return@on

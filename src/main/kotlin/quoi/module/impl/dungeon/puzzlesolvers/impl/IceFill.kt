@@ -77,7 +77,7 @@ object IceFill : SettingGroup(PuzzleSolvers, "Ice fill"), Repositionable {
         }
 
         on<TickEvent.End> {
-            if (!auto || ClearExecutor.active || mc.screen != null) return@on
+            if (!auto || ClearExecutor.active || mc.gui.screen() != null) return@on
             if (Dungeon.currentRoom?.getRealCoords(BlockPos(15, 71, 26))?.state?.block == Blocks.PACKED_ICE) return@on
 
             repositionTicker?.let {

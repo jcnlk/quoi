@@ -14,6 +14,7 @@ import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.decoration.ArmorStand
 import quoi.api.events.PacketEvent
+import quoi.api.events.core.on
 import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.location.Location.currentArea
 import quoi.api.skyblock.dungeon.Dungeon
@@ -34,6 +35,7 @@ object RenderOptimiser : Module(
     desc = "Various render optimisation features."
 ) {
     @JvmStatic val disableTextShadow by switch("Disable text shadow", desc = "Disables text shadows in hud elements.")
+    @JvmStatic val containerTextShadow by switch("Container text shadow", desc = "Renders text in containers with shadow.")
     @JvmStatic val disableFog by switch("Disable fog", desc = "Disables fog rendering.")
 
     private val hideFallingBlocks by switch("Hide falling blocks", desc = "Disables falling blocks rendering.")

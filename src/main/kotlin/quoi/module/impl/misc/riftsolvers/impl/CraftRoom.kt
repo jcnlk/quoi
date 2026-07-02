@@ -3,7 +3,6 @@ package quoi.module.impl.misc.riftsolvers.impl
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.core.BlockPos
 import net.minecraft.world.entity.LivingEntity
-import net.minecraft.world.entity.monster.Slime
 import net.minecraft.world.entity.monster.spider.CaveSpider
 import net.minecraft.world.entity.monster.zombie.Zombie
 import net.minecraft.world.item.ItemStack
@@ -40,10 +39,10 @@ object CraftRoom : ToggleableGroup(MirrorverseSolvers, "Craft room") {
             val entities = getEntities<LivingEntity>(craftRoomArea) { !it.isDeadOrDying && it != player }
 
             entities.forEach { entity ->
-                val colour = when (entity) {
-                    is Zombie -> Colour.BROWN
-                    is Slime -> Colour.GREEN
-                    is CaveSpider -> Colour.WHITE
+                val colour = when {
+                    entity is Zombie -> Colour.BROWN
+                    net.minecraft.world.entity.EntityType.getKey(entity.type).path == "slime" -> Colour.GREEN
+                    entity is CaveSpider -> Colour.WHITE
                     else -> return@forEach
                 }
 

@@ -61,7 +61,7 @@ object Displays : SettingGroup(ClickGui, "Displays") {
 
     private val pingType by selector("Ping type", PingType.Average)
     private val pingHud by textHud("Ping display") {
-        visibleIf { !mc.isSingleplayer }
+        visibleIf { !mc.hasSingleplayerServer() }
         textPair(
             string = "Ping:",
             supplier = { (if (preview) 69.420 else pingType.selected.value()).formatPing },
@@ -73,7 +73,7 @@ object Displays : SettingGroup(ClickGui, "Displays") {
 
     private val tpsType by selector("Tps type", TpsType.Average)
     private val tpsHud by textHud("Tps display") {
-        visibleIf { !mc.isSingleplayer }
+        visibleIf { !mc.hasSingleplayerServer() }
         textPair(
             string = "Tps:",
             supplier = { if (preview) 17.56f.formatTps(2) else tpsType.selected.value().formatTps(2) },
