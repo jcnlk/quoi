@@ -16,6 +16,7 @@ import quoi.module.impl.misc.catmode.CatMode
 import quoi.module.impl.misc.chat.Chat
 import quoi.module.impl.misc.inventory.Inventory
 import quoi.module.impl.misc.riftsolvers.MirrorverseSolvers
+import quoi.module.impl.misc.slayers.Slayers
 import quoi.module.impl.player.*
 import quoi.module.impl.render.*
 import quoi.module.impl.render.clickgui.ClickGui
@@ -86,7 +87,7 @@ object ModuleManager : EventListener {
 //            CustomTriggers,
             MirrorverseSolvers,
             AutoCarnival,
-            AutoAttune,
+            Slayers,
 
             // PLAYER
             AutoSprint,
