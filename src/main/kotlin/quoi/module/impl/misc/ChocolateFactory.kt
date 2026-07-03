@@ -53,12 +53,14 @@ object ChocolateFactory : Module(
     private var lastUpgradeAt = 0L
     private var lastEggScanAt = 0L
     private val currentDetectedEggs = mutableListOf<Egg>()
+    private val pendingEggTypes = mutableSetOf<ChocolateEgg>()
+    private val staleEggEntityIds = mutableMapOf<ChocolateEgg, Int>()
     private val chocolatePerSecondPattern = Regex("([\\d.,]+)\\s+per second")
     private val totalMultiplierPattern = Regex("Total Multiplier:\\s+([\\d.]+)x")
     private val timeTowerStatusPattern = Regex("Status:\\s+(ACTIVE|INACTIVE)")
     private val timeTowerChargesPattern = Regex("Charges:\\s*(\\d+)\\s*/\\s*(\\d+)")
 
-    private val possibleLocations = arrayOf(
+    private val possibleLocations = setOf(
         Island.SpiderDen,
         Island.CrimsonIsle,
         Island.TheEnd,
@@ -70,9 +72,12 @@ object ChocolateFactory : Module(
         Island.ThePark,
         Island.DungeonHub,
         Island.Hub,
-        Island.BackwaterBayou
-    ) // TODO: update this list
-    private val eggMessage = Regex(".*(A|found|collected).+Chocolate (Breakfast|Lunch|Dinner|Brunch|Déjeuner|Supper).*")
+        Island.BackwaterBayou,
+        Island.Galatea,
+        Island.LotusAtoll
+    )
+    private val eggSpawnedPattern = Regex("A Chocolate (Breakfast|Lunch|Dinner|Brunch|Déjeuner|Supper) Egg has appeared!")
+    private val eggFoundPattern = Regex("(?:found a|collected this) Chocolate (Breakfast|Lunch|Dinner|Brunch|Déjeuner|Supper) Egg")
 
     private const val DINNER_EGG_TEXTURE =
         "ewogICJ0aW1lc3RhbXAiIDogMTcxMTQ2MjY0OTcwMSwKICAicHJvZmlsZUlkIiA6ICI3NGEwMzQxNWY1OTI0ZTA4YjMyMGM2MmU1NGE3ZjJhYiIsCiAgInByb2ZpbGVOYW1lIiA6ICJNZXp6aXIiLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZTVlMzYxNjU4MTlmZDI4NTBmOTg1NTJlZGNkNzYzZmY5ODYzMTMxMTkyODNjMTI2YWNlMGM0Y2M0OTVlNzZhOCIKICAgIH0KICB9Cn0"
@@ -84,6 +89,8 @@ object ChocolateFactory : Module(
     init {
         on<WorldEvent.Change> {
             currentDetectedEggs.clear()
+            pendingEggTypes.clear()
+            staleEggEntityIds.clear()
         }
 
         on<TickEvent.End> {
@@ -100,7 +107,9 @@ object ChocolateFactory : Module(
             }
 
             if (now - lastEggScanAt >= 3000L) {
-                if (eggEsp && Location.currentArea in possibleLocations && currentDetectedEggs.size < 6) {
+                if (eggEsp && Location.currentArea in possibleLocations &&
+                    (currentDetectedEggs.size < ChocolateEgg.entries.size || pendingEggTypes.isNotEmpty())
+                ) {
                     scanForEggs()
                 }
                 lastEggScanAt = now
@@ -108,14 +117,30 @@ object ChocolateFactory : Module(
         }
 
         on<ChatEvent.Packet> {
-            val match = eggMessage.find(unformatted) ?: return@on
-            val action = match.groupValues.getOrNull(1)
-            if (!action.equals("found", true) && !action.equals("collected", true)) return@on
+            val spawnedMatch = eggSpawnedPattern.find(unformatted)
+            if (spawnedMatch != null) {
+                val eggType = ChocolateEgg.fromMealName(spawnedMatch.groupValues.getOrNull(1)) ?: return@on
+                currentDetectedEggs.firstOrNull { it.type == eggType }?.let {
+                    staleEggEntityIds[eggType] = it.entity.id
+                    currentDetectedEggs.remove(it)
+                }
+                pendingEggTypes.add(eggType)
+                lastEggScanAt = 0L
+                return@on
+            }
 
-            currentDetectedEggs
-                .filterNot(Egg::isFound)
-                .minByOrNull { egg -> egg.entity.distanceTo(player) }
-                ?.isFound = true
+            val match = eggFoundPattern.find(unformatted) ?: return@on
+            val eggType = ChocolateEgg.fromMealName(match.groupValues.getOrNull(1)) ?: return@on
+            val foundEgg = currentDetectedEggs
+                .filter { !it.isClaimed && it.type.texture == eggType.texture }
+                .minByOrNull { it.entity.distanceTo(player) }
+                ?: return@on
+
+            if (foundEgg.type != eggType) {
+                currentDetectedEggs.firstOrNull { it.type == eggType }?.type = foundEgg.type
+                foundEgg.type = eggType
+            }
+            foundEgg.isClaimed = true
         }
 
         on<PacketEvent.Received, ClientboundSoundPacket> {
@@ -128,18 +153,17 @@ object ChocolateFactory : Module(
             if (!eggEsp) return@on
 
             currentDetectedEggs.forEach { egg ->
-                if (egg.isFound) return@forEach
+                if (egg.isClaimed) return@forEach
 
                 val renderPos = Vec3(egg.entity.x - 0.5, egg.entity.y + 1.47, egg.entity.z - 0.5)
                 val distance = renderPos.distanceTo(player.position())
                 val labelPos = renderPos.add(0.5, 1.7 + distance / 30.0, 0.5)
                 val textScale = max(1.2f, (distance / 8.0).toFloat())
 
-                ctx.drawWireFrameBox(renderPos.aabb, egg.colour, depth = false)
+                ctx.drawWireFrameBox(renderPos.aabb, egg.type.colour, depth = false)
                 ctx.drawText(
-                    literal("${egg.renderName} &r&f(&3${distance.toInt()}m&f)"),
+                    literal("${egg.type.renderName} &r&f(&3${distance.toInt()}m&f)"),
                     labelPos,
-                    colour = egg.colour,
                     scale = textScale,
                     depth = false
                 )
@@ -318,11 +342,36 @@ object ChocolateFactory : Module(
     }
 
     private fun scanForEggs() {
-        getEntities<ArmorStand>().forEach { entity ->
-            val helmet = entity.getItemBySlot(EquipmentSlot.HEAD).takeUnless { it.isEmpty } ?: return@forEach
-            val eggType = ChocolateEgg.entries.find { it.texture == helmet.texture } ?: return@forEach
-            currentDetectedEggs.add(Egg(entity, eggType.type, eggType.colour))
+        val candidates = getEntities<ArmorStand>().sortedBy { it.id }.mapNotNull { entity ->
+            val helmet = entity.getItemBySlot(EquipmentSlot.HEAD).takeUnless { it.isEmpty } ?: return@mapNotNull null
+            val texture = helmet.texture ?: return@mapNotNull null
+            if (ChocolateEgg.entries.none { it.texture == texture }) return@mapNotNull null
+            entity to texture
+        }.distinctBy { it.first.id }
+
+        val assignedEntityIds = currentDetectedEggs.mapTo(mutableSetOf()) { it.entity.id }
+
+        pendingEggTypes.toList().forEach { type ->
+            val replacement = candidates.firstOrNull { (entity, texture) ->
+                texture == type.texture && entity.id !in assignedEntityIds && entity.id != staleEggEntityIds[type]
+            } ?: return@forEach
+
+            currentDetectedEggs.add(Egg(replacement.first, type))
+            assignedEntityIds.add(replacement.first.id)
+            pendingEggTypes.remove(type)
+            staleEggEntityIds.remove(type)
         }
+
+        ChocolateEgg.entries
+            .filter { type -> type !in pendingEggTypes && currentDetectedEggs.none { it.type == type } }
+            .forEach { type ->
+                val candidate = candidates.firstOrNull { (entity, texture) ->
+                    texture == type.texture && entity.id !in assignedEntityIds
+                } ?: return@forEach
+
+                currentDetectedEggs.add(Egg(candidate.first, type))
+                assignedEntityIds.add(candidate.first.id)
+            }
     }
 
     private fun isInChocolateFactory(): Boolean =
@@ -330,9 +379,8 @@ object ChocolateFactory : Module(
 
     private data class Egg(
         val entity: ArmorStand,
-        val renderName: String,
-        val colour: Colour,
-        var isFound: Boolean = false
+        var type: ChocolateEgg,
+        var isClaimed: Boolean = false
     )
 
     private data class UpgradeCandidate(
@@ -343,14 +391,19 @@ object ChocolateFactory : Module(
 
     private enum class ChocolateEgg(
         val texture: String,
-        val type: String,
+        val mealName: String,
+        val renderName: String,
         val colour: Colour
     ) {
-        Breakfast(BREAKFAST_EGG_TEXTURE, "§6Breakfast Egg", Colour.MINECRAFT_GOLD),
-        Lunch(LUNCH_EGG_TEXTURE, "§9Lunch Egg", Colour.MINECRAFT_BLUE),
-        Dinner(DINNER_EGG_TEXTURE, "§aDinner Egg", Colour.MINECRAFT_GREEN),
-        Brunch(BREAKFAST_EGG_TEXTURE, "§6Brunch Egg", Colour.MINECRAFT_GOLD),
-        Dejeuner(LUNCH_EGG_TEXTURE, "§9Déjeuner Egg", Colour.MINECRAFT_BLUE),
-        Supper(DINNER_EGG_TEXTURE, "§aSupper Egg", Colour.MINECRAFT_GREEN);
+        Breakfast(BREAKFAST_EGG_TEXTURE, "Breakfast", "§6Breakfast Egg", Colour.MINECRAFT_GOLD),
+        Lunch(LUNCH_EGG_TEXTURE, "Lunch", "§9Lunch Egg", Colour.MINECRAFT_BLUE),
+        Dinner(DINNER_EGG_TEXTURE, "Dinner", "§aDinner Egg", Colour.MINECRAFT_GREEN),
+        Brunch(BREAKFAST_EGG_TEXTURE, "Brunch", "§6Brunch Egg", Colour.MINECRAFT_GOLD),
+        Dejeuner(LUNCH_EGG_TEXTURE, "Déjeuner", "§9Déjeuner Egg", Colour.MINECRAFT_BLUE),
+        Supper(DINNER_EGG_TEXTURE, "Supper", "§aSupper Egg", Colour.MINECRAFT_GREEN);
+
+        companion object {
+            fun fromMealName(name: String?): ChocolateEgg? = entries.find { it.mealName == name }
+        }
     }
 }
