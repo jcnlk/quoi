@@ -3,20 +3,19 @@ package quoi.module.impl.misc.chat
 import quoi.module.Module
 import quoi.module.impl.misc.chat.impl.*
 
+@Suppress("unused_expression")
 object Chat : Module(
     "Chat",
     desc = "Various chat related tweaks."
 ) {
-
-    @Suppress("unused")
-    private val features = setOf(
-        ChatBypass,
-        ChatPeek,
-        CompactChat,
-        CopyChat,
-        InfiniteChatLimit,
-        KeepChatHistory,
-        DisableAutoScroll,
+    init {
+        ChatBypass
+        ChatPeek
+        CompactChat
+        CopyChat
+        InfiniteChatLimit
+        KeepChatHistory
+        DisableAutoScroll
         AutoDialogue
-    )
+    }
 }
