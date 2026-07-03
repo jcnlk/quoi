@@ -32,6 +32,7 @@
     "GuiMessage",
     "GuiMessageLineMixin",
     "GuiMixin",
+    "HudMixin",
     "AvatarRendererMixin",
     "ItemCooldownsMixin",
     "ItemInHandLayerMixin",
