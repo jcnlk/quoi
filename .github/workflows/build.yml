@@ -60,12 +60,9 @@ jobs:
         if: ${{ !cancelled() && (github.event_name != 'pull_request' || failure()) }}
         run: |
           rm -rf ci-artifacts
-          mkdir -p ci-artifacts/reports
+          mkdir -p ci-artifacts
           if [ -d build/libs ]; then
             find build/libs -maxdepth 1 -type f -name "*.jar" ! -name "*-sources.jar" -exec cp {} ci-artifacts/ \;
-          fi
-          if [ -d build/reports ]; then
-            cp -R build/reports/. ci-artifacts/reports/
           fi
 
       - name: Upload Build Artifacts
