@@ -1,6 +1,7 @@
 package quoi.module.impl.render
 
 import quoi.api.events.core.on
+import net.fabricmc.fabric.api.client.screen.v1.Screens
 import net.minecraft.client.gui.components.AbstractWidget
 import net.minecraft.client.gui.screens.TitleScreen
 import quoi.api.colour.Colour
@@ -81,11 +82,19 @@ object CustomMainMenu : Module(
             }
         }
 
-        on<GuiEvent.Draw> {
+        on<GuiEvent.Open.Post> {
             if (screen !is TitleScreen) return@on
 
-            cancel()
-            if (mc.gui.screen() !is CustomMainMenuScreen) mc.gui.setScreen(CustomMainMenuScreen(emptyList()))
+            val extraButtons = Screens.getWidgets(screen)
+                .filter(::isExternalTitleButton)
+
+            // Replacing the screen while TitleScreen.init() is still on the stack leaves
+            // 26.2's GUI state inconsistent. Defer it to the next client task instead.
+            mc.submit {
+                if (mc.gui.screen() === screen) {
+                    mc.gui.setScreen(CustomMainMenuScreen(extraButtons))
+                }
+            }
         }
     }
 
