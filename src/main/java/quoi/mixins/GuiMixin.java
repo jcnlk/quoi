@@ -26,7 +26,7 @@ import java.util.regex.Pattern;
 public class GuiMixin {
 
     @Redirect(
-            method = "renderPlayerHealth",
+            method = "extractPlayerHealth",
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/world/entity/player/Player;getAbsorptionAmount()F"
@@ -60,7 +60,7 @@ public class GuiMixin {
     }
 
     @Inject(
-            method = "renderHearts",
+            method = "extractHearts",
             at = @At("HEAD"),
             cancellable = true
     )
@@ -78,7 +78,7 @@ public class GuiMixin {
     }
 
     @Inject(
-            method = "renderVehicleHealth",
+            method = "extractVehicleHealth",
             at = @At("HEAD"),
             cancellable = true
     )
