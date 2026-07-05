@@ -13,7 +13,7 @@ object NoBreakReset : Module(
 ) {
     init {
         on<PacketEvent.ReceivedPost, ClientboundContainerSetSlotPacket> {
-            if (!active || mc.screen != null) return@on
+            if (!active || mc.gui.screen() != null) return@on
 
             val slot = packet.slot
             if (slot !in 36..44 || player.inventory.selectedSlot != slot - 36) return@on
