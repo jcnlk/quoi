@@ -61,6 +61,7 @@
     "accessors.KeyMappingAccessor",
     "accessors.LocalPlayerAccessor",
     "accessors.MultiPlayerGameModeAccessor",
-    "accessors.ImageButtonAccessor"
+    "accessors.ImageButtonAccessor",
+    "accessors.ItemInHandRendererAccessor"
   ]
 }

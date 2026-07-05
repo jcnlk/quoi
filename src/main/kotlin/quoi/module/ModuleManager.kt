@@ -112,6 +112,7 @@ object ModuleManager : EventListener {
             CommissionDisplay,
             MineshaftESP,
             GrieferTracker,
+            NoBreakReset,
         )
 
         modules.filter { it.alwaysActive }.forEach { it.onEnable() }
