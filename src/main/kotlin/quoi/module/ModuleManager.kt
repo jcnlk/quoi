@@ -113,6 +113,7 @@ object ModuleManager : EventListener {
             MineshaftESP,
             GrieferTracker,
             NoBreakReset,
+            NoGemstoneDesync,
         )
 
         modules.filter { it.alwaysActive }.forEach { it.onEnable() }

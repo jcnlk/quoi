@@ -34,6 +34,7 @@
     "ItemCooldownsMixin",
     "ItemInHandLayerMixin",
     "ItemInHandRendererMixin",
+    "NoGemstoneDesyncMixin",
     "KeyboardHandlerMixin",
     "KeyboardInputMixin",
     "LevelChunkMixin",
