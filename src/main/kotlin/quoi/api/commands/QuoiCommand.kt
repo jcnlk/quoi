@@ -309,6 +309,7 @@ object QuoiCommand : EventListener {
     }
 
     fun init() {
+        RefillCommands.addTo(command)
         command.register()
         devCommand.register()
 
