@@ -31,6 +31,7 @@
 - `/lsb` - reconnects to SkyBlock
 - `/ld` - reconnects to the Dungeon Hub
 - `/ptr` - transfers the party to a random member
+- `/quoi <ep|ij|sl|sb|dd|tap|twap> [amount]` - refills common dungeon items from sacks
 - `/f0` to `/f7`, `/m1` to `/m7` - quick dungeon floor instance commands
 
 ## Features
