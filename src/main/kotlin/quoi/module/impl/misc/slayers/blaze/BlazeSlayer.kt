@@ -61,6 +61,18 @@ object BlazeSlayer : SettingGroup(Slayers, "Blaze", area = Island.CrimsonIsle, s
 
     private fun LivingEntity.isActive() = getAttune() != null
 
+    fun espTargets(): List<Pair<LivingEntity, Attunement?>> {
+        if (Slayers.questState != QuestState.KILLING || blazeBoss == null) return emptyList()
+
+        val demonTargets = demons?.toList()
+            ?.filterNot { it.isDeadOrDying }
+            ?.map { it to it.getAttune() }
+            .orEmpty()
+        if (demonTargets.isNotEmpty()) return demonTargets
+
+        return listOfNotNull(blazeBoss?.takeUnless { it.isDeadOrDying }?.let { it to it.getAttune() })
+    }
+
     private fun LivingEntity.getAttune(): Attunement? {
         if (this.isDeadOrDying) return null
 
