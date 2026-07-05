@@ -7,6 +7,7 @@ import quoi.api.skyblock.location.Location.currentArea
 import quoi.api.skyblock.location.Location.inSkyblock
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf
+import net.minecraft.sounds.SoundSource
 
 object Tweaks : Module(
     name = "Tweaks",
@@ -14,6 +15,7 @@ object Tweaks : Module(
 ) {
     @JvmStatic val fixDoubleSneak by switch("Fix double sneak", desc = "Fixes a bug where your camera can bounce when you quickly sneak and unsneak.") // kinda a rendering thing rite? :grin:
     @JvmStatic val instantSneak by switch("Instant sneak", desc = "Instantly moves your camera when sneaking.")
+    @JvmStatic val muteSounds by switch("Mute sounds", desc = "Mutes in-game sounds while Minecraft is unfocused.")
 
     private val skyblockOnly by text("Skyblock only", desc = "Hypixel skyblock only features")
     @JvmStatic val disableItemCooldowns by switch("Disable item cooldowns", desc = "Disables item cooldowns such as ender pearls.").childOf(::skyblockOnly)
@@ -29,9 +31,16 @@ object Tweaks : Module(
 
     private var time = System.currentTimeMillis()
     private var wasNotNull = false
+    private var wasMuted = false
 
     init {
         on<TickEvent.End> {
+            val muted = should(muteSounds) && !mc.isWindowActive
+            if (muted != wasMuted) {
+                wasMuted = muted
+                SoundSource.entries.forEach(mc.soundManager::refreshCategoryVolume)
+            }
+
             if (mc.gui.screen() != null) {
                 wasNotNull = true
                 time = System.currentTimeMillis()

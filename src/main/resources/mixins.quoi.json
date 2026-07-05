@@ -54,6 +54,7 @@
     "PreparedTextBuilderMixin",
     "ScreenEffectRendererMixin",
     "ScreenMixin",
+    "SoundEngineMixin",
     "ServerboundUseItemPacketMixin",
     "SkullBlockMixin",
     "WallSkullBlockMixin",
