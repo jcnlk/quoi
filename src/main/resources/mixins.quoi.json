@@ -68,6 +68,7 @@
     "accessors.RenderTypeAccessor",
     "accessors.MultiPlayerGameModeAccessor",
     "accessors.ImageButtonAccessor",
-    "accessors.RecipeBookComponentAccessor"
+    "accessors.RecipeBookComponentAccessor",
+    "accessors.ItemInHandRendererAccessor"
   ]
 }
