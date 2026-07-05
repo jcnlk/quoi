@@ -104,6 +104,7 @@ object ModuleManager : EventListener {
             PlayerESP,
             Trajectories,
             EtherwarpOverlay,
+            Waypoints,
 
             // MINING
             CrystalHollowsMap,
