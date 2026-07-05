@@ -64,6 +64,7 @@
     "accessors.RenderSetupAccessor",
     "accessors.RenderTypeAccessor",
     "accessors.MultiPlayerGameModeAccessor",
-    "accessors.ImageButtonAccessor"
+    "accessors.ImageButtonAccessor",
+    "accessors.ItemInHandRendererAccessor"
   ]
 }
