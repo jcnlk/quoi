@@ -5,7 +5,9 @@ import net.minecraft.resources.Identifier
 import net.minecraft.sounds.SoundEvent
 import net.minecraft.sounds.SoundEvents
 import quoi.api.colour.Colour
+import quoi.api.colour.withAlpha
 import quoi.api.input.CatKeys
+import quoi.module.Module
 import quoi.module.settings.Setting.Companion.json
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.module.settings.UIComponent.Companion.visibleIf
@@ -76,6 +78,24 @@ abstract class SettingsDSL {
         unit: String = "",
     ): SliderComponent<E> where E : Number, E : Comparable<E> =
         SliderComponent(name, value, min, max, increment, desc, unit)
+
+    protected fun highlight(
+        name: String = "Style",
+        desc: String = "",
+        colour: Colour? = Colour.WHITE,
+        fillColour: Colour? = Colour.WHITE.withAlpha(67),
+        glow: Boolean = true,
+        customColour: Boolean = false,
+        customFillColour: Boolean = false,
+        aabbOffset: Boolean = false
+    ) = HighlightSettings(this as Module, name, desc, colour, fillColour, glow, customColour, customFillColour, aabbOffset)
+
+    protected fun tracer(
+        name: String = "Tracer",
+        colour: Colour = Colour.WHITE,
+        customColour: Boolean = false,
+        distance: Int? = null
+    ) = TracerSettings(this as Module, name, colour, customColour, distance)
 
     protected fun sound(name: String, ): SoundSetting {
         val sound = +selector("$name sound", SoundUtils.SoundSetting.BlazeHurt)
