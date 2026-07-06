@@ -27,6 +27,7 @@ object LightsDevice : Module(
 ) {
     private val triggerBot by switch("Triggerbot", desc = "Automatically toggles the correct levers when you look at them.")
     private val delay by slider("Delay", 200L, 70L, 500L, 10L, unit = "ms", desc = "Delay between triggerbot clicks.")
+        .childOf(::triggerBot)
     private val hideUselessLevers by switch("Hide useless levers", desc = "Turns useless lights device levers into ghost blocks.")
 
     private var lastTriggerAt = 0L
