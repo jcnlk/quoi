@@ -1,114 +1,44 @@
 package quoi.module.impl.render
 
-import quoi.api.colour.Colour
-import quoi.api.colour.withAlpha
 import quoi.api.events.EntityEvent
 import quoi.api.events.RenderEvent
 import quoi.api.events.core.on
 import quoi.module.Module
-import quoi.module.settings.Setting.Companion.json
 import quoi.module.settings.UIComponent.Companion.childOf
-import quoi.module.settings.UIComponent.Companion.visibleIf
-import quoi.utils.ChatUtils.modMessage
 import quoi.utils.EntityUtils.colourFromDistance
-import quoi.utils.EntityUtils.distanceToCamera
 import quoi.utils.EntityUtils.interpolatedBox
-import quoi.utils.EntityUtils.isVisibleToPlayer
 import quoi.utils.EntityUtils.playerEntitiesNoSelf
-import quoi.utils.EntityUtils.renderPos
-import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.WorldUtils
-import quoi.utils.equalsOneOf
-import quoi.utils.render.drawStyledBox
-import quoi.utils.render.drawTracer
 
-/**
- * TODO:
- *  refactor
- */
-
+@Suppress("UNNECESSARY_SAFE_CALL")
 object PlayerESP : Module(
     "Player ESP",
     desc = "Highlights players through walls."
 ) {
-    private val tracer by switch("Tracer").json("Tracer toggle")
-    private val tracerCustomCol by switch("Custom colour").json("Tracer distance colours").childOf(::tracer)
-    private val tracerColour by colourPicker("Colour", Colour.WHITE).json("Tracer colour").childOf(::tracerCustomCol)
-    private val tracerDistance by slider("Max distance", 256, 0, 256, 1).childOf(::tracer)
-    private val tracerThickness by slider("Thickness", 4f, 1f, 8f, 1f).json("Tracer thickness").childOf(::tracer)
-
-    // todo figure what's going on here. I'm lazy right now
     private val ironmenOnly by switch("Ir*nmen only")
-    private var specificPlayer by switch("Specific player").json("Specific player toggle")
-    private var specificPlayerName by textInput("Player name", length = 16, desc = "Only ESP this player.", placeholder = "Player name")
-        .json("Specific player name")
-        .childOf(::specificPlayer)
-    private val depth by switch("Depth check")
-    private val style by selector("Style", "Box", arrayListOf("Box", "Filled box", "Glow", "2D"), desc = "Esp render style to be used.")
-    private val customCol by switch("Custom colour").json("Box custom colour").visibleIf { !style.selected.equalsOneOf("Glow", "2D") }
-    private val colour by colourPicker("Colour", Colour.WHITE, desc = "Colour for the Player ESP").childOf(::customCol)
-    private val fillCustomCol by switch("Fill custom colour", true).visibleIf { style.selected == "Filled box" }
-    private val fillColour by colourPicker("Colour", Colour.WHITE.withAlpha(60), allowAlpha = true, desc = "Fill colour for the Player ESP").json("Fill colour").childOf(::fillCustomCol).visibleIf { style.selected == "Filled box" }
-    private val thickness by slider("Thickness", 4f, 1f, 8f, 1f)
-    private val sizeOffset by slider("Size offset", 0.0, -1.0, 1.0, 0.05, desc = "Changes box size offset.").visibleIf { style.selected.equalsOneOf("Box", "Filled box") }
 
-    val targetedPlayerName: String
-        get() = specificPlayerName.trim()
+    private var specific by switch("Specific player")
+    private var specificName by textInput("Name", length = 16, placeholder = "Player name").childOf(::specific)
+        .suggests { WorldUtils.players.map { it.profile.name } }
 
-    fun setTargetedPlayer(name: String) {
-        specificPlayer = true
-        specificPlayerName = name.trim()
-    }
-
-    private fun matchesFilters(entityName: String?, displayName: String?): Boolean {
-        if (ironmenOnly && displayName?.contains("♲") == false) return false
-        if (!specificPlayer) return true
-
-        val target = targetedPlayerName
-        if (target.isBlank()) return false
-
-        val cleanedEntityName = entityName.noControlCodes.trim()
-        val cleanedDisplayName = displayName.noControlCodes.trim()
-        return cleanedEntityName.equals(target, true) || cleanedDisplayName.equals(target, true)
-    }
+    private val tracer = tracer(customColour = true)
+    private val highlight = highlight(customColour = true, customFillColour = true, aabbOffset = true)
 
     init {
-        command.sub("playeresp") { name: String ->
-            if (name.equals("clear", true)) {
-                setTargetedPlayer("")
-                modMessage("Player ESP target cleared.")
-            } else {
-                setTargetedPlayer(name)
-                if (!enabled) toggle()
-
-                modMessage("Player ESP now targets §b$targetedPlayerName§r.")
-            }
-        }.description("Targets Player ESP to a specific player and enables it.")
-            .suggests("name") { WorldUtils.players.map { it.profile.name } }
-
         on<RenderEvent.World> {
             playerEntitiesNoSelf.forEach { entity ->
-                if (!matchesFilters(entity.name?.string, entity.displayName?.string)) return@forEach
-                val aabb = entity.interpolatedBox.inflate(sizeOffset, 0.0, sizeOffset)
-                val c = if (customCol) colour else entity.colourFromDistance
-                val fc = if (fillCustomCol) fillColour else entity.colourFromDistance.withAlpha(fillColour.alpha)
-
-                ctx.drawStyledBox(style.selected, aabb, c, fc, thickness, depth)
-
-                if (tracer) {
-                    if (entity.distanceToCamera > tracerDistance) return@forEach
-                    val col = if (tracerCustomCol) tracerColour else entity.colourFromDistance
-                    ctx.drawTracer(entity.renderPos.add(0.0, 1.5, 0.0), col, tracerThickness, depth)
-                }
+                if (ironmenOnly && entity.displayName?.string?.contains("♲") == false) return@forEach
+                if (specific && entity.displayName?.string?.contains(specificName) == false) return@forEach
+                highlight.draw(ctx, entity.interpolatedBox, entity.colourFromDistance, entity.colourFromDistance)
+                tracer.draw(ctx, entity, entity.colourFromDistance)
             }
         }
 
         on<EntityEvent.ForceGlow> {
-            if (style.selected != "Glow") return@on
+            if (highlight.style != "Glow") return@on
+            if (ironmenOnly && entity.displayName?.string?.contains("♲") == false) return@on
             if (entity !in playerEntitiesNoSelf) return@on
-            if (!matchesFilters(entity.name?.string, entity.displayName?.string)) return@on
-            if (depth && !entity.isVisibleToPlayer()) return@on
-            glowColour = colour
+            highlight.draw(this, entity.colourFromDistance)
         }
     }
 }

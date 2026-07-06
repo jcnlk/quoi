@@ -310,10 +310,9 @@ object ClickGui : Module(
 
     private fun normaliseSearchText(string: String?) = string.noControlCodes.lowercase().trim()
 
+    private var popup: Popup? = null
     fun ElementScope<*>.description(desc: String) {
         if (desc.isEmpty()) return
-
-        var popup: Popup? = null
 
         onHover(duration = 0.5.seconds) {
             if (popup != null) return@onHover
