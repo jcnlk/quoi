@@ -19,6 +19,7 @@ import quoi.api.skyblock.location.invoke
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.M7Phases
 import quoi.module.Module
+import quoi.module.settings.UIComponent.Companion.childOf
 
 object LightsDevice : Module(
     "Lights Device",
