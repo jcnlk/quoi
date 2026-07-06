@@ -412,21 +412,23 @@ object PlayerUtils {
 
     private val JsonObject.skinUUID: String? get() = this["profileId"]?.asString?.replace("-", "")
 
+    val GameProfile.usesNickSkin: Boolean
+        get() = skinJson?.skinUrlHash in nicks
+
     val GameProfile.isNicked: Boolean
         get() {
-            val json = skinJson ?: return false
-            val playerUUID = id.toString().replace("-", "")
             val malformedUUID = id.version() == 1
+            val json = skinJson ?: return malformedUUID
+            val playerUUID = id.toString().replace("-", "")
             val wrongSkinUUID = json.skinUUID?.let { it != playerUUID } ?: false
-            val usingNickSkin = json.skinUrlHash?.let { it in nicks } ?: false
-            return malformedUUID || wrongSkinUUID || usingNickSkin
+            return malformedUUID || wrongSkinUUID || usesNickSkin
         }
 
     val GameProfile.realName: String? // null means nicked
         get() {
             if (!isNicked) return name
             val json = skinJson ?: return null
-            if (json.skinUrlHash in nicks) return null
+            if (usesNickSkin) return null
             return json["profileName"]?.asString
         }
 }
