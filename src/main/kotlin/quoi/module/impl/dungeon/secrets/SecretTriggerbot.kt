@@ -1,4 +1,4 @@
-package quoi.module.impl.dungeon
+package quoi.module.impl.dungeon.secrets
 
 import net.minecraft.core.BlockPos
 import net.minecraft.world.InteractionHand
@@ -7,10 +7,11 @@ import net.minecraft.world.phys.HitResult
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
 import quoi.api.events.core.on
-import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.Dungeon.inBoss
-import quoi.module.Module
+import quoi.module.impl.dungeon.Secrets
+import quoi.module.settings.group.SettingGroup
+import quoi.module.settings.impl.SwitchComponent
 import quoi.utils.Ticker
 import quoi.utils.equalsOneOf
 import quoi.utils.skyblock.player.SwapManager
@@ -18,11 +19,9 @@ import quoi.utils.skyblock.player.SwapResult
 import quoi.utils.ticker
 
 // Kyleen
-object SecretTriggerBot : Module(
-    "Secret TriggerBot",
-    desc = "Automatically collects secrets when looking at them.",
-    area = Island.Dungeon
-) {
+private val triggerbotToggle = SwitchComponent("Triggerbot", desc = "Automatically collects secrets when looking at them.")
+
+object SecretTriggerbot : SettingGroup(Secrets, triggerbotToggle) {
 
     private val swapSlot by slider("Swap slot", 1, 1, 9, 1, desc = "Hotbar slot to swap to (1-9).")
     private val swapBack by switch("Swap back", desc = "Swaps back to original slot after clicking.")
@@ -30,17 +29,17 @@ object SecretTriggerBot : Module(
 
     private val clickedBlocks = HashSet<BlockPos>()
 
-    override fun onDisable() {
-        clickedBlocks.clear()
-        super.onDisable()
-    }
-
     init {
         on<WorldEvent.Change> {
             clickedBlocks.clear()
         }
 
         on<TickEvent.End> {
+            if (!triggerbotToggle.enabled) {
+                clickedBlocks.clear()
+                tBotTicker = null
+                return@on
+            }
             if (mc.screen != null || inBoss) return@on
             if (Dungeon.currentRoom?.name == "Water Board") {
                 tBotTicker = null
