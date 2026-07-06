@@ -11,6 +11,8 @@ import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.module.settings.UIComponent.Companion.visibleIf
 import quoi.module.settings.impl.*
 import quoi.utils.SoundUtils
+import quoi.utils.ui.HighlightSettings
+import quoi.utils.ui.TracerSettings
 import kotlin.jvm.optionals.getOrNull
 import kotlin.reflect.KProperty0
 
