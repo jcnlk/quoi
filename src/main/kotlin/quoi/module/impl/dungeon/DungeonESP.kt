@@ -1,6 +1,5 @@
 package quoi.module.impl.dungeon
 
-import net.minecraft.core.BlockPos
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.ambient.Bat
@@ -8,13 +7,9 @@ import net.minecraft.world.entity.boss.wither.WitherBoss
 import net.minecraft.world.entity.decoration.ArmorStand
 import net.minecraft.world.entity.monster.EnderMan
 import net.minecraft.world.entity.player.Player
-import net.minecraft.world.level.block.Blocks
-import net.minecraft.world.level.chunk.LevelChunk
-import net.minecraft.world.level.chunk.status.ChunkStatus
 import quoi.annotations.AlwaysActive
 import quoi.api.colour.Colour
 import quoi.api.colour.withAlpha
-import quoi.api.events.BlockEvent
 import quoi.api.events.EntityEvent
 import quoi.api.events.RenderEvent
 import quoi.api.events.WorldEvent
@@ -35,10 +30,8 @@ import quoi.module.settings.UIComponent.Companion.visibleIf
 import quoi.utils.EntityUtils.getEntities
 import quoi.utils.EntityUtils.getEntity
 import quoi.utils.EntityUtils.interpolatedBox
-import quoi.utils.EntityUtils.isVisibleToPlayer
 import quoi.utils.Scheduler.scheduleLoop
 import quoi.utils.StringUtils.noControlCodes
-import quoi.utils.aabb
 import quoi.utils.equalsOneOf
 import quoi.utils.removeIf
 import quoi.utils.render.drawStyledBox
@@ -47,77 +40,41 @@ import quoi.utils.render.drawStyledBox
 object DungeonESP : Module(
     "Dungeon ESP",
     desc = "Highlights various dungeon entities.",
-    area = Island.Dungeon()
-) { // todo recode
+    area = Island.Dungeon(inClear = true)
+) {
     private val teammateClassGlow by switch("Teammate class glow", true, desc = "Highlights dungeon teammates based on their class colour.")
     private val starEsp by switch("Starred mobs")
 
-    private val depth by switch("Depth check").childOf(::starEsp)
-    private val style by selector("Style", "Box", arrayListOf("Box", "Filled box", "Glow"/*, "2D"*/), desc = "Esp render style to be used.").childOf(::starEsp)
-    private val thickness by slider("Thickness", 4, 1, 8, 1).childOf(::style) { it.selected.equalsOneOf("Box", "Filled box") }
-    private val sizeOffset by slider("Size offset", 0.0, -1.0, 1.0, 0.05, desc = "Changes box size offset.").childOf(::style) { it.selected.equalsOneOf("Box", "Filled box") }
+    private val starHighlight = highlight(colour = null, fillColour = null).apply { childOf(::starEsp)} // fixme
 
     private val colourDropdown by text("Colours").childOf(::starEsp)
     private val colourStar by colourPicker("Star", Colour.RED, true, "ESP color for star mobs.").childOf(::colourDropdown)
     private val colourSA by colourPicker("Shadow assassin", Colour.RED, true, "ESP color for shadow assassins.").childOf(::colourDropdown)
     private val colourBat by colourPicker("Bat", Colour.RED, true, "ESP color for bats.").childOf(::colourDropdown)
 
-    private val fillDropdown by text("Fill colours").childOf(::starEsp).visibleIf { style.selected == "Filled box" }
+    private val fillDropdown by text("Fill colours").childOf(::starEsp).visibleIf { starHighlight.style == "Filled box" }
     private val colourStarFill by colourPicker("Star", Colour.RED.withAlpha(60), true, "ESP color for star mobs.").json("Star fill").childOf(::fillDropdown)
     private val colourSAFill by colourPicker("Shadow assassin", Colour.RED.withAlpha(60), true, "ESP color for shadow assassins.").json("Shadow assassin fill").childOf(::fillDropdown)
     private val colourBatFill by colourPicker("Bat", Colour.RED.withAlpha(60), true, "ESP color for bats.").json("Bat fill").childOf(::fillDropdown)
 
     private val bossEsp by switch("Wither boss")
-    private val depthBoss by switch("Depth check").json("Depth check boss").childOf(::bossEsp)
-    private val styleBoss by selector("Style", "Box", arrayListOf("Box", "Filled box", "Glow"/*, "2D"*/), desc = "Esp render style to be used.").json("Style boss").childOf(::bossEsp)
-    private val colourBoss by colourPicker("Colour", Colour.WHITE, desc = "Colour for the Boss ESP").json("Colour boss").childOf(::styleBoss)
-    private val fillColourBoss by colourPicker("Fill colour", Colour.WHITE.withAlpha(60), allowAlpha = true, desc = "Fill colour for the Boss ESP").json("Fill colour boss").childOf(::styleBoss).visibleIf { styleBoss.selected == "Filled box" }
-    private val thicknessBoss by slider("Thickness", 4, 1, 8, 1).json("Thickness boss").childOf(::styleBoss)
-    private val sizeOffsetBoss by slider("Size offset", 0.0, -1.0, 1.0, 0.05, desc = "Changes box size offset.").json("Size offset boss").childOf(::styleBoss).visibleIf { styleBoss.selected.equalsOneOf("Box", "Filled box") }
-
-    private val mimicHighlight by switch("Mimic highlight", desc = "Highlights mimic trapped chests.").onValueChanged { _, enabled ->
-        if (enabled && this.enabled) scanLoadedMimicChests() else if (!enabled) mimicChests.clear()
+    private val bossHighlight = highlight("Style", aabbOffset = true).apply {
+        component.json("Boss style")
+        childOf(::bossEsp)
     }
-    private val mimicDepth by switch("Mimic depth check", desc = "Depth check for mimic chest highlights.").childOf(::mimicHighlight)
-    private val mimicStyle by selector("Mimic style", "Box", arrayListOf("Box", "Filled box"), desc = "ESP render style to be used for mimic chests.").childOf(::mimicHighlight)
-    private val mimicThickness by slider("Mimic thickness", 2f, 0.1f, 10f, 0.1f, desc = "Line width for mimic chest highlights.").childOf(::mimicHighlight)
-    private val mimicColour by colourPicker("Mimic colour", Colour.RED, true, "ESP color for mimic chests.").childOf(::mimicHighlight)
-    private val mimicFillColour by colourPicker("Mimic fill colour", Colour.RED.withAlpha(60), true, "Fill color for mimic chests.").childOf(::mimicHighlight).visibleIf { mimicStyle.selected == "Filled box" }
 
     var currentEntities = mutableMapOf<Int, EspMob>()
         private set
-    private val mimicChests = mutableSetOf<BlockPos>()
-
-    override fun onEnable() {
-        super.onEnable()
-        scanLoadedMimicChests()
-    }
-
-    override fun onDisable() {
-        super.onDisable()
-        mimicChests.clear()
-    }
 
     init {
-        scheduleLoop(10) {
-            if (!Dungeon.inClear) return@scheduleLoop
+        scheduleLoop(10) { // maybe move to dungeon utils
+            if (/*!enabled || !starEsp || */!Dungeon.inClear/* || style.selected == "Glow"*/) return@scheduleLoop
             updateEntities()
             Test.collectMobs()
         }
 
         on<WorldEvent.Change> {
             currentEntities.clear()
-            mimicChests.clear()
-        }
-
-        on<WorldEvent.Chunk.Load> {
-            if (mimicHighlight) scanMimicChests(chunk)
-        }
-
-        on<BlockEvent.Update> {
-            if (!mimicHighlight) return@on
-            if (updated.block == Blocks.TRAPPED_CHEST) mimicChests.add(pos.immutable())
-            else if (old.block == Blocks.TRAPPED_CHEST) mimicChests.remove(pos)
         }
 
         on<RenderEvent.World> {
@@ -125,55 +82,34 @@ object DungeonESP : Module(
                 val entity = mob.entity
 
                 if (entity.isDeadOrDying || entity.isRemoved) return@removeIf true
-                if (enabled && starEsp && style.selected != "Glow") {
-                    val aabb = entity.interpolatedBox.inflate(sizeOffset, 0.0, sizeOffset)
-                    ctx.drawStyledBox(style.selected, aabb, mob.colour, mob.fillColour, thickness.toFloat(), depth)
-                }
+                if (!enabled || !starEsp) return@removeIf false
+
+                starHighlight.draw(ctx, entity.interpolatedBox, mob.colour, mob.fillColour)
                 false
             }
 
-            if (enabled && bossEsp && inBoss && floor?.floorNumber == 7) {
-                getEntities<WitherBoss>()
-                    .filter { it.isWitherBoss }
-                    .forEach { entity ->
-                        val aabb = entity.interpolatedBox.inflate(sizeOffsetBoss, 0.0, sizeOffsetBoss)
-                        ctx.drawStyledBox(styleBoss.selected, aabb, colourBoss, fillColourBoss, thicknessBoss.toFloat(), depthBoss)
-                    }
-            }
-
-            if (enabled && mimicHighlight) {
-                mimicChests.removeIf { pos ->
-                    if (!level.hasChunk(pos.x shr 4, pos.z shr 4) || level.getBlockState(pos).block != Blocks.TRAPPED_CHEST) {
-                        return@removeIf true
-                    }
-
-                    val roomCenter = ScanUtils.getRoomCenter(pos.x, pos.z)
-                    if (ScanUtils.scannedRooms.any { room ->
-                            room.data.trappedChests > 0 && room.tiles.any { it.vec2 == roomCenter }
-                        }
-                    ) return@removeIf false
-
-                    ctx.drawStyledBox(mimicStyle.selected, pos.aabb, mimicColour, mimicFillColour, mimicThickness, mimicDepth)
-                    false
-                }
-            }
+            if (enabled && bossEsp && inBoss && floor?.floorNumber == 7) getEntities<WitherBoss>()
+                .filter { it.isWitherBoss }
+                .forEach { bossHighlight.draw(ctx, it.interpolatedBox) }
         }
 
         on<EntityEvent.ForceGlow> {
             if (!enabled) return@on
             getTeammateColour(entity)?.let { glowColour = it }
 
-            if (starEsp && style.selected == "Glow" && (!depth || entity.isVisibleToPlayer())) {
+            if (starEsp) {
                 getColour(entity)?.let {
-                    glowColour = it.first
+                    starHighlight.draw(this, it.first)
                     return@on
                 }
 
-                currentEntities[entity.id]?.let { glowColour = it.colour }
+                currentEntities[entity.id]?.let {
+                    starHighlight.draw(this, it.colour)
+                }
             }
 
-            if (bossEsp && inBoss && floor?.floorNumber == 7 && styleBoss.selected == "Glow" && entity.isWitherBoss) {
-                if (!depthBoss || entity.isVisibleToPlayer()) glowColour = colourBoss
+            if (bossEsp && inBoss && floor?.floorNumber == 7 && entity.isWitherBoss) {
+                bossHighlight.draw(this)
             }
         }
     }
@@ -240,28 +176,6 @@ object DungeonESP : Module(
     private fun getTeammateColour(entity: Entity): Colour? {
         if (!teammateClassGlow || !Dungeon.inDungeons || entity !is Player) return null
         return Dungeon.dungeonTeammates.find { it.name == entity.name.string }?.clazz?.colour
-    }
-
-    private fun scanLoadedMimicChests() {
-        if (!mimicHighlight) return
-        val center = player.blockPosition()
-        val radius = mc.options.effectiveRenderDistance
-
-        mimicChests.clear()
-        for (chunkX in ((center.x shr 4) - radius)..((center.x shr 4) + radius)) {
-            for (chunkZ in ((center.z shr 4) - radius)..((center.z shr 4) + radius)) {
-                val chunk = level.chunkSource.getChunk(chunkX, chunkZ, ChunkStatus.FULL, false) ?: continue
-                scanMimicChests(chunk)
-            }
-        }
-    }
-
-    private fun scanMimicChests(chunk: LevelChunk) {
-        chunk.blockEntities.keys.forEach { pos ->
-            if (chunk.getBlockState(pos).block == Blocks.TRAPPED_CHEST) {
-                mimicChests.add(pos.immutable())
-            }
-        }
     }
 
     val OdonRoom.starredMobs: List<LivingEntity> get() {
