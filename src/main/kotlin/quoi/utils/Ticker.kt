@@ -1,11 +1,11 @@
 package quoi.utils
 
 import quoi.module.impl.misc.Test
-import quoi.module.impl.dungeon.SecretTriggerBot
+import quoi.module.impl.dungeon.secrets.SecretTriggerbot
 /**
  * Usage:
  * [Test.tickerExample]
- * [SecretTriggerBot.triggerBotTicker]
+ * [SecretTriggerbot.triggerBotTicker]
  */
 
 class TickerCancelledException : Exception("ticker cancelled") {
