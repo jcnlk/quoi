@@ -90,7 +90,15 @@ object BlazeSlayer : SettingGroup(Slayers, "Blaze", area = Island.CrimsonIsle, s
     }
 
     override val entitiesForRender: List<Pair<LivingEntity, Colour?>> // untested, maybe works
-        get() = demons?.toList()?.map { it to it.getAttune()?.colour }.orEmpty()
+        get() {
+            val demonTargets = demons?.toList()
+                ?.filterNot { it.isDeadOrDying }
+                ?.map { it to it.getAttune()?.colour }
+                .orEmpty()
+            if (demonTargets.isNotEmpty()) return demonTargets
+
+            return listOfNotNull(blazeBoss?.takeUnless { it.isDeadOrDying }?.let { it to it.getAttune()?.colour })
+        }
 
     override val running: Boolean
         get() = super.running && features.any { it.enabled }
