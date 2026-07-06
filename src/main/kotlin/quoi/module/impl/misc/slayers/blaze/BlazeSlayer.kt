@@ -5,6 +5,7 @@ import net.minecraft.world.entity.decoration.ArmorStand
 import net.minecraft.world.entity.monster.Blaze
 import net.minecraft.world.entity.monster.WitherSkeleton
 import net.minecraft.world.entity.monster.ZombifiedPiglin
+import quoi.api.colour.Colour
 import quoi.api.events.TickEvent
 import quoi.api.events.core.trackedBy
 import quoi.api.skyblock.location.Island
@@ -61,18 +62,6 @@ object BlazeSlayer : SettingGroup(Slayers, "Blaze", area = Island.CrimsonIsle, s
 
     private fun LivingEntity.isActive() = getAttune() != null
 
-    fun espTargets(): List<Pair<LivingEntity, Attunement?>> {
-        if (Slayers.questState != QuestState.KILLING || blazeBoss == null) return emptyList()
-
-        val demonTargets = demons?.toList()
-            ?.filterNot { it.isDeadOrDying }
-            ?.map { it to it.getAttune() }
-            .orEmpty()
-        if (demonTargets.isNotEmpty()) return demonTargets
-
-        return listOfNotNull(blazeBoss?.takeUnless { it.isDeadOrDying }?.let { it to it.getAttune() })
-    }
-
     private fun LivingEntity.getAttune(): Attunement? {
         if (this.isDeadOrDying) return null
 
@@ -87,6 +76,9 @@ object BlazeSlayer : SettingGroup(Slayers, "Blaze", area = Island.CrimsonIsle, s
         val name = stand?.customName?.string?.noControlCodes ?: return null
         return Attunement.entries.firstOrNull { name.contains(it.name, true) }
     }
+
+    override val entitiesForRender: List<Pair<LivingEntity, Colour?>> // untested, maybe works
+        get() = demons?.toList()?.map { it to it.getAttune()?.colour }.orEmpty()
 
     override val running: Boolean
         get() = super.running && features.any { it.enabled }
