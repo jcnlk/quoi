@@ -16,6 +16,7 @@ import quoi.api.events.core.trackedBy
 import quoi.api.skyblock.location.Island
 import quoi.module.Module
 import quoi.module.impl.misc.slayers.blaze.BlazeSlayer
+import quoi.module.impl.misc.slayers.enderman.BeaconESP
 import quoi.module.impl.misc.slayers.enderman.EndermanSlayer
 import quoi.module.settings.group.SettingGroup.Companion.childOf
 import quoi.utils.EntityUtils.getEntities
@@ -34,6 +35,13 @@ object Slayers : Module(
         BlazeSlayer,
         EndermanSlayer
     )
+
+    internal val beaconHighlight = highlight(
+        colour = Colour.RED,
+        fillColour = Colour.RED,
+        glow = false
+    ).childOf(BeaconESP.component)
+    internal val beaconTracer = tracer(colour = Colour.RED, distance = null).childOf(BeaconESP.component)
 
     private val esp by switch("Boss ESP")
     private val highlight = highlight(aabbOffset = true).childOf(::esp)

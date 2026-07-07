@@ -10,7 +10,6 @@ import net.minecraft.world.item.Items
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
-import quoi.api.colour.Colour
 import quoi.api.events.PacketEvent
 import quoi.api.events.RenderEvent
 import quoi.api.events.SlayerEvent
@@ -26,12 +25,8 @@ object BeaconESP : ToggleableGroup(
     "Beacon ESP",
     desc = "Highlights the Voidgloom Yang Glyph and draws a tracer to it."
 ) {
-    private val highlight = highlight(
-        colour = Colour.RED,
-        fillColour = Colour.RED,
-        glow = false
-    )
-    private val tracer = tracer(colour = Colour.RED, distance = null)
+    private val highlight get() = Slayers.beaconHighlight
+    private val tracer get() = Slayers.beaconTracer
 
     private val placedBeacons = mutableMapOf<BlockPos, Long>()
 
