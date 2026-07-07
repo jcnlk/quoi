@@ -16,6 +16,7 @@ import quoi.api.events.core.trackedBy
 import quoi.api.skyblock.location.Island
 import quoi.module.Module
 import quoi.module.impl.misc.slayers.blaze.BlazeSlayer
+import quoi.module.impl.misc.slayers.enderman.EndermanSlayer
 import quoi.module.settings.group.SettingGroup.Companion.childOf
 import quoi.utils.EntityUtils.getEntities
 import quoi.utils.EntityUtils.getEntity
@@ -29,8 +30,9 @@ object Slayers : Module(
     area = Island.Skyblock
 ) {
 
-    private val slayers = setOf(
-        BlazeSlayer
+    private val slayers: Set<ISlayer> = setOf(
+        BlazeSlayer,
+        EndermanSlayer
     )
 
     private val esp by switch("Boss ESP")
