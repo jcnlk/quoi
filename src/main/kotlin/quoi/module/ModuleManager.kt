@@ -112,6 +112,7 @@ object ModuleManager : EventListener {
             NoBreakReset,
             NoGemstoneDesync,
             GhostESP,
+            AbilityAlert,
         )
 
         modules.filter { it.alwaysActive }.forEach { it.onEnable() }
