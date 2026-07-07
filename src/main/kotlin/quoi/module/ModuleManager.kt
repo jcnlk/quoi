@@ -111,6 +111,7 @@ object ModuleManager : EventListener {
             GrieferTracker,
             NoBreakReset,
             NoGemstoneDesync,
+            GhostESP,
         )
 
         modules.filter { it.alwaysActive }.forEach { it.onEnable() }
