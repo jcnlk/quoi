@@ -2,6 +2,7 @@ package quoi.module.impl.misc.slayers
 
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext
 import net.minecraft.network.protocol.game.ClientboundSetPlayerTeamPacket
+import net.minecraft.sounds.SoundEvents
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.decoration.ArmorStand
 import quoi.api.colour.Colour
@@ -24,6 +25,7 @@ import quoi.utils.EntityUtils.getEntity
 import quoi.utils.EntityUtils.interpolatedBox
 import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.romanToInt
+import quoi.utils.skyblock.player.PlayerUtils
 
 @Suppress("unnecessary_safe_call")
 object Slayers : Module(
@@ -47,7 +49,25 @@ object Slayers : Module(
     private val highlight = highlight(aabbOffset = true).childOf(::esp)
     private val tracer = tracer(distance = null).childOf(::esp)
 
+    private val spawnAlert by switch(
+        "Spawn Alert",
+        desc = "Shows an alert when your Slayer boss spawns."
+    )
+
     init {
+        on<SlayerEvent.State> {
+            if (!spawnAlert || new != QuestState.KILLING) return@on
+
+            PlayerUtils.setTitle(
+                title = "§c§lBOSS SPAWNED!",
+                playSound = true,
+                sound = SoundEvents.EXPERIENCE_ORB_PICKUP,
+                pitch = 0f,
+                stayAlive = 30,
+                fadeOut = 10,
+            )
+        }
+
         on<RenderEvent.World> {
             if (!esp || questState != QuestState.KILLING) return@on
 
