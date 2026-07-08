@@ -14,6 +14,7 @@ import quoi.module.impl.mining.*
 import quoi.module.impl.misc.*
 import quoi.module.impl.misc.catmode.CatMode
 import quoi.module.impl.misc.chat.Chat
+import quoi.module.impl.misc.dojo.Dojo
 import quoi.module.impl.misc.inventory.Inventory
 import quoi.module.impl.misc.riftsolvers.MirrorverseSolvers
 import quoi.module.impl.misc.slayers.Slayers
@@ -84,6 +85,7 @@ object ModuleManager : EventListener {
             MirrorverseSolvers,
             AutoCarnival,
             Slayers,
+            Dojo,
 
             // PLAYER
             AutoSprint,
