@@ -120,7 +120,12 @@ object DungeonESP : Module(
                 if (entity.isDeadOrDying || entity.isRemoved) return@removeIf true
                 if (!enabled || !starEsp) return@removeIf false
 
-                starHighlight.draw(ctx, entity.interpolatedBox, mob.colour, mob.fillColour)
+                starHighlight.draw(
+                    ctx,
+                    entity.interpolatedBox,
+                    colour = mob.colour,
+                    overrideFillColour = mob.fillColour,
+                )
                 false
             }
 
