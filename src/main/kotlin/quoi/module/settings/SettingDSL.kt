@@ -6,6 +6,7 @@ import net.minecraft.sounds.SoundEvent
 import net.minecraft.sounds.SoundEvents
 import quoi.api.colour.Colour
 import quoi.api.colour.withAlpha
+import quoi.api.events.core.AreaBoundListener
 import quoi.api.input.CatKeys
 import quoi.module.Module
 import quoi.module.settings.Setting.Companion.json
@@ -19,6 +20,12 @@ import kotlin.jvm.optionals.getOrNull
 import kotlin.reflect.KProperty0
 
 abstract class SettingsDSL {
+
+    open val settingModule: Module
+        get() = this as Module
+
+    open val settingParent: AreaBoundListener
+        get() = settingModule
 
     abstract fun <K : Setting<T>, T> register(setting: K): K
 
@@ -88,14 +95,14 @@ abstract class SettingsDSL {
         customColour: Boolean = false,
         customFillColour: Boolean = false,
         aabbOffset: Boolean = false
-    ) = HighlightSettings(this as Module, name, desc, colour, fillColour, glow, customColour, customFillColour, aabbOffset)
+    ) = HighlightSettings(settingModule, name, desc, colour, fillColour, glow, customColour, customFillColour, aabbOffset, settingParent)
 
     protected fun tracer(
         name: String = "Tracer",
-        colour: Colour = Colour.WHITE,
+        colour: Colour? = Colour.WHITE,
         customColour: Boolean = false,
         distance: Int? = null
-    ) = TracerSettings(this as Module, name, colour, customColour, distance)
+    ) = TracerSettings(settingModule, name, colour, customColour, distance, settingParent)
 
     protected fun sound(name: String, ): SoundSetting {
         val sound = +selector("$name sound", SoundUtils.SoundSetting.BlazeHurt)
