@@ -79,7 +79,6 @@ object ModuleManager : EventListener {
             Inventory,
             ItemAnimations,
             EscrowFix,
-            WitherCloak,
             AutoBookCombine,
 //            CustomTriggers,
             MirrorverseSolvers,
