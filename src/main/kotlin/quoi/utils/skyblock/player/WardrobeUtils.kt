@@ -32,6 +32,8 @@ import kotlin.coroutines.suspendCoroutine
 
 @Init
 object WardrobeUtils : EventListener {
+    private const val MENU_TITLE = "(1/3) Armor Sets"
+
     private val queue = ArrayDeque<WardrobeRequest>()
     private var inProgress = false
     private var preventMoveCurrent = true
@@ -121,7 +123,7 @@ object WardrobeUtils : EventListener {
         onMenuClosed: () -> Unit,
     ): EquipResult {
         val targetSlot = slot + 35
-        val items = getContainerItems("wardrobe", "Wardrobe (1/3)", onMenuOpen = onMenuOpen)
+        val items = getContainerItems("wardrobe", MENU_TITLE, onMenuOpen = onMenuOpen)
         if (items.isEmpty()) {
             closeContainer()
             return EquipResult.failure("Timed out waiting for wardrobe.")
@@ -163,7 +165,7 @@ object WardrobeUtils : EventListener {
             }
         }
 
-        if (!clickAndAwaitContainerReopen(targetSlot, "Wardrobe (1/3)", onClickSent = onMenuClosed)) {
+        if (!clickAndAwaitContainerReopen(targetSlot, MENU_TITLE, onClickSent = onMenuClosed)) {
             closeContainer()
             return EquipResult.failure("Failed to click wardrobe slot $slot.")
         }
