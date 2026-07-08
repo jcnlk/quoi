@@ -116,7 +116,7 @@ object EquipUtils : EventListener {
 
         try {
             if (ContainerUtils.getContainerItems(
-                command = "eq",
+                command = "stats",
                 containerName = MENU_TITLE,
                 slots = MENU_SLOT_COUNT,
                 onMenuOpen = { startInputBlock(blockInput) },
