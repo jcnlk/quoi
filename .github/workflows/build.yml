@@ -56,21 +56,15 @@ jobs:
       - name: Build Mod
         run: ./gradlew build --build-cache --configuration-cache --stacktrace
 
-      - name: Stage Build Artifacts
-        if: ${{ !cancelled() && (github.event_name != 'pull_request' || failure()) }}
-        run: |
-          rm -rf ci-artifacts
-          mkdir -p ci-artifacts
-          if [ -d build/libs ]; then
-            find build/libs -maxdepth 1 -type f -name "*.jar" ! -name "*-sources.jar" -exec cp {} ci-artifacts/ \;
-          fi
-
       - name: Upload Build Artifacts
         if: ${{ !cancelled() && (github.event_name != 'pull_request' || failure()) }}
         uses: actions/upload-artifact@v7.0.1
         with:
           name: quoi-build-artifacts
-          path: ci-artifacts/
+          path: |
+            build/libs/quoi-*.jar
+            !build/libs/quoi-*-sources.jar
+          archive: false
           if-no-files-found: warn
           compression-level: 0
           retention-days: 14
