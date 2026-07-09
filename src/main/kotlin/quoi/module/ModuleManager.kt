@@ -70,6 +70,7 @@ object ModuleManager : EventListener {
             CatMode,
             AutoSell,
             AutoWardrobe,
+            AutoLoadout,
             AutoHotbar,
             PetKeybinds,
             Titles,
