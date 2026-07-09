@@ -13,6 +13,7 @@
 - `/quoi toggle <module>` - toggles a module by name
 - `/quoi playeresp <name|clear>` - targets Player ESP
 - `/quoi pet <name>` - queues a pet swap by name
+- `/quoi loadout <slot>` - equips a SkyBlock loadout slot
 - `/quoi wardrobe <1-9>` - equips a wardrobe slot
 - `/quoi equip <mask>` - equips Bonzo/Spirit Mask
 - `/quoi leap <name|class>` - leaps to a dungeon teammate
@@ -44,6 +45,8 @@
   - Automatically closes secret chests.
 - **Auto Croesus**
   - Automatically claims profitable Croesus dungeon chests.
+- **Auto GFS**
+  - Automatically refills certain items from your sacks.
 - **Auto Door Opener**
   - Automatically opens nearby Wither and Blood doors.
 - **Auto Invincibility**
@@ -115,8 +118,6 @@
   - Automatically combines matching enchanted books in the Hypixel Anvil.
 - **Auto Clicker**
   - A simple auto clicker for both left and right click. Activates when the corresponding key is being held down.
-- **Auto GFS**
-  - Automatically refills certain items from your sacks.
 - **Auto Hotbar**
   - Saves and equips hotbar presets, with optional chat trigger, dungeon floor and class requirements.
 - **Auto Join SkyBlock**
@@ -136,6 +137,8 @@
 - **Chat Replacements**
 - **Chocolate Factory**
   - Automates the Chocolate Factory.
+- **Dojo**
+  - Helpers for Dojo challenges.
 - **Escrow Fix**
   - Automatically reopens the Auction House or Bazaar after escrow closes it.
 - **Inventory**
@@ -146,13 +149,13 @@
   - Lava Maze, Lava Parkour, Craft Room, Red Green, Tiny Dancer, and Tubulator
 - **Pet Keybinds**
   - Keybinds for the pets menu.
+- **Slayers**
+  - Slayer boss alerts and ESP helpers.
 - **Test**
   - Dev module for testing
 - **Titles**
 - **Wardrobe Keybinds**
   - Keybinds for wardrobe.
-- **Wither Cloak**
-  - Tracks Creeper Veil and optionally hides nearby cloak creepers.
 
 </details>
 
@@ -191,6 +194,8 @@
   - Various render optimisation features.
 - **Trajectories**
   - Shows the trajectories of bows and ender pearls.
+- **Waypoints**
+  - Creates temporary waypoints from coordinates in chat.
 
 </details>
 
@@ -205,8 +210,16 @@
   - Scans Crystal Hollows structures and routes.
 - **Griefer Tracker**
   - Tracks griefers in Crystal Hollows.
+- **Ghost ESP**
+  - Highlights ghosts in the Dwarven Mines.
 - **Mineshaft ESP**
   - Highlights Umber, Tungsten, Lapis and Vanguard spots in Glacite Mineshafts.
+- **No Break Reset**
+  - Prevents held item updates from resetting block breaking progress and the equip animation.
+- **No Gemstone Desync**
+  - Fixes adjacent gemstone blocks not updating correctly after mining.
+- **Ability Alert**
+  - Shows an alert when your mining ability is available again.
 
 </details>
 
