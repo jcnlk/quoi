@@ -16,6 +16,8 @@ object Tweaks : Module(
     @JvmStatic val fixDoubleSneak by switch("Fix double sneak", desc = "Fixes a bug where your camera can bounce when you quickly sneak and unsneak.") // kinda a rendering thing rite? :grin:
     @JvmStatic val instantSneak by switch("Instant sneak", desc = "Instantly moves your camera when sneaking.")
     @JvmStatic val muteSounds by switch("Mute sounds", desc = "Mutes in-game sounds while Minecraft is unfocused.")
+    private val legacySkullSizeSetting = switch("1.8 skull size", desc = "Scales held skull items to their 1.8 size.")
+    private val legacySkullSize by legacySkullSizeSetting
 
     private val skyblockOnly by text("Skyblock only", desc = "Hypixel skyblock only features")
     @JvmStatic val disableItemCooldowns by switch("Disable item cooldowns", desc = "Disables item cooldowns such as ender pearls.").childOf(::skyblockOnly)
@@ -54,6 +56,9 @@ object Tweaks : Module(
 
     @JvmStatic
     fun should(condition: Boolean): Boolean = this.enabled && condition // idkman
+
+    @JvmStatic
+    fun shouldUseLegacySkullSize(): Boolean = legacySkullSize
 
     @JvmStatic
     fun shouldSb(condition: Boolean): Boolean = this.enabled && inSkyblock && condition
