@@ -121,6 +121,8 @@
   - Saves and equips hotbar presets, with optional chat trigger, dungeon floor and class requirements.
 - **Auto Join SkyBlock**
   - Automatically joins SkyBlock after connecting to Hypixel.
+- **Auto Loadout**
+  - Automatically equips loadout.
 - **Auto Kick**
   - Automatically kicks selected party members.
 - **Auto Sell**
