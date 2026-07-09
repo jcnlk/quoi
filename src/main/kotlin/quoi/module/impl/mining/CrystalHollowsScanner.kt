@@ -4,6 +4,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
+import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.chunk.LevelChunk
 import quoi.QuoiMod.scope
@@ -162,11 +163,17 @@ object CrystalHollowsScanner : Module(
 
             val state = chunk.getBlockState(pos)
 
-            if (state.block != block) {
+            if (!state.block.matchesStructureBlock(block)) {
                 return false
             }
         }
         return true
+    }
+
+    private fun Block.matchesStructureBlock(expected: Block): Boolean {
+        if (expected != Blocks.SKELETON_SKULL) return this == expected
+
+        return this in skullBlocks
     }
 
     private fun BlockPos.isWithinChunks(other: BlockPos, chunks: Int): Boolean {
@@ -174,4 +181,21 @@ object CrystalHollowsScanner : Module(
         val dz = (this.z shr 4) - (other.z shr 4)
         return dx.absoluteValue <= chunks && dz.absoluteValue <= chunks
     }
+
+    private val skullBlocks = setOf(
+        Blocks.SKELETON_SKULL,
+        Blocks.SKELETON_WALL_SKULL,
+        Blocks.WITHER_SKELETON_SKULL,
+        Blocks.WITHER_SKELETON_WALL_SKULL,
+        Blocks.ZOMBIE_HEAD,
+        Blocks.ZOMBIE_WALL_HEAD,
+        Blocks.PLAYER_HEAD,
+        Blocks.PLAYER_WALL_HEAD,
+        Blocks.CREEPER_HEAD,
+        Blocks.CREEPER_WALL_HEAD,
+        Blocks.DRAGON_HEAD,
+        Blocks.DRAGON_WALL_HEAD,
+        Blocks.PIGLIN_HEAD,
+        Blocks.PIGLIN_WALL_HEAD
+    )
 }
