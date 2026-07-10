@@ -15,7 +15,6 @@ import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.ItemStack
 import quoi.api.events.TickEvent
 import quoi.module.Module
-import quoi.module.impl.player.Tweaks
 import quoi.module.settings.Setting.Companion.json
 import quoi.utils.skyblock.item.ItemUtils.loreString
 import quoi.utils.skyblock.item.ItemUtils.skyblockId
@@ -180,14 +179,7 @@ object ItemAnimations : Module(
     @JvmStatic
     fun applyScale(pose: PoseStack, stack: ItemStack?, context: ItemDisplayContext?) {
         val itemAnimationScale = if (enabled) 2.0.pow(scale).toFloat() else 1f
-        val s = itemAnimationScale * if (useOldSkullSize(stack, context)) 0.55f else 1f
-        if (s != 1f) pose.scale(s, s, s)
-    }
-
-    private fun useOldSkullSize(stack: ItemStack?, context: ItemDisplayContext?): Boolean {
-        return Tweaks.shouldUseLegacySkullSize() &&
-            (context == ItemDisplayContext.FIRST_PERSON_LEFT_HAND || context == ItemDisplayContext.FIRST_PERSON_RIGHT_HAND) &&
-            stack?.item is net.minecraft.world.item.PlayerHeadItem
+        if (itemAnimationScale != 1f) pose.scale(itemAnimationScale, itemAnimationScale, itemAnimationScale)
     }
 
     @JvmStatic

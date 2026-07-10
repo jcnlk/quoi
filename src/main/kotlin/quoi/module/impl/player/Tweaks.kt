@@ -1,5 +1,7 @@
 package quoi.module.impl.player
 
+import com.mojang.blaze3d.vertex.PoseStack
+import net.minecraft.world.item.ItemDisplayContext
 import quoi.api.events.TickEvent
 import quoi.api.events.core.on
 import quoi.api.skyblock.location.Island
@@ -59,6 +61,14 @@ object Tweaks : Module(
 
     @JvmStatic
     fun shouldUseLegacySkullSize(): Boolean = legacySkullSize
+
+    @JvmStatic
+    fun applyLegacySkullSize(pose: PoseStack, context: ItemDisplayContext) {
+        if (legacySkullSize && (context == ItemDisplayContext.FIRST_PERSON_LEFT_HAND ||
+                context == ItemDisplayContext.FIRST_PERSON_RIGHT_HAND)) {
+            pose.scale(0.55f, 0.55f, 0.55f)
+        }
+    }
 
     @JvmStatic
     fun shouldSb(condition: Boolean): Boolean = this.enabled && inSkyblock && condition
