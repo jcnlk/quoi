@@ -125,6 +125,9 @@ object BlazeSlayer : SettingGroup(Slayers, "Blaze", area = Island.CrimsonIsle, s
             return listOfNotNull(blazeBoss?.takeUnless { it.isDeadOrDying }?.let { it to it.getAttune()?.colour })
         }
 
+    override val debugString: String
+        get() = "${activeDemon?.displayName?.string} $attune"
+
     override val running: Boolean
         get() = super.running && features.any { it.enabled }
 }

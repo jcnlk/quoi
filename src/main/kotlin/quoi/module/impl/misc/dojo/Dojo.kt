@@ -13,6 +13,7 @@ import quoi.utils.render.DrawContextUtils.drawText
 
 object Dojo : Module(
     "Dojo",
+    desc = "Auto dojo",
     subarea = "dojo",
     tag = Tag.BETA
 ) {
