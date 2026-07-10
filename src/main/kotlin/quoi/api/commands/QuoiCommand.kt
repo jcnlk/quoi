@@ -21,6 +21,7 @@ import quoi.api.skyblock.location.Location.currentServer
 import quoi.api.skyblock.location.Location.inSkyblock
 import quoi.api.skyblock.location.Location.subarea
 import quoi.api.skyblock.dungeon.Dungeon
+import quoi.module.Module.Tag
 import quoi.module.ModuleManager
 import quoi.module.impl.misc.ChatReplacements
 import quoi.module.impl.misc.chat.Chat
@@ -188,7 +189,8 @@ object QuoiCommand : EventListener {
                     }
 
                     for (module in modulesInCategory.sortedBy { it.name }) {
-                        featureList.appendLine("- **${module.name}**")
+                        val tag = if (module.tag != Tag.NONE) " (${module.tag.name.capitaliseFirst()})" else ""
+                        featureList.appendLine("- **${module.name}**$tag")
                         if (module.desc.isNotEmpty()) featureList.appendLine("  - ${module.desc}")
                     }
 
