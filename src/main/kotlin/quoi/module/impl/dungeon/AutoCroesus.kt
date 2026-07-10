@@ -212,7 +212,7 @@ object AutoCroesus : Module(
         }.description("Shows all logged Auto Croesus loot.")
 
         ac.sub("loot") { floor: String, score: Int?, limit: Int? ->
-            showLoot(LootFilters(score = score ?: 300, floor = floor.uppercase(), limit = limit))
+            showLoot(LootFilters(score = score ?: 0, floor = floor.uppercase(), limit = limit))
         }.description("Shows logged Auto Croesus loot. Optional: floor, minimum score, limit.")
             .suggests("floor", autoCroesusFloors)
 
