@@ -35,6 +35,7 @@
     "ItemCooldownsMixin",
     "ItemInHandLayerMixin",
     "ItemInHandRendererMixin",
+    "ItemStackRenderStateMixin",
     "NoGemstoneDesyncMixin",
     "KeyboardHandlerMixin",
     "KeyboardInputMixin",
@@ -67,6 +68,7 @@
     "accessors.RenderTypeAccessor",
     "accessors.MultiPlayerGameModeAccessor",
     "accessors.ImageButtonAccessor",
-    "accessors.ItemInHandRendererAccessor"
+    "accessors.ItemInHandRendererAccessor",
+    "accessors.ItemStackLayerRenderStateAccessor"
   ]
 }
