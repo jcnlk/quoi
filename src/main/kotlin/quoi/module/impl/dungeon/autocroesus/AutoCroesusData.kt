@@ -67,7 +67,7 @@ internal data class LoggedRun(
 )
 
 internal data class LootFilters(
-    val score: Int = 300,
+    val score: Int = 0,
     val floor: String? = null,
     val limit: Int? = null,
 )
