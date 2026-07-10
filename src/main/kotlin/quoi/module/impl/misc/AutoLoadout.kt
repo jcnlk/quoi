@@ -38,7 +38,7 @@ object AutoLoadout : Module(
     }.setting()
 
     private fun onLoadoutKey(slot: Int) {
-        if (!enabled || mc.screen != null) return
+        if (!enabled || mc.gui.screen() != null) return
         LoadoutUtils.equip(slot, preventMove = preventMoving, blockInputs = blockInputs)
     }
 }
