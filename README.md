@@ -1,6 +1,7 @@
 [![discord badge](https://img.shields.io/discord/1371490329508839455?label=discord&color=9089DA&logo=discord&style=for-the-badge)](https://discord.gg/QCWgrQ57pN)
 ![minecraft-version](https://img.shields.io/badge/Minecraft-1.21.11-6BAA57?style=for-the-badge&logoColor=white)
-[![downloads](https://img.shields.io/github/downloads/pigeonlover1998/quoi/total?style=for-the-badge)](https://github.com/pigeonlover1998/quoi)
+
+Use [actions tab](https://github.com/jcnlk/quoi/actions) to download (you need to be logged in your github account).
 
 # quoi!
 
@@ -53,7 +54,7 @@
   - Automatically swaps to invincibility items.
 - **Auto Leap**
   - Automatically leaps to predefined targets.
-- **Auto Routes**
+- **Auto Routes** (Beta)
   - Route editor/runtime support via `/route`.
 - **Barrier Boom**
   - Automatically blows up Goldor fight gates.
@@ -72,7 +73,7 @@
   - Replaces Storm pillars with glass
 - **Full Block Hitboxes**
   - Enlarges interactable dungeon hitboxes
-- **Interactive Map**
+- **Interactive Map** (Beta)
   - Automatically teleports to a specified target.
 - **Invincibility Timer**
   - Gives visual information about your invincibility times.
@@ -137,7 +138,7 @@
 - **Chat Replacements**
 - **Chocolate Factory**
   - Automates the Chocolate Factory.
-- **Dojo**
+- **Dojo** (Beta)
   - Helpers for Dojo challenges.
 - **Escrow Fix**
   - Automatically reopens the Auction House or Bazaar after escrow closes it.
