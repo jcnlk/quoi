@@ -43,7 +43,6 @@ import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.aabb
 import quoi.utils.equalsOneOf
 import quoi.utils.removeIf
-import quoi.utils.render.drawStyledBox
 
 @AlwaysActive
 object DungeonESP : Module(
@@ -64,7 +63,7 @@ object DungeonESP : Module(
 
     private val starEsp by switch("Starred mobs")
 
-    private val starHighlight = highlight(colour = null, fillColour = null).childOf(::starEsp)
+    private val starHighlight = highlight(colour = null, fillColour = null, aabbOffset = true).childOf(::starEsp)
 
     private val colourDropdown by text("Colours").childOf(::starEsp)
     private val colourStar by colourPicker("Star", Colour.RED, true, "ESP color for star mobs.").childOf(::colourDropdown)
