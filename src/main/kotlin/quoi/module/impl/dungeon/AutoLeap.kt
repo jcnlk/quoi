@@ -132,6 +132,7 @@ object AutoLeap : Module(
     private var leapHudShownAt = 0L
     private var blockingGameInput = false
     private var melodyTarget: String? = null
+    private var p3Started = false // TODO: temp fix; make better stage/phase detection
 
     private const val LEAP_DURATION_HUD = 1_500L
     private val melodyProgress = setOf("1/4", "2/4", "3/4", "25%", "50%", "75%")
@@ -166,6 +167,7 @@ object AutoLeap : Module(
             crystalCount = 0
             oofCount = 0
             resetLeapState()
+            p3Started = false
         }
 
         on<TickEvent.Start> {
@@ -264,6 +266,10 @@ object AutoLeap : Module(
             val pre4Done = Regex("""(\w+) completed a device! \((.*?)\)""").matchEntire(unformatted)
             if (pre4Done != null && pre4Done.groupValues[1] == player.name.string && pre4Leap && pre4Auto) {
                 leapToPre4Target()
+            }
+
+            if (unformatted == "[BOSS] Goldor: Who dares trespass into my domain?") {
+                p3Started = true
             }
         }
 
@@ -381,8 +387,8 @@ object AutoLeap : Module(
         player.x in x1..x2 && player.y in y1..y2 && player.z in z1..z2
 
     private fun isInP1() = Dungeon.getF7Phase() == M7Phases.P1
-    private fun isInPredev() = Dungeon.p3Section == P3Section.Unknown && Dungeon.getF7Phase() == M7Phases.P3
-    private fun isInP4() = player.y >= 55.0 && Dungeon.getF7Phase() == M7Phases.P4
+    private fun isInPredev() = !p3Started && Dungeon.getF7Phase() == M7Phases.P3
+    private fun isInP4() = Dungeon.getF7Phase() == M7Phases.P4
     private fun isInRelic() = Dungeon.getF7Phase() == M7Phases.P5
     private fun isInGreenPad() = inBox(24.0, 41.0, 170.0, 172.0, 4.0, 21.0) // TODO: Vec3 ?
     private fun isInYellowPad() = inBox(24.0, 41.0, 170.0, 172.0, 86.0, 103.0) // TODO: Vec3 ?
