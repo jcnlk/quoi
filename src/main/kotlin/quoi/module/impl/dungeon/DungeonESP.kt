@@ -18,6 +18,7 @@ import quoi.api.events.EntityEvent
 import quoi.api.events.BlockEvent
 import quoi.api.events.RenderEvent
 import quoi.api.events.WorldEvent
+import quoi.api.events.core.Priority
 import quoi.api.events.core.on
 import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.dungeon.Dungeon
@@ -50,7 +51,17 @@ object DungeonESP : Module(
     desc = "Highlights various dungeon entities.",
     area = Island.Dungeon(inClear = true)
 ) {
-    private val teammateClassGlow by switch("Teammate class glow", true, desc = "Highlights dungeon teammates based on their class colour.")
+    private val teammateEsp by switch("Teammate ESP", true, desc = "Highlights dungeon teammates based on their class colour.")
+        .json("Teammate class glow")
+    private val teammateHighlight = highlight(
+        customColour = true,
+        customFillColour = true,
+        aabbOffset = true,
+    ).json("Teammate style").childOf(::teammateEsp)
+    private val teammateHideGlow by switch("Hide glow", true, desc = "Hides all glow effects on highlighted teammates.")
+        .json("Teammate hide glow")
+        .childOf(teammateHighlight.component) { teammateHighlight.style != "Glow" }
+
     private val starEsp by switch("Starred mobs")
 
     private val starHighlight = highlight(colour = null, fillColour = null).childOf(::starEsp)
@@ -114,6 +125,17 @@ object DungeonESP : Module(
         }
 
         on<RenderEvent.World> {
+            if (enabled && teammateEsp && teammateHighlight.style != "Glow") getEntities<Player>().forEach { entity ->
+                getTeammateColour(entity)?.let { colour ->
+                    teammateHighlight.draw(
+                        ctx,
+                        entity.interpolatedBox.inflate(0.1),
+                        colour = colour,
+                        fillColour = colour,
+                    )
+                }
+            }
+
             currentEntities.removeIf { _, mob ->
                 val entity = mob.entity
 
@@ -151,9 +173,16 @@ object DungeonESP : Module(
             }
         }
 
-        on<EntityEvent.ForceGlow> {
+        on<EntityEvent.ForceGlow>(Priority.LOWEST) {
             if (!enabled) return@on
-            getTeammateColour(entity)?.let { glowColour = it }
+            getDungeonPlayerColour(entity)?.let { colour ->
+                if (teammateHighlight.style == "Glow") {
+                    if (entity != player) teammateHighlight.draw(this, colour = colour)
+                } else if (teammateHideGlow) {
+                    cancel()
+                    return@on
+                }
+            }
 
             if (starEsp) {
                 getColour(entity)?.let {
@@ -232,7 +261,12 @@ object DungeonESP : Module(
     }
 
     private fun getTeammateColour(entity: Entity): Colour? {
-        if (!teammateClassGlow || !Dungeon.inDungeons || entity !is Player) return null
+        if (entity == player) return null
+        return getDungeonPlayerColour(entity)
+    }
+
+    private fun getDungeonPlayerColour(entity: Entity): Colour? {
+        if (!teammateEsp || !Dungeon.inDungeons || entity !is Player) return null
         return Dungeon.dungeonTeammates.find { it.name == entity.name.string }?.clazz?.colour
     }
 

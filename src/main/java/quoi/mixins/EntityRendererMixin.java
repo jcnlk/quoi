@@ -31,7 +31,10 @@ public class EntityRendererMixin<T extends Entity, S extends EntityRenderState> 
     )
     private void onExtractRenderState(T entity, S state, float partialTick, CallbackInfo ci) {
         EntityEvent.ForceGlow event = new EntityEvent.ForceGlow(entity);
-        event.post();
+        if (event.post()) {
+            state.outlineColor = 0;
+            return;
+        }
         if (event.isGlowing()) {
             state.outlineColor = event.getGlowColour().getRgb();
         }
