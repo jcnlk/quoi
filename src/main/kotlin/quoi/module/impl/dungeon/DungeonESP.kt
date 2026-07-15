@@ -124,7 +124,7 @@ object DungeonESP : Module(
                     ctx,
                     entity.interpolatedBox,
                     colour = mob.colour,
-                    fillColour = mob.fillColour,
+                    overrideFillColour = mob.fillColour,
                 )
                 false
             }

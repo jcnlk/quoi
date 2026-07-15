@@ -109,6 +109,7 @@ object ModuleManager : EventListener {
             CrystalHollowsMap,
             CrystalHollowsScanner,
             CommissionDisplay,
+            GlaciteTunnels,
             MineshaftESP,
             GrieferTracker,
             NoBreakReset,

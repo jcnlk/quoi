@@ -1,6 +1,5 @@
 package quoi.utils.ui.rendering
 
-import com.mojang.blaze3d.opengl.GlConst
 import com.mojang.blaze3d.opengl.GlStateManager
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
@@ -11,7 +10,7 @@ import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.state.gui.pip.PictureInPictureRenderState
 import org.joml.Matrix3x2f
 import org.lwjgl.opengl.GL33C
-import java.util.OptionalInt
+import java.util.*
 
 /**
  * from OdinFabric (BSD 3-Clause)

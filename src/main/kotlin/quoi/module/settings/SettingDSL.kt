@@ -3,7 +3,6 @@ package quoi.module.settings
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.resources.Identifier
 import net.minecraft.sounds.SoundEvent
-import net.minecraft.sounds.SoundEvents
 import quoi.api.colour.Colour
 import quoi.api.colour.withAlpha
 import quoi.api.events.core.AreaBoundListener

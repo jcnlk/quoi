@@ -101,7 +101,7 @@ object CommissionDisplay : Module(
     init {
         on<TickEvent.End> {
             clientTicks++
-            if (clientTicks % 5 == 0) refreshCommissions()
+            if (clientTicks % 20 == 0) refreshCommissions()
         }
 
         on<WorldEvent.Change> {
@@ -200,6 +200,10 @@ object CommissionDisplay : Module(
         commissions.isEmpty() -> ""
         else -> commissions.getOrNull(index)?.let(::formatCommissionLine).orEmpty()
     }
+
+    internal fun currentActiveCommissionNames(): List<String> = parseCommissions()
+        .filter { it.progress < 1f }
+        .map { it.name }
 
     private fun parseProgress(value: String): Float {
         if (value.equals("DONE", true)) return 1f

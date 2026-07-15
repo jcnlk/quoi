@@ -1,6 +1,5 @@
 package quoi.utils
 
-import quoi.QuoiMod.mc
 import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.client.multiplayer.PlayerInfo
 import net.minecraft.client.player.LocalPlayer
@@ -11,18 +10,18 @@ import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.chunk.status.ChunkStatus
-import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import net.minecraft.world.phys.shapes.Shapes
 import net.minecraft.world.phys.shapes.VoxelShape
+import quoi.QuoiMod.mc
 import quoi.utils.skyblock.item.TeleportUtils.BLOCKS_FEET
 import quoi.utils.skyblock.item.TeleportUtils.PASSABLE
 import quoi.utils.skyblock.item.TeleportUtils.blockFlags
 import quoi.utils.skyblock.player.simulation.PlayerSimulation
-import net.minecraft.core.Direction as McDirection
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.max
+import net.minecraft.core.Direction as McDirection
 
 /**
  * modified Stella (LGPL-3.0) (c) Eclipse-5214

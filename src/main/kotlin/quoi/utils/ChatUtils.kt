@@ -1,19 +1,15 @@
 package quoi.utils
 
-import quoi.QuoiMod.mc
-import quoi.mixininterfaces.IChatComponent
-import quoi.mixininterfaces.IGuiMessage
-import quoi.mixins.accessors.ChatComponentAccessor
-import quoi.module.impl.render.clickgui.impl.PrefixSettings.bracketsColour
-import quoi.module.impl.render.clickgui.impl.PrefixSettings.prefixColour
-import quoi.module.impl.render.clickgui.impl.PrefixSettings.prefixText
-import quoi.utils.StringUtils.noControlCodes
-import com.mojang.authlib.GameProfile
 import net.fabricmc.fabric.impl.command.client.ClientCommandInternals
 import net.minecraft.client.multiplayer.chat.GuiMessage
 import net.minecraft.client.multiplayer.chat.GuiMessageSource
 import net.minecraft.client.multiplayer.chat.GuiMessageTag
 import net.minecraft.network.chat.*
+import quoi.QuoiMod.mc
+import quoi.module.impl.render.clickgui.impl.PrefixSettings.bracketsColour
+import quoi.module.impl.render.clickgui.impl.PrefixSettings.prefixColour
+import quoi.module.impl.render.clickgui.impl.PrefixSettings.prefixText
+import quoi.utils.StringUtils.noControlCodes
 
 object ChatUtils {
     fun prefix(text: String = prefixText): Component
