@@ -8,10 +8,8 @@ import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.decoration.ArmorStand
 import net.minecraft.world.entity.player.Player
-import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext
 import quoi.api.colour.Colour
 import quoi.api.colour.withAlpha
-import quoi.api.events.AreaEvent
 import quoi.api.events.RenderEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
@@ -76,14 +74,19 @@ object MineshaftESP : Module(
     init {
         on<WorldEvent.Change> { waypoints.clear() }
 
-        on<AreaEvent.Main> {
-            if (this.area != Island.Mineshaft) waypoints.clear()
-        }
-
         on<TickEvent.End> {
             if (player.tickCount % 20 != 0) return@on
             if (!corpseEsp) return@on
-            scanWaypoints()
+
+            val found = linkedMapOf<BlockPos, MineshaftType>()
+
+            getEntities<ArmorStand>().forEach { stand ->
+                val type = stand.getMineshaftType() ?: return@forEach
+                found.putIfAbsent(stand.blockPosition(), type)
+            }
+
+            waypoints.clear()
+            waypoints.putAll(found)
         }
 
         on<RenderEvent.World> {
@@ -96,7 +99,14 @@ object MineshaftESP : Module(
                     ctx.drawStyledBox(style.selected, waypointBox, colour, fillColour)
 
                     if (beaconBeam) {
-                        renderBeaconBeam(ctx, pos, colour.rgb)
+                        val pose = com.mojang.blaze3d.vertex.PoseStack()
+                        val cameraPos = mc.gameRenderer.mainCamera.position()
+                        val time = (level.gameTime + mc.deltaTracker.getGameTimeDeltaPartialTick(true)).toFloat()
+
+                        pose.pushPose()
+                        pose.translate(pos.x.toDouble() - cameraPos.x, pos.y.toDouble() - cameraPos.y, pos.z.toDouble() - cameraPos.z)
+                        BeaconRenderer.submitBeaconBeam(pose, ctx.commandQueue(), BeaconRenderer.BEAM_LOCATION, 1.0f, time, colour.rgb, 0, 160, 0.2f, 0.25f)
+                        pose.popPose()
                     }
 
                     val textPos = pos.vec3.add(0.5, 2.5, 0.5)
@@ -104,86 +114,42 @@ object MineshaftESP : Module(
                         val scale = (0.5 + sqrt(player.distanceToSqr(textPos.x, textPos.y, textPos.z)) / 10.0).toFloat()
                         ctx.drawText(literal(type.label), textPos, scale = scale, depth = false)
                     }
-
                 }
             }
 
             if (mobEsp) {
-                getEntities<Player>().forEach { entity ->
-                    val name = entity.cleanName
-                    val type = EntityEspType.fromName(name) ?: return@forEach
-                    if (type != EntityEspType.GLACITE_MUTT) ctx.drawStyledBox(mobStyle.selected, entity.interpolatedBox, type.colour(), type.fillColour())
-                }
-
                 getEntities().forEach { entity ->
-                    if (entity is Player) return@forEach
-                    if (entity.type == EntityType.WOLF) {
-                        ctx.drawStyledBox(mobStyle.selected, entity.interpolatedBox, muttColour, muttFillColour)
-                    }
+                    val type = entity.espType ?: return@forEach
+                    ctx.drawStyledBox(mobStyle.selected, entity.interpolatedBox, type.colour(), type.fillColour())
                 }
             }
         }
     }
 
-    private fun scanWaypoints() {
-        val found = linkedMapOf<BlockPos, MineshaftType>()
-
-        getEntities<ArmorStand>().forEach { stand ->
-            val type = stand.getMineshaftType() ?: return@forEach
-            found.putIfAbsent(stand.blockPosition(), type)
+    private val Entity.espType: EntityEspType?
+        get() = when {
+            !isAlive -> null
+            type == EntityType.WOLF -> EntityEspType.GLACITE_MUTT
+            this is Player -> EntityEspType.fromName(cleanName)
+            else -> null
         }
 
-        waypoints.clear()
-        waypoints.putAll(found)
-    }
-
-    private fun renderBeaconBeam(ctx: WorldRenderContext, pos: BlockPos, colour: Int) {
-        val pose = com.mojang.blaze3d.vertex.PoseStack()
-        val cameraPos = mc.gameRenderer.mainCamera.position()
-        val time = (level.gameTime + mc.deltaTracker.getGameTimeDeltaPartialTick(true)).toFloat()
-
-        pose.pushPose()
-        pose.translate(
-            pos.x.toDouble() - cameraPos.x,
-            pos.y.toDouble() - cameraPos.y,
-            pos.z.toDouble() - cameraPos.z
-        )
-        BeaconRenderer.submitBeaconBeam(
-            pose,
-            ctx.commandQueue(),
-            BeaconRenderer.BEAM_LOCATION,
-            1.0f,
-            time,
-            colour,
-            0,
-            160,
-            0.2f,
-            0.25f
-        )
-        pose.popPose()
-    }
-
     private val Entity.cleanName: String
-        get() = (customName ?: displayName ?: name).string.noControlCodes.trim()
+        get() = (customName ?: displayName).string.noControlCodes.trim()
 
     private fun ArmorStand.getMineshaftType(): MineshaftType? {
         val helmet = getItemBySlot(EquipmentSlot.HEAD).takeUnless { it.isEmpty } ?: return null
         val id = helmet.skyblockId ?: helmet.extraAttributes?.toString()
         return MineshaftType.entries.firstOrNull { type ->
-            id?.contains(type.skyblockId, true) == true ||
-                helmet.hoverName.string.noControlCodes.contains(type.displayName, true)
+            id?.contains(type.skyblockId, true) == true
         }
     }
 
-    private enum class MineshaftType(
-        val skyblockId: String,
-        val displayName: String,
-        val label: String
-    ) {
-        LAPIS("LAPIS_ARMOR_HELMET", "Lapis", "&9&lLapis"),
-        UMBER("ARMOR_OF_YOG_HELMET", "Umber", "&6&lUmber"),
-        TUNGSTEN("MINERAL_HELMET", "Tungsten", "&7&lTungsten"),
-        VANGUARD("VANGUARD_HELMET", "Vanguard", "&b&lVanguard")
+    private enum class MineshaftType(val skyblockId: String, val label: String) {
+        LAPIS("LAPIS_ARMOR_HELMET", "&9&lLapis"),
+        UMBER("ARMOR_OF_YOG_HELMET", "&6&lUmber"),
+        TUNGSTEN("MINERAL_HELMET", "&7&lTungsten"),
+        VANGUARD("VANGUARD_HELMET", "&b&lVanguard")
     }
 
     private fun MineshaftType.colour() = when (this) {
@@ -200,15 +166,15 @@ object MineshaftESP : Module(
         MineshaftType.VANGUARD -> vanguardFillColour
     }
 
-    private enum class EntityEspType(val displayName: String) {
-        GLACITE_BOWMAN("Glacite Bowman"),
-        GLACITE_CAVER("Glacite Caver"),
-        GLACITE_MAGE("Glacite Mage"),
-        LITTLEFOOT("Littlefoot"),
-        GLACITE_MUTT("Glacite Mutt");
+    private enum class EntityEspType {
+        GLACITE_BOWMAN,
+        GLACITE_CAVER,
+        GLACITE_MAGE,
+        LITTLEFOOT,
+        GLACITE_MUTT;
 
         companion object {
-            fun fromName(name: String) = entries.firstOrNull { name == it.displayName }
+            fun fromName(name: String) = entries.firstOrNull { it.name.replace('_', ' ').equals(name, ignoreCase = true) }
         }
     }
 
