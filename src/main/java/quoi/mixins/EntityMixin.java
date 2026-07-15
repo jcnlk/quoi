@@ -50,9 +50,13 @@ public class EntityMixin implements IEntityGlow {
         Entity entity = (Entity)(Object)this;
 
         EntityEvent.ForceGlow event = new EntityEvent.ForceGlow(entity);
-        event.post();
-        forceGlow = event.isGlowing();
+        boolean suppressGlow = event.post();
+        forceGlow = !suppressGlow && event.isGlowing();
         glowColour = event.getGlowColour().getRgb();
+        if (suppressGlow) {
+            cir.setReturnValue(false);
+            return;
+        }
         if (forceGlow) cir.setReturnValue(true);
     }
 
