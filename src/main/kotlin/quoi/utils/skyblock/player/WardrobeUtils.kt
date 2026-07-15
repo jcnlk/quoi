@@ -1,7 +1,6 @@
 package quoi.utils.skyblock.player
 
 import quoi.api.events.core.EventListener
-
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket

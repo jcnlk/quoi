@@ -1,7 +1,6 @@
 package quoi.utils
 
 import net.minecraft.ChatFormatting
-import net.minecraft.client.gui.Font
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.MutableComponent
 import net.minecraft.network.chat.Style

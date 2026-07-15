@@ -1,7 +1,6 @@
 package quoi.module.impl.render
 
 import quoi.api.events.core.on
-
 import net.minecraft.world.entity.player.Player
 import quoi.api.events.RenderEvent
 import quoi.api.skyblock.location.Island

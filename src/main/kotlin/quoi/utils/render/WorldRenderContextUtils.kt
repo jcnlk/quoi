@@ -9,7 +9,7 @@ import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import org.joml.Vector3fc
 import quoi.QuoiMod.mc
-import quoi.api.colour.*
+import quoi.api.colour.Colour
 import quoi.utils.EntityUtils.renderPos
 import quoi.utils.player
 import quoi.utils.skyblock.player.PlayerUtils.eyeHeight

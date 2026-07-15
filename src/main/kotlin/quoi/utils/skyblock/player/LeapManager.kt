@@ -11,8 +11,8 @@ import quoi.api.events.PacketEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
 import quoi.api.events.core.EventListener
-import quoi.api.events.core.on
 import quoi.api.events.core.Priority
+import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.Dungeon.dungeonTeammatesNoSelf
 import quoi.api.skyblock.dungeon.Dungeon.getMageCooldownMultiplier
 import quoi.api.skyblock.dungeon.Dungeon.inDungeons
@@ -20,7 +20,6 @@ import quoi.api.skyblock.dungeon.DungeonClass
 import quoi.api.skyblock.dungeon.DungeonPlayer
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.Scheduler.scheduleTask
-import quoi.utils.StringUtils.noControlCodes
 
 @Init
 object LeapManager : EventListener { // still schizophrenia
