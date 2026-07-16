@@ -1,12 +1,13 @@
 package quoi.module.impl.render
 
-import quoi.api.events.core.on
 import net.minecraft.world.entity.player.Player
+import quoi.api.events.EntityEvent
 import quoi.api.events.RenderEvent
-import quoi.api.skyblock.location.Island
-import quoi.api.skyblock.location.Location
+import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.M7Phases
+import quoi.api.skyblock.location.Island
+import quoi.api.skyblock.location.Location
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.visibleIf
 
@@ -23,22 +24,27 @@ object HidePlayers : Module(
 
     init {
         on<RenderEvent.Entity> {
-            if (Location.currentArea.isArea(Island.SinglePlayer)) return@on
-            if (dungeonOnly && !Dungeon.inDungeons) return@on
-            if (bossOnly && !Dungeon.inBoss) return@on
-
-            val entity = entity
-
-            if (
-                entity !is Player ||
-                entity.uuid.version() == 2 ||
-                entity == player ||
-                clickThrough ||
-                onlyDevs && !isAtDevs()
-            ) return@on
-
-            if (hideAll || entity.distanceTo(player) <= distance) cancel()
+            val target = entity as? Player ?: return@on
+            if (shouldHide(target)) cancel()
         }
+
+        on<EntityEvent.Pick> {
+            if (!clickThrough) return@on
+
+            val target = entity as? Player ?: return@on
+            if (shouldHide(target)) cancel()
+        }
+    }
+
+    private fun shouldHide(target: Player): Boolean {
+        if (Location.currentArea.isArea(Island.SinglePlayer)) return false
+        if (dungeonOnly && !Dungeon.inDungeons) return false
+        if (bossOnly && !Dungeon.inBoss) return false
+        if (onlyDevs && !isAtDevs()) return false
+        if (target.uuid.version() == 2) return false
+        if (target == player) return false
+
+        return hideAll || target.distanceTo(player) <= distance
     }
 
     private fun isAtDevs(): Boolean {
