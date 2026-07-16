@@ -16,8 +16,7 @@ object AbilityAlert : Module(
     init {
         on<ChatEvent.Packet> {
             val formatted = text.formattedString
-            if (!formatted.startsWith("§a") ||
-                "§6" !in formatted ||
+            if (!formatted.startsWith("§6") ||
                 !formatted.endsWith("§ais now available!")
             ) return@on
 
