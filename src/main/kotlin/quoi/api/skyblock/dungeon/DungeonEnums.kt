@@ -1,14 +1,13 @@
 package quoi.api.skyblock.dungeon
 
-import quoi.api.colour.Colour
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.entity.player.PlayerSkin
+import quoi.api.colour.Colour
 import quoi.api.events.DungeonEvent
 import quoi.api.events.core.EventDispatcher
 import quoi.api.skyblock.dungeon.odonscanning.MapRenderer.mapSize
-import quoi.module.impl.render.clickgui.impl.VisualsSettings.classColors
-import quoi.utils.EntityUtils.playerEntities
 import quoi.api.vec.Vec2i
+import quoi.utils.EntityUtils.playerEntities
 
 /**
  * from OdinFabric (BSD 3-Clause)
@@ -68,7 +67,6 @@ data class DungeonPlayer(
     }
 }
 
-
 /**
  * Enumeration representing puzzles in a dungeon.
  *
@@ -124,18 +122,10 @@ enum class DungeonClass(
     Unknown(Colour.WHITE, 'f', 0, 0);
 
     val colour: Colour
-        get() = when {
-            classColors.selected == "Noamm Style" && this == Archer -> Berserk.hypixelColour
-            classColors.selected == "Noamm Style" && this == Berserk -> Archer.hypixelColour
-            else -> hypixelColour
-        }
+        get() = hypixelColour
 
     val colourCode: Char
-        get() = when {
-            classColors.selected == "Noamm Style" && this == Archer -> Berserk.hypixelColourCode
-            classColors.selected == "Noamm Style" && this == Berserk -> Archer.hypixelColourCode
-            else -> hypixelColourCode
-        }
+        get() = hypixelColourCode
 }
 
 enum class Blessing(
