@@ -22,24 +22,18 @@ object EscrowFix : Module(
         on<ChatEvent.Packet> {
             if (!Location.inSkyblock) return@on
 
-            val reopenCommand = unformatted.reopenCommand() ?: return@on
-            reopenMenu(reopenCommand)
+            val cmd = when {
+                unformatted in auctionHouseCloseMessages -> "ah"
+                bazaarEscrowRefund.matches(unformatted) -> "bz"
+                else -> return@on
+            }
+
+            val now = System.currentTimeMillis()
+            if (!SkyblockPlayer.canUseCommands || now - lastCommandAt < 750) return@on
+
+            lastCommandAt = now
+            command(cmd)
         }
-    }
-
-    private fun reopenMenu(reopenCommand: String) {
-        val now = System.currentTimeMillis()
-        if (now - lastCommandAt < 750) return
-        if (!SkyblockPlayer.canUseCommands) return
-
-        lastCommandAt = now
-        command(reopenCommand)
-    }
-
-    private fun String.reopenCommand(): String? {
-        if (this in auctionHouseCloseMessages) return "ah"
-        if (bazaarEscrowRefund.matches(this)) return "bz"
-        return null
     }
 
     private val auctionHouseCloseMessages = setOf(
