@@ -53,7 +53,6 @@ import quoi.module.Module
 import quoi.module.ModuleManager
 import quoi.module.impl.misc.Test
 import quoi.module.impl.render.clickgui.impl.Data
-import quoi.module.impl.render.clickgui.impl.Displays
 import quoi.module.impl.render.clickgui.impl.PathSettings
 import quoi.module.impl.render.clickgui.impl.PrefixSettings
 import quoi.module.impl.render.clickgui.impl.VisualsSettings
@@ -88,7 +87,6 @@ object ClickGui : Module(
         VisualsSettings,
         PrefixSettings,
         PathSettings,
-        Displays,
         Data
     )
 
