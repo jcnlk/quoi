@@ -7,17 +7,26 @@ import quoi.api.ServerInfo.currentTps
 import quoi.api.ServerInfo.medianPing
 import quoi.api.abobaui.constraints.Constraint
 import quoi.api.abobaui.constraints.impl.measurements.Undefined
-import quoi.api.abobaui.dsl.*
+import quoi.api.abobaui.dsl.size
+import quoi.api.abobaui.dsl.withScale
 import quoi.api.abobaui.elements.Element
 import quoi.api.colour.Colour
+import quoi.api.commands.QuoiCommand
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.visibleIf
+import quoi.utils.ChatUtils
 import quoi.utils.StringUtils.noControlCodes
+import quoi.utils.StringUtils.percentColour
 import quoi.utils.StringUtils.toFixed
 import quoi.utils.WorldUtils.day
 import quoi.utils.render.DrawContextUtils.drawText
+import quoi.utils.ui.data.Anchor
+import quoi.utils.ui.elements.clock
 import quoi.utils.ui.hud.impl.TextHud
 import quoi.utils.ui.rendering.UIRenderer
+import quoi.utils.ui.textPair
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 
 object InfoHud : Module(
     name = "Info HUD",
@@ -32,7 +41,7 @@ object InfoHud : Module(
     private val tpsType by selector("TPS type", TpsType.Average).visibleIf { showTps }
     private val pingType by selector("Ping type", PingType.Average).visibleIf { showPing }
 
-    private val hud: TextHud = textHud("Info HUD", toggleable = false) hudScope@ {
+    private val hud: TextHud = textHud("Info HUD") hudScope@ {
         visibleIf { preview || enabledMetrics().isNotEmpty() }
 
         object : Element(size(InfoSize(true), InfoSize(false))), InfoElement {
@@ -118,11 +127,74 @@ object InfoHud : Module(
     @Suppress("unused")
     private val hudSetting by hud.withSettings(::nameColour, ::direction, ::showFps, ::showTps, ::showPing, ::showDay, ::tpsType, ::pingType).setting()
 
+    private val t12 = DateTimeFormatter.ofPattern("hh:mm a")
+    private val t24 = DateTimeFormatter.ofPattern("HH:mm")
+    private val clockType by segmented("Type", "Text", listOf("Text", "Clock²"))
+    private val clockFormat by switch("Twelve hours")
+    private val clockColour by colourPicker("Colour", Colour.WHITE).visibleIf { clockType.selected == "Text" }
+    private val clockShadow by switch("Shadow", true).visibleIf { clockType.selected == "Text" }
+    private val clockFont by segmented("Font", TextHud.HudFont.Minecraft).visibleIf { clockType.selected == "Text" }
+    private val clockAnchor by selector("Anchor", Anchor.TopLeft).visibleIf { clockType.selected == "Text" }
+    private val clockSpeed by slider("Speed", 0.4, 0.1, 1.0, 0.1, unit = "s").visibleIf { clockType.selected != "Text" }
+
+    @Suppress("unused")
+    private val timeHud by hud("Time display") {
+        if (clockType.selected == "Text") {
+            textPair(
+                string = "Time:",
+                supplier = { LocalTime.now().format(if (clockFormat) t12 else t24) },
+                labelColour = clockColour,
+                shadow = clockShadow,
+                font = clockFont.selected.get()
+            )
+        } else {
+            clock(clockFormat, clockSpeed)
+        }
+    }.withSettings(::clockType, ::clockFormat, ::clockColour, ::clockShadow, ::clockFont, ::clockAnchor, ::clockSpeed).setting()
+
+    init {
+        QuoiCommand.command.sub("tps") {
+            val current = currentTps
+            val average = averageTps
+            ChatUtils.modMessage(
+                "Tps: ${(current - 15).percentColour(5.0)}${current.toFixed(0)}&r, " +
+                    "Average: ${(average - 15).percentColour(5.0)}${average.toFixed(2)}"
+            )
+        }.description("Shows tps.")
+
+        QuoiCommand.command.sub("fps") {
+            ChatUtils.modMessage("FPS: &a${mc.fps}")
+        }.description("Shows fps.")
+
+        QuoiCommand.command.sub("ping") {
+            val current = currentPing
+            val average = averagePing
+            val currentColour = when {
+                current < 50.0 -> "a"
+                current < 100.0 -> "2"
+                current < 150.0 -> "e"
+                current < 200.0 -> "6"
+                else -> "c"
+            }
+            val averageColour = when {
+                average < 50.0 -> "a"
+                average < 100.0 -> "2"
+                average < 150.0 -> "e"
+                average < 200.0 -> "6"
+                else -> "c"
+            }
+            ChatUtils.modMessage(
+                "Ping: §$currentColour${current.toFixed(2)} §7ms&r, " +
+                    "Average: §$averageColour${average.toFixed(2)} §7ms"
+            )
+        }.description("Shows ping.")
+    }
+
     private fun enabledMetrics(): List<Metric> = buildList {
-        if (showTps) add(Metric("TPS:", { tpsType.selected.value().formatTps(1) }))
-        if (showFps) add(Metric("FPS:", { mc.fps }))
-        if (showPing) add(Metric("Ping:", { pingType.selected.value().formatPing }))
-        if (showDay) add(Metric("Day:", { mc.level?.day ?: 0 }))
+        if (showTps) add(Metric("TPS:") { tpsType.selected.value().formatTps(1) })
+        if (showFps) add(Metric("FPS:") { mc.fps })
+        if (showPing) add(Metric("Ping:") { pingType.selected.value().formatPing })
+        if (showDay) add(Metric("Day:") { mc.level?.day ?: 0 })
     }
 
     private val Double.formatPing get() = "${toFixed(0)}ms"
