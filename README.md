@@ -12,7 +12,6 @@ Use [actions tab](https://github.com/jcnlk/quoi/actions) to download (you need t
 - `/quoi ping` - prints current and average ping
 - `/quoi tps` - prints current and average TPS
 - `/quoi toggle <module>` - toggles a module by name
-- `/quoi playeresp <name|clear>` - targets Player ESP
 - `/quoi pet <name>` - queues a pet swap by name
 - `/quoi loadout <slot>` - equips a SkyBlock loadout slot
 - `/quoi wardrobe <1-9>` - equips a wardrobe slot
