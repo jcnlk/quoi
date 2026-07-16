@@ -5,7 +5,6 @@ import quoi.api.events.RenderEvent
 import quoi.api.events.core.on
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf
-import quoi.utils.ChatUtils.modMessage
 import quoi.utils.EntityUtils.colourFromDistance
 import quoi.utils.EntityUtils.interpolatedBox
 import quoi.utils.EntityUtils.playerEntitiesNoSelf
@@ -29,11 +28,6 @@ object PlayerESP : Module(
     val targetedPlayerName: String
         get() = specificName.trim()
 
-    fun setTargetedPlayer(name: String) {
-        specific = name.isNotBlank()
-        specificName = name.trim()
-    }
-
     private fun matchesFilters(entityName: String?, displayName: String?): Boolean {
         if (ironmenOnly && displayName?.contains("♲") == false) return false
         if (!specific) return true
@@ -46,18 +40,6 @@ object PlayerESP : Module(
     }
 
     init {
-        command.sub("playeresp") { name: String ->
-            if (name.equals("clear", true)) {
-                setTargetedPlayer("")
-                modMessage("Player ESP target cleared.")
-            } else {
-                setTargetedPlayer(name)
-                if (!enabled) toggle()
-                modMessage("Player ESP now targets §b$targetedPlayerName§r.")
-            }
-        }.description("Targets Player ESP to a specific player and enables it.")
-            .suggests("name") { WorldUtils.players.map { it.profile.name } }
-
         on<RenderEvent.World> {
             playerEntitiesNoSelf.forEach { entity ->
                 if (!matchesFilters(entity.name?.string, entity.displayName?.string)) return@forEach
