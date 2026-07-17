@@ -98,6 +98,7 @@ object ModuleManager : EventListener {
             RenderOptimiser,
             CustomMainMenu,
             NickHider,
+            RevertMasterStars,
             HidePlayers,
             InfoHud,
             PlayerESP,
