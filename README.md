@@ -192,6 +192,8 @@ Use [actions tab](https://github.com/jcnlk/quoi/actions) to download (you need t
   - Highlights players through walls.
 - **Render Optimiser**
   - Various render optimisation features.
+- **Revert Master Stars**
+  - Reverts Master Stars to the old red star display.
 - **Trajectories**
   - Shows the trajectories of bows and ender pearls.
 - **Waypoints**
