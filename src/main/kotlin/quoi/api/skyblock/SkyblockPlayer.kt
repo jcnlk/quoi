@@ -118,7 +118,7 @@ object SkyblockPlayer : EventListener, Shortcuts {
         }
 
         on<ChatEvent.Packet> {
-            InvincibilityType.entries.firstOrNull { type -> unformatted.matches(type.regex) }?.proc()
+            InvincibilityType.fromMessage(unformatted)?.proc()
 
             SUMMON_REGEX.find(unformatted)?.destructured?.let { (action, name, _) ->
                 currentPet =
@@ -164,6 +164,10 @@ object SkyblockPlayer : EventListener, Shortcuts {
         BONZO(Regex("^Your (?:. )?Bonzo's Mask saved your life!$"), 3600),
         SPIRIT(Regex("^Second Wind Activated! Your Spirit Mask saved your life!$"), 600),
         PHOENIX(Regex("^Your Phoenix Pet saved you from certain death!$"), 1200);
+
+        companion object {
+            fun fromMessage(message: String): InvincibilityType? = entries.firstOrNull { it.regex.matches(message) }
+        }
 
         val displayName = name.capitaliseFirst()
 
