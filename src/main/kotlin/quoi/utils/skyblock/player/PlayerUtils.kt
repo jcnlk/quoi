@@ -1,7 +1,8 @@
 package quoi.utils.skyblock.player
 
-import com.google.gson.JsonObject
+import com.google.gson.JsonParser
 import com.mojang.authlib.GameProfile
+import com.mojang.authlib.properties.Property
 import net.minecraft.client.KeyMapping
 import net.minecraft.client.player.LocalPlayer
 import net.minecraft.core.BlockPos
@@ -15,14 +16,12 @@ import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
 import quoi.QuoiMod.mc
 import quoi.api.world.Direction
-import quoi.module.settings.Setting.Companion.gson
 import quoi.utils.*
 import quoi.utils.ChatUtils.literal
 import quoi.utils.skyblock.item.ItemUtils.getBreakerCharges
 import quoi.utils.skyblock.item.ItemUtils.skyblockId
 import quoi.utils.skyblock.player.RotationUtils.pitch
 import quoi.utils.skyblock.player.RotationUtils.yaw
-import java.nio.charset.StandardCharsets
 import java.util.*
 
 object PlayerUtils {
@@ -129,7 +128,7 @@ object PlayerUtils {
 
 
     // more info here https://github.com/Arisings/AntiNick/blob/main/src/skins/nickSkins.json
-    private val nicks = hashSetOf(
+    private val knownNickSkinHashes = setOf(
         "4c7b0468044bfecacc43d00a3a69335a834b73937688292c20d3988cae58248d",
         "3b60a1f6d562f52aaebbf1434f1de147933a3affe0e764fa49ea057536623cd3",
         "19875bb4ac8e7e68c122fdf22bf99abeb4326b96c58ec21d4c5b64cc7a12a5",
@@ -220,7 +219,7 @@ object PlayerUtils {
         "27d4d629ac756da03d894556535bcca033fdaf172e69cc772262b43918ede351",
         "af43feeb32559878e0561c87f8f35c9812973bf27661d874bf68bb569b333f45",
         "ef1f3805eb46853b22559404b373c54b12453c4882abf3dd7673f5869be4cd",
-        "7265757c8a5a826f9e2b68e4631fee33e74dcbfcd9e4c744360186f4ff58fa2",
+        "7265757c8a5a826f9e2b68e4631fee33e74dcbfcd9e4c744360186f4ff58fa1",
         "3bf9314d6f78711c93d895519bc620a8176819551dc1d498aea840f32cf0d917",
         "ae97b72b9972d5db2516ceda54c6837116c2c52e75763749de9949aaab95d0",
         "6512d4661323db375b829bf2e090f7c3a277f95d3a5613ae59a06d9a9a270",
@@ -324,7 +323,7 @@ object PlayerUtils {
         "579a5713ed8affbfe8bbcd432def758ec4a31647db4f7dda4df7535a3fa0f58f",
         "7fb832fa27791731e34a1adaf6f59c1a95e6e5aa46d528f6c2975d668bc1",
         "cae2c0eb1730e11888e3f4dc133e9c5fd1434beb19b1616b026412fafc8e87",
-        "7ca423e35c767d5844f8bb9a3c949710e8615847e3f6db117591ce53c30f9e",
+        "7ca423e35c767d5844f8bb9a3c949710e8615847e3f6db117591ce53c30f9e1",
         "cf9de3c33c4b523248fc7dc23f18c551f1d2740cfeb162674aad031852e",
         "f4254838c33ea227ffca223dddaabfe0b0215f70da649e944477f44370ca6952",
         "fd41e45153cb159af3d2b3d0e4210969fc4a6402a327c5ab6d1f6981ceae7929",
@@ -359,72 +358,69 @@ object PlayerUtils {
         "1d9e8dafe7d87bb7cba7eb3d8d2d5bf58eab72ecdfdf9ecce3d1c03871c0"
     )
 
-//    data class SkinTextures(
-//        @SerializedName("SKIN") val skin: SkinUrl?
-//    )
-//
-//    data class SkinUrl(
-//        val url: String
-//    )
-//
-//    data class TextureProfile(
-//        val profileName: String?,
-//        val textures: SkinTextures?
-//    )
-//
-//    val GameProfile.realName: String? get() { // this one works. null means nicked
-//        val textures = this.properties["textures"].firstOrNull() ?: return null
-//        val decoded = String(Base64.getDecoder().decode(textures.value), StandardCharsets.UTF_8)
-//        val profile = gson.fromJson(decoded, TextureProfile::class.java) ?: return null
-//        val skinUrl = profile.textures?.skin?.url ?: return profile.profileName
-//        val hash = skinUrl.substringAfterLast("/")
-//        return if (hash in nicks) null else profile.profileName
-//    }
+    internal val GameProfile.textureProperty: Property?
+        get() = properties["textures"].firstOrNull()
 
-//    val GameProfile.realName: String? // this is the same as above but untested
-//        get() = properties["textures"].firstOrNull()?.value
-//            ?.let { String(Base64.getDecoder().decode(it), StandardCharsets.UTF_8) }
-//            ?.let { gson.fromJson(it, JsonObject::class.java) }
-//            ?.run {
-//                val profile = this["profileName"]?.asString
-//                val url = this["textures"]?.asJsonObject
-//                    ?.getAsJsonObject("SKIN")
-//                    ?.get("url")?.asString
-//                val hash = url?.substringAfterLast("/")
-//                if (hash in nicks) this@realName.realSkinName else profile
-//            }
-
-    private val GameProfile.skinJson: JsonObject? get() { // move to player utils prob
-        val value = properties["textures"].firstOrNull()?.value ?: return null
-        val decoded = String(Base64.getDecoder().decode(value), StandardCharsets.UTF_8)
-        return gson.fromJson(decoded, JsonObject::class.java)
+    internal sealed interface NickResult {
+        data object NotNicked : NickResult
+        data object Nicked : NickResult
+        data class Denicked(val name: String) : NickResult
     }
 
-    private val JsonObject.skinUrlHash: String? get() =
-        this["textures"]?.asJsonObject
-            ?.getAsJsonObject("SKIN")
-            ?.get("url")?.asString
-            ?.substringAfterLast("/")
+    private data class TexturePayload(
+        val profileId: String?,
+        val profileName: String?,
+        val skinHash: String?,
+    )
 
-    private val JsonObject.skinUUID: String? get() = this["profileId"]?.asString?.replace("-", "")
+    internal fun GameProfile.nickResult(
+        textureProperty: Property? = this.textureProperty,
+    ): NickResult {
+        if (id.version() == 2) return NickResult.NotNicked
 
-    val GameProfile.usesNickSkin: Boolean
-        get() = skinJson?.skinUrlHash in nicks
+        val payload = textureProperty?.value?.let(::decodeTexturePayload)
+        val mismatchedSkinId = payload?.profileId?.let { it != id.toString().replace("-", "") } == true
+        val invalidUuid = id.version() != 4 || id.variant() != 2
 
-    val GameProfile.isNicked: Boolean
-        get() {
-            val malformedUUID = id.version() == 1
-            val json = skinJson ?: return malformedUUID
-            val playerUUID = id.toString().replace("-", "")
-            val wrongSkinUUID = json.skinUUID?.let { it != playerUUID } ?: false
-            return malformedUUID || wrongSkinUUID || usesNickSkin
+        return when {
+            !invalidUuid && !mismatchedSkinId -> NickResult.NotNicked
+            payload?.skinHash in knownNickSkinHashes -> NickResult.Nicked
+            mismatchedSkinId && textureProperty.hasSignature() -> payload.profileName
+                ?.takeUnless { it.equals(name, ignoreCase = true) }
+                ?.let(NickResult::Denicked)
+                ?: NickResult.Nicked
+            else -> NickResult.Nicked
         }
+    }
 
-    val GameProfile.realName: String? // null means nicked
-        get() {
-            if (!isNicked) return name
-            val json = skinJson ?: return null
-            if (usesNickSkin) return null
-            return json["profileName"]?.asString
-        }
+    private fun decodeTexturePayload(encodedTextures: String): TexturePayload? = runCatching {
+        val json = JsonParser.parseString(Base64.getDecoder().decode(encodedTextures).toString(Charsets.UTF_8)).asJsonObject
+        val profileId = json["profileId"]
+            ?.takeUnless { it.isJsonNull }
+            ?.asString
+            ?.normalizeUuid()
+        val profileName = json["profileName"]
+            ?.takeUnless { it.isJsonNull }
+            ?.asString
+            ?.takeIf(String::isNotBlank)
+        val skinHash = json["textures"]
+            ?.takeIf { it.isJsonObject }
+            ?.asJsonObject
+            ?.get("SKIN")
+            ?.takeIf { it.isJsonObject }
+            ?.asJsonObject
+            ?.get("url")
+            ?.takeUnless { it.isJsonNull }
+            ?.asString
+            ?.substringBefore('?')
+            ?.substringAfterLast('/')
+            ?.lowercase(Locale.ROOT)
+            ?.takeIf { hash -> hash.isNotEmpty() && hash.all { it in '0'..'9' || it in 'a'..'f' } }
+
+        TexturePayload(profileId, profileName, skinHash)
+    }.getOrNull()
+
+    private fun String.normalizeUuid(): String? = replace("-", "")
+        .lowercase(Locale.ROOT)
+        .takeIf { it.length == 32 && it.all { char -> char in '0'..'9' || char in 'a'..'f' } }
 }
