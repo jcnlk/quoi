@@ -77,12 +77,7 @@ object AutoInvincibility : Module(
             if (bossOnly && !Dungeon.inBoss) return@on
             if (p3Only && !Dungeon.inP3) return@on
 
-            val proc = when (unformatted) {
-                "Your Bonzo's Mask saved your life!", "Your ⚚ Bonzo's Mask saved your life!" -> InvincibilityType.BONZO
-                "Second Wind Activated! Your Spirit Mask saved your life!" -> InvincibilityType.SPIRIT
-                "Your Phoenix Pet saved you from certain death!" -> InvincibilityType.PHOENIX
-                else -> return@on
-            }
+            val proc = InvincibilityType.fromMessage(unformatted) ?: return@on
 
             when (proc) {
                 InvincibilityType.PHOENIX -> phoenixWatchId++
