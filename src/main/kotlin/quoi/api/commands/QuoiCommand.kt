@@ -11,8 +11,10 @@ import quoi.api.skyblock.SkyblockPlayer
 import quoi.api.skyblock.SkyblockPlayer.InvincibilityType
 import quoi.api.skyblock.SkyblockPlayer.Mask
 import quoi.api.events.TickEvent
+import quoi.api.events.WorldEvent
 import quoi.api.events.core.EventDispatcher
 import quoi.api.events.core.EventListener
+import quoi.api.events.core.on
 import quoi.api.events.core.until
 import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.location.Location.currentArea
@@ -54,17 +56,17 @@ import kotlin.collections.sortedBy
 import kotlinx.coroutines.launch
 
 object QuoiCommand : EventListener {
+    private const val TRANSFER_COOLDOWN_NANOS = 3_000_000_000L
+    private const val WARP_RETRY_NANOS = 5_000_000_000L
+
     val command = BaseCommand("quoi", "requise") {
         open(clickGui)
     }
 
     val devCommand = BaseCommand("quoidev")
 
-    private fun warpTicker(cmd: String) = ticker {
-        action { command("warp $cmd") }
-        action(80) { command("warp hub") }
-        delay(80)
-    }
+    private var worldChangeId = 0L
+    private var transferCooldownEnd = Long.MIN_VALUE
 
     private fun antiAfkTicker(delay: Int) = ticker {
         action { mc.options.keyLeft.hold(1) }
@@ -73,6 +75,11 @@ object QuoiCommand : EventListener {
     }
 
     init {
+        on<WorldEvent.Change> {
+            worldChangeId++
+            transferCooldownEnd = System.nanoTime() + TRANSFER_COOLDOWN_NANOS
+        }
+
         with(devCommand) {
             "copy" { string: GreedyString ->
                 mc.keyboardHandler.clipboard = string.string
@@ -267,7 +274,10 @@ object QuoiCommand : EventListener {
                 else -> false
             }
 
-            var ticker = warpTicker(island.command!!)
+            val targetWarp = island.command!!
+            var warpToTarget = true
+            var attemptedInWorld: Long? = null
+            var retryAt = Long.MIN_VALUE
 
             modMessage("Starting to look for $criteria $value")
 
@@ -284,7 +294,21 @@ object QuoiCommand : EventListener {
                     return@scheduleLoop
                 }
 
-                if (ticker.tick()) ticker = warpTicker(island.command)
+                val now = System.nanoTime()
+                attemptedInWorld?.let { attemptWorld ->
+                    if (worldChangeId != attemptWorld) {
+                        warpToTarget = !warpToTarget
+                        attemptedInWorld = null
+                    } else if (now < retryAt) {
+                        return@scheduleLoop
+                    }
+                }
+
+                if (now < transferCooldownEnd) return@scheduleLoop
+
+                command("warp ${if (warpToTarget) targetWarp else "hub"}")
+                attemptedInWorld = worldChangeId
+                retryAt = now + WARP_RETRY_NANOS
             }
         }.description("Finds lobby with specified criteria.")
         .requires("&cYou are not in skyblock!") { inSkyblock }
