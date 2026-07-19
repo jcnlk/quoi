@@ -15,47 +15,44 @@ import quoi.api.colour.Colour
 import quoi.api.colour.withAlpha
 import quoi.api.commands.internal.BaseCommand
 import quoi.api.events.DungeonEvent
-import quoi.api.events.KeyEvent
 import quoi.api.events.RenderEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
-import quoi.api.events.core.Priority
 import quoi.api.events.core.on
 import quoi.api.pathfinding.impl.WalkPathfinder
-import quoi.api.skyblock.location.Location
 import quoi.api.skyblock.dungeon.Dungeon
-import quoi.module.Module
-import quoi.module.impl.render.clickgui.ClickGui
-import quoi.utils.*
-import quoi.utils.ChatUtils.modMessage
-import quoi.utils.StringUtils.formatTime
-import quoi.utils.StringUtils.toFixed
+import quoi.api.skyblock.dungeon.Floor7Utils
 import quoi.api.skyblock.dungeon.odonscanning.ScanUtils
 import quoi.api.skyblock.dungeon.odonscanning.tiles.RoomType
+import quoi.api.skyblock.location.Location
 import quoi.config.Config
+import quoi.module.Module
 import quoi.module.impl.dungeon.DungeonESP
 import quoi.module.impl.dungeon.DungeonESP.starredMobs
 import quoi.module.impl.dungeon.autoclear.MobCluster
 import quoi.module.impl.dungeon.autoclear.MobClusterer
+import quoi.module.impl.render.clickgui.ClickGui
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.module.settings.group.ToggleableGroup
 import quoi.module.settings.impl.MapSetting
+import quoi.utils.*
+import quoi.utils.ChatUtils.modMessage
+import quoi.utils.StringUtils.formatTime
+import quoi.utils.StringUtils.toFixed
 import quoi.utils.WorldUtils.blocksAtFeet
 import quoi.utils.WorldUtils.nearbyBlocks
 import quoi.utils.WorldUtils.solid
 import quoi.utils.WorldUtils.state
-import quoi.utils.WorldUtils.ticksUntilCollision
 import quoi.utils.render.drawFilledBox
 import quoi.utils.render.drawLine
-import quoi.utils.skyblock.player.interact.AuraAction
-import quoi.utils.skyblock.player.interact.AuraManager
 import quoi.utils.skyblock.player.ContainerUtils
 import quoi.utils.skyblock.player.MovementUtils.moveTo
 import quoi.utils.skyblock.player.PlayerUtils
 import quoi.utils.skyblock.player.RotationUtils.resetRotation
 import quoi.utils.skyblock.player.RotationUtils.rotateSilently
+import quoi.utils.skyblock.player.interact.AuraAction
+import quoi.utils.skyblock.player.interact.AuraManager
 import quoi.utils.ui.textPair
-import kotlin.collections.mutableListOf
 
 object Test : Module("Test", desc = "Dev module for testing.") {
 
@@ -111,7 +108,7 @@ object Test : Module("Test", desc = "Dev module for testing.") {
     private val subarea_ by switch("Subarea", true)
     private val boss by switch("Boss", true)
     private val floor by switch("Floor", true)
-    private val p3Section by switch("P3 section", true)
+    private val p3Stage by switch("P3 stage", true)
     private val p3Players by switch("P3 players", true)
     private val container by switch("Container", true)
 
@@ -139,7 +136,7 @@ object Test : Module("Test", desc = "Dev module for testing.") {
                 }
             }
         }
-    }.withSettings(::hypixel, ::inSB, /*::inDung,*/::lobby, ::area_, ::subarea_, ::boss, ::floor, ::p3Section, ::p3Players, ::container
+    }.withSettings(::hypixel, ::inSB, /*::inDung,*/::lobby, ::area_, ::subarea_, ::boss, ::floor, ::p3Stage, ::p3Players, ::container
     ).setting()
 
     private val collectData by switch("Collect mob data")
@@ -352,12 +349,12 @@ object Test : Module("Test", desc = "Dev module for testing.") {
         Data("Subarea", { Location.subarea ?: "None" }, { subarea_ }),
         Data("Boss", { Dungeon.inBoss }, { boss }),
         Data("Floor", { Dungeon.floor ?: "None" }, { floor }),
-        Data("P3 Section", { "${Dungeon.p3Section.name} || ${Dungeon.getP3Section().name} }" }, { p3Section }),
-        Data("   Duration", { "${formatTime(Dungeon.p3Section.getDuration())} | ${formatTime(Dungeon.p3Section.getDurationTicks() * 50)}" }, { p3Section } ),
-        Data("   Terminals", { "${Dungeon.p3Section.terminals}/${Dungeon.p3Section.reqTerminals}" }, { p3Section }),
-        Data("   Levers", { "${Dungeon.p3Section.levers}/2" }, { p3Section }),
-        Data("   Device", { "${Dungeon.p3Section.device}" }, { p3Section }),
-        Data("   Gate", { Dungeon.p3Section.gate }, { p3Section }),
+        Data("P3 Section", { "${Floor7Utils.getStage().name} || ${Floor7Utils.getStageAt().name} }" }, { p3Stage }),
+        Data("   Duration", { "${formatTime(Floor7Utils.getStage().getDuration())} | " + formatTime(Floor7Utils.getStage().getDurationTicks() * 50) }, { p3Stage }),
+        Data("   Terminals", { "${Floor7Utils.getStage().terminals}/${Floor7Utils.getStage().reqTerminals}" }, { p3Stage }),
+        Data("   Levers", { "${Floor7Utils.getStage().levers}/2" }, { p3Stage }),
+        Data("   Device", { Floor7Utils.getStage().device }, { p3Stage }),
+        Data("   Gate", { Floor7Utils.getStage().gate }, { p3Stage }),
         Data("Container", { "${mc.screen != null} | ${ContainerUtils.containerId}" }, { container })
     )
     private data class Data(val name: String, val value: () -> Any?, val enabled: () -> Boolean)

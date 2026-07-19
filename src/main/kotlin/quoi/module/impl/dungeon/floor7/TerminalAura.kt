@@ -7,6 +7,8 @@ import quoi.api.events.TickEvent
 import quoi.api.events.core.on
 import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.dungeon.Dungeon
+import quoi.api.skyblock.dungeon.Floor7Utils
+import quoi.api.skyblock.dungeon.Phase
 import quoi.api.skyblock.location.invoke
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf
@@ -33,7 +35,7 @@ object TerminalAura : Module(
 
     init {
         on<TickEvent.Start> {
-            if (!Dungeon.inP3 || Dungeon.inTerminal || Dungeon.isDead || mc.screen != null) return@on
+            if (!Floor7Utils.inPhase(Phase.P3) || Dungeon.inTerminal || Dungeon.isDead || mc.screen != null) return@on
             if (System.currentTimeMillis() - lastClick < auraDelay) return@on
 
             if (leapDelayEnabled) {

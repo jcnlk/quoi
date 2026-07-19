@@ -36,7 +36,6 @@ dependencies {
     include("io.github.classgraph:classgraph:4.8.184")
 
     property("minecraft_lwjgl_version").let {
-
         implementation("org.lwjgl:lwjgl-nanovg:$it")
         include("org.lwjgl:lwjgl-nanovg:$it")
 

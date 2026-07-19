@@ -1,15 +1,15 @@
 package quoi.module.impl.dungeon
 
-import quoi.api.events.core.on
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.HitResult
 import quoi.api.events.TickEvent
-import quoi.api.skyblock.location.Island
-import quoi.api.skyblock.dungeon.Dungeon.inP3
+import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.Dungeon.isDead
-import quoi.api.skyblock.dungeon.Dungeon.p3Section
+import quoi.api.skyblock.dungeon.Floor7Utils
+import quoi.api.skyblock.dungeon.Phase
+import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.location.invoke
 import quoi.module.Module
 import quoi.utils.skyblock.player.SwapManager
@@ -26,7 +26,8 @@ object BarrierBoom : Module( // todo move to triggerbot module
 
     init {
         on<TickEvent.Start> {
-            if (mc.screen != null || isDead || !inP3 || p3Section.number !in 1..3 || p3Section.gate) return@on
+            val currentStage = Floor7Utils.getStage()
+            if (mc.screen != null || isDead || !Floor7Utils.inPhaseAt(Phase.P3) || currentStage.number !in 1..3 || currentStage.gate) return@on
 
             val result = mc.hitResult
             if (result is BlockHitResult && result.type == HitResult.Type.BLOCK) {

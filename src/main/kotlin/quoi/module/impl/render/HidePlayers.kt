@@ -5,7 +5,8 @@ import quoi.api.events.EntityEvent
 import quoi.api.events.RenderEvent
 import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.Dungeon
-import quoi.api.skyblock.dungeon.M7Phases
+import quoi.api.skyblock.dungeon.Floor7Utils
+import quoi.api.skyblock.dungeon.Phase
 import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.location.Location
 import quoi.module.Module
@@ -48,7 +49,7 @@ object HidePlayers : Module(
     }
 
     private fun isAtDevs(): Boolean {
-        if (Dungeon.getF7Phase() != M7Phases.P3) return false
+        if (!Floor7Utils.inPhaseAt(Phase.P3)) return false
 
         return player.distanceToSqr(108.63, 120.0, 94.0) <= 1.8 * 1.8 ||
             player.distanceToSqr(63.5, 127.0, 35.5) <= 1.8 * 1.8
