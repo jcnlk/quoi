@@ -2,13 +2,15 @@ package quoi.module.impl.dungeon
 
 import quoi.api.abobaui.elements.impl.Text.Companion.shadow
 import quoi.api.abobaui.elements.impl.Text.Companion.textSupplied
-import quoi.api.events.ChatEvent
+import quoi.api.events.DungeonEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
 import quoi.api.events.core.on
-import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.dungeon.Dungeon.deathTick
 import quoi.api.skyblock.dungeon.Dungeon.inBoss
+import quoi.api.skyblock.dungeon.Phase
+import quoi.api.skyblock.dungeon.Stage
+import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.location.invoke
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.visibleIf
@@ -60,10 +62,6 @@ object TickTimers : Module(
     private var goldorStart = -1
     private var padTick = -1
 
-    private val goldorRegex = Regex("^\\[BOSS] Goldor: Who dares trespass into my domain\\?$")
-    private val coreOpeningRegex = Regex("^The Core entrance is opening!$")
-    private val stormPadRegex = Regex("^\\[BOSS] Storm: Pathetic Maxor, just like expected\\.$")
-
     init {
         on<WorldEvent.Change> {
             goldorTick = -1
@@ -80,15 +78,15 @@ object TickTimers : Module(
             if (padTick >= 0 && padHud.enabled) padTick--
         }
 
-        on<ChatEvent.Packet> {
-            when {
-                goldorHud.enabled && message.matches(goldorRegex) -> goldorTick = 60
-                goldorHud.enabled && message.matches(coreOpeningRegex) -> {
-                    goldorStart = -1
-                    goldorTick = -1
-                }
-                padHud.enabled && message.matches(stormPadRegex) -> padTick = 20
-            }
+        on<DungeonEvent.PhaseChanged> {
+            if (goldorHud.enabled && new == Phase.P3) goldorTick = 60
+            if (padHud.enabled && new == Phase.P2) padTick = 20
+        }
+
+        on<DungeonEvent.StageChanged> {
+            if (new != Stage.S5) return@on
+            goldorStart = -1
+            goldorTick = -1
         }
     }
 

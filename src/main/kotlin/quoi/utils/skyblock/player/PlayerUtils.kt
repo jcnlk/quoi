@@ -57,8 +57,7 @@ object PlayerUtils {
     }
 
     fun getEyeHeight(sneak: Boolean = false): Float {
-//        val s = if (Location.onModernIsland) 1.27f else 1.54f
-        return if (sneak) /*s*/1.27f else 1.62f
+        return if (sneak) 1.27f else 1.62f
     }
 
     fun LocalPlayer.eyeHeight(forceSneak: Boolean = false): Float =

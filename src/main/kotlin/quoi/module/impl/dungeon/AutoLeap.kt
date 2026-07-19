@@ -9,20 +9,12 @@ import quoi.api.abobaui.elements.ElementScope
 import quoi.api.abobaui.elements.impl.Text
 import quoi.api.abobaui.elements.impl.Text.Companion.shadow
 import quoi.api.colour.Colour
-import quoi.api.events.ChatEvent
-import quoi.api.events.DungeonEvent
-import quoi.api.events.KeyEvent
-import quoi.api.events.MouseEvent
-import quoi.api.events.TickEvent
-import quoi.api.events.WorldEvent
+import quoi.api.events.*
 import quoi.api.events.core.on
-import quoi.api.skyblock.location.Island
-import quoi.api.skyblock.dungeon.Dungeon
+import quoi.api.skyblock.dungeon.*
 import quoi.api.skyblock.dungeon.Dungeon.allTeammatesNoSelf
 import quoi.api.skyblock.dungeon.Dungeon.dungeonTeammatesNoSelf
-import quoi.api.skyblock.dungeon.DungeonClass
-import quoi.api.skyblock.dungeon.M7Phases
-import quoi.api.skyblock.dungeon.P3Section
+import quoi.api.skyblock.location.Island
 import quoi.module.Module
 import quoi.module.settings.Setting.Companion.json
 import quoi.module.settings.UIComponent.Companion.childOf
@@ -132,7 +124,6 @@ object AutoLeap : Module(
     private var leapHudShownAt = 0L
     private var blockingGameInput = false
     private var melodyTarget: String? = null
-    private var p3Started = false // TODO: temp fix; make better stage/phase detection
 
     private const val LEAP_DURATION_HUD = 1_500L
     private val melodyProgress = setOf("1/4", "2/4", "3/4", "25%", "50%", "75%")
@@ -167,7 +158,6 @@ object AutoLeap : Module(
             crystalCount = 0
             oofCount = 0
             resetLeapState()
-            p3Started = false
         }
 
         on<TickEvent.Start> {
@@ -194,19 +184,19 @@ object AutoLeap : Module(
         }
 
         on<DungeonEvent.SectionComplete> {
-            if (!p3Leap || !p3Auto || !Dungeon.inP3) return@on
+            if (!p3Leap || !p3Auto || !Floor7Utils.inPhaseAt(Phase.P3)) return@on
             if (whenBlown) return@on
-            handleP3Leap(completedSection = section)
+            handleP3Leap(completedStage = section)
         }
 
         on<DungeonEvent.SectionComplete.Full> {
-            if (!p3Leap || !p3Auto || !Dungeon.inP3) return@on
+            if (!p3Leap || !p3Auto || !Floor7Utils.inPhaseAt(Phase.P3)) return@on
             if (!whenBlown) return@on
-            handleP3Leap(completedSection = section)
+            handleP3Leap(completedStage = section)
         }
 
         on<ChatEvent.Packet> {
-            if (!inF7Boss()) return@on
+            if (!Floor7Utils.inF7Boss) return@on
 
             if (pre4Leap && pre4LeapMelody && "Party" in unformatted && melodyProgress.any { it in unformatted }) {
                 melodyTarget = Regex("""([A-Za-z0-9_]{3,16}):""")
@@ -254,23 +244,19 @@ object AutoLeap : Module(
                 leapToConfigured(middleName, middleClass.selected)
             }
 
-            val relicPickup = Regex("^([A-Za-z0-9_]{3,16}) picked the Corrupted (?:\\w+) Relic!$").matchEntire(unformatted)
+            val relicPickup = Regex("^([A-Za-z0-9_]{3,16}) picked the Corrupted \\w+ Relic!$").matchEntire(unformatted)
             if (relicPickup != null && relicLeap && relicAuto && relicPickup.groupValues[1] == player.name.string && isInRelic()) {
                 leapToConfigured(relicName, relicClass.selected)
-            }
-
-            if (unformatted == "The Core entrance is opening!" && p3Leap && p3Auto) {
-                handleP3Leap(completedSection = P3Section.S4)
             }
 
             val pre4Done = Regex("""(\w+) completed a device! \((.*?)\)""").matchEntire(unformatted)
             if (pre4Done != null && pre4Done.groupValues[1] == player.name.string && pre4Leap && pre4Auto) {
                 leapToPre4Target()
             }
+        }
 
-            if (unformatted == "[BOSS] Goldor: Who dares trespass into my domain?") {
-                p3Started = true
-            }
+        on<DungeonEvent.StageChanged> {
+            if (new == Stage.S5 && p3Leap && p3Auto) handleP3Leap(completedStage = Stage.S4)
         }
 
         on<MouseEvent.Click> {
@@ -291,7 +277,7 @@ object AutoLeap : Module(
                 leap(target)
             } else {
                 if (!p3Leap) return@on
-                if (Dungeon.getP3Section() == P3Section.Unknown && !Dungeon.inClear) return@on
+                if (Floor7Utils.inStageAt(Stage.UNKNOWN) && !Dungeon.inClear) return@on
                 handleP3Leap(autoLeap = false)
             }
             lastClick = currentTime
@@ -380,29 +366,27 @@ object AutoLeap : Module(
         }
     }
 
-    private fun inF7Boss() = Dungeon.inBoss && Dungeon.isFloor(7)
-
     // TODO: Replace with Vec3 ?
     private fun inBox(x1: Double, x2: Double, y1: Double, y2: Double, z1: Double, z2: Double): Boolean =
         player.x in x1..x2 && player.y in y1..y2 && player.z in z1..z2
 
-    private fun isInP1() = Dungeon.getF7Phase() == M7Phases.P1
-    private fun isInPredev() = !p3Started && Dungeon.getF7Phase() == M7Phases.P3
-    private fun isInP4() = Dungeon.getF7Phase() == M7Phases.P4
-    private fun isInRelic() = Dungeon.getF7Phase() == M7Phases.P5
+    private fun isInP1() = Floor7Utils.inPhaseAt(Phase.P1)
+    private fun isInPredev() = Floor7Utils.inPhaseAt(Phase.P3) && Floor7Utils.inPhase(Phase.P1, Phase.P2)
+    private fun isInP4() = Floor7Utils.inPhaseAt(Phase.P4)
+    private fun isInRelic() = Floor7Utils.inPhaseAt(Phase.P5)
     private fun isInGreenPad() = inBox(24.0, 41.0, 170.0, 172.0, 4.0, 21.0) // TODO: Vec3 ?
     private fun isInYellowPad() = inBox(24.0, 41.0, 170.0, 172.0, 86.0, 103.0) // TODO: Vec3 ?
     private fun isInPurplePad() = inBox(95.0, 123.0, 164.0, 172.0, 86.0, 103.0) // TODO: Vec3 ?
     private fun isInMiddle() = inBox(47.0, 61.0, 64.0, 75.0, 69.0, 83.0) // TODO: Vec3 ?
     private fun isAtPre4() = inBox(62.0, 65.0, 127.0, 130.0, 34.0, 37.0) // TODO: Vec3 ?
-    private fun isOutsideMiddle() = Dungeon.getF7Phase() == M7Phases.P4 && !isInMiddle()
+    private fun isOutsideMiddle() = Floor7Utils.inPhaseAt(Phase.P4) && !isInMiddle()
 
     private fun getFastLeapTarget(): Any? {
         if (!Dungeon.inBoss) {
             return Dungeon.doorOpener.takeIf { doorOpenerLeap && it != "Unknown" && (!disableAfterBloodOpen || !Dungeon.bloodOpen) }
         }
 
-        if (!inF7Boss()) {
+        if (!Floor7Utils.inF7Boss) {
             return null
         }
 
@@ -420,9 +404,9 @@ object AutoLeap : Module(
         }
     }
 
-    private fun handleP3Leap(completedSection: P3Section? = null, autoLeap: Boolean = true) {
+    private fun handleP3Leap(completedStage: Stage? = null, autoLeap: Boolean = true) {
         if (autoLeap) {
-            if (Dungeon.getP3Section() == P3Section.Unknown) return
+            if (Floor7Utils.inStageAt(Stage.UNKNOWN)) return
             for ((pos, distSqr) in doNotLeapLocations) {
                 if (player.distanceToSqr(pos) <= distSqr) {
                     modMessage("&eAuto Leap skipped because you are already in a no-leap spot.")
@@ -431,17 +415,13 @@ object AutoLeap : Module(
             }
         }
 
-        val targetSection = if (completedSection != null && completedSection != P3Section.Unknown) {
-            completedSection
-        } else {
-            Dungeon.getP3Section()
-        }
+        val targetStage = completedStage ?: Floor7Utils.getStageAt(player)
 
-        val (name, clazz) = when (targetSection) {
-            P3Section.S1 -> s1Name to s1Class.selected
-            P3Section.S2 -> s2Name to s2Class.selected
-            P3Section.S3 -> s3Name to s3Class.selected
-            P3Section.S4 -> s4Name to s4Class.selected
+        val (name, clazz) = when (targetStage) {
+            Stage.S1 -> s1Name to s1Class.selected
+            Stage.S2 -> s2Name to s2Class.selected
+            Stage.S3 -> s3Name to s3Class.selected
+            Stage.S4 -> s4Name to s4Class.selected
             else -> return
         }
 

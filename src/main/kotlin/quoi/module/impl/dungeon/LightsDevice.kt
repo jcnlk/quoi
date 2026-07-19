@@ -1,23 +1,23 @@
 package quoi.module.impl.dungeon
 
-import quoi.api.events.core.on
 import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket
 import net.minecraft.network.protocol.game.ClientboundSectionBlocksUpdatePacket
 import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket
 import net.minecraft.world.InteractionHand
-import net.minecraft.world.phys.BlockHitResult
-import net.minecraft.world.phys.HitResult
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.LeverBlock
 import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.phys.BlockHitResult
+import net.minecraft.world.phys.HitResult
 import quoi.api.events.PacketEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
+import quoi.api.events.core.on
+import quoi.api.skyblock.dungeon.Floor7Utils
+import quoi.api.skyblock.dungeon.Phase
 import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.location.invoke
-import quoi.api.skyblock.dungeon.Dungeon
-import quoi.api.skyblock.dungeon.M7Phases
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf
 
@@ -62,7 +62,7 @@ object LightsDevice : Module(
 
     @JvmStatic
     fun shouldGhostLever(pos: BlockPos): Boolean {
-        return enabled && hideUselessLevers && Dungeon.getF7Phase() == M7Phases.P3 && pos in uselessLevers
+        return enabled && hideUselessLevers && Floor7Utils.inPhaseAt(Phase.P3) && pos in uselessLevers
     }
 
     private fun BlockState.isUnpoweredDeviceLever(): Boolean {
@@ -82,7 +82,7 @@ object LightsDevice : Module(
         }
 
         on<TickEvent.End> {
-            if (Dungeon.getF7Phase() != M7Phases.P3) return@on
+            if (!Floor7Utils.inPhaseAt(Phase.P3)) return@on
             val now = System.currentTimeMillis()
 
             pendingLevers.entries.removeIf { (pos, triggeredAt) ->
