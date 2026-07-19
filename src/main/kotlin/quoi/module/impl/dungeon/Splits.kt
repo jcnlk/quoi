@@ -8,8 +8,8 @@ import quoi.api.colour.colour
 import quoi.api.events.AreaEvent
 import quoi.api.events.core.Priority
 import quoi.api.events.core.on
+import quoi.api.skyblock.dungeon.Stage
 import quoi.api.skyblock.location.Island
-import quoi.api.skyblock.dungeon.P3Section
 import quoi.module.Module
 import quoi.utils.Scheduler.scheduleTask
 import quoi.utils.StringUtils.formatTime
@@ -26,7 +26,7 @@ object Splits : Module( // todo section split info hud, task (terms, levers, dev
     private val timeElapsed by switch("Time Elapsed split") // todo
     private val bossEntry by switch("Boss Entry split")
     private val bossClear by switch("Boss Clear split")
-    private val p3Sections by switch("Goldor sections")
+    private val p3Stages by switch("Goldor sections")
     private val hideNotStarted by switch("Hide not started")
     private val numbersAfterDecimal by slider("Numbers after decimal", 2, 0, 5, 1, desc = "Numbers after decimal in time.")
     private val showTickTime by switch("Show tick time", desc = "Show tick-based time alongside real time.")
@@ -92,28 +92,29 @@ object Splits : Module( // todo section split info hud, task (terms, levers, dev
                         shadow = shadow,
                         font = font
                     )
-                    if (i == 5 && p3Sections) {
-                        P3Section.entries.forEach { section ->
-                            if (section == P3Section.Unknown) return@forEach
-                            textPair(
-                                string = "  S${section.number}:",
-                                supplier = {
-                                    val time = if (preview) (12_000L * section.number) else section.getDuration()
-                                    val ticks = if (preview) (1200L * section.number) else section.getDurationTicks()
-                                    val formatted = formatTime(time, numbersAfterDecimal)
-                                    if (showTickTime) "$formatted §7(§a${(ticks / 20f).toFixed()}§7)" else formatted
-                                },
-                                labelColour = Colour.MINECRAFT_YELLOW,
-                                valueColour = colour { if (colour.rgb == Colour.WHITE.rgb) Colour.MINECRAFT_YELLOW.rgb else colour.rgb },
-                                shadow = shadow,
-                                font = font
-                            ).apply {
-                                operation {
-                                    val terms = preview || splits.getOrNull(5)?.time != 0L
-                                    element.enabled = terms && (preview || !hideNotStarted || section.startTime != 0L)
-                                    false
+                    if (i == 5 && p3Stages) {
+                        Stage.entries
+                            .filter {it.number in 1..4}
+                            .forEach { section ->
+                                textPair(
+                                    string = "  S${section.number}:",
+                                    supplier = {
+                                        val time = if (preview) (12_000L * section.number) else section.getDuration()
+                                        val ticks = if (preview) (1200L * section.number) else section.getDurationTicks()
+                                        val formatted = formatTime(time, numbersAfterDecimal)
+                                        if (showTickTime) "$formatted §7(§a${(ticks / 20f).toFixed()}§7)" else formatted
+                                    },
+                                    labelColour = Colour.MINECRAFT_YELLOW,
+                                    valueColour = colour { if (colour.rgb == Colour.WHITE.rgb) Colour.MINECRAFT_YELLOW.rgb else colour.rgb },
+                                    shadow = shadow,
+                                    font = font
+                                ).apply {
+                                    operation {
+                                        val terms = preview || splits.getOrNull(5)?.time != 0L
+                                        element.enabled = terms && (preview || !hideNotStarted || section.startTime != 0L)
+                                        false
+                                    }
                                 }
-                            }
                         }
                     }
                 }
@@ -133,7 +134,7 @@ object Splits : Module( // todo section split info hud, task (terms, levers, dev
                 }
             }
         }
-    }.withSettings(::timeElapsed, ::bossEntry, ::bossClear, ::p3Sections, ::hideNotStarted, ::numbersAfterDecimal, ::showTickTime).setting()
+    }.withSettings(::timeElapsed, ::bossEntry, ::bossClear, ::p3Stages, ::hideNotStarted, ::numbersAfterDecimal, ::showTickTime).setting()
 
     private val previewSplits = listOf(
         Split(Regex(""), "Blood Open", Colour.MINECRAFT_DARK_RED, 1L),

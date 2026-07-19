@@ -23,7 +23,8 @@ import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.location.Location.currentArea
 import quoi.api.skyblock.location.Location.subarea
 import quoi.api.skyblock.dungeon.Dungeon
-import quoi.api.skyblock.dungeon.M7Phases
+import quoi.api.skyblock.dungeon.Floor7Utils
+import quoi.api.skyblock.dungeon.Phase
 import quoi.module.Module
 import quoi.utils.skyblock.item.ItemUtils.skyblockId
 import quoi.utils.skyblock.item.ItemUtils.texture
@@ -127,7 +128,7 @@ object RenderOptimiser : Module(
 
                     if (hideParticles &&
                         !currentArea.isArea(Island.Garden) &&
-                        Dungeon.getF7Phase() != M7Phases.P5 &&
+                        !Floor7Utils.inPhaseAt(Phase.P5) &&
                         !isGeyserFishingParticle
                     ) cancel()
                     else if (hidePotionBubbles && packet.particle.type == ParticleTypes.ENTITY_EFFECT) cancel()

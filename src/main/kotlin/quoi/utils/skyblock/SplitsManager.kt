@@ -4,12 +4,16 @@ import quoi.annotations.Init
 import quoi.api.colour.Colour
 import quoi.api.events.AreaEvent
 import quoi.api.events.ChatEvent
+import quoi.api.events.DungeonEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
 import quoi.api.events.core.EventListener
 import quoi.api.events.core.on
 import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.dungeon.Dungeon
+import quoi.api.skyblock.dungeon.Floor
+import quoi.api.skyblock.dungeon.Phase
+import quoi.api.skyblock.dungeon.Stage
 import quoi.module.impl.dungeon.Splits
 import quoi.utils.Scheduler.scheduleTask
 
@@ -28,21 +32,20 @@ object SplitsManager : EventListener {
 
     init {
         on<ChatEvent.Packet> {
-            if (currentSplits.isEmpty()) return@on
+            completeSplit { trigger ->
+                trigger is SplitTrigger.ChatMessage && trigger.regex.matches(unformatted)
+            }
+        }
 
-            val split = currentSplits.firstOrNull { it.time == 0L && it.regex.matches(unformatted) } ?: return@on
+        on<DungeonEvent.PhaseChanged> {
+            completeSplit { trigger ->
+                trigger == SplitTrigger.PhaseReached(new)
+            }
+        }
 
-            split.time = System.currentTimeMillis()
-            split.ticks = tickCounter
-
-            if (currentSplits.last() === split) {
-                val (times, _) = getAndUpdateSplitsTimes(currentSplits)
-                val capturedSplits = currentSplits.toList()
-
-                scheduleTask(10) {
-                    if (capturedSplits.isEmpty()) return@scheduleTask
-                    // send splits here
-                }
+        on<DungeonEvent.StageChanged> {
+            completeSplit { trigger ->
+                trigger == SplitTrigger.StageReached(new)
             }
         }
 
@@ -61,14 +64,19 @@ object SplitsManager : EventListener {
                 return@on
             }
             scheduleTask(20) {
-                val floor = Dungeon.floor?.floorNumber ?: return@scheduleTask
-                val floorSplits = floorSplits.getOrNull(floor)?.toMutableList() ?: return@scheduleTask
+                val floor = Dungeon.floor ?: return@scheduleTask
+
+                val selectedFloor = when (floor) {
+                    Floor.F7 -> f7Splits
+                    Floor.M7 -> m7Splits
+                    else -> floorSplits.getOrNull(floor.floorNumber) ?: return@scheduleTask
+                }
 
                 tickCounter = 0L
 
-                val fullList = ArrayList<Split>(floorSplits.size + 4)
+                val fullList = ArrayList<Split>(startSplits.size + selectedFloor.size + 1)
                 fullList.addAll(startSplits.map { it.copy() })
-                fullList.addAll(floorSplits)
+                fullList.addAll(selectedFloor.map{ it.copy() })
                 fullList.add(Split(TOTAL_REGEX, "Time Elapsed", Colour.MINECRAFT_GREEN))
 
                 currentSplits = fullList
@@ -109,7 +117,37 @@ object SplitsManager : EventListener {
         return times.toList() to tickTimes.toList()
     }
 
-    data class Split(val regex: Regex, val name: String, val colour: Colour, var time: Long = 0L, var ticks: Long = 0L)
+    sealed interface SplitTrigger {
+        data class ChatMessage(val regex: Regex) : SplitTrigger
+        data class PhaseReached(val phase: Phase) : SplitTrigger
+        data class StageReached(val stage: Stage) : SplitTrigger
+    }
+
+    data class Split(val trigger: SplitTrigger, val name: String, val colour: Colour, var time: Long = 0L, var ticks: Long = 0L) {
+        constructor(regex: Regex, name: String, colour: Colour, time: Long = 0L, ticks: Long = 0L) : this(
+            SplitTrigger.ChatMessage(regex), name, colour, time, ticks
+        )
+    }
+
+    private inline fun completeSplit(matches: (SplitTrigger) -> Boolean) {
+        if (currentSplits.isEmpty()) return
+
+        val split = currentSplits.firstOrNull {
+            it.time == 0L && matches(it.trigger)
+        } ?: return
+
+        split.time = System.currentTimeMillis()
+        split.ticks = tickCounter
+
+        if (currentSplits.last() === split) {
+            val capturedSplit = currentSplits.map { it.copy() }
+
+            scheduleTask(10) {
+                if (capturedSplit.isEmpty()) return@scheduleTask
+                // send split here
+            }
+        }
+    }
 
     private val entryRegexes = listOf(
         Regex("^\\[BOSS] Bonzo: Gratz for making it this far, but I'm basically unbeatable\\.$"),
@@ -118,7 +156,6 @@ object SplitsManager : EventListener {
         Regex("^\\[BOSS] Thorn: Welcome Adventurers! I am Thorn, the Spirit! And host of the Vegan Trials!$"),
         Regex("^\\[BOSS] Livid: Welcome, you've arrived right on time\\. I am Livid, the Master of Shadows\\.$"),
         Regex("^\\[BOSS] Sadan: So you made it all the way here\\.\\.\\. Now you wish to defy me\\? Sadan\\?!$"),
-        Regex("^\\[BOSS] Maxor: WELL! WELL! WELL! LOOK WHO'S HERE!$")
     )
 
     private val BLOOD_OPEN_REGEX = Regex("^\\[BOSS] The Watcher: (Congratulations, you made it through the Entrance\\.|Ah, you've finally arrived\\.|Ah, we meet again\\.\\.\\.|So you made it this far\\.\\.\\. interesting\\.|You've managed to scratch and claw your way here, eh\\?|I'm starting to get tired of seeing you around here\\.\\.\\.|Oh\\.\\. hello\\?|Things feel a little more roomy now, eh\\?)$|^The BLOOD DOOR has been opened!$")
@@ -171,15 +208,16 @@ object SplitsManager : EventListener {
             Split(Regex("^\\[BOSS] Sadan: ENOUGH!$"), "Giants", Colour.MINECRAFT_GREEN),
             Split(Regex("^\\[BOSS] Sadan: You did it\\. I understand now, you have earned my respect\\.$"), "Sadan", Colour.MINECRAFT_RED)
         ),
-
-        // F7
-        listOf(
-            Split(entryRegexes[6], "Maxor", Colour.MINECRAFT_AQUA),
-            Split(Regex("\\[BOSS] Storm: Pathetic Maxor, just like expected\\."), "Storm", Colour.MINECRAFT_RED),
-            Split(Regex("\\[BOSS] Goldor: Who dares trespass into my domain\\?"), "Terminals", Colour.MINECRAFT_YELLOW),
-            Split(Regex("The Core entrance is opening!"), "Goldor", Colour.MINECRAFT_GOLD),
-            Split(Regex("\\[BOSS] Necron: You went further than any human before, congratulations\\."), "Necron", Colour.MINECRAFT_DARK_RED),
-            Split(Regex("\\[BOSS] Necron: All this, for nothing\\.\\.\\."), "Cleared", Colour.MINECRAFT_DARK_GREEN)
-        )
     )
+
+    private val baseFloor7Splits = listOf(
+        Split(SplitTrigger.PhaseReached(Phase.P1), "Maxor", Colour.MINECRAFT_AQUA),
+        Split(SplitTrigger.PhaseReached(Phase.P2), "Storm", Colour.MINECRAFT_RED),
+        Split(SplitTrigger.PhaseReached(Phase.P3), "Terminals", Colour.MINECRAFT_YELLOW),
+        Split(SplitTrigger.StageReached(Stage.S5), "Goldor", Colour.MINECRAFT_GOLD),
+        Split(SplitTrigger.PhaseReached(Phase.P4), "Necron", Colour.MINECRAFT_DARK_RED)
+    )
+
+    private val f7Splits = baseFloor7Splits + Split(SplitTrigger.PhaseReached(Phase.P5), "Cleared", Colour.MINECRAFT_DARK_GREEN)
+    private val m7Splits = baseFloor7Splits + Split(SplitTrigger.PhaseReached(Phase.P5), "Wither King", Colour.MINECRAFT_DARK_PURPLE)
 }
