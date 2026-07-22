@@ -3,9 +3,6 @@ package quoi.module.impl.dungeon
 import kotlinx.coroutines.launch
 import net.minecraft.world.item.Items
 import quoi.QuoiMod.scope
-import quoi.api.abobaui.dsl.px
-import quoi.api.abobaui.elements.impl.Text.Companion.shadow
-import quoi.api.abobaui.elements.impl.Text.Companion.textSupplied
 import quoi.api.events.ChatEvent
 import quoi.api.events.WorldEvent
 import quoi.api.events.core.on
@@ -38,21 +35,9 @@ object AutoInvincibility : Module(
     private val bossOnly by switch("Boss only", desc = "Only triggers while being in boss room.")
     private val p3Only by switch("Phase 3 only", desc = "Only triggers during phase 3.")
     private val blockInputs by switch("Block inputs", desc = "Blocks keyboard and mouse input while equipping masks or swapping through the pet menu. Does not affect Rod Swap.")
-    @Suppress("unused")
-    private val hud by textHud("Swap hud") {
-        visibleIf { this@AutoInvincibility.enabled && (preview || swapHudText != null) }
-        column {
-            textSupplied(
-                supplier = { swapHudText ?: "Equipping Spirit Mask" },
-                colour = colour,
-                font = font,
-                size = 18.px,
-            ).shadow = shadow
-        }
-    }.setting("Shows the invincibility item currently being equipped.")
+    private val fastMode by switch("Fast mode", desc = "Uses the shortest movement and input block while equipping masks or swapping through the pet menu. Does not affect Rod Swap.")
 
     private var swapping = false
-    private var swapHudText: String? = null
     private var previousPet: String? = null
     private var phoenixSwapId = 0
     private var phoenixWatchId = 0
@@ -133,10 +118,9 @@ object AutoInvincibility : Module(
 
                 if (!waitUntilNotInTerminal()) return@launch
 
-                swapHudText = "Equipping ${maskName.split(" ").joinToString(" ") { it.replaceFirstChar(Char::uppercase) }}"
                 modMessage("§eEquipping $maskName.")
 
-                if (!EquipUtils.equipByName(maskName, blockInput = blockInputs)) {
+                if (!EquipUtils.equipByName(maskName, blockInput = blockInputs, fastMode = fastMode)) {
                     modMessage("§cFailed to equip $maskName.")
                 }
             } finally {
@@ -161,13 +145,12 @@ object AutoInvincibility : Module(
                     previousPet = currentPet
                 }
 
-                swapHudText = "Equipping Phoenix"
                 when (phoenixSwapMethod.selected) {
                     PhoenixSwapMethod.RodSwap -> triggerRodSwap()
                     PhoenixSwapMethod.PetMenu -> {
                         modMessage("§eSwapping to Phoenix.")
 
-                        if (!PetUtils.switchPet("Phoenix", blockInput = blockInputs)) {
+                        if (!PetUtils.switchPet("Phoenix", blockInput = blockInputs, fastMode = fastMode)) {
                             modMessage("§cFailed to queue Phoenix swap.")
                             return@launch
                         }
@@ -236,7 +219,7 @@ object AutoInvincibility : Module(
             when (phoenixSwapMethod.selected) {
                 PhoenixSwapMethod.RodSwap -> triggerRodSwap()
                 PhoenixSwapMethod.PetMenu -> {
-                    val queued = PetUtils.switchPet(pet, blockInput = blockInputs)
+                    val queued = PetUtils.switchPet(pet, blockInput = blockInputs, fastMode = fastMode)
                     if (!queued) modMessage("§cFailed to queue previous pet switch.")
                 }
             }
@@ -258,7 +241,6 @@ object AutoInvincibility : Module(
 
     private fun resetSwapState() {
         swapping = false
-        swapHudText = null
     }
 
     private fun resetAllState() {

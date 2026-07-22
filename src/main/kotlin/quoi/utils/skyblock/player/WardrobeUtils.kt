@@ -1,220 +1,106 @@
 package quoi.utils.skyblock.player
 
-import quoi.api.events.core.EventListener
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket
+import net.minecraft.world.item.ItemStack
 import quoi.QuoiMod.mc
-import quoi.QuoiMod.scope
 import quoi.annotations.Init
 import quoi.api.commands.QuoiCommand
-import quoi.api.events.PacketEvent
-import quoi.api.events.TickEvent
-import quoi.api.events.WorldEvent
-import quoi.api.events.core.Subscription
-import quoi.api.events.core.on
-import quoi.api.events.core.Priority
 import quoi.api.skyblock.location.Location.inSkyblock
+import quoi.utils.ChatUtils
 import quoi.utils.ChatUtils.modMessage
-import quoi.utils.Scheduler.scheduleTask
-import quoi.utils.Scheduler.wait
 import quoi.utils.StringUtils.noControlCodes
-import quoi.utils.skyblock.player.ContainerUtils.clickAndAwaitContainerReopen
-import quoi.utils.skyblock.player.ContainerUtils.containerId
-import quoi.utils.skyblock.player.ContainerUtils.closeContainer
-import quoi.utils.skyblock.player.ContainerUtils.getContainerItems
-import quoi.utils.skyblock.player.MovementUtils.stop
-import java.util.*
-import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
+import quoi.utils.skyblock.player.container.ContainerUtils
+import quoi.utils.skyblock.player.container.task.ContainerTask
+import quoi.utils.skyblock.player.container.task.ContainerTaskResult
+import quoi.utils.skyblock.player.container.task.IndexSlot
+import quoi.utils.skyblock.player.container.task.containerTask
 
 @Init
-object WardrobeUtils : EventListener {
-    private const val MENU_TITLE = "(1/3) Armor Sets"
+object WardrobeUtils {
+    private val menuTitle = Regex("""^\(\d+/\d+\) Armor Sets$""", RegexOption.IGNORE_CASE)
 
-    private val queue = ArrayDeque<WardrobeRequest>()
-    private var inProgress = false
-    private var preventMoveCurrent = true
-    private var currentSlot: Int? = null
-
-    val equippingSlot: Int?
-        get() = currentSlot
+    private var task: ContainerTask? = null
 
     init {
         QuoiCommand.command.sub("wardrobe") { slot: Int ->
-            if (!equip(slot)) modMessage("&cFailed to queue wardrobe equip.")
+            if (!equip(slot)) modMessage("&cA container action is already in progress.")
         }.description("Equips a wardrobe slot from 1 to 9.")
-
-        on<TickEvent.Start> {
-            val player = mc.player ?: return@on
-            if (inProgress && preventMoveCurrent) player.stop()
-        }
-
-        on<WorldEvent.Change> {
-            resetState()
-        }
     }
 
     @JvmOverloads
     fun equip(
         slot: Int,
         preventMove: Boolean = true,
+        blockInput: Boolean = false,
         disableUnequip: Boolean = false,
-        onMenuOpen: (() -> Unit)? = null,
-        onMenuClose: (() -> Unit)? = null,
+        fastMode: Boolean = false,
     ): Boolean {
         if (slot !in 1..9) {
             modMessage("&cInvalid wardrobe slot. Use &e/quoi wardrobe <1-9>&c.")
             return false
         }
-
         if (!inSkyblock) {
             modMessage("&cYou are not in SkyBlock.")
             return false
         }
+        if (task?.let { it.result == null } == true) return false
 
-        if (queue.any { it.slot == slot }) {
-            return false
-        }
-
-        queue += WardrobeRequest(slot, preventMove, disableUnequip, onMenuOpen, onMenuClose)
-        processQueue()
-        return true
-    }
-
-    fun isBusy(): Boolean = inProgress || queue.isNotEmpty()
-
-    private fun processQueue() {
-        if (inProgress || queue.isEmpty()) return
-        inProgress = true
-
-        scope.launch(Dispatchers.IO) {
-            while (queue.isNotEmpty()) {
-                val request = queue.removeFirst()
-                currentSlot = request.slot
-                preventMoveCurrent = request.preventMove
-                val menuClosed = AtomicBoolean()
-                val onMenuClosed = {
-                    if (menuClosed.compareAndSet(false, true)) {
-                        preventMoveCurrent = false
-                        request.onMenuClose?.invoke()
-                    }
-                }
-
-                val result = try {
-                    equipNow(request.slot, request.disableUnequip, request.onMenuOpen, onMenuClosed)
-                } finally {
-                    onMenuClosed()
-                }
-                modMessage(result.chatMessage)
-                wait(2)
-            }
-
-            resetState()
-        }
-    }
-
-    private suspend fun equipNow(
-        slot: Int,
-        disableUnequip: Boolean,
-        onMenuOpen: (() -> Unit)?,
-        onMenuClosed: () -> Unit,
-    ): EquipResult {
         val targetSlot = slot + 35
-        val items = getContainerItems("wardrobe", MENU_TITLE, onMenuOpen = onMenuOpen)
-        if (items.isEmpty()) {
-            closeContainer()
-            return EquipResult.failure("Timed out waiting for wardrobe.")
-        }
+        var state = WardrobeState.UNKNOWN
 
-        var targetItem = items.getOrNull(targetSlot)
-        if (targetItem == null) {
-            closeContainer()
-            return EquipResult.failure("Wardrobe slot $slot is empty.")
-        }
+        val newTask = containerTask(
+            name = "Wardrobe $slot",
+            force = fastMode,
+            preventMovement = preventMove,
+            blockInput = blockInput,
+            fastMode = fastMode,
+        ) {
+            action { ChatUtils.command("wardrobe") }
+            awaitContainer(menuTitle, waitForItems = true)
 
-        val initialState = targetItem.wardrobeState()
-        if (initialState == WardrobeState.EMPTY || initialState == WardrobeState.UNKNOWN) {
-            awaitWardrobeRefresh(targetSlot)?.let { refreshed ->
-                targetItem = refreshed
+            action {
+                state = mc.player?.containerMenu?.items?.getOrNull(targetSlot)?.wardrobeState()
+                    ?: WardrobeState.EMPTY
             }
-        }
+            check("Wardrobe slot $slot is empty") { state != WardrobeState.EMPTY }
+            check("Wardrobe slot $slot is locked") { state != WardrobeState.LOCKED }
+            check("Wardrobe slot $slot is not ready") { state != WardrobeState.UNKNOWN }
 
-        val resolvedItem = targetItem
-        when (resolvedItem?.wardrobeState() ?: WardrobeState.EMPTY) {
-            WardrobeState.EMPTY -> {
-                closeContainer()
-                return EquipResult.failure("Wardrobe slot $slot is empty.")
-            }
-            WardrobeState.EQUIPPED -> {
-                if (disableUnequip) {
-                    closeContainer()
-                    return EquipResult.failure("Armor already equipped.")
+            pickup(IndexSlot(targetSlot, true))
+                .unless { disableUnequip && it.wardrobeState() == WardrobeState.EQUIPPED }
+            afterClick { mc.player?.closeContainer() }
+            awaitContainer(menuTitle)
+            action { mc.player?.closeContainer() }
+
+            onFinished { result ->
+                if (result != ContainerTaskResult.Success &&
+                    result != ContainerTaskResult.Busy &&
+                    ContainerUtils.containerId != 0
+                ) {
+                    mc.player?.closeContainer()
                 }
-            }
-            WardrobeState.READY -> Unit
-            WardrobeState.LOCKED -> {
-                closeContainer()
-                return EquipResult.failure("Wardrobe slot $slot is locked.")
-            }
-            WardrobeState.UNKNOWN -> {
-                closeContainer()
-                return EquipResult.failure("Wardrobe slot $slot is not ready.")
+
+                when (result) {
+                    ContainerTaskResult.Success -> when {
+                        disableUnequip && state == WardrobeState.EQUIPPED ->
+                            modMessage("&eWardrobe slot &f$slot &eis already equipped.")
+                        else -> modMessage("&aEquipped wardrobe slot &f$slot")
+                    }
+                    ContainerTaskResult.Busy -> Unit
+                    ContainerTaskResult.Cancelled -> Unit
+                    is ContainerTaskResult.Failure -> modMessage("&c${result.message}.")
+                }
+
+                task = null
             }
         }
 
-        if (!clickAndAwaitContainerReopen(targetSlot, MENU_TITLE, onClickSent = onMenuClosed)) {
-            closeContainer()
-            return EquipResult.failure("Failed to click wardrobe slot $slot.")
-        }
-
-        closeContainer()
-        return EquipResult.success(slot)
+        task = newTask
+        newTask.run()
+        return newTask.result != ContainerTaskResult.Busy
     }
 
-    private suspend fun awaitWardrobeRefresh(slot: Int, timeout: Int = 6): net.minecraft.world.item.ItemStack? = suspendCoroutine { cont ->
-        val currentContainerId = containerId
-        if (currentContainerId == -1) {
-            cont.resume(null)
-            return@suspendCoroutine
-        }
-
-        var resumed = false
-        var listener: Subscription<PacketEvent.Received>? = null
-        listener = on<PacketEvent.Received>(Priority.LOWEST) {
-            val packet = packet as? ClientboundContainerSetSlotPacket ?: return@on
-            if (packet.containerId != currentContainerId) return@on
-            if (packet.slot != slot) return@on
-
-            val item = packet.item.takeUnless { it.isEmpty }
-            val state = item?.wardrobeState() ?: WardrobeState.UNKNOWN
-            if (state == WardrobeState.EMPTY || state == WardrobeState.UNKNOWN) return@on
-
-            listener?.unregister()
-            if (resumed) return@on
-            resumed = true
-            cont.resume(item)
-        }
-
-        scheduleTask(timeout) {
-            if (resumed) return@scheduleTask
-            resumed = true
-            listener?.unregister()
-            cont.resume(null)
-        }
-    }
-
-    private fun resetState() {
-        queue.clear()
-        inProgress = false
-        preventMoveCurrent = true
-        currentSlot = null
-    }
-
-    private fun net.minecraft.world.item.ItemStack.wardrobeState(): WardrobeState {
+    private fun ItemStack.wardrobeState(): WardrobeState {
         val name = displayName.string.noControlCodes
-
         return when {
             name.contains(": Empty", ignoreCase = true) -> WardrobeState.EMPTY
             name.contains(": Equipped", ignoreCase = true) -> WardrobeState.EQUIPPED
@@ -224,28 +110,11 @@ object WardrobeUtils : EventListener {
         }
     }
 
-    private data class WardrobeRequest(
-        val slot: Int,
-        val preventMove: Boolean,
-        val disableUnequip: Boolean,
-        val onMenuOpen: (() -> Unit)?,
-        val onMenuClose: (() -> Unit)?,
-    )
-
     private enum class WardrobeState {
         EQUIPPED,
         READY,
         EMPTY,
         LOCKED,
         UNKNOWN,
-    }
-
-    private data class EquipResult(
-        val chatMessage: String,
-    ) {
-        companion object {
-            fun success(slot: Int) = EquipResult("&aEquipped wardrobe slot &f$slot")
-            fun failure(reason: String) = EquipResult("&c$reason")
-        }
     }
 }

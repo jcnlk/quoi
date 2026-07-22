@@ -1,205 +1,142 @@
 package quoi.utils.skyblock.player
 
-import quoi.api.events.core.EventListener
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import net.minecraft.client.KeyMapping
 import net.minecraft.world.item.ItemStack
 import quoi.QuoiMod.mc
-import quoi.QuoiMod.scope
 import quoi.annotations.Init
 import quoi.api.commands.QuoiCommand
 import quoi.api.commands.internal.GreedyString
-import quoi.api.events.KeyEvent
-import quoi.api.events.MouseEvent
-import quoi.api.events.TickEvent
-import quoi.api.events.WorldEvent
-import quoi.api.events.core.on
+import quoi.api.skyblock.location.Location.inSkyblock
 import quoi.module.impl.misc.PetKeybinds.petMap
+import quoi.utils.ChatUtils
 import quoi.utils.ChatUtils.modMessage
-import quoi.utils.Scheduler.scheduleTask
-import quoi.utils.Scheduler.wait
 import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.skyblock.item.ItemUtils.lore
 import quoi.utils.skyblock.item.ItemUtils.loreString
-import quoi.utils.skyblock.player.ContainerUtils.closeContainer
-import quoi.utils.skyblock.player.MovementUtils.stop
-import java.util.ArrayDeque
+import quoi.utils.skyblock.player.container.ContainerUtils
+import quoi.utils.skyblock.player.container.task.ContainerTask
+import quoi.utils.skyblock.player.container.task.ContainerTaskResult
+import quoi.utils.skyblock.player.container.task.containerTask
+import quoi.utils.skyblock.player.container.task.item
+import quoi.utils.skyblock.player.container.task.menu
 
 @Init
-object PetUtils : EventListener {
-    private const val PETS_MENU_TITLE = """(?:\(\d+/\d+\) )?Pets"""
+object PetUtils {
+    private val menuTitle = Regex(
+        """^(?:\(\d+/\d+\) )?Pets$""",
+        RegexOption.IGNORE_CASE,
+    )
 
-    private val petQueue = ArrayDeque<PetRequest>()
-    private var inProgress = false
-    private var blockingGameInput = false
-    private var blockInputsCurrent = false
-    private var switchingPetName: String? = null
+    @Volatile
+    private var task: ContainerTask? = null
 
     init {
         QuoiCommand.command.sub("pet") { name: GreedyString ->
-            if (!switchPet(name.string)) modMessage("&cFailed to queue pet switch.")
-        }.description("Queues a pet switch by pet name.").suggests { petSuggestions() }
-
-        on<TickEvent.Start> {
-            val player = mc.player ?: return@on
-            if (blockingGameInput) player.stop()
-        }
-
-        on<KeyEvent.Press> {
-            if (blockingGameInput && blockInputsCurrent) cancel()
-        }
-
-        on<KeyEvent.Release> {
-            if (blockingGameInput && blockInputsCurrent) cancel()
-        }
-
-        on<MouseEvent.Click> {
-            if (blockingGameInput && blockInputsCurrent) cancel()
-        }
-
-        on<MouseEvent.Scroll> {
-            if (blockingGameInput && blockInputsCurrent) cancel()
-        }
-
-        on<MouseEvent.Move> {
-            if (blockingGameInput && blockInputsCurrent) cancel()
-        }
-
-        on<WorldEvent.Change> {
-            resetState()
-        }
+            if (!switchPet(name.string)) modMessage("&cA container action is already in progress.")
+        }.description("Switches pet by name.").suggests { petSuggestions() }
     }
 
     @JvmOverloads
-    fun switchPet(name: String, item: String? = null, blockInput: Boolean = false): Boolean {
+    fun switchPet(
+        name: String,
+        item: String? = null,
+        blockInput: Boolean = false,
+        fastMode: Boolean = false,
+    ): Boolean {
         val cleanedName = cleanPetName(name).trim()
         val cleanedItem = item?.let(::cleanPetItemName)?.takeIf(String::isNotEmpty)
         if (cleanedName.isEmpty()) return false
-        if (petQueue.any { it.matches(cleanedName, cleanedItem) }) return false
+        if (!inSkyblock) {
+            modMessage("&cYou are not in SkyBlock.")
+            return false
+        }
+        if (task?.let { it.result == null } == true) return false
 
-        petQueue += PetRequest(cleanedName, cleanedItem, blockInput)
-        processQueue()
-        return true
-    }
+        var matchedState = PetState.NOT_FOUND
+        val label = petLabel(cleanedName, cleanedItem)
+        val target = item { stack -> stack.matchesPet(cleanedName, cleanedItem) }.menu
 
-    fun isBusy(): Boolean = inProgress || petQueue.isNotEmpty()
-
-    private fun processQueue() {
-        if (inProgress || petQueue.isEmpty()) return
-        inProgress = true
-
-        scope.launch(Dispatchers.IO) {
-            while (petQueue.isNotEmpty()) {
-                val request = petQueue.removeFirst()
-                switchingPetName = request.name
-
-                val result = switchPetNow(request.name, request.item, request.blockInput)
-                modMessage(result.chatMessage)
-                switchingPetName = null
-                wait(2)
+        val newTask = containerTask(
+            name = "Pet: $cleanedName",
+            force = fastMode,
+            preventMovement = true,
+            blockInput = blockInput,
+            fastMode = fastMode,
+        ) {
+            action { ChatUtils.command("petsmenu") }
+            awaitContainer(menuTitle, waitForItems = true)
+            pickup(target, failureMessage = "Couldn't find $label").unless { stack ->
+                matchedState = when {
+                    stack.isEquippedPet() -> PetState.EQUIPPED
+                    stack.isSummonablePet() -> PetState.SUMMONABLE
+                    else -> PetState.UNAVAILABLE
+                }
+                matchedState != PetState.SUMMONABLE
+            }
+            wait(1)
+            action {
+                if (matchedState != PetState.SUMMONABLE && ContainerUtils.containerId != 0) {
+                    mc.player?.closeContainer()
+                }
             }
 
-            switchingPetName = null
-            stopInputBlock()
-            inProgress = false
-        }
-    }
+            onFinished { result ->
+                if (result != ContainerTaskResult.Success &&
+                    result != ContainerTaskResult.Busy &&
+                    ContainerUtils.containerId != 0
+                ) {
+                    mc.player?.closeContainer()
+                }
 
-    private suspend fun switchPetNow(name: String, item: String?, blockInput: Boolean): PetSwitchResult {
-        val items = ContainerUtils.getContainerItems(
-            "petsmenu",
-            Regex(PETS_MENU_TITLE),
-            onMenuOpen = { startInputBlock(blockInput) },
-        )
-        if (items.isEmpty()) {
-            stopInputBlock()
-            return PetSwitchResult.failure("Timed out opening Pets")
-        }
+                when (result) {
+                    ContainerTaskResult.Success -> when (matchedState) {
+                        PetState.EQUIPPED -> modMessage("&e$label is already equipped")
+                        PetState.SUMMONABLE -> modMessage("&aSwitched to &f$label")
+                        PetState.UNAVAILABLE -> modMessage("&c$label is not summonable")
+                        PetState.NOT_FOUND -> modMessage("&cCouldn't find $label")
+                    }
+                    ContainerTaskResult.Busy -> Unit
+                    ContainerTaskResult.Cancelled -> Unit
+                    is ContainerTaskResult.Failure -> modMessage("&c${result.message}.")
+                }
 
-        val slot = petSlots.firstOrNull { index ->
-            val pet = items.getOrNull(index) ?: return@firstOrNull false
-            val petName = cleanPetName(pet.displayName.string)
-            petName.contains(name, ignoreCase = true) && pet.matchesPetItem(item)
-        }
-
-        if (slot == null) {
-            closePetMenu()
-            return PetSwitchResult.failure("Couldn't find ${petLabel(name, item)}")
-        }
-
-        val pet = items[slot] ?: run {
-            closePetMenu()
-            return PetSwitchResult.failure("Couldn't read ${petLabel(name, item)}")
-        }
-
-        return when {
-            pet.isEquippedPet() -> {
-                closePetMenu()
-                PetSwitchResult.alreadyEquipped(petLabel(name, item))
-            }
-
-            pet.isSummonablePet() && ContainerUtils.click(slot, afterClick = { scheduleTask(1, server = true) { stopInputBlock() } }) -> PetSwitchResult.success(petLabel(name, item))
-            pet.isSummonablePet() -> {
-                closePetMenu()
-                PetSwitchResult.failure("Failed to click ${petLabel(name, item)}")
-            }
-
-            else -> {
-                closePetMenu()
-                PetSwitchResult.failure("${petLabel(name, item)} is not summonable")
+                task = null
             }
         }
+
+        task = newTask
+        newTask.run()
+        return newTask.result != ContainerTaskResult.Busy
     }
 
-    private fun petSuggestions(): List<String> {
-        return petMap.values
-            .map(::cleanPetName)
-            .distinctBy { it.lowercase() }
-            .sorted()
-    }
+    fun isBusy(): Boolean = task?.let { it.result == null } == true
 
-    private fun cleanPetName(name: String): String {
-        return name.noControlCodes
-            .replace(Regex("""⭐?\s*\[Lvl \d+] """), "")
-            .trim('[', ']', ' ')
-    }
+    private fun petSuggestions(): List<String> = petMap.values
+        .map(::cleanPetName)
+        .distinctBy { it.lowercase() }
+        .sorted()
+
+    private fun cleanPetName(name: String): String = name.noControlCodes
+        .replace(Regex("""⭐?\s*\[Lvl \d+] """), "")
+        .trim('[', ']', ' ')
 
     private fun cleanPetItemName(name: String): String = name.noControlCodes.trim()
 
     private fun petLabel(name: String, item: String?): String = item?.let { "$name ($it)" } ?: name
 
-    private fun closePetMenu() {
-        closeContainer()
-        stopInputBlock()
+    private fun ItemStack.isEquippedPet(): Boolean =
+        loreString?.contains("Click to despawn!", ignoreCase = true) == true
+
+    private fun ItemStack.isSummonablePet(): Boolean =
+        loreString?.contains("Left-click to summon!", ignoreCase = true) == true
+
+    private fun ItemStack.matchesPet(name: String, item: String?): Boolean {
+        val petName = cleanPetName(displayName.string)
+        return petName.contains(name, ignoreCase = true) && matchesPetItem(item)
     }
-
-    private fun stopInputBlock() {
-        if (!blockingGameInput) return
-
-        blockingGameInput = false
-        blockInputsCurrent = false
-        KeyMapping.setAll()
-    }
-
-    private fun startInputBlock(blockInput: Boolean) {
-        blockingGameInput = true
-        blockInputsCurrent = blockInput
-    }
-
-    private fun resetState() {
-        petQueue.clear()
-        inProgress = false
-        stopInputBlock()
-        switchingPetName = null
-    }
-
-    private fun ItemStack.isEquippedPet(): Boolean = loreString?.contains("Click to despawn!", ignoreCase = true) == true
-
-    private fun ItemStack.isSummonablePet(): Boolean = loreString?.contains("Left-click to summon!", ignoreCase = true) == true
 
     private fun ItemStack.matchesPetItem(item: String?): Boolean {
         if (item == null) return true
+
         val heldItem = lore?.firstNotNullOfOrNull { line ->
             val cleanedLine = line.noControlCodes
             cleanedLine
@@ -211,30 +148,10 @@ object PetUtils : EventListener {
         return heldItem.contains(item, ignoreCase = true)
     }
 
-    private data class PetRequest(
-        val name: String,
-        val item: String?,
-        val blockInput: Boolean,
-    ) {
-        fun matches(name: String, item: String?): Boolean {
-            if (!this.name.equals(name, ignoreCase = true)) return false
-            return when {
-                this.item == null && item == null -> true
-                this.item == null || item == null -> false
-                else -> this.item.equals(item, ignoreCase = true)
-            }
-        }
+    private enum class PetState {
+        NOT_FOUND,
+        EQUIPPED,
+        SUMMONABLE,
+        UNAVAILABLE,
     }
-
-    private data class PetSwitchResult(
-        val chatMessage: String,
-    ) {
-        companion object {
-            fun success(name: String) = PetSwitchResult("&aSwitched to &f$name")
-            fun alreadyEquipped(name: String) = PetSwitchResult("&e$name is already equipped")
-            fun failure(reason: String) = PetSwitchResult("&c$reason")
-        }
-    }
-
-    private val petSlots = (9..<45).filterNot { it % 9 == 0 || it % 9 == 8 }
 }
