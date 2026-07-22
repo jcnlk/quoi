@@ -1,6 +1,5 @@
 package quoi.module.impl.misc
 
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.network.chat.HoverEvent
@@ -17,6 +16,7 @@ import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.module.settings.impl.KeybindComponent
 import quoi.module.settings.impl.MapSetting
+import quoi.utils.ChatUtils
 import quoi.utils.ChatUtils.button
 import quoi.utils.ChatUtils.literal
 import quoi.utils.ChatUtils.modMessage
@@ -25,9 +25,10 @@ import quoi.utils.skyblock.item.ItemUtils.loreString
 import quoi.utils.skyblock.item.ItemUtils.petHeldItem
 import quoi.utils.skyblock.item.ItemUtils.skyblockId
 import quoi.utils.skyblock.item.ItemUtils.skyblockUuid
-import quoi.utils.skyblock.player.ContainerUtils
-import quoi.utils.skyblock.player.ContainerUtils.clickSlot
-import quoi.utils.skyblock.player.ContainerUtils.getContainerItemsClose
+import quoi.utils.skyblock.player.container.ContainerUtils
+import quoi.utils.skyblock.player.container.ContainerUtils.clickSlot
+import quoi.utils.skyblock.player.container.task.ContainerTaskResult
+import quoi.utils.skyblock.player.container.task.containerTask
 
 /**
  * modified OdinFabric (BSD 3-Clause)
@@ -43,6 +44,7 @@ object PetKeybinds : Module(
     private val previousPageKeybind by keybind("Previous page", desc = "Goes to the previous page.")
     private val noUnequip by switch("Disable unequip", desc = "Prevents using a pets keybind to unequip a pet. Does not prevent unequip keybind or normal clicking.")
     private val closeIfAlreadyEquipped by switch("Close if already equipped", desc = "If the pet is already equipped, closes the Pets menu instead.")
+    private val fastMode by switch("Fast mode", desc = "Blocks movement and input only while the Pets menu data is being read.")
 
     private val advanced by text("Keybinds")
     private val petKeys = (1..9).map { i ->
@@ -50,7 +52,10 @@ object PetKeybinds : Module(
     }
 
 
-    private val petsRegex = Regex("Pets(?: \\((\\d)/(\\d)\\))?") // TODO: fix regex or whatever
+    private val petsRegex = Regex(
+        """^(?:\((\d+)/(\d+)\) )?Pets(?: \((\d+)/(\d+)\))?$""",
+        RegexOption.IGNORE_CASE,
+    )
 
     val petMap by MapSetting("PetKeys map", mutableMapOf<String, String>())
 
@@ -61,15 +66,6 @@ object PetKeybinds : Module(
 
     init {
         val petCommand = command.sub("petkeybinds").description("Pet Keybinds module settings.")
-
-//        petCommand.sub("summontest") { uuidName: GreedyString ->
-//            val (uuid, name) = uuidName.string.split(" ", limit = 2)
-//
-//            scope.launch(Dispatchers.IO) {
-//                val msg = if (summonPet(uuid)) "Good" else "no good"
-//                modMessage(msg)
-//            }
-//        }.suggests { petMap.entries.map { (uuid, name) -> "$uuid $name" } }
 
         petCommand.sub("clear") {
             petMap.clear()
@@ -82,7 +78,7 @@ object PetKeybinds : Module(
         }.description("Shows the pet list.")
 
         petCommand.sub("get") {
-            scope.launch(Dispatchers.IO) {
+            scope.launch {
                 petsCache = getPets()
                 if (petsCache.isEmpty()) return@launch
                 modMessage(petsCache.asPet().toClickable("get"), GET_ID)
@@ -167,9 +163,9 @@ object PetKeybinds : Module(
         get() = this.noControlCodes.replace(Regex("""⭐?\s*\[Lvl \d+] """), "").trim('[', ']')
 
     private fun onClick(screen: AbstractContainerScreen<*>, keyCode: Int): Boolean {
-        val (current, total) = petsRegex.find(screen.title.string)?.destructured?.let {
-            (it.component1().toIntOrNull() ?: 1) to (it.component2().toIntOrNull() ?: 1)
-        } ?: return false
+        val title = petsRegex.matchEntire(screen.title.string) ?: return false
+        val current = (title.groupValues[1].ifEmpty { title.groupValues[3] }).toIntOrNull() ?: 1
+        val total = (title.groupValues[2].ifEmpty { title.groupValues[4] }).toIntOrNull() ?: 1
         var slot = when (keyCode) {
             nextPageKeybind.key ->
                 if (current < total) 53
@@ -203,19 +199,46 @@ object PetKeybinds : Module(
         return true
     }
 
-    private suspend fun summonPet(uuid: String): Boolean {
-        return ContainerUtils.getContainerItemsClick("petsmenu", "Pets", uuid = uuid, lore = "Left-click to summon!")
-    }
-
     private suspend fun getPets(timeout: Int = 20): List<ItemStack> {
-        val pets = getContainerItemsClose("petsmenu", "Pets", timeout = timeout).toMutableList()
-        for (i in pets.indices) {
-            if (i !in 9..<45 || i % 9 == 0 || i % 9 == 8) {
-                pets[i] = null
+        var pets = emptyList<ItemStack>()
+        val task = containerTask(
+            name = "Read pets",
+            force = fastMode,
+            fastMode = fastMode,
+            showProgress = false,
+        ) {
+            action { ChatUtils.command("petsmenu") }
+            awaitContainer(
+                Regex(
+                    """^(?:\(\d+/\d+\) )?Pets(?: \(\d+/\d+\))?$""",
+                    RegexOption.IGNORE_CASE,
+                ),
+                waitForItems = true,
+                timeout = timeout,
+            )
+            action {
+                pets = player.containerMenu.items
+                    .slice(9..<45)
+                    .filterIndexed { index, item -> index % 9 != 0 && index % 9 != 8 && !item.isEmpty }
+            }
+            action { player.closeContainer() }
+
+            onFinished { result ->
+                if (result != ContainerTaskResult.Busy && ContainerUtils.containerId != 0) {
+                    player.closeContainer()
+                }
             }
         }
 
-        return pets.filterNotNull()
+        if (mc.isSameThread) task.run() else mc.execute { task.run() }
+        val result = task.await()
+
+        if (result != ContainerTaskResult.Success) {
+            if (result is ContainerTaskResult.Failure) modMessage("&c${result.message}.")
+            return emptyList()
+        }
+
+        return pets
     }
 
     fun List<ItemStack>.asPet(): List<Pet> = map { stack ->

@@ -49,7 +49,7 @@ import quoi.module.settings.impl.ListSetting
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.skyblock.item.ItemUtils.lore
-import quoi.utils.skyblock.player.ContainerUtils
+import quoi.utils.skyblock.player.container.ContainerUtils.clickSlot
 import kotlin.math.roundToInt
 
 /**
@@ -327,7 +327,7 @@ object AutoCroesus : Module(
         if (container.menu.slots.size <= slotToClick) return
 
         log.add("clicking $slotToClick in ${container.title.string}")
-        ContainerUtils.click(slotToClick)
+        player.clickSlot(slotToClick, container.menu.containerId)
         lastClick = System.currentTimeMillis()
         slotToClick = -1
     }

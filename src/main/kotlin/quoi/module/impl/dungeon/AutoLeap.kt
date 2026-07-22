@@ -1,14 +1,6 @@
 package quoi.module.impl.dungeon
 
-import net.minecraft.client.KeyMapping
 import net.minecraft.world.phys.Vec3
-import quoi.api.abobaui.constraints.Positions
-import quoi.api.abobaui.dsl.at
-import quoi.api.abobaui.dsl.px
-import quoi.api.abobaui.elements.ElementScope
-import quoi.api.abobaui.elements.impl.Text
-import quoi.api.abobaui.elements.impl.Text.Companion.shadow
-import quoi.api.colour.Colour
 import quoi.api.events.*
 import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.*
@@ -21,8 +13,6 @@ import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.skyblock.item.ItemUtils.skyblockId
 import quoi.utils.skyblock.player.LeapManager
-import quoi.utils.skyblock.player.MovementUtils.stop
-import quoi.utils.ui.hud.impl.TextHud
 
 /**
  * TODO:
@@ -41,6 +31,7 @@ object AutoLeap : Module(
     private val leapMode by selector("Leap mode", "Name", listOf("Name", "Class"), "Leap mode for the module.").open()
     private val fastDelay by slider("Delay", 250L, 100L, 500L, 50L)
     private val blockInputs by switch("Block inputs", desc = "Blocks keyboard and mouse input while leaping.")
+    private val fastMode by switch("Fast mode", desc = "Blocks movement and input only from the leap menu opening until the target click.")
 
     private val doorOpenerLeap by switch("Door opener leap", desc = "Outside of F7 boss, fast leap to the last wither door opener.")
     private val disableAfterBloodOpen by switch("Disable after Blood Open", desc = "Disables Door Fast Leap after the Blood Room has been opened.").childOf(::doorOpenerLeap)
@@ -105,27 +96,12 @@ object AutoLeap : Module(
     private val p5Class by selector("Target", DungeonClass.Unknown).json("P5 leap class").childOf(::p5Leap) { p5Leap && leapMode.selected == "Class" }
     private val relicClass by selector("Target", DungeonClass.Unknown).json("Relic leap class").childOf(::relicLeap) { relicLeap && leapMode.selected == "Class" }
 
-    @Suppress("unused")
-    private val hud by textHud("Leap hud", Colour.WHITE, font = TextHud.HudFont.Minecraft) {
-        visibleIf { this@AutoLeap.enabled && (preview || leapHudText != null) }
-        dynamicTextSupplied(
-            supplier = { leapHudText ?: "Leaping to &dHealer" },
-            colour = colour,
-            font = font,
-            size = 18.px,
-        ).shadow = shadow
-    }.setting("Shows the current leap target.")
-
     private var lastClick = 0L
     private var arghCount = 0
     private var crystalCount = 0
     private var oofCount = 0
-    private var leapHudText: String? = null
-    private var leapHudShownAt = 0L
-    private var blockingGameInput = false
     private var melodyTarget: String? = null
 
-    private const val LEAP_DURATION_HUD = 1_500L
     private val melodyProgress = setOf("1/4", "2/4", "3/4", "25%", "50%", "75%")
 
     override fun onDisable() {
@@ -146,7 +122,7 @@ object AutoLeap : Module(
             val clazz = DungeonClass.entries.firstOrNull {
                 it != DungeonClass.Unknown && it.name.equals(target, ignoreCase = true)
             }
-            LeapManager.leap(clazz ?: target)
+            leap(clazz ?: target)
         }.description("Leaps to a dungeon teammate by name or class.")
             .suggests("target") {
                 dungeonTeammatesNoSelf.map { it.name } +
@@ -158,29 +134,6 @@ object AutoLeap : Module(
             crystalCount = 0
             oofCount = 0
             resetLeapState()
-        }
-
-        on<TickEvent.Start> {
-            if (leapHudText != null && System.currentTimeMillis() - leapHudShownAt > LEAP_DURATION_HUD) {
-                leapHudText = null
-            }
-            if (blockingGameInput) player.stop()
-        }
-
-        on<KeyEvent.Press> {
-            if (blockInputs && blockingGameInput) cancel()
-        }
-
-        on<KeyEvent.Release> {
-            if (blockInputs && blockingGameInput) cancel()
-        }
-
-        on<MouseEvent.Scroll> {
-            if (blockInputs && blockingGameInput) cancel()
-        }
-
-        on<MouseEvent.Move> {
-            if (blockInputs && blockingGameInput) cancel()
         }
 
         on<DungeonEvent.SectionComplete> {
@@ -260,11 +213,6 @@ object AutoLeap : Module(
         }
 
         on<MouseEvent.Click> {
-            if (blockInputs && blockingGameInput) {
-                cancel()
-                return@on
-            }
-
             if (button != 0 || !state) return@on
             if (player.mainHandItem.skyblockId !in setOf("INFINITE_SPIRIT_LEAP", "SPIRIT_LEAP")) return@on
             cancel()
@@ -299,56 +247,14 @@ object AutoLeap : Module(
     private fun leap(target: Any) {
         LeapManager.leap(
             target,
-            onMenuOpen = {
-                showLeapHud(target)
-                blockingGameInput = true
-            },
-            onMenuClose = ::stopLeapBlock
+            blockInput = blockInputs,
+            fastMode = fastMode,
         )
     }
 
-    private fun showLeapHud(target: Any) {
-        leapHudText = "Leaping to ${formatTarget(target)}"
-        leapHudShownAt = System.currentTimeMillis()
-    }
-
     private fun resetLeapState() {
-        stopLeapBlock()
         melodyTarget = null
-        leapHudText = null
     }
-
-    private fun stopLeapBlock() {
-        if (!blockingGameInput) return
-
-        blockingGameInput = false
-        KeyMapping.setAll()
-    }
-
-    private fun formatTarget(target: Any): String {
-        return when (target) {
-            is DungeonClass -> "§${target.colourCode}${target.name}"
-            is String -> {
-                val clazz = dungeonTeammatesNoSelf.firstOrNull { it.name.equals(target, true) }?.clazz
-                "§${clazz?.colourCode ?: 'f'}$target"
-            }
-            else -> target.toString()
-        }
-    }
-
-    private inline fun TextHud.Scope.dynamicTextSupplied(
-        crossinline supplier: () -> Any?,
-        colour: Colour,
-        font: quoi.utils.ui.rendering.Font,
-        pos: Positions = at(),
-        size: quoi.api.abobaui.constraints.Constraint.Size
-    ): ElementScope<Text> = object : Text(supplier().toString(), font, colour, pos, size) {
-        override fun draw() {
-            text = supplier().toString()
-            this.colour = this@dynamicTextSupplied.colour
-            super.draw()
-        }
-    }.scope { }
 
     private fun configuredTarget(name: String, clazz: DungeonClass): Any? {
         return when (leapMode.selected) {

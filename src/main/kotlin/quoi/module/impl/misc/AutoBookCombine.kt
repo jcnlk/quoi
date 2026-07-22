@@ -10,7 +10,7 @@ import quoi.api.events.TickEvent
 import quoi.api.skyblock.location.Location
 import quoi.module.Module
 import quoi.utils.ChatUtils.modMessage
-import quoi.utils.skyblock.player.ContainerUtils.clickSlot
+import quoi.utils.skyblock.player.container.ContainerUtils.clickSlot
 
 object AutoBookCombine : Module(
     "Auto Book Combine",
