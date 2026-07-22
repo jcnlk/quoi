@@ -1,8 +1,5 @@
 package quoi.module.impl.misc
 
-import quoi.api.abobaui.dsl.px
-import quoi.api.abobaui.elements.impl.Text.Companion.shadow
-import quoi.api.abobaui.elements.impl.Text.Companion.textSupplied
 import quoi.api.input.CatKeys
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf
@@ -14,6 +11,7 @@ object AutoLoadout : Module(
 ) {
     private val preventMoving by switch("Prevent moving", desc = "Stops your movement while a loadout equip is in progress.")
     private val blockInputs by switch("Block inputs", desc = "Blocks keyboard and mouse input while a loadout equip is in progress.")
+    private val fastMode by switch("Fast mode", desc = "Blocks movement and input only from the menu opening until the target click.")
     private val keybinds by text("Keybinds")
     @Suppress("unused")
     private val loadoutKeys = (1..12).map { i ->
@@ -24,21 +22,13 @@ object AutoLoadout : Module(
         )
     }
 
-    @Suppress("unused")
-    private val hud by textHud("Loadout hud") {
-        visibleIf { this@AutoLoadout.enabled && (preview || LoadoutUtils.isBusy()) }
-        column {
-            textSupplied(
-                supplier = { LoadoutUtils.equippingSlot?.let { "Equipping §7[§c$it§7]" } ?: "Equipping §7[§c1§7]" },
-                colour = colour,
-                font = font,
-                size = 18.px,
-            ).shadow = shadow
-        }
-    }.setting()
-
     private fun onLoadoutKey(slot: Int) {
         if (!enabled || mc.gui.screen() != null) return
-        LoadoutUtils.equip(slot, preventMove = preventMoving, blockInputs = blockInputs)
+        LoadoutUtils.equip(
+            slot,
+            preventMove = preventMoving,
+            blockInputs = blockInputs,
+            fastMode = fastMode,
+        )
     }
 }
