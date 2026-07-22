@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 @Init
 object EquipUtils : EventListener {
-    private const val MENU_TITLE = "Your Equipment and Stats"
+    private const val MENU_TITLE = "Stats & Equipment"
     private const val MENU_SLOT_COUNT = 54
 
     private val equipping = AtomicBoolean()
