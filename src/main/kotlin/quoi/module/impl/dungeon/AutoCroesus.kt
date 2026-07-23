@@ -114,6 +114,7 @@ object AutoCroesus : Module(
     private val worthless by ListSetting("Worthless", mutableListOf<String>())
     private val runLoot by configList<LoggedRun>("autocroesus_loot.json")
 
+    private val croesusRegex = Regex("^(?:\\([1-3]/3\\) )?Croesus$")
     private val runChestRegex = Regex("^(?:Master )?Catacombs - Floor [IVX]+$")
     private val chestParser = AutoCroesusChestParser(worthless) { bazaarPriceType.selected }
 
@@ -607,7 +608,7 @@ object AutoCroesus : Module(
         else -> 0
     }
 
-    private fun inCroesus(): Boolean = mc.screen?.title?.string == "Croesus"
+    private fun inCroesus(): Boolean = mc.screen?.title?.string?.matches(croesusRegex) == true
     private fun inRunChest(): Boolean = mc.screen?.title?.string?.matches(runChestRegex) == true
     private fun container() = mc.screen as? AbstractContainerScreen<*>
 
