@@ -8,8 +8,12 @@ import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.decoration.ArmorStand
 import net.minecraft.world.entity.player.Player
+import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.level.chunk.LevelChunk
+import net.minecraft.world.level.chunk.status.ChunkStatus
 import quoi.api.colour.Colour
 import quoi.api.colour.withAlpha
+import quoi.api.events.BlockEvent
 import quoi.api.events.RenderEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
@@ -33,7 +37,7 @@ import kotlin.math.sqrt
 object MineshaftESP : Module(
     "Mineshaft ESP",
     area = Island.Mineshaft,
-    desc = "Highlights corpses and mobs in Glacite Mineshafts."
+    desc = "Highlights corpses, fossils, and mobs in Glacite Mineshafts."
 ) {
     private val corpseEsp by switch("Corpse ESP", desc = "Highlights detected corpse spots.")
     private val names by switch("Show names",  desc = "Shows a label above detected spots.").childOf(::corpseEsp).asParent()
@@ -51,6 +55,11 @@ object MineshaftESP : Module(
     private val umberFillColour by colourPicker("Umber", Colour.RGB(255, 170, 0).withAlpha(0.24f), true, "Fill color for Umber corpses.").json("Umber fill colour").childOf(::corpseFillColours)
     private val tungstenFillColour by colourPicker("Tungsten", Colour.RGB(170, 170, 170).withAlpha(0.24f), true, "Fill color for Tungsten corpses.").json("Tungsten fill colour").childOf(::corpseFillColours)
     private val vanguardFillColour by colourPicker("Vanguard", Colour.RGB(85, 255, 255).withAlpha(0.24f), true, "Fill color for Vanguard corpses.").json("Vanguard fill colour").childOf(::corpseFillColours)
+
+    private val fossilEsp by switch("Fossil ESP", desc = "Highlights Fossil Blocks in Glacite Mineshafts.")
+    private val fossilStyle by selector("Style", "Box", arrayListOf("Filled", "Filled box", "Box"), desc = "Render style for Fossil Blocks.").json("Fossil ESP style").childOf(::fossilEsp)
+    private val fossilColour by colourPicker("Colour", Colour.RGB(255, 170, 0), true, "ESP color for Fossil Blocks.").json("Fossil ESP colour").childOf(::fossilEsp)
+    private val fossilFillColour by colourPicker("Fill colour", Colour.RGB(255, 170, 0).withAlpha(0.24f), true, "Fill color for Fossil Blocks.").json("Fossil ESP fill colour").childOf(::fossilEsp).visibleIf { fossilStyle.selected != "Box" }
 
     private val mobEsp by switch("Mob ESP", desc = "Highlights Glacite Mineshaft mobs.").json("Entity ESP")
     private val mobStyle by selector("Style", "Box", arrayListOf("Filled", "Filled box", "Box"), desc = "Render style for highlighted mobs.").json("Entity ESP style").childOf(::mobEsp)
@@ -70,23 +79,51 @@ object MineshaftESP : Module(
     private val muttFillColour by colourPicker("Glacite Mutt", Colour.CYAN.withAlpha(0.24f), true, "Fill color for Glacite Mutts.").json("Glacite Mutt fill colour").childOf(::mobFillColors)
 
     private val waypoints = linkedMapOf<BlockPos, MineshaftType>()
+    private val fossilBlocks = linkedSetOf<BlockPos>()
+    private val scannedFossilChunks = mutableSetOf<Long>()
 
     init {
-        on<WorldEvent.Change> { waypoints.clear() }
+        on<WorldEvent.Change> { reset() }
+
+        on<WorldEvent.Chunk.Load> {
+            scannedFossilChunks -= chunk.pos.toLong()
+            fossilBlocks.removeAll(chunk.pos::contains)
+            if (fossilEsp) scanChunk(chunk)
+        }
+
+        on<BlockEvent.Update> {
+            when {
+                updated.block == Blocks.BONE_BLOCK -> fossilBlocks += pos.immutable()
+                old.block == Blocks.BONE_BLOCK -> fossilBlocks -= pos
+            }
+        }
 
         on<TickEvent.End> {
             if (player.tickCount % 20 != 0) return@on
-            if (!corpseEsp) return@on
 
-            val found = linkedMapOf<BlockPos, MineshaftType>()
+            if (corpseEsp) {
+                val found = linkedMapOf<BlockPos, MineshaftType>()
 
-            getEntities<ArmorStand>().forEach { stand ->
-                val type = stand.getMineshaftType() ?: return@forEach
-                found.putIfAbsent(stand.blockPosition(), type)
+                getEntities<ArmorStand>().forEach { stand ->
+                    val type = stand.getMineshaftType() ?: return@forEach
+                    found.putIfAbsent(stand.blockPosition(), type)
+                }
+
+                waypoints.clear()
+                waypoints.putAll(found)
             }
 
-            waypoints.clear()
-            waypoints.putAll(found)
+            if (fossilEsp) {
+                val center = player.chunkPosition()
+                val radius = mc.options.effectiveRenderDistance
+
+                for (chunkX in (center.x - radius)..(center.x + radius)) {
+                    for (chunkZ in (center.z - radius)..(center.z + radius)) {
+                        val chunk = level.chunkSource.getChunk(chunkX, chunkZ, ChunkStatus.FULL, false) ?: continue
+                        scanChunk(chunk)
+                    }
+                }
+            }
         }
 
         on<RenderEvent.World> {
@@ -117,6 +154,12 @@ object MineshaftESP : Module(
                 }
             }
 
+            if (fossilEsp) {
+                fossilBlocks.forEach { pos ->
+                    ctx.drawStyledBox(fossilStyle.selected, pos.aabb, fossilColour, fossilFillColour)
+                }
+            }
+
             if (mobEsp) {
                 getEntities().forEach { entity ->
                     val type = entity.espType ?: return@forEach
@@ -124,6 +167,23 @@ object MineshaftESP : Module(
                 }
             }
         }
+    }
+
+    override fun onDisable() { reset() }
+
+    private fun scanChunk(chunk: LevelChunk) {
+        val chunkKey = chunk.pos.toLong()
+        if (!scannedFossilChunks.add(chunkKey)) return
+
+        chunk.findBlocks({ state -> state.block == Blocks.BONE_BLOCK }) { pos, _ ->
+            fossilBlocks += pos.immutable()
+        }
+    }
+
+    private fun reset() {
+        waypoints.clear()
+        fossilBlocks.clear()
+        scannedFossilChunks.clear()
     }
 
     private val Entity.espType: EntityEspType?
