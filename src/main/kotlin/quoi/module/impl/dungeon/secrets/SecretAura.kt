@@ -41,7 +41,6 @@ import quoi.utils.WorldUtils.state
 import quoi.utils.skyblock.player.SwapManager
 import quoi.utils.skyblock.player.SwapResult
 import quoi.utils.skyblock.player.interact.AuraManager
-import java.util.*
 
 // modified https://github.com/Hypericat/NoobRoutes/blob/main/src/main/kotlin/noobroutes/features/dungeon/SecretAura.kt
 private val auraToggle = SwitchComponent("Aura", desc = "Automatically collects secrets.")
@@ -63,9 +62,6 @@ object SecretAura : SettingGroup(Secrets, auraToggle) {
     private val dungeonsOnly by switch("Dungeons only", true, desc = "Makes secret aura only work in dungeons.")
     private val inBoss by switch("In boss", true, desc = "Makes secret aura work in floor 7 boss.")
     private val inContainer by switch("In container", desc = "Makes secret aura work while container is opened.")
-
-    private val REDSTONE_KEY = UUID.fromString("fed95410-aba1-39df-9b95-1d4f361eb66e")
-    private val WITHER_ESSENCE = UUID.fromString("e0f3e929-869e-3dca-9504-54c666ee6f23")
 
     private var redstoneKey = true
     private val clickedBlocks = Long2LongOpenHashMap()
@@ -254,7 +250,7 @@ object SecretAura : SettingGroup(Secrets, auraToggle) {
                             val itemStack = pair.second
                             val profile = itemStack.get(DataComponents.PROFILE)
 
-                            if (profile?.partialProfile()?.id == WITHER_ESSENCE) {
+                            if (Dungeon.isWitherEssence(profile?.partialProfile()?.id)) {
                                 blocksDone.add(entity.blockPosition().offset(0, 2, 0).immutable().asLong())
                             }
                         }
@@ -275,8 +271,8 @@ object SecretAura : SettingGroup(Secrets, auraToggle) {
             Blocks.CHEST, Blocks.TRAPPED_CHEST, Blocks.LEVER -> true
             Blocks.REDSTONE_BLOCK -> redstoneKey
             is SkullBlock -> {
-                (level.getBlockEntity(position) as? SkullBlockEntity)?.ownerProfile?.partialProfile()?.id
-                    ?.equalsOneOf(WITHER_ESSENCE, REDSTONE_KEY) ?: false
+                val profileId = (level.getBlockEntity(position) as? SkullBlockEntity)?.ownerProfile?.partialProfile()?.id
+                Dungeon.isWitherEssence(profileId) || Dungeon.isRedstoneKey(profileId)
             }
             else -> false
         }
@@ -298,7 +294,7 @@ object SecretAura : SettingGroup(Secrets, auraToggle) {
             val skullEntity = level.getBlockEntity(pos) as? SkullBlockEntity ?: return
             val profileId = skullEntity.ownerProfile?.partialProfile()?.id ?: return
 
-            if (profileId == REDSTONE_KEY) redstoneKey = true
+            if (Dungeon.isRedstoneKey(profileId)) redstoneKey = true
             return
         }
 
