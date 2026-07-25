@@ -29,6 +29,7 @@ import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.equalsOneOf
 import quoi.utils.romanToInt
 import quoi.utils.skyblock.PartyUtils
+import java.util.UUID
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.roundToLong
@@ -375,8 +376,14 @@ object Dungeon : EventListener, Shortcuts {
         return previousTeammates
     }
 
-    private const val WITHER_ESSENCE_ID = "e0f3e929-869e-3dca-9504-54c666ee6f23"
-    private const val REDSTONE_KEY = "fed95410-aba1-39df-9b95-1d4f361eb66e"
+    private val WITHER_ESSENCE_IDS = setOf(
+        UUID.fromString("2865274b-3097-394e-8149-ec629c72d850"),
+        UUID.fromString("e0f3e929-869e-3dca-9504-54c666ee6f23"), // Still active on alpha
+    )
+    private val REDSTONE_KEY = UUID.fromString("fed95410-aba1-39df-9b95-1d4f361eb66e")
+
+    fun isWitherEssence(id: UUID?): Boolean = id in WITHER_ESSENCE_IDS
+    fun isRedstoneKey(id: UUID?): Boolean = id == REDSTONE_KEY
 
     /**
      * Determines whether a given block state and position represent a secret location.
@@ -393,7 +400,7 @@ object Dungeon : EventListener, Shortcuts {
             state.block.equalsOneOf(Blocks.CHEST, Blocks.TRAPPED_CHEST, Blocks.LEVER) -> true
             state.block is SkullBlock ->
                 (level.getBlockEntity(pos) as? SkullBlockEntity)?.ownerProfile?.partialProfile()?.id
-                    ?.toString()?.equalsOneOf(WITHER_ESSENCE_ID, REDSTONE_KEY) ?: false
+                    ?.let { isWitherEssence(it) || isRedstoneKey(it) } ?: false
 
             else -> false
         }
