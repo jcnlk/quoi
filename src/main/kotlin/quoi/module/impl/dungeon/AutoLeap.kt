@@ -289,7 +289,12 @@ object AutoLeap : Module(
 
     private fun getFastLeapTarget(): Any? {
         if (!Dungeon.inBoss) {
-            return Dungeon.doorOpener.takeIf { doorOpenerLeap && it != "Unknown" && (!disableAfterBloodOpen || !Dungeon.bloodOpen) }
+            return Dungeon.doorOpener.takeIf {
+                doorOpenerLeap &&
+                        it != "Unknown" &&
+                        it != player.name.string &&
+                        (!disableAfterBloodOpen || !Dungeon.bloodOpen)
+            }
         }
 
         if (!Floor7Utils.inF7Boss) {
