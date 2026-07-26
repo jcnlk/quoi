@@ -37,15 +37,15 @@ object SplitsManager : EventListener {
             }
         }
 
-        on<DungeonEvent.PhaseChanged> {
+        on<DungeonEvent.PhaseComplete> {
             completeSplit { trigger ->
-                trigger == SplitTrigger.PhaseReached(new)
+                trigger is SplitTrigger.PhaseReached && trigger.phase.ordinal == phase.ordinal + 1
             }
         }
 
-        on<DungeonEvent.StageChanged> {
+        on<DungeonEvent.StageComplete.Full> {
             completeSplit { trigger ->
-                trigger == SplitTrigger.StageReached(new)
+                trigger is SplitTrigger.StageReached && trigger.stage.number == stage.number + 1
             }
         }
 
@@ -161,6 +161,7 @@ object SplitsManager : EventListener {
     private val BLOOD_OPEN_REGEX = Regex("^\\[BOSS] The Watcher: (Congratulations, you made it through the Entrance\\.|Ah, you've finally arrived\\.|Ah, we meet again\\.\\.\\.|So you made it this far\\.\\.\\. interesting\\.|You've managed to scratch and claw your way here, eh\\?|I'm starting to get tired of seeing you around here\\.\\.\\.|Oh\\.\\. hello\\?|Things feel a little more roomy now, eh\\?)$|^The BLOOD DOOR has been opened!$")
     private val MORT_REGEX = Regex("\\[NPC] Mort: Here, I found this map when I first entered the dungeon\\.|\\[NPC] Mort: Right-click the Orb for spells, and Left-click \\(or Drop\\) to use your Ultimate!")
     private val PORTAL_REGEX = Regex("\\[BOSS] The Watcher: You have proven yourself\\. You may pass\\.")
+    private val MAXOR_ENTRY_REGEX = Regex("^\\[BOSS] Maxor: WELL! WELL! WELL! LOOK WHO'S HERE!$")
     private val TOTAL_REGEX = Regex("^\\s*☠ Defeated (.+) in 0?([\\dhms ]+?)\\s*(\\(NEW RECORD!\\))?$")
 
     private val startSplits = listOf(
@@ -211,7 +212,7 @@ object SplitsManager : EventListener {
     )
 
     private val baseFloor7Splits = listOf(
-        Split(SplitTrigger.PhaseReached(Phase.P1), "Maxor", Colour.MINECRAFT_AQUA),
+        Split(MAXOR_ENTRY_REGEX, "Maxor", Colour.MINECRAFT_AQUA),
         Split(SplitTrigger.PhaseReached(Phase.P2), "Storm", Colour.MINECRAFT_RED),
         Split(SplitTrigger.PhaseReached(Phase.P3), "Terminals", Colour.MINECRAFT_YELLOW),
         Split(SplitTrigger.StageReached(Stage.S5), "Goldor", Colour.MINECRAFT_GOLD),

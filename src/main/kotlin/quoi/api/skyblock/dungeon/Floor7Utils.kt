@@ -116,12 +116,12 @@ object Floor7Utils : EventListener, Shortcuts {
         phase = newPhase
         stage = newStage
 
-        if (oldPhase != newPhase) {
-            DungeonEvent.PhaseChanged(oldPhase, newPhase).post()
+        if (oldPhase != Phase.UNKNOWN && oldPhase != newPhase) {
+            DungeonEvent.PhaseComplete(oldPhase).post()
         }
 
-        if (oldStage != newStage) {
-            DungeonEvent.StageChanged(oldStage, newStage).post()
+        if (oldStage != Stage.UNKNOWN && newStage.number == oldStage.number + 1) {
+            DungeonEvent.StageComplete.Full(oldStage).post()
         }
     }
 }
@@ -167,7 +167,6 @@ enum class Stage(val number: Int, val reqTerminals: Int) {
 
     fun process(message: String): Stage {
         REGEX_TERM_COMPLETED.find(message)?.destructured?.let { (playerName, _, type, currentStr, totalStr) ->
-
             current = currentStr.toIntOrNull() ?: 0
             total = totalStr.toIntOrNull() ?: 0
 
@@ -193,20 +192,12 @@ enum class Stage(val number: Int, val reqTerminals: Int) {
             }
 
             if (objectivesCompleted) {
-                DungeonEvent.SectionComplete(this).post()
-
-                if (this != S4 && gate) {
-                    DungeonEvent.SectionComplete.Full(this).post()
-                }
+                DungeonEvent.StageComplete(this).post()
             }
         }
 
         if (message == "The gate has been destroyed!") {
             _gate = true
-
-            if (objectivesCompleted) {
-                DungeonEvent.SectionComplete.Full(this).post()
-            }
         }
 
         if (!objectivesCompleted || !gate || endTime != 0L) {

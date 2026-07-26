@@ -25,14 +25,9 @@ abstract class DungeonEvent {
         class State(val room: OdonRoom, val old: RoomState, val new: RoomState, val current: Boolean) : Event()
     }
 
-    // TODO: rename or smth idk
-    class SectionComplete(val section: Stage) : Event() {
-        class Full(val section: Stage) : Event()
+    class PhaseComplete(val phase: Phase) : Event()
+
+    class StageComplete(val stage: Stage) : Event() {
+        class Full(val stage: Stage) : Event()
     }
-
-    // TODO: maybe remove old/new and only return current stage
-    class PhaseChanged(val old: Phase, val new: Phase) : Event()
-
-    // TODO: maybe remove old/new and only return current stage
-    class StageChanged(val old: Stage, val new: Stage) : Event()
 }

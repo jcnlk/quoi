@@ -79,8 +79,8 @@ object SimonSays : Module(
             fullReset()
         }
 
-        on<DungeonEvent.PhaseChanged> {
-            if (new == Phase.P3) start()
+        on<DungeonEvent.PhaseComplete> {
+            if (phase == Phase.P2) start()
         }
 
         on<PacketEvent.Sent, ServerboundUseItemOnPacket> {
