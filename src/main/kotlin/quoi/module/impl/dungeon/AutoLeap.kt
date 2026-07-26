@@ -1,6 +1,5 @@
 package quoi.module.impl.dungeon
 
-import net.minecraft.world.phys.Vec3
 import quoi.api.events.*
 import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.*
@@ -10,19 +9,16 @@ import quoi.api.skyblock.location.Island
 import quoi.module.Module
 import quoi.module.settings.Setting.Companion.json
 import quoi.module.settings.UIComponent.Companion.childOf
-import quoi.utils.ChatUtils.modMessage
 import quoi.utils.skyblock.item.ItemUtils.skyblockId
 import quoi.utils.skyblock.player.LeapManager
 
 /**
  * TODO:
- * auto leap delay (?)
- * add other pre4 done detection methods
- * option to create custom fast/auto leaps (maybe; prob use custom triggers for that)
- * move some stuff to utils
+ *  auto leap delay (?)
+ *  add other pre4 done detection methods
+ *  option to create custom fast/auto leaps (maybe; prob use custom triggers for that)
  */
 
-// Kyleen (maybe)
 object AutoLeap : Module(
     "Auto Leap",
     desc = "Automatically leaps to predefined targets.",
@@ -73,7 +69,7 @@ object AutoLeap : Module(
     private val greenName by textInput("Target", "Green", length = 16).childOf(::greenLeap) { greenLeap && leapMode.selected == "Name" }.suggests { allTeammatesNoSelf }
     private val yellowName by textInput("Target", "Yellow", length = 16).childOf(::yellowLeap) { yellowLeap && leapMode.selected == "Name" }.suggests { allTeammatesNoSelf }
     private val purpleName by textInput("Target", "Purple", length = 16).childOf(::purpleLeap) { purpleLeap && leapMode.selected == "Name" }.suggests { allTeammatesNoSelf }
-    private val pre4Name by textInput("Target", "Pre4", length=16).childOf(::predevLeap) { pre4Leap && leapMode.selected == "Name" }.suggests { allTeammatesNoSelf }
+    private val pre4Name by textInput("Target", "Pre4", length=16).childOf(::pre4Leap) { pre4Leap && leapMode.selected == "Name" }.suggests { allTeammatesNoSelf }
     private val s1Name by textInput("S1 leap", "S1", length = 16).childOf(::p3Leap) { p3Leap && leapMode.selected == "Name" }.suggests { allTeammatesNoSelf }
     private val s2Name by textInput("S2 leap", "S2", length = 16).childOf(::p3Leap) { p3Leap && leapMode.selected == "Name" }.suggests { allTeammatesNoSelf }
     private val s3Name by textInput("S3 leap", "S3", length = 16).childOf(::p3Leap) { p3Leap && leapMode.selected == "Name" }.suggests { allTeammatesNoSelf }
@@ -105,17 +101,9 @@ object AutoLeap : Module(
     private val melodyProgress = setOf("1/4", "2/4", "3/4", "25%", "50%", "75%")
 
     override fun onDisable() {
-        resetLeapState()
+        reset()
         super.onDisable()
     }
-
-    private val doNotLeapLocations = listOf(
-        Vec3(58.5, 109.0, 131.5) to 1.5, // at ee2
-        Vec3(60.5, 132.0, 140.5) to 1.5, // at ee2 high / levers dev
-        Vec3(2.5, 109.0, 104.5) to 1.5,  // at ee3
-        Vec3(58.5, 123.0, 122.5) to 0.3, // entering core
-        Vec3(54.5, 115.0, 51.5) to 1.5   // at core
-    )
 
     init {
         command.sub("leap") { target: String ->
@@ -130,22 +118,19 @@ object AutoLeap : Module(
             }
 
         on<WorldEvent.Change> {
-            arghCount = 0
-            crystalCount = 0
-            oofCount = 0
-            resetLeapState()
+            reset()
         }
 
-        on<DungeonEvent.SectionComplete> {
+        on<DungeonEvent.StageComplete> {
             if (!p3Leap || !p3Auto || !Floor7Utils.inPhaseAt(Phase.P3)) return@on
             if (whenBlown) return@on
-            handleP3Leap(completedStage = section)
+            handleP3Leap(completedStage = stage)
         }
 
-        on<DungeonEvent.SectionComplete.Full> {
+        on<DungeonEvent.StageComplete.Full> {
             if (!p3Leap || !p3Auto || !Floor7Utils.inPhaseAt(Phase.P3)) return@on
             if (!whenBlown) return@on
-            handleP3Leap(completedStage = section)
+            handleP3Leap(completedStage = stage)
         }
 
         on<ChatEvent.Packet> {
@@ -208,10 +193,6 @@ object AutoLeap : Module(
             }
         }
 
-        on<DungeonEvent.StageChanged> {
-            if (new == Stage.S5 && p3Leap && p3Auto) handleP3Leap(completedStage = Stage.S4)
-        }
-
         on<MouseEvent.Click> {
             if (button != 0 || !state) return@on
             if (player.mainHandItem.skyblockId !in setOf("INFINITE_SPIRIT_LEAP", "SPIRIT_LEAP")) return@on
@@ -224,9 +205,8 @@ object AutoLeap : Module(
             if (target != null) {
                 leap(target)
             } else {
-                if (!p3Leap) return@on
-                if (Floor7Utils.inStageAt(Stage.UNKNOWN) && !Dungeon.inClear) return@on
-                handleP3Leap(autoLeap = false)
+                if (!p3Leap || !Floor7Utils.inF7Boss) return@on
+                handleP3Leap(Floor7Utils.getStageAt())
             }
             lastClick = currentTime
         }
@@ -252,10 +232,14 @@ object AutoLeap : Module(
         )
     }
 
-    private fun resetLeapState() {
+    private fun reset() {
         melodyTarget = null
+        arghCount = 0
+        crystalCount = 0
+        oofCount = 0
     }
 
+    // TODO: remove Any? type
     private fun configuredTarget(name: String, clazz: DungeonClass): Any? {
         return when (leapMode.selected) {
             "Name" -> name.takeIf { it.isNotBlank() }
@@ -264,6 +248,7 @@ object AutoLeap : Module(
         }
     }
 
+    // TODO: remove Any? type
     private fun getPre4Target(): Any? {
         return if (pre4LeapMelody) {
             melodyTarget ?: configuredTarget(pre4Name, pre4Class.selected)
@@ -287,6 +272,7 @@ object AutoLeap : Module(
     private fun isAtPre4() = inBox(62.0, 65.0, 127.0, 130.0, 34.0, 37.0) // TODO: Vec3 ?
     private fun isOutsideMiddle() = Floor7Utils.inPhaseAt(Phase.P4) && !isInMiddle()
 
+    // TODO: remove Any? type
     private fun getFastLeapTarget(): Any? {
         if (!Dungeon.inBoss) {
             return Dungeon.doorOpener.takeIf {
@@ -315,30 +301,20 @@ object AutoLeap : Module(
         }
     }
 
-    private fun handleP3Leap(completedStage: Stage? = null, autoLeap: Boolean = true) {
-        if (autoLeap) {
-            if (Floor7Utils.inStageAt(Stage.UNKNOWN)) return
-            for ((pos, distSqr) in doNotLeapLocations) {
-                if (player.distanceToSqr(pos) <= distSqr) {
-                    modMessage("&eAuto Leap skipped because you are already in a no-leap spot.")
-                    return
-                }
-            }
-        }
+    private fun handleP3Leap(completedStage: Stage) {
+        val currentStage = Floor7Utils.getStageAt()
 
-        val targetStage = completedStage ?: Floor7Utils.getStageAt(player)
+        if (currentStage == Stage.UNKNOWN || currentStage.number > completedStage.number) return // don't leap if the player is already in a later stage.
 
-        val (name, clazz) = when (targetStage) {
+        val (name, clazz) = when (completedStage) {
             Stage.S1 -> s1Name to s1Class.selected
             Stage.S2 -> s2Name to s2Class.selected
             Stage.S3 -> s3Name to s3Class.selected
             Stage.S4 -> s4Name to s4Class.selected
-            else -> return
+            else -> return // since there are no S5 or UNKNOW complete events we do not care
         }
 
-        when (leapMode.selected) {
-            "Name" -> leap(name)
-            "Class" -> leap(clazz)
-        }
+        val target = configuredTarget(name, clazz) ?: return
+        leap(target)
     }
 }
