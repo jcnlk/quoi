@@ -78,13 +78,13 @@ object TickTimers : Module(
             if (padTick >= 0 && padHud.enabled) padTick--
         }
 
-        on<DungeonEvent.PhaseChanged> {
-            if (goldorHud.enabled && new == Phase.P3) goldorTick = 60
-            if (padHud.enabled && new == Phase.P2) padTick = 20
+        on<DungeonEvent.PhaseComplete> {
+            if (goldorHud.enabled && phase == Phase.P2) goldorTick = 60
+            if (padHud.enabled && phase == Phase.P1) padTick = 20
         }
 
-        on<DungeonEvent.StageChanged> {
-            if (new != Stage.S5) return@on
+        on<DungeonEvent.StageComplete.Full> {
+            if (stage != Stage.S4) return@on
             goldorStart = -1
             goldorTick = -1
         }

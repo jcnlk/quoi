@@ -3,8 +3,6 @@ package quoi.api.skyblock.dungeon
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.entity.player.PlayerSkin
 import quoi.api.colour.Colour
-import quoi.api.events.DungeonEvent
-import quoi.api.events.core.EventDispatcher
 import quoi.api.skyblock.dungeon.odonscanning.MapRenderer.mapSize
 import quoi.api.vec.Vec2i
 import quoi.utils.EntityUtils.playerEntities
