@@ -14,12 +14,7 @@ import quoi.api.skyblock.dungeon.DungeonClass
 import quoi.api.skyblock.dungeon.DungeonPlayer
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.skyblock.player.container.ContainerUtils
-import quoi.utils.skyblock.player.container.task.ContainerManager
-import quoi.utils.skyblock.player.container.task.ContainerTask
-import quoi.utils.skyblock.player.container.task.ContainerTaskResult
-import quoi.utils.skyblock.player.container.task.containerTask
-import quoi.utils.skyblock.player.container.task.item
-import quoi.utils.skyblock.player.container.task.menu
+import quoi.utils.skyblock.player.container.task.*
 
 @Init
 object LeapManager : EventListener {
@@ -75,17 +70,39 @@ object LeapManager : EventListener {
     }
 
     fun leap(
-        target: Any,
+        name: String,
         blockInput: Boolean = false,
         fastMode: Boolean = false,
     ) {
-        if (!inDungeons || target == DungeonClass.Unknown) return
+        if (!inDungeons) return
+        val teammate = dungeonTeammatesNoSelf.firstOrNull {
+            !it.isDead && it.name.equals(name, ignoreCase = true)
+        }
 
-        val teammate = when (target) {
-            is String -> dungeonTeammatesNoSelf.firstOrNull { !it.isDead && it.name.equals(target, true) }
-            is DungeonClass -> dungeonTeammatesNoSelf.firstOrNull { !it.isDead && it.clazz == target }
-            else -> null
-        } ?: return modMessage("&cFailed to leap! ${formatTarget(target)} &cnot found")
+        startLeap(teammate, formatName(name), blockInput, fastMode)
+    }
+
+    fun leap(
+        clazz: DungeonClass,
+        blockInput: Boolean = false,
+        fastMode: Boolean = false,
+    ) {
+        if (clazz == DungeonClass.Unknown || !inDungeons) return
+
+        val teammate = dungeonTeammatesNoSelf.firstOrNull {
+            !it.isDead && it.clazz == clazz
+        }
+
+        startLeap(teammate, "&${clazz.colourCode}${clazz.name}", blockInput, fastMode)
+    }
+
+    private fun startLeap(
+        teammate: DungeonPlayer?,
+        formattedTarget: String,
+        blockInput: Boolean,
+        fastMode: Boolean,
+    ) {
+        teammate ?: return modMessage("&cFailed to leap! $formattedTarget &cnot found")
 
         val request = LeapRequest(teammate, blockInput, fastMode)
         if (mc.gui.screen() != null || ContainerUtils.containerId != 0 || ContainerManager.activeTask != null) {
@@ -151,12 +168,6 @@ object LeapManager : EventListener {
         }
 
         resetActiveLeap()
-    }
-
-    private fun formatTarget(target: Any): String = when (target) {
-        is DungeonClass -> "&${target.colourCode}${target.name}"
-        is String -> formatName(target)
-        else -> target.toString()
     }
 
     private fun formatName(name: String): String {
