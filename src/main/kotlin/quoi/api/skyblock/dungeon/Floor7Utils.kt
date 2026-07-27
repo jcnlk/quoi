@@ -14,7 +14,7 @@ import quoi.utils.Shortcuts
 object Floor7Utils : EventListener, Shortcuts {
     private var phase = Phase.UNKNOWN
     private var stage = Stage.UNKNOWN
-    inline val inF7Boss: Boolean
+    val inF7Boss: Boolean
         get() = Dungeon.inBoss && Dungeon.isFloor(7)
 
     init {
