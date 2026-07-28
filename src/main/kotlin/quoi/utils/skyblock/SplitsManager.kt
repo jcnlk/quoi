@@ -61,6 +61,7 @@ object SplitsManager : EventListener {
         on<AreaEvent.Main> {
             if (area != Island.Dungeon) {
                 currentSplits = emptyList()
+                tickCounter = 0L
                 return@on
             }
             scheduleTask(20) {
