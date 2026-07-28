@@ -28,8 +28,8 @@ dependencies {
     runtimeOnly("org.apache.httpcomponents:httpclient:4.5.14")
     compileOnly("com.terraformersmc:modmenu:${property("modmenu_version")}")
 
-    implementation("io.github.classgraph:classgraph:4.8.184")
-    include("io.github.classgraph:classgraph:4.8.184")
+    implementation("io.github.classgraph:classgraph:4.8.186")
+    include("io.github.classgraph:classgraph:4.8.186")
 
 }
 
