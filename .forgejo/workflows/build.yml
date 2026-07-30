@@ -3,9 +3,9 @@ name: Build
 on:
   push:
     branches:
-      - 1.21.11
-      - 26.1.x
-      - 26.2
+      - "1.21.11"
+      - "26.1.x"
+      - "26.2"
     paths-ignore:
       - "**/*.md"
       - ".github/**"
