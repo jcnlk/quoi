@@ -2,6 +2,10 @@ name: Build
 
 on:
   push:
+    branches:
+      - 1.21.11
+      - 26.1.x
+      - 26.2
     paths-ignore:
       - "**/*.md"
       - ".github/**"
@@ -27,7 +31,7 @@ jobs:
 
     steps:
       - name: Check Out Repository
-        uses: actions/checkout@v7.0.0
+        uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
 
@@ -35,7 +39,7 @@ jobs:
         uses: gradle/actions/wrapper-validation@v6.2.0
 
       - name: Set Up Java 25
-        uses: actions/setup-java@v5.4.0
+        uses: actions/setup-java@v5.6.0
         with:
           distribution: temurin
           java-version: "25"
@@ -45,31 +49,21 @@ jobs:
         with:
           cache-provider: enhanced
           cache-read-only: ${{ github.event_name != 'push' }}
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
       - name: Build Mod
         run: ./gradlew build --build-cache --configuration-cache --stacktrace
 
-      - name: Stage Build Artifacts
-        if: ${{ !cancelled() && (github.event_name != 'pull_request' || failure()) }}
-        run: |
-          rm -rf ci-artifacts
-          mkdir -p ci-artifacts/reports
-          if [ -d build/libs ]; then
-            find build/libs -maxdepth 1 -type f -name "*.jar" ! -name "*-sources.jar" -exec cp {} ci-artifacts/ \;
-          fi
-          if [ -d build/reports ]; then
-            cp -R build/reports/. ci-artifacts/reports/
-          fi
-
       - name: Upload Build Artifacts
         if: ${{ !cancelled() && (github.event_name != 'pull_request' || failure()) }}
-        # v5/v6 currently fail on Forgejo 1.22 / runner 12.12 with
-        # "Error unauthorized" during blob upload. Keep v4 until the
-        # Forgejo artifact backend supports the newer upload flow.
+        # Forgejo 15 supports the patched v4 artifact action. Unlike v7,
+        # it always archives uploads, so the ZIP is limited to the mod JAR.
         uses: forgejo/upload-artifact@v4
         with:
           name: quoi-build-artifacts
-          path: ci-artifacts/
+          path: |
+            build/libs/quoi-*.jar
+            !build/libs/quoi-*-sources.jar
           if-no-files-found: warn
           compression-level: 0
           retention-days: 14
