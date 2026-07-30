@@ -4,7 +4,8 @@ updates:
     directory: "/"
     target-branch: "1.21.11"
     schedule:
-      interval: "daily"
+      interval: "weekly"
+      day: "monday"
       time: "04:10"
       timezone: "UTC"
     open-pull-requests-limit: 5
@@ -17,7 +18,8 @@ updates:
     directory: "/"
     target-branch: "26.1.x"
     schedule:
-      interval: "daily"
+      interval: "weekly"
+      day: "monday"
       time: "04:20"
       timezone: "UTC"
     open-pull-requests-limit: 5
@@ -30,7 +32,8 @@ updates:
     directory: "/"
     target-branch: "26.2"
     schedule:
-      interval: "daily"
+      interval: "weekly"
+      day: "monday"
       time: "04:30"
       timezone: "UTC"
     open-pull-requests-limit: 5
@@ -43,7 +46,8 @@ updates:
     directory: "/"
     target-branch: "1.21.11"
     schedule:
-      interval: "daily"
+      interval: "weekly"
+      day: "monday"
       time: "05:10"
       timezone: "UTC"
     open-pull-requests-limit: 5
@@ -56,7 +60,8 @@ updates:
     directory: "/"
     target-branch: "26.1.x"
     schedule:
-      interval: "daily"
+      interval: "weekly"
+      day: "monday"
       time: "05:20"
       timezone: "UTC"
     open-pull-requests-limit: 5
@@ -69,7 +74,8 @@ updates:
     directory: "/"
     target-branch: "26.2"
     schedule:
-      interval: "daily"
+      interval: "weekly"
+      day: "monday"
       time: "05:30"
       timezone: "UTC"
     open-pull-requests-limit: 5
