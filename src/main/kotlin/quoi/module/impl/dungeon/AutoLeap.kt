@@ -24,6 +24,7 @@ object AutoLeap : Module(
     private val fastMode by switch("Fast mode", desc = "Blocks movement and input only from the leap menu opening until the target click.")
 
     private val doorOpenerLeap by switch("Door opener leap", desc = "Outside of F7 boss, fast leap to the last wither door opener.")
+    private val doorOpenerAuto by switch("Auto", desc = "Automatically leaps to a teammate when they open a Wither or Blood door.").childOf(::doorOpenerLeap)
     private val disableAfterBloodOpen by switch("Disable after Blood Open", desc = "Disables Door Fast Leap after the Blood Room has been opened.").childOf(::doorOpenerLeap)
 
     private val p1Leap by switch("Pre P2 leap", desc = "Leaps in P1.")
@@ -217,6 +218,14 @@ object AutoLeap : Module(
             }
             lastClick = currentTime
         }
+
+        on<DungeonEvent.DoorOpen> {
+            if (!doorOpenerLeap || !doorOpenerAuto || Dungeon.inBoss) return@on
+            if (opener == player.name.string) return@on
+            if (disableAfterBloodOpen && Dungeon.bloodOpen) return@on
+
+            leap(opener)
+        }
     }
 
     private fun leapToConfigured(name: String, clazz: DungeonClass): Boolean {
@@ -291,10 +300,7 @@ object AutoLeap : Module(
     private fun attemptFastLeap(): Boolean {
         if (!Dungeon.inBoss) {
             val doorOpener = Dungeon.doorOpener.takeIf {
-                doorOpenerLeap &&
-                        it != "Unknown" &&
-                        it != player.name.string &&
-                        (!disableAfterBloodOpen || !Dungeon.bloodOpen)
+                doorOpenerLeap && it != "Unknown" && it != player.name.string && (!disableAfterBloodOpen || !Dungeon.bloodOpen)
             } ?: return false
 
             leap(doorOpener)
