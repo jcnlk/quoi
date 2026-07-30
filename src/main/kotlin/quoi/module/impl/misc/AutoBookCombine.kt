@@ -1,66 +1,72 @@
 package quoi.module.impl.misc
 
-import quoi.api.events.core.on
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
-import net.minecraft.core.component.DataComponents
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
-import net.minecraft.world.item.component.CustomData
 import quoi.api.events.TickEvent
+import quoi.api.events.core.on
 import quoi.api.skyblock.location.Location
 import quoi.module.Module
+import quoi.module.settings.Setting.Companion.json
 import quoi.utils.ChatUtils.modMessage
-import quoi.utils.skyblock.player.container.ContainerUtils.clickSlot
+import quoi.utils.skyblock.item.ItemUtils.extraAttributes
+import quoi.utils.skyblock.player.container.ContainerUtils.containerSize
+import quoi.utils.skyblock.player.container.task.ContainerTask
+import quoi.utils.skyblock.player.container.task.any
+import quoi.utils.skyblock.player.container.task.containerTask
 
 object AutoBookCombine : Module(
     "Auto Book Combine",
     desc = "Automatically combines matching enchanted books in the Hypixel Anvil."
 ) {
-    private val clickDelay by slider("Click delay", 200L, 50L, 1_000L, 50L, desc = "Delay between clicks.", "ms")
-    private val resultDelay by slider("Result delay", 500L, 100L, 2_000L, 50L, desc = "Delay before taking the combined book.", "ms")
+    private val clickDelay by slider("Click delay", 4, 1, 20, 1, desc = "Delay between clicks.", unit = " ticks").json("Click delay ticks")
+    private val resultDelay by slider("Result delay", 10, 2, 40, 1, desc = "Delay before taking the combined book.", unit = " ticks").json("Result delay ticks")
     private val disableAfterFinish by switch("Disable after finish", true, desc = "Disables the module after all matching books have been combined.")
     private val autoCloseAfterFinish by switch("Auto close after finish", false, desc = "Closes the anvil after successfully combining books.")
 
-    private var currentStep = 0
-    private var nextActionAt = 0L
-    private var activePair: Pair<Int, Int>? = null
-    private var wasInAnvil = false
+    private var combineTask: ContainerTask? = null
     private var finishedForCurrentAnvil = false
     private var combinedInCurrentAnvil = false
 
     init {
         on<TickEvent.End> {
-            val screen = mc.gui.screen() as? AbstractContainerScreen<*>
-            if (!Location.inSkyblock || screen?.title?.string != "Anvil") {
-                if (wasInAnvil) reset()
-                wasInAnvil = false
-                return@on
+            val screen = currentAnvil() ?: return@on reset()
+
+            if (finishedForCurrentAnvil || combineTask != null) return@on
+
+            val pair = findBookPair(screen) ?: return@on finish(screen)
+
+            val containerId = screen.menu.containerId
+            val isCurrentAnvil = {
+                currentAnvil()?.menu?.containerId == containerId
             }
 
-            wasInAnvil = true
+            val task = containerTask(
+                force = true,
+                preventMovement = false,
+                blockInput = false,
+                showProgress = false,
+            ) {
+                check("Anvil was closed", isCurrentAnvil)
+                quickMove(pair.first.any)
+                wait(clickDelay + 1)
 
-            val now = System.currentTimeMillis()
-            if (now < nextActionAt) return@on
-            if (finishedForCurrentAnvil) return@on
+                check("Anvil was closed", isCurrentAnvil)
+                quickMove(pair.second.any)
+                wait(clickDelay + 1)
 
-            val pair = activePair ?: nextPair(screen) ?: return@on
-
-            when (currentStep) {
-                0 -> click(pair.first, screen, clickDelay, shift = true)
-                1 -> click(pair.second, screen, clickDelay, shift = true)
-                2 -> {
-                    click(RESULT_SLOT, screen, resultDelay)
-                    combinedInCurrentAnvil = true
+                repeat(2) {
+                    check("Anvil was closed", isCurrentAnvil)
+                    pickup(22.any) // combined book slot
+                    wait(resultDelay + 1)
                 }
-                3 -> click(RESULT_SLOT, screen, resultDelay)
-                else -> {
-                    activePair = null
-                    currentStep = 0
-                    return@on
-                }
+
+                onComplete { combinedInCurrentAnvil = true }
+                onFinished { combineTask = null }
             }
 
-            currentStep++
+            combineTask = task
+            task.run()
         }
     }
 
@@ -69,75 +75,52 @@ object AutoBookCombine : Module(
         super.onDisable()
     }
 
-    private fun click(slot: Int, screen: AbstractContainerScreen<*>, delay: Long, shift: Boolean = false) {
-        player.clickSlot(slot, screen.menu.containerId, shift = shift)
-        nextActionAt = System.currentTimeMillis() + delay
-    }
-
-    private fun nextPair(screen: AbstractContainerScreen<*>): Pair<Int, Int>? {
-        val pair = findBookPair(screen)
-        if (pair == null) {
-            if (combinedInCurrentAnvil) {
-                modMessage("&aFinished Book Combining!")
-                if (autoCloseAfterFinish) {
-                    screen.onClose()
-                }
-            }
-            reset()
-            finishedForCurrentAnvil = true
-            if (disableAfterFinish) {
-                toggle()
-            }
-            return null
+    private fun finish(screen: AbstractContainerScreen<*>) {
+        if (combinedInCurrentAnvil) {
+            modMessage("&aFinished Book Combining!")
+            if (autoCloseAfterFinish) screen.onClose()
         }
 
-        activePair = pair
-        currentStep = 0
-        return pair
+        reset()
+        finishedForCurrentAnvil = true
+        if (disableAfterFinish) toggle()
     }
 
     private fun findBookPair(screen: AbstractContainerScreen<*>): Pair<Int, Int>? {
-        val bookPairs = linkedMapOf<String, MutableList<Int>>()
+        val firstSlots = mutableMapOf<Enchantment, Int>()
 
-        screen.menu.slots
-            .drop(CONTAINER_SIZE)
-            .forEach { slot ->
-                val enchant = slot.item.singleEnchantmentKey() ?: return@forEach
-                bookPairs.getOrPut(enchant) { mutableListOf() }.add(slot.index)
-            }
+        for (slot in screen.menu.slots.drop(screen.menu.type.containerSize)) {
+            val enchant = slot.item.singleEnchantment() ?: continue
+            if (enchant.level == 5 || enchant.level == 10) continue
 
-        return bookPairs.entries.firstNotNullOfOrNull { (enchant, books) ->
-            if (books.size > 1 && !enchant.endsWith("5") && !enchant.endsWith("10")) {
-                books[0] to books[1]
-            } else null
+            val firstSlot = firstSlots.putIfAbsent(enchant, slot.index)
+            if (firstSlot != null) return firstSlot to slot.index
         }
+
+        return null
     }
 
-    private fun ItemStack.singleEnchantmentKey(): String? {
+    private fun ItemStack.singleEnchantment(): Enchantment? {
         if (isEmpty || item != Items.ENCHANTED_BOOK) return null
 
-        val enchantments = getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY)
-            .copyTag()
-            .getCompound("enchantments")
-            .orElse(null)
-            ?: return null
+        val enchantments = extraAttributes?.getCompound("enchantments")?.orElse(null) ?: return null
 
         val keys = enchantments.keySet()
         if (keys.size != 1) return null
 
         val key = keys.first()
         val level = enchantments.getInt(key).orElse(null) ?: return null
-        return "$key$level"
+        return Enchantment(key, level)
     }
 
     private fun reset() {
-        currentStep = 0
-        nextActionAt = 0L
-        activePair = null
+        combineTask?.cancel()
+        combineTask = null
         finishedForCurrentAnvil = false
         combinedInCurrentAnvil = false
     }
 
-    private const val CONTAINER_SIZE = 54
-    private const val RESULT_SLOT = 22
+    private fun currentAnvil() = (mc.gui.screen() as? AbstractContainerScreen<*>)?.takeIf { Location.inSkyblock && it.title.string == "Anvil" }
+
+    private data class Enchantment(val id: String, val level: Int)
 }
