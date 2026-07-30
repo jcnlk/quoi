@@ -24,54 +24,54 @@ object AutoLeap : Module(
     private val fastMode by switch("Fast mode", desc = "Blocks movement and input only from the leap menu opening until the target click.")
 
     private val doorOpenerLeap by switch("Door opener leap", desc = "Outside of F7 boss, fast leap to the last wither door opener.")
-    private val doorOpenerAuto by switch("Auto", desc = "Automatically leaps to a teammate when they open a Wither or Blood door.").childOf(::doorOpenerLeap)
+    private val doorOpenerAuto by switch("Auto", desc = "Automatically leaps to a teammate when they open a Wither or Blood door.").json("Door opener auto").childOf(::doorOpenerLeap)
     private val disableAfterBloodOpen by switch("Disable after Blood Open", desc = "Disables Door Fast Leap after the Blood Room has been opened.").childOf(::doorOpenerLeap)
 
     private val p1Leap by switch("Pre P2 leap", desc = "Leaps in P1.")
-    private val p1Auto by switch("Auto", desc = "Automatically leaps after Maxor died.").childOf(::p1Leap)
+    private val p1Auto by switch("Auto", desc = "Automatically leaps after Maxor died.").json("P1 leap auto").childOf(::p1Leap)
 
     private val predevLeap by switch("Predev leap", desc = "Leaps before Storm dev.")
-    private val predevAuto by switch("Auto", desc = "Automatically leaps before Storm's lightning.").childOf(::predevLeap)
+    private val predevAuto by switch("Auto", desc = "Automatically leaps before Storm's lightning.").json("Predev leap auto").childOf(::predevLeap)
 
     private val greenLeap by switch("Green pad leap", desc = "Leaps on green pad.")
-    private val greenAuto by switch("Auto", desc = "Automatically leaps after the first Storm crush.").childOf(::greenLeap)
+    private val greenAuto by switch("Auto", desc = "Automatically leaps after the first Storm crush.").json("Green pad leap auto").childOf(::greenLeap)
 
     private val yellowLeap by switch("Yellow pad leap", desc = "Leaps on yellow pad.")
-    private val yellowAuto by switch("Auto", desc = "Automatically leaps after the second Storm crush.").childOf(::yellowLeap)
+    private val yellowAuto by switch("Auto", desc = "Automatically leaps after the second Storm crush.").json("Yellow pad leap auto").childOf(::yellowLeap)
 
     private val purpleLeap by switch("Purple pad leap", desc = "Leaps on purple pad.")
-    private val purpleAuto by switch("Auto", desc = "Automatically leaps when Storm is enraged.").childOf(::purpleLeap)
+    private val purpleAuto by switch("Auto", desc = "Automatically leaps when Storm is enraged.").json("Purple pad leap auto").childOf(::purpleLeap)
 
     private val pre4Leap by switch("Pre4 leap", desc="Leaps on Pre4 dev.")
-    private val pre4Auto by switch("Auto", desc="Automatically leaps when Pre4 is done.").childOf(::pre4Leap)
+    private val pre4Auto by switch("Auto", desc="Automatically leaps when Pre4 is done.").json("Pre4 leap auto").childOf(::pre4Leap)
     private val pre4LeapMelody by switch("Leap Melody", desc = "Leaps to the player doing Melody when Pre4 is done.").childOf(::pre4Leap)
 
     private val p3Leap by switch("P3 leap", desc = "Leaps in terminal phase.")
-    private val p3Auto by switch("Auto", desc = "Automatically leaps when a section is finished.").childOf(::p3Leap)
+    private val p3Auto by switch("Auto", desc = "Automatically leaps when a section is finished.").json("P3 leap auto").childOf(::p3Leap)
     private val whenBlown by switch("Only when gate blown", desc = "Only leaps when gate is blown").childOf(::p3Auto)
 
     private val middleLeap by switch("Middle leap", desc = "Leaps in middle.")
-    private val middleAuto by switch("Auto", desc = "Automatically leaps when instamid would send you to middle.").childOf(::middleLeap)
+    private val middleAuto by switch("Auto", desc = "Automatically leaps when instamid would send you to middle.").json("Middle leap auto").childOf(::middleLeap)
 
     private val p5Leap by switch("P5 leap", desc = "Leaps at P5 start.")
-    private val p5Auto by switch("Auto", desc = "Automatically leaps after Necron died.").childOf(::p5Leap)
+    private val p5Auto by switch("Auto", desc = "Automatically leaps after Necron died.").json("P5 leap auto").childOf(::p5Leap)
 
     private val relicLeap by switch("Relic leap", desc = "Leaps in relic.")
-    private val relicAuto by switch("Auto", desc = "Automatically leaps after picking up a relic.").childOf(::relicLeap)
+    private val relicAuto by switch("Auto", desc = "Automatically leaps after picking up a relic.").json("Relic leap auto").childOf(::relicLeap)
 
-    private val p1Name by textInput("Target", "P1", length = 16).childOf(::p1Leap) { p1Leap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
-    private val predevName by textInput("Target", "Predev", length = 16).childOf(::predevLeap) { predevLeap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
-    private val greenName by textInput("Target", "Green", length = 16).childOf(::greenLeap) { greenLeap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
-    private val yellowName by textInput("Target", "Yellow", length = 16).childOf(::yellowLeap) { yellowLeap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
-    private val purpleName by textInput("Target", "Purple", length = 16).childOf(::purpleLeap) { purpleLeap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
-    private val pre4Name by textInput("Target", "Pre4", length = 16).childOf(::pre4Leap) { pre4Leap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
+    private val p1Name by textInput("Target", "P1", length = 16).json("P1 leap name").childOf(::p1Leap) { p1Leap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
+    private val predevName by textInput("Target", "Predev", length = 16).json("Predev leap name").childOf(::predevLeap) { predevLeap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
+    private val greenName by textInput("Target", "Green", length = 16).json("Green leap name").childOf(::greenLeap) { greenLeap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
+    private val yellowName by textInput("Target", "Yellow", length = 16).json("Yellow leap name").childOf(::yellowLeap) { yellowLeap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
+    private val purpleName by textInput("Target", "Purple", length = 16).json("Purple leap name").childOf(::purpleLeap) { purpleLeap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
+    private val pre4Name by textInput("Target", "Pre4", length = 16).json("Pre4 leap name").childOf(::pre4Leap) { pre4Leap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
     private val s1Name by textInput("S1 leap", "S1", length = 16).childOf(::p3Leap) { p3Leap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
     private val s2Name by textInput("S2 leap", "S2", length = 16).childOf(::p3Leap) { p3Leap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
     private val s3Name by textInput("S3 leap", "S3", length = 16).childOf(::p3Leap) { p3Leap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
     private val s4Name by textInput("S4 leap", "S4", length = 16).childOf(::p3Leap) { p3Leap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
-    private val middleName by textInput("Target", "Middle", length = 16).childOf(::middleLeap) { middleLeap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
-    private val p5Name by textInput("Target", "P5", length = 16).childOf(::p5Leap) { p5Leap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
-    private val relicName by textInput("Target", "Relic", length = 16).childOf(::relicLeap) { relicLeap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
+    private val middleName by textInput("Target", "Middle", length = 16).json("Middle leap name").childOf(::middleLeap) { middleLeap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
+    private val p5Name by textInput("Target", "P5", length = 16).json("P5 leap name").childOf(::p5Leap) { p5Leap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
+    private val relicName by textInput("Target", "Relic", length = 16).json("Relic leap name").childOf(::relicLeap) { relicLeap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
 
     private val p1Class by selector("Target", DungeonClass.Unknown).json("P1 leap class").childOf(::p1Leap) { p1Leap && leapMode.selected == LeapMode.Class }
     private val predevClass by selector("Target", DungeonClass.Unknown).json("Predev leap class").childOf(::predevLeap) { predevLeap && leapMode.selected == LeapMode.Class }
