@@ -24,18 +24,11 @@ object AutoDoorOpener : Module(
     desc = "Automatically opens nearby Wither and Blood doors.",
     area = Island.Dungeon(inClear = true)
 ) {
-    private val mode by selector(
-        "Mode",
-        "Triggerbot",
-        listOf("Aura", "Triggerbot"),
-        desc = "Aura opens nearby doors automatically. Triggerbot only opens the door you are looking at."
-    )
-    private val auraRange by slider("Range", 5.0, 2.0, 6.0, 0.1, desc = "Maximum distance for opening a door.")
-        .visibleIf { mode.selected == "Aura" }
+    private val mode by selector("Mode", "Triggerbot", listOf("Aura", "Triggerbot"), desc = "Aura opens nearby doors automatically. Triggerbot only opens the door you are looking at.")
+    private val auraRange by slider("Range", 5.0, 2.0, 6.0, 0.1, desc = "Maximum distance for opening a door.").visibleIf { mode.selected == "Aura" }
     private val retryDelay by slider("Retry delay", 500, 100, 2000, 50, unit = "ms", desc = "Delay between attempts to open a door.")
     private val swing by switch("Swing hand", desc = "Swings the hand when opening a door.")
 
-    private val doorTypes = setOf(DoorType.WITHER, DoorType.BLOOD)
     private var lastClick = 0L
 
     init {
@@ -45,13 +38,12 @@ object AutoDoorOpener : Module(
             val now = System.currentTimeMillis()
             if (now - lastClick < retryDelay) return@on
 
-            val lockedDoors = ScanUtils.scannedDoors.filter { it.type in doorTypes && it.locked }
+            val lockedDoors = ScanUtils.scannedDoors.filter { it.locked }
             val doorPos = when (mode.selected) {
                 "Aura" -> findClosestDoor(lockedDoors)
                 "Triggerbot" -> findLookedAtDoor(lockedDoors)
-                else -> null
-            }
-            if (doorPos == null) return@on
+                else -> return@on
+            } ?: return@on
 
             AuraManager.interactBlock(doorPos)
             if (swing) player.swing(InteractionHand.MAIN_HAND)
@@ -70,16 +62,15 @@ object AutoDoorOpener : Module(
     }
 
     private fun findLookedAtDoor(doors: Collection<OdonDoor>): BlockPos? {
-        val hitResult = mc.hitResult as? BlockHitResult ?: return null
-        if (hitResult.type != HitResult.Type.BLOCK) return null
-
+        val hitResult = (mc.hitResult as? BlockHitResult)?.takeIf { it.type == HitResult.Type.BLOCK } ?: return null
         val hitPos = hitResult.blockPos
+
+        if (hitPos.y !in 69..73) return null
 
         return hitPos.takeIf {
             doors.any { door ->
                 abs(hitPos.x - door.pos.x) <= 2 &&
                     abs(hitPos.z - door.pos.z) <= 2 &&
-                    hitPos.y in 69..73 &&
                     when (door.type) {
                         DoorType.WITHER -> hitPos.state.block == Blocks.COAL_BLOCK
                         DoorType.BLOOD -> hitPos.state.block == Blocks.RED_TERRACOTTA
