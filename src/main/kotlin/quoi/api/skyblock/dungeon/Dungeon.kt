@@ -271,7 +271,11 @@ object Dungeon : EventListener, Shortcuts {
                         val message = content.string.noControlCodes
                         if (expectingBloodRegex.matches(message)) expectingBloodUpdate = true
                         if (enterRegex.matches(message) && warpCooldown == 0L) enterTime = System.currentTimeMillis() + 30_000L
-                        doorOpenRegex.find(message)?.let { dungeonStats.doorOpener = it.groupValues[1] }
+                        doorOpenRegex.matchEntire(message)?.let { match ->
+                            val opener = match.groupValues[1]
+                            dungeonStats.doorOpener = opener
+                            DungeonEvent.DoorOpen(opener).post()
+                        }
                         deathRegex.find(message)?.let { match ->
                             dungeonTeammates.find { teammate ->
                                 teammate.name == (match.groupValues[1].takeUnless { it == "You" } ?: player.name.string)

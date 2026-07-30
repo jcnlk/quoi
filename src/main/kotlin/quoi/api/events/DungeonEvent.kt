@@ -25,6 +25,8 @@ abstract class DungeonEvent {
         class State(val room: OdonRoom, val old: RoomState, val new: RoomState, val current: Boolean) : Event()
     }
 
+    class DoorOpen(val opener: String) : Event()
+
     class PhaseComplete(val phase: Phase) : Event()
 
     class StageComplete(val stage: Stage) : Event() {
