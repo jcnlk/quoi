@@ -1,5 +1,8 @@
 package quoi.module.impl.dungeon
 
+import net.minecraft.network.protocol.game.ServerboundInteractPacket
+import net.minecraft.world.entity.EquipmentSlot
+import net.minecraft.world.entity.decoration.ArmorStand
 import net.minecraft.world.phys.AABB
 import quoi.api.events.*
 import quoi.api.events.core.on
@@ -57,7 +60,7 @@ object AutoLeap : Module(
     private val p5Auto by switch("Auto", desc = "Automatically leaps after Necron died.").json("P5 leap auto").childOf(::p5Leap)
 
     private val relicLeap by switch("Relic leap", desc = "Leaps in relic.")
-    private val relicAuto by switch("Auto", desc = "Automatically leaps after picking up a relic.").json("Relic leap auto").childOf(::relicLeap)
+    private val relicAuto by switch("Auto", desc = "Automatically leaps after interacting with a relic.").json("Relic leap auto").childOf(::relicLeap)
 
     private val p1Name by textInput("Target", "P1", length = 16).json("P1 leap name").childOf(::p1Leap) { p1Leap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
     private val predevName by textInput("Target", "Predev", length = 16).json("Predev leap name").childOf(::predevLeap) { predevLeap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
@@ -92,6 +95,7 @@ object AutoLeap : Module(
     private var crystalCount = 0
     private var oofCount = 0
     private var melodyTarget: String? = null
+    private var pickedUpRelic = false
 
     private val melodyProgress = setOf("1/4", "2/4", "3/4", "25%", "50%", "75%")
 
@@ -102,7 +106,6 @@ object AutoLeap : Module(
     private val pre4Box = AABB(62.0, 127.0, 34.0, 65.0, 130.0, 37.0)
 
     private val melodyPlayerRegex = Regex("""([A-Za-z0-9_]{3,16}):""")
-    private val relicPickupRegex = Regex("""^([A-Za-z0-9_]{3,16}) picked the Corrupted \w+ Relic!$""")
     private val deviceDoneRegex = Regex("""^(\w+) completed a device! \((.*?)\)$""")
     private val stormCrushMessages = setOf("[BOSS] Storm: Oof", "[BOSS] Storm: Ouch, that hurt!")
 
@@ -193,15 +196,21 @@ object AutoLeap : Module(
                 leapToConfigured(middleName, middleClass.selected)
             }
 
-            val relicPickup = relicPickupRegex.matchEntire(unformatted)
-            if (relicPickup != null && relicLeap && relicAuto && relicPickup.groupValues[1] == player.name.string && isInRelic()) {
-                leapToConfigured(relicName, relicClass.selected)
-            }
-
             val pre4Done = deviceDoneRegex.matchEntire(unformatted)
             if (pre4Done != null && pre4Done.groupValues[1] == player.name.string && pre4Leap && pre4Auto) {
                 leapToPre4Target()
             }
+        }
+
+        on<PacketEvent.Sent, ServerboundInteractPacket> {
+            if (!relicLeap || !relicAuto || pickedUpRelic || !isInRelic()) return@on
+
+            val armorStand = level.getEntity(packet.entityId()) as? ArmorStand ?: return@on
+            val relic = armorStand.getItemBySlot(EquipmentSlot.HEAD)
+            if (!relic.displayName.string.contains("Relic")) return@on
+            pickedUpRelic = true
+
+            leapToConfigured(relicName, relicClass.selected)
         }
 
         on<MouseEvent.Click> {
@@ -282,6 +291,7 @@ object AutoLeap : Module(
         arghCount = 0
         crystalCount = 0
         oofCount = 0
+        pickedUpRelic = false
     }
 
     private fun isIn(box: AABB): Boolean = box.contains(player.position())
