@@ -66,7 +66,6 @@
     "accessors.LocalPlayerAccessor",
     "accessors.RenderSetupAccessor",
     "accessors.RenderTypeAccessor",
-    "accessors.ServerboundInteractPacketAccessor",
     "accessors.MultiPlayerGameModeAccessor",
     "accessors.ImageButtonAccessor",
     "accessors.ItemInHandRendererAccessor",

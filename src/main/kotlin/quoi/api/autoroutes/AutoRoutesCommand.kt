@@ -4,7 +4,6 @@ import kotlinx.coroutines.launch
 import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket
 import net.minecraft.world.phys.Vec3
-import quoi.QuoiMod.mc
 import quoi.QuoiMod.scope
 import quoi.api.autoroutes.RouteRegistry.nodeEntries
 import quoi.api.autoroutes.RouteRegistry.nodeTypes
@@ -19,10 +18,7 @@ import quoi.api.commands.internal.SubCommand
 import quoi.api.commands.parsers.arg
 import quoi.api.events.PacketEvent
 import quoi.api.events.TickEvent
-import quoi.api.events.core.Event
 import quoi.api.events.core.EventListener
-import quoi.api.events.core.EventManager
-import quoi.api.events.core.on
 import quoi.api.events.core.Subscription
 import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.Dungeon.currentRoom
@@ -35,12 +31,8 @@ import quoi.module.impl.dungeon.autoclear.impl.AutoRoutes.breakerRing
 import quoi.module.impl.dungeon.autoclear.impl.AutoRoutes.currentChain
 import quoi.module.impl.dungeon.autoclear.impl.AutoRoutes.editMode
 import quoi.module.impl.dungeon.autoclear.impl.AutoRoutes.routeNodes
-import quoi.utils.ChatUtils
+import quoi.utils.*
 import quoi.utils.ChatUtils.modMessage
-import quoi.utils.component1
-import quoi.utils.component2
-import quoi.utils.component3
-import quoi.utils.player
 import quoi.utils.skyblock.player.PlayerUtils.getEyeHeight
 import java.io.File
 import kotlin.math.floor
