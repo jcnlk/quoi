@@ -1,8 +1,6 @@
 package quoi.module.impl.dungeon
 
-import net.minecraft.network.protocol.game.ServerboundInteractPacket
-import net.minecraft.world.entity.EquipmentSlot
-import net.minecraft.world.entity.decoration.ArmorStand
+import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket
 import net.minecraft.world.phys.AABB
 import quoi.api.events.*
 import quoi.api.events.core.on
@@ -60,7 +58,7 @@ object AutoLeap : Module(
     private val p5Auto by switch("Auto", desc = "Automatically leaps after Necron died.").json("P5 leap auto").childOf(::p5Leap)
 
     private val relicLeap by switch("Relic leap", desc = "Leaps in relic.")
-    private val relicAuto by switch("Auto", desc = "Automatically leaps after interacting with a relic.").json("Relic leap auto").childOf(::relicLeap)
+    private val relicAuto by switch("Auto", desc = "Automatically leaps after picking up a relic.").json("Relic leap auto").childOf(::relicLeap)
 
     private val p1Name by textInput("Target", "P1", length = 16).json("P1 leap name").childOf(::p1Leap) { p1Leap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
     private val predevName by textInput("Target", "Predev", length = 16).json("Predev leap name").childOf(::predevLeap) { predevLeap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
@@ -202,11 +200,11 @@ object AutoLeap : Module(
             }
         }
 
-        on<PacketEvent.Sent, ServerboundInteractPacket> {
+        // based on https://github.com/Noamm9/NoammAddons/blob/1.1.9/src/main/kotlin/com/github/noamm9/features/impl/floor7/M7Relics.kt#L96-L104
+        on<PacketEvent.ReceivedPost, ClientboundContainerSetSlotPacket> {
             if (!relicLeap || !relicAuto || pickedUpRelic || !isInRelic()) return@on
 
-            val armorStand = level.getEntity(packet.entityId()) as? ArmorStand ?: return@on
-            val relic = armorStand.getItemBySlot(EquipmentSlot.HEAD)
+            val relic = player.inventory.getItem(8)
             if (!relic.displayName.string.contains("Relic")) return@on
             pickedUpRelic = true
 
