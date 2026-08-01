@@ -1,6 +1,5 @@
 package quoi.module.impl.dungeon
 
-import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket
 import net.minecraft.world.phys.AABB
 import quoi.api.events.*
 import quoi.api.events.core.on
@@ -201,7 +200,7 @@ object AutoLeap : Module(
         }
 
         // based on https://github.com/Noamm9/NoammAddons/blob/1.1.9/src/main/kotlin/com/github/noamm9/features/impl/floor7/M7Relics.kt#L96-L104
-        on<PacketEvent.ReceivedPost, ClientboundContainerSetSlotPacket> {
+        on<TickEvent.End> {
             if (!relicLeap || !relicAuto || pickedUpRelic || !isInRelic()) return@on
 
             val relic = player.inventory.getItem(8)
