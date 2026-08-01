@@ -1,5 +1,6 @@
 package quoi.utils.skyblock.player
 
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import quoi.QuoiMod.mc
 import quoi.annotations.Init
 import quoi.api.events.ChatEvent
@@ -74,11 +75,9 @@ object LeapManager : EventListener {
         blockInput: Boolean = false,
         fastMode: Boolean = false,
     ) {
-        if (!inDungeons) return
-        val teammate = dungeonTeammatesNoSelf.firstOrNull {
-            !it.isDead && it.name.equals(name, ignoreCase = true)
-        }
+        if (name == "" || !inDungeons) return
 
+        val teammate = dungeonTeammatesNoSelf.firstOrNull { !it.isDead && it.name == name }
         startLeap(teammate, formatName(name), blockInput, fastMode)
     }
 
@@ -89,10 +88,7 @@ object LeapManager : EventListener {
     ) {
         if (clazz == DungeonClass.Unknown || !inDungeons) return
 
-        val teammate = dungeonTeammatesNoSelf.firstOrNull {
-            !it.isDead && it.clazz == clazz
-        }
-
+        val teammate = dungeonTeammatesNoSelf.firstOrNull { !it.isDead && it.clazz == clazz }
         startLeap(teammate, "&${clazz.colourCode}${clazz.name}", blockInput, fastMode)
     }
 
@@ -105,7 +101,11 @@ object LeapManager : EventListener {
         teammate ?: return modMessage("&cFailed to leap! $formattedTarget &cnot found")
 
         val request = LeapRequest(teammate, blockInput, fastMode)
-        if (mc.gui.screen() != null || ContainerUtils.containerId != 0 || ContainerManager.activeTask != null) {
+        val openLeapMenu = (mc.gui.screen() as? AbstractContainerScreen<*>)?.takeIf { it.title.string == "Spirit Leap" }
+
+        if (!inProgress && pendingLeap == null && openLeapMenu != null && ContainerManager.activeTask == null) {
+            doLeap(request, preOpened = true)
+        } else if (mc.gui.screen() != null || ContainerUtils.containerId != 0 || ContainerManager.activeTask != null) {
             pendingLeap = request
             modMessage("&eQueued leap to ${formatName(teammate)}")
         } else {
@@ -113,18 +113,19 @@ object LeapManager : EventListener {
         }
     }
 
-    private fun doLeap(leap: LeapRequest) {
+    private fun doLeap(leap: LeapRequest, preOpened: Boolean = false) {
         if (inProgress) return
         if (leapCD > 0) {
             modMessage("&cFailed to leap! On cooldown: ${"%.1f".format(leapCD / 20.0)}s")
             return
         }
 
-        val swap = SwapManager.swapById("INFINITE_SPIRIT_LEAP", "SPIRIT_LEAP")
-        if (!swap.success) return
+        if (!preOpened) {
+            val swap = SwapManager.swapById("INFINITE_SPIRIT_LEAP", "SPIRIT_LEAP")
+            if (!swap.success) return
+        }
 
         activeLeap = leap
-        val leapMenu = Regex("Leap", RegexOption.IGNORE_CASE)
         val newTask = containerTask(
             name = "Leap to ${leap.target.name}",
             force = leap.fastMode,
@@ -132,14 +133,12 @@ object LeapManager : EventListener {
             blockInput = leap.blockInput,
             fastMode = leap.fastMode,
         ) {
-            action {
-                PlayerUtils.interact()
+            if (!preOpened) {
+                action { PlayerUtils.interact() }
+                awaitContainer("Spirit Leap", waitForItems = true)
             }
-            awaitContainer(leapMenu, waitForItems = true)
             pickup(
-                item {
-                    it.displayName.string.contains(leap.target.name, ignoreCase = true)
-                }.menu,
+                item { it.displayName.string.contains(leap.target.name) }.menu,
                 failureMessage = "target not found in leap menu",
             )
 
@@ -147,6 +146,7 @@ object LeapManager : EventListener {
         }
 
         task = newTask
+        if (preOpened) newTask.beginFastBlock()
         newTask.run()
     }
 
