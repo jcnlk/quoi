@@ -5,10 +5,9 @@ import net.minecraft.world.InteractionHand
 import net.minecraft.world.entity.decoration.ArmorStand
 import quoi.api.events.TickEvent
 import quoi.api.events.core.on
-import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.dungeon.Dungeon
-import quoi.api.skyblock.dungeon.Floor7Utils
 import quoi.api.skyblock.dungeon.Phase
+import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.location.invoke
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf
@@ -22,7 +21,7 @@ import quoi.utils.skyblock.player.LeapManager
 object TerminalAura : Module(
     "Terminal Aura",
     desc = "Automatically opens terminals.",
-    area = Island.Dungeon(7, inBoss = true)
+    area = Island.Dungeon(7, inBoss = true, phase = Phase.P3)
 ) {
     private val auraDistance by slider("Distance", 4.0, 0.0, 4.0, 0.1)
     private val auraDelay by slider("Delay", 750, 0, 2000, 50)
@@ -35,7 +34,7 @@ object TerminalAura : Module(
 
     init {
         on<TickEvent.Start> {
-            if (!Floor7Utils.inPhase(Phase.P3) || Dungeon.inTerminal || Dungeon.isDead || mc.screen != null) return@on
+            if (Dungeon.inTerminal || Dungeon.isDead || mc.screen != null) return@on
             if (System.currentTimeMillis() - lastClick < auraDelay) return@on
 
             if (leapDelayEnabled) {
