@@ -107,20 +107,20 @@ object Floor7Utils : EventListener, Shortcuts {
 
     fun inStageAt(vararg stages: Stage, player: LocalPlayer? = mc.player): Boolean = player != null && getStageAt(player) in stages
 
-    private fun updateState(newPhase: Phase = phase, newStage: Stage = stage) {
+    private fun updateState(newPhase: Phase? = null, newStage: Stage? = null) {
         val oldPhase = phase
         val oldStage = stage
 
-        if (oldPhase == newPhase && oldStage == newStage) return
+        phase = newPhase ?: phase
+        stage = newStage ?: stage
 
-        phase = newPhase
-        stage = newStage
-
-        if (oldPhase != Phase.UNKNOWN && oldPhase != newPhase) {
+        // explicitly setting the same phase/stage should still complete it, while
+        // updating only one part of the state must not complete the other one
+        if (newPhase != null && oldPhase != Phase.UNKNOWN) {
             DungeonEvent.PhaseComplete(oldPhase).post()
         }
 
-        if (oldStage != Stage.UNKNOWN && newStage.number == oldStage.number + 1) {
+        if (newStage != null && oldStage != Stage.UNKNOWN) {
             DungeonEvent.StageComplete.Full(oldStage).post()
         }
     }
@@ -265,5 +265,3 @@ enum class Stage(val number: Int, val reqTerminals: Int) {
         }
     }
 }
-
-// TODO: add P3Spots here or whatever

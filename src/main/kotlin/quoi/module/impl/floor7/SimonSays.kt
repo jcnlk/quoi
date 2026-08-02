@@ -15,12 +15,13 @@ import quoi.api.colour.withAlpha
 import quoi.api.events.*
 import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.Dungeon
-import quoi.api.skyblock.dungeon.Phase
+import quoi.api.skyblock.dungeon.Stage
 import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.location.invoke
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.utils.ChatUtils
+import quoi.utils.ChatUtils.modMessage
 import quoi.utils.EntityUtils
 import quoi.utils.StringUtils
 import quoi.utils.WorldUtils.state
@@ -35,7 +36,7 @@ import kotlin.random.Random
 object SimonSays : Module(
     "Simon Says",
     desc = "Automatically completes Simon says device.",
-    area = Island.Dungeon(7)
+    area = Island.Dungeon(7, stage = Stage.S1)
 ) {
     private val solver by switch("Solver")
     private val firstCol by colourPicker("First colour", Colour.GREEN.withAlpha(0.5f), allowAlpha = true).childOf(::solver)
@@ -78,7 +79,7 @@ object SimonSays : Module(
         }
 
         on<DungeonEvent.PhaseComplete> {
-            if (phase == Phase.P2) start()
+            start()
         }
 
         on<PacketEvent.Sent, ServerboundUseItemOnPacket> {
