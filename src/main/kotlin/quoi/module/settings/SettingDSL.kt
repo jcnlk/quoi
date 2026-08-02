@@ -86,8 +86,9 @@ abstract class SettingsDSL {
         glow: Boolean = true,
         customColour: Boolean = false,
         customFillColour: Boolean = false,
-        aabbOffset: Boolean = false
-    ) = HighlightSettings(this as AreaBoundListener, name, desc, colour, fillColour, glow, customColour, customFillColour, aabbOffset)
+        aabbOffset: Boolean = false,
+        defaultStyle: String = "Box",
+    ) = HighlightSettings(this as AreaBoundListener, name, desc, colour, fillColour, glow, customColour, customFillColour, aabbOffset, defaultStyle)
 
     protected fun tracer(
         name: String = "Tracer",
