@@ -5,12 +5,14 @@ import net.minecraft.network.protocol.game.ClientboundSoundPacket
 import net.minecraft.world.entity.item.ItemEntity
 import net.minecraft.world.level.block.state.BlockState
 import quoi.api.events.core.Event
+import quoi.api.skyblock.dungeon.Floor
 import quoi.api.skyblock.dungeon.Phase
 import quoi.api.skyblock.dungeon.Stage
 import quoi.api.skyblock.dungeon.odonscanning.tiles.OdonRoom
 import quoi.api.skyblock.dungeon.odonscanning.tiles.RoomState
 
 abstract class DungeonEvent {
+    class Enter(val floor: Floor) : Event()
     class Start : Event()
 
     abstract class Secret {

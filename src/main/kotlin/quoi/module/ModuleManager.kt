@@ -60,6 +60,7 @@ object ModuleManager : EventListener {
             BloodCamp,
             WarpCooldown,
             AutoCroesus,
+            AutoPotions,
 
             // MISC
             Test,
