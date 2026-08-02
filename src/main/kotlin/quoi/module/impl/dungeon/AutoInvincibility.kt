@@ -100,7 +100,7 @@ object AutoInvincibility : Module(
         val watchId = ++phoenixWatchId
 
         scope.launch {
-            waitServerTicks(100)
+            wait(100, server = true)
 
             if (watchId != phoenixWatchId || Dungeon.isDead || !isPhoenixEquipped()) return@launch
 
@@ -114,7 +114,7 @@ object AutoInvincibility : Module(
         swapping = true
         scope.launch {
             try {
-                waitServerTicks(swapDelay)
+                wait(swapDelay, server = true)
 
                 if (!waitUntilNotInTerminal()) return@launch
 
@@ -136,7 +136,7 @@ object AutoInvincibility : Module(
         swapping = true
         scope.launch {
             try {
-                waitServerTicks(swapDelay)
+                wait(swapDelay, server = true)
 
                 if (!waitUntilNotInTerminal()) return@launch
 
@@ -168,12 +168,6 @@ object AutoInvincibility : Module(
 
             startPhoenixProcWatch()
         }
-    }
-
-    private suspend fun waitServerTicks(ticks: Int) {
-        if (ticks <= 0) return
-        wait(ticks, server = true)
-        wait(1)
     }
 
     private suspend fun triggerRodSwap() {

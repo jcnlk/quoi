@@ -16,37 +16,48 @@ object Scheduler : EventListener {
         val cb: (Task) -> Unit
     ) {
         fun cancel() {
-            clientTasks.remove(this)
-            serverTasks.remove(this)
+            synchronized(clientTasks) { clientTasks.remove(this) }
+            synchronized(serverTasks) { serverTasks.remove(this) }
         }
     }
 
     init {
         on<TickEvent.End> {
-            tick(clientTasks, server = false)
+            tick(clientTasks)
         }
 
         on<TickEvent.Server> {
-            tick(serverTasks, server = true)
+            tick(serverTasks)
         }
     }
 
-    private fun tick(tasks: MutableList<Task>, server: Boolean) {
-        for (i in tasks.size - 1 downTo 0) {
-            val task = tasks[i]
+    private fun tick(tasks: MutableList<Task>) {
+        val dueTasks = synchronized(tasks) {
+            buildList {
+                for (i in tasks.size - 1 downTo 0) {
+                    val task = tasks[i]
 
-            if (--task.delay > 0) continue
+                    if (--task.delay > 0) continue
 
-            if (server) task.cb(task) else mc.submit { task.cb(task) }
+                    add(task)
 
-            if (task.repeat >= 0) task.delay = task.repeat
-            else tasks.removeAt(i)
+                    if (task.repeat >= 0) task.delay = task.repeat
+                    else tasks.removeAt(i)
+                }
+            }
         }
+
+        dueTasks.forEach { task -> mc.submit { task.cb(task) } }
+    }
+
+    private fun addTask(task: Task, server: Boolean) {
+        val tasks = if (server) serverTasks else clientTasks
+        synchronized(tasks) { tasks.add(task) }
     }
 
     @JvmOverloads
     fun scheduleTask(delay: Int = 0, server: Boolean = false, cb: (Task) -> Unit) {
-        (if (server) serverTasks else clientTasks).add(Task(delay, cb = cb))
+        addTask(Task(delay, cb = cb), server)
     }
 
     @JvmOverloads
@@ -56,12 +67,19 @@ object Scheduler : EventListener {
         cb: (Task) -> Unit
     ): Task {
         val task = Task(interval, interval, cb)
-        (if (server) serverTasks else clientTasks).add(Task(interval, interval, cb))
+        addTask(task, server)
         return task
     }
 
+    /**
+     * Suspends for [ticks] client or observed server ticks.
+     * Server waits always resume on the client thread, including waits with a non-positive delay.
+     */
     suspend fun wait(ticks: Int = 1, server: Boolean = false) {
-        if (ticks <= 0) return
+        if (ticks <= 0) {
+            if (server) awaitClientThread()
+            return
+        }
 
         val deferred = CompletableDeferred<Unit>()
 
@@ -69,6 +87,14 @@ object Scheduler : EventListener {
             deferred.complete(Unit)
         }
 
+        deferred.await()
+    }
+
+    private suspend fun awaitClientThread() {
+        if (mc.isSameThread) return
+
+        val deferred = CompletableDeferred<Unit>()
+        mc.submit { deferred.complete(Unit) }
         deferred.await()
     }
 }
