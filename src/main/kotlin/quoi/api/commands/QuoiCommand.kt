@@ -1,33 +1,34 @@
 package quoi.api.commands
 
+import kotlinx.coroutines.launch
 import net.minecraft.core.registries.BuiltInRegistries
-import net.minecraft.network.chat.ClickEvent
-import net.minecraft.network.chat.Style
+import net.minecraft.network.protocol.game.ClientboundSystemChatPacket
+import net.minecraft.world.phys.BlockHitResult
+import net.minecraft.world.phys.Vec3
 import quoi.QuoiMod.mc
 import quoi.QuoiMod.scope
 import quoi.api.commands.internal.BaseCommand
 import quoi.api.commands.internal.GreedyString
-import quoi.api.skyblock.SkyblockPlayer
-import quoi.api.skyblock.SkyblockPlayer.InvincibilityType
-import quoi.api.skyblock.SkyblockPlayer.Mask
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
 import quoi.api.events.core.EventDispatcher
 import quoi.api.events.core.EventListener
 import quoi.api.events.core.on
 import quoi.api.events.core.until
+import quoi.api.skyblock.SkyblockPlayer
+import quoi.api.skyblock.SkyblockPlayer.InvincibilityType
+import quoi.api.skyblock.SkyblockPlayer.Mask
+import quoi.api.skyblock.dungeon.Dungeon
+import quoi.api.skyblock.dungeon.Dungeon.currentRoom
 import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.location.Location.currentArea
 import quoi.api.skyblock.location.Location.currentServer
 import quoi.api.skyblock.location.Location.inSkyblock
 import quoi.api.skyblock.location.Location.subarea
-import quoi.api.skyblock.dungeon.Dungeon
 import quoi.module.Module.Tag
 import quoi.module.ModuleManager
-import quoi.module.impl.misc.ChatReplacements
-import quoi.module.impl.misc.chat.Chat
+import quoi.module.impl.general.chat.impl.CompactChat
 import quoi.module.impl.render.clickgui.ClickGui.clickGui
-import quoi.module.impl.render.PlayerESP
 import quoi.utils.ChatUtils.command
 import quoi.utils.ChatUtils.literal
 import quoi.utils.ChatUtils.modMessage
@@ -35,31 +36,23 @@ import quoi.utils.LegacyIdMapper
 import quoi.utils.Scheduler.scheduleLoop
 import quoi.utils.Scheduler.scheduleTask
 import quoi.utils.Scheduler.wait
+import quoi.utils.StringUtils.capitaliseFirst
 import quoi.utils.WorldUtils
 import quoi.utils.WorldUtils.day
+import quoi.utils.addVec
+import quoi.utils.skyblock.PartyUtils
 import quoi.utils.skyblock.player.MovementUtils.hold
 import quoi.utils.skyblock.player.MovementUtils.isMoving
+import quoi.utils.skyblock.player.RotationUtils.rotate
 import quoi.utils.ticker
 import quoi.utils.ui.hud.HudManager
 import quoi.utils.ui.screens.UIScreen.Companion.open
-import net.minecraft.network.protocol.game.ClientboundSystemChatPacket
-import net.minecraft.world.phys.BlockHitResult
-import net.minecraft.world.phys.Vec3
-import quoi.api.skyblock.dungeon.Dungeon.currentRoom
-import quoi.module.impl.misc.chat.impl.CompactChat
-import quoi.utils.StringUtils.capitaliseFirst
-import quoi.utils.addVec
-import quoi.utils.skyblock.PartyUtils
-import quoi.utils.skyblock.player.RotationUtils.rotate
-import java.net.URI
-import kotlin.collections.sortedBy
-import kotlinx.coroutines.launch
 
 object QuoiCommand : EventListener {
     private const val TRANSFER_COOLDOWN_NANOS = 3_000_000_000L
     private const val WARP_RETRY_NANOS = 5_000_000_000L
 
-    val command = BaseCommand("quoi", "requise") {
+    val command = BaseCommand("quoi") {
         open(clickGui)
     }
 
@@ -184,7 +177,7 @@ object QuoiCommand : EventListener {
                 val featureList = StringBuilder()
 
                 for ((category, modulesInCategory) in ModuleManager.modules.groupBy { it.category }.entries) {
-                    val categoryName = category.name.capitaliseFirst()
+                    val categoryName = category.displayName
 
                     if (md == true) {
                         featureList.appendLine("<details>")
