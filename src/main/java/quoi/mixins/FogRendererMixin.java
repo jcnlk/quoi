@@ -3,7 +3,7 @@ package quoi.mixins;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import quoi.module.impl.render.RenderOptimiser;
-import quoi.module.impl.player.Tweaks;
+import quoi.module.impl.general.Tweaks;
 import net.minecraft.client.renderer.fog.FogRenderer;
 import net.minecraft.world.entity.LivingEntity;
 import org.spongepowered.asm.mixin.Mixin;

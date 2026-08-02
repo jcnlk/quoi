@@ -9,8 +9,8 @@ import quoi.api.events.WorldEvent
 import quoi.api.events.core.EventListener
 import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.Dungeon.getMageCooldownMultiplier
-import quoi.module.impl.dungeon.InvincibilityTimer.cataLevel
-import quoi.module.impl.dungeon.InvincibilityTimer.mageReduction
+import quoi.module.impl.floor7.InvincibilityTimer.cataLevel
+import quoi.module.impl.floor7.InvincibilityTimer.mageReduction
 import quoi.module.impl.render.clickgui.impl.Data
 import quoi.utils.Scheduler.scheduleLoop
 import quoi.utils.Shortcuts

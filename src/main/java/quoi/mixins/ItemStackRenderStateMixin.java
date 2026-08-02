@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import quoi.mixins.accessors.ItemStackLayerRenderStateAccessor;
-import quoi.module.impl.player.Tweaks;
+import quoi.module.impl.general.Tweaks;
 
 @Mixin(ItemStackRenderState.class)
 public class ItemStackRenderStateMixin {
