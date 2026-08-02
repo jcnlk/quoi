@@ -20,7 +20,7 @@ enum class Island(val displayName: String, val command: String? = null) : Area {
     Kuudra("Kuudra"),
 
     // hubs
-    Hub("Hub", /*"hub"*/),
+    Hub("Hub"),
     DarkAuction("Dark Auction"),
     JerryWorkshop("Jerry's Workshop"),
     Rift("The Rift"),

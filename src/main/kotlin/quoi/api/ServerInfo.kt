@@ -1,6 +1,7 @@
 package quoi.api
 
 import quoi.api.events.PacketEvent
+import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
 import quoi.utils.Scheduler.scheduleLoop
 import kotlinx.atomicfu.atomic
@@ -54,7 +55,7 @@ object ServerInfo : EventListener {
         //
         // TPS
         //
-        scheduleLoop(server = true) {
+        on<TickEvent.Server> {
             val now = System.currentTimeMillis()
             val dt = now - lastTickTime
             lastTickTime = now
