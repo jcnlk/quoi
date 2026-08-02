@@ -6,7 +6,7 @@ import quoi.annotations.Init
 import quoi.api.commands.QuoiCommand
 import quoi.api.commands.internal.GreedyString
 import quoi.api.skyblock.location.Location.inSkyblock
-import quoi.module.impl.misc.PetKeybinds.petMap
+import quoi.module.impl.general.PetKeybinds.petMap
 import quoi.utils.ChatUtils
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.StringUtils.noControlCodes

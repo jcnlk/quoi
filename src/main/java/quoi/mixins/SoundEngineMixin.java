@@ -6,7 +6,7 @@ import net.minecraft.client.sounds.SoundEngine;
 import net.minecraft.sounds.SoundSource;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import quoi.module.impl.player.Tweaks;
+import quoi.module.impl.general.Tweaks;
 
 @Mixin(SoundEngine.class)
 public abstract class SoundEngineMixin {

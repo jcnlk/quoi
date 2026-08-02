@@ -8,17 +8,17 @@ import quoi.api.events.core.on
 import quoi.api.input.CatKeys
 import quoi.module.impl.dungeon.*
 import quoi.module.impl.dungeon.autoclear.impl.*
-import quoi.module.impl.dungeon.floor7.*
 import quoi.module.impl.dungeon.puzzlesolvers.PuzzleSolvers
+import quoi.module.impl.floor7.*
+import quoi.module.impl.general.*
 import quoi.module.impl.mining.*
 import quoi.module.impl.misc.*
 import quoi.module.impl.misc.catmode.CatMode
-import quoi.module.impl.misc.chat.Chat
+import quoi.module.impl.general.chat.Chat
 import quoi.module.impl.misc.dojo.Dojo
-import quoi.module.impl.misc.inventory.Inventory
+import quoi.module.impl.general.inventory.Inventory
 import quoi.module.impl.misc.riftsolvers.MirrorverseSolvers
 import quoi.module.impl.misc.slayers.Slayers
-import quoi.module.impl.player.*
 import quoi.module.impl.render.*
 import quoi.module.impl.render.clickgui.ClickGui
 import quoi.module.settings.impl.KeybindComponent
@@ -29,28 +29,15 @@ object ModuleManager : EventListener {
     fun initialise() {
         modules += listOf(
             ClickGui,
-            // DUNGEONS
+            // DUNGEON
             ShadowAssassinAlert,
             LeapMenu,
-            ArrowAlign,
-            AutoLeap,
             AutoDoorOpener,
             FullBlockHitboxes,
             DungeonAbilities,
-            InvincibilityTimer,
-            SimonSays,
             DungeonBreaker,
-            NecronPlatformHighlight,
-            TerminalAura,
-            AutoInvincibility,
-            BarrierBoom,
             FireFreeze,
-            LightsDevice,
-            LavaBounce,
-            TickTimers,
             DungeonESP,
-            FuckDiorite,
-            AutoGFS,
             Splits,
             Secrets,
             PuzzleSolvers,
@@ -62,37 +49,51 @@ object ModuleManager : EventListener {
             AutoCroesus,
             AutoPotions,
 
+            // FLOOR 7
+            ArrowAlign,
+            AutoLeap,
+            BarrierBoom,
+            FuckDiorite,
+            LavaBounce,
+            LightsDevice,
+            NecronPlatformHighlight,
+            SimonSays,
+            TerminalAura,
+            TickTimers,
+            AutoInvincibility,
+            InvincibilityTimer,
+
             // MISC
             Test,
-            Chat,
-            AutoKick,
-            AutoJoinSkyBlock,
-            ChatReplacements,
             CatMode,
-            AutoSell,
-            AutoWardrobe,
-            AutoLoadout,
-            AutoHotbar,
-            PetKeybinds,
-            Titles,
-            WardrobeKeybinds,
-            AntiNick,
-            AutoClicker,
             ChocolateFactory,
-            Inventory,
-            ItemAnimations,
-            EscrowFix,
-            AutoBookCombine,
 //            CustomTriggers,
             MirrorverseSolvers,
             AutoCarnival,
             Slayers,
             Dojo,
 
-            // PLAYER
+            // GENERAL
             AutoSprint,
             PlayerDisplay,
             Tweaks,
+            AntiNick,
+            AutoBookCombine,
+            AutoClicker,
+            AutoGFS,
+            AutoHotbar,
+            AutoJoinSkyBlock,
+            AutoKick,
+            AutoLoadout,
+            AutoSell,
+            AutoWardrobe,
+            Chat,
+            ChatReplacements,
+            EscrowFix,
+            Inventory,
+            PetKeybinds,
+            Titles,
+            WardrobeKeybinds,
 
             // RENDER
             NameTags,
@@ -106,6 +107,7 @@ object ModuleManager : EventListener {
             Trajectories,
             EtherwarpOverlay,
             Waypoints,
+            ItemAnimations,
 
             // MINING
             CrystalHollowsMap,

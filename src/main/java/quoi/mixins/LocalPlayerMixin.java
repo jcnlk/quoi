@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import quoi.api.events.EntityEvent;
 import quoi.api.world.Direction;
-import quoi.module.impl.misc.ItemAnimations;
+import quoi.module.impl.render.ItemAnimations;
 import quoi.utils.skyblock.player.RotationUtils;
 
 import java.util.function.Predicate;

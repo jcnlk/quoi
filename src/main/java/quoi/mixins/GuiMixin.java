@@ -1,6 +1,6 @@
 package quoi.mixins;
 
-import quoi.module.impl.misc.ChatReplacements;
+import quoi.module.impl.general.ChatReplacements;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.scores.*;
