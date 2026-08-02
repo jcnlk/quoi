@@ -19,15 +19,14 @@ import quoi.utils.skyblock.player.SwapResult
 object BarrierBoom : Module( // todo move to triggerbot module
     "Barrier Boom",
     desc = "Automatically blows up Goldor fight gates.",
-    area = Island.Dungeon(7, inBoss = true)
+    area = Island.Dungeon(7, inBoss = true, phase = Phase.P3)
 ) {
-
     private var hasClickedBarrier = false
 
     init {
         on<TickEvent.Start> {
             val currentStage = Floor7Utils.getStage()
-            if (mc.gui.screen() != null || isDead || !Floor7Utils.inPhaseAt(Phase.P3) || currentStage.number !in 1..3 || currentStage.gate) return@on
+            if (mc.gui.screen() != null || isDead || currentStage.number !in 1..3 || currentStage.gate) return@on
 
             val result = mc.hitResult
             if (result is BlockHitResult && result.type == HitResult.Type.BLOCK) {

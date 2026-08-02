@@ -14,7 +14,7 @@ import quoi.module.Module
 object P4PlatformHighlight : Module(
     "P4 Platform Highlight",
     desc = "Highlights 3x3 area to mine after Goldor dies.",
-    area = Island.Dungeon(7, inBoss = true)
+    area = Island.Dungeon(7, inBoss = true, stage = Stage.S5)
 ) {
     private val platformHighlight = highlight(
         colour = Colour.CYAN,
@@ -27,7 +27,6 @@ object P4PlatformHighlight : Module(
 
     init {
         on<RenderEvent.World> {
-            if (!Floor7Utils.inStage(Stage.S5)) return@on
             platformHighlight.draw(ctx, healerBox)
         }
     }
