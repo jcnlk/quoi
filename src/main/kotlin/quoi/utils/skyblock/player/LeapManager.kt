@@ -23,6 +23,7 @@ object LeapManager : EventListener {
         val target: DungeonPlayer,
         val blockInput: Boolean,
         val fastMode: Boolean,
+        val swapBack: Boolean,
     )
 
     private var activeLeap: LeapRequest? = null
@@ -74,22 +75,24 @@ object LeapManager : EventListener {
         name: String,
         blockInput: Boolean = false,
         fastMode: Boolean = false,
+        swapBack: Boolean = false,
     ) {
         if (name == "" || !inDungeons) return
 
         val teammate = dungeonTeammatesNoSelf.firstOrNull { !it.isDead && it.name == name }
-        startLeap(teammate, formatName(name), blockInput, fastMode)
+        startLeap(teammate, formatName(name), blockInput, fastMode, swapBack)
     }
 
     fun leap(
         clazz: DungeonClass,
         blockInput: Boolean = false,
         fastMode: Boolean = false,
+        swapBack: Boolean = false,
     ) {
         if (clazz == DungeonClass.Unknown || !inDungeons) return
 
         val teammate = dungeonTeammatesNoSelf.firstOrNull { !it.isDead && it.clazz == clazz }
-        startLeap(teammate, "&${clazz.colourCode}${clazz.name}", blockInput, fastMode)
+        startLeap(teammate, "&${clazz.colourCode}${clazz.name}", blockInput, fastMode, swapBack)
     }
 
     private fun startLeap(
@@ -97,10 +100,11 @@ object LeapManager : EventListener {
         formattedTarget: String,
         blockInput: Boolean,
         fastMode: Boolean,
+        swapBack: Boolean,
     ) {
         teammate ?: return modMessage("&cFailed to leap! $formattedTarget &cnot found")
 
-        val request = LeapRequest(teammate, blockInput, fastMode)
+        val request = LeapRequest(teammate, blockInput, fastMode, swapBack)
         val openLeapMenu = (mc.gui.screen() as? AbstractContainerScreen<*>)?.takeIf { it.title.string == "Spirit Leap" }
 
         if (!inProgress && pendingLeap == null && openLeapMenu != null && ContainerManager.activeTask == null) {
@@ -120,10 +124,12 @@ object LeapManager : EventListener {
             return
         }
 
-        if (!preOpened) {
+        val previousSlot = if (!preOpened) {
+            val selectedSlot = mc.player?.inventory?.selectedSlot ?: return
             val swap = SwapManager.swapById("INFINITE_SPIRIT_LEAP", "SPIRIT_LEAP")
             if (!swap.success) return
-        }
+            selectedSlot.takeIf { leap.swapBack && !swap.already }
+        } else null
 
         activeLeap = leap
         val newTask = containerTask(
@@ -142,7 +148,7 @@ object LeapManager : EventListener {
                 failureMessage = "target not found in leap menu",
             )
 
-            onFinished { result -> finishLeap(leap, result) }
+            onFinished { result -> finishLeap(leap, result, previousSlot) }
         }
 
         task = newTask
@@ -150,7 +156,7 @@ object LeapManager : EventListener {
         newTask.run()
     }
 
-    private fun finishLeap(leap: LeapRequest, result: ContainerTaskResult) {
+    private fun finishLeap(leap: LeapRequest, result: ContainerTaskResult, previousSlot: Int?) {
         if (activeLeap !== leap) return
 
         when (result) {
@@ -166,6 +172,8 @@ object LeapManager : EventListener {
                 if (ContainerUtils.containerId != 0) mc.player?.closeContainer()
             }
         }
+
+        previousSlot?.let(SwapManager::swapToSlot)
 
         resetActiveLeap()
     }
