@@ -16,7 +16,7 @@ import quoi.module.settings.SettingsDSL
 
 /**
  * A [SettingGroup] for rendering esp boxes
- * Represents a selector with styles (Box, Filled box, Glow) with optional colour and other settings
+ * Represents a selector with styles (Box, Filled box, Filled, Glow) with optional colour and other settings
  *
  * @param parent Parent
  * @param name Selector name
@@ -27,6 +27,7 @@ import quoi.module.settings.SettingsDSL
  * @param customColour Whether to show a `Custom colour` toggle for the outline
  * @param customFillColour Whether to show a `Custom colour` toggle for the outline
  * @param aabbOffset Whether to show a slider to inflate/deflate the aabb size
+ * @param defaultStyle Style selected by default
  *
  * @see [SettingsDSL.highlight]
  */
@@ -40,15 +41,19 @@ class HighlightSettings( // kinda ugly but it works
     customColour: Boolean = false,
     customFillColour: Boolean = false,
     private val aabbOffset: Boolean = false,
+    defaultStyle: String = "Box",
 ): SettingGroup(
     parent,
     SelectorComponent(
         name,
-        "Box",
+        defaultStyle,
         buildList {
             add("Box")
             add("Filled box")
+            add("Filled")
             if (glow) add("Glow")
+        }.also { styles ->
+            require(defaultStyle in styles) { "Unknown default highlight style: $defaultStyle" }
         },
         desc = desc
     ),
@@ -71,7 +76,7 @@ class HighlightSettings( // kinda ugly but it works
         get() = _outline?.value ?: Colour.WHITE
 
     private val fillCustomCol = switch("Fill custom colour")
-        .visibleIf { style == "Filled box" }
+        .visibleIf { style.equalsOneOf("Filled box", "Filled") }
         .also {
             if (customFillColour && fillColour != null) +it
             else it.value = true
@@ -79,7 +84,7 @@ class HighlightSettings( // kinda ugly but it works
 
     private val _fill = fillColour?.let { col ->
         colourPicker("Fill colour", col, allowAlpha = true)
-            .visibleIf { style == "Filled box" }
+            .visibleIf { style.equalsOneOf("Filled box", "Filled") }
             .also {
                 if (!customFillColour) +it
                 else +it.childOf(fillCustomCol)
@@ -92,7 +97,7 @@ class HighlightSettings( // kinda ugly but it works
     private val thickness by slider("Thickness", 4f, 1f, 8f, 0.5f)
         .visibleIf { style.equalsOneOf("Box", "Filled box") }
     private val sizeOffset = slider("Size offset", 0.0, -1.0, 1.0, 0.05, desc = "Changes box size offset.")
-        .visibleIf { style.equalsOneOf("Box", "Filled box") }
+        .visibleIf { style.equalsOneOf("Box", "Filled box", "Filled") }
         .also { if (aabbOffset) +it }
 
     /**

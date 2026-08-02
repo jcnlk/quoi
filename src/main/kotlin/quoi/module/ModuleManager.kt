@@ -56,7 +56,7 @@ object ModuleManager : EventListener {
             FuckDiorite,
             LavaBounce,
             LightsDevice,
-            NecronPlatformHighlight,
+            P4PlatformHighlight,
             SimonSays,
             TerminalAura,
             TickTimers,
