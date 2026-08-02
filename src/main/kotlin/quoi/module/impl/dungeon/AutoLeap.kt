@@ -22,6 +22,7 @@ object AutoLeap : Module(
     private val fastLeapClickDelay by slider("Fast leap click delay", 250L, 100L, 500L, 50L)
     private val blockInputs by switch("Block inputs", desc = "Blocks keyboard and mouse input while leaping.")
     private val fastMode by switch("Fast mode", desc = "Blocks movement and input only from the leap menu opening until the target click.")
+    private val swapBack by switch("Swap back", desc = "Switches back to the previously held item after leaping.")
 
     private val doorOpenerLeap by switch("Door opener leap", desc = "Outside of F7 boss, fast leap to the last wither door opener.")
     private val doorOpenerAuto by switch("Auto", desc = "Automatically leaps to a teammate when they open a Wither or Blood door.").json("Door opener auto").childOf(::doorOpenerLeap)
@@ -272,6 +273,7 @@ object AutoLeap : Module(
             name,
             blockInput = blockInputs,
             fastMode = fastMode,
+            swapBack = swapBack,
         )
     }
 
@@ -280,6 +282,7 @@ object AutoLeap : Module(
             clazz,
             blockInput = blockInputs,
             fastMode = fastMode,
+            swapBack = swapBack,
         )
     }
 
