@@ -248,7 +248,11 @@ object Dungeon : EventListener, Shortcuts {
 
                         floorRegex.find(text)?.groupValues?.get(1)?.let {
                             scope.launch(Dispatchers.IO) { isPaul = false /*hasBonusPaulScore()*/ } // fixme
-                            floor = Floor.valueOf(it)
+                            val detectedFloor = Floor.valueOf(it)
+                            if (floor != detectedFloor) {
+                                floor = detectedFloor
+                                DungeonEvent.Enter(detectedFloor).post()
+                            }
                         }
 
                         clearedRegex.find(text)?.groupValues?.get(1)?.toIntOrNull()?.let {
