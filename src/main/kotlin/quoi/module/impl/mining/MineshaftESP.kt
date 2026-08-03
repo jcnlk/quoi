@@ -1,22 +1,17 @@
 package quoi.module.impl.mining
 
-import quoi.api.events.core.on
 import net.minecraft.core.BlockPos
-import net.minecraft.client.renderer.blockentity.BeaconRenderer
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.decoration.ArmorStand
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.block.Blocks
-import net.minecraft.world.level.chunk.LevelChunk
-import net.minecraft.world.level.chunk.status.ChunkStatus
+import net.minecraft.world.level.block.state.BlockState
 import quoi.api.colour.Colour
 import quoi.api.colour.withAlpha
-import quoi.api.events.BlockEvent
-import quoi.api.events.RenderEvent
-import quoi.api.events.TickEvent
-import quoi.api.events.WorldEvent
+import quoi.api.events.*
+import quoi.api.events.core.on
 import quoi.api.skyblock.location.Island
 import quoi.module.Module
 import quoi.module.settings.Setting.Companion.json
@@ -42,7 +37,7 @@ object MineshaftESP : Module(
     private val corpseEsp by switch("Corpse ESP", desc = "Highlights detected corpse spots.")
     private val names by switch("Show names",  desc = "Shows a label above detected spots.").childOf(::corpseEsp).asParent()
     private val style by selector("Style", "Box", arrayListOf("Filled", "Filled box", "Box"), desc = "Render style for detected spots.").childOf(::corpseEsp)
-    private val beaconBeam by switch("Beacon beam",  desc = "Renders a vertical beacon beam at detected spots.").childOf(::corpseEsp).asParent()
+    private val hideLootedCorpses by switch("Hide looted corpses", desc = "Hides corpse highlights after successfully looting them.").childOf(::corpseEsp).asParent()
 
     private val corpseColours by text("Colours").childOf(::corpseEsp)
     private val lapisColour by colourPicker("Lapis", Colour.RGB(85, 85, 255), true, "ESP color for Lapis corpses.").json("Lapis colour").childOf(::corpseColours)
@@ -78,7 +73,7 @@ object MineshaftESP : Module(
     private val littlefootFillColour by colourPicker("Littlefoot", Colour.CYAN.withAlpha(0.24f), true, "Fill color for Littlefoot.").json("Littlefoot fill colour").childOf(::mobFillColors)
     private val muttFillColour by colourPicker("Glacite Mutt", Colour.CYAN.withAlpha(0.24f), true, "Fill color for Glacite Mutts.").json("Glacite Mutt fill colour").childOf(::mobFillColors)
 
-    private val waypoints = linkedMapOf<BlockPos, MineshaftType>()
+    private val waypoints = linkedMapOf<BlockPos, CorpseType>()
     private val fossilBlocks = linkedSetOf<BlockPos>()
     private val scannedFossilChunks = mutableSetOf<Long>()
 
@@ -86,44 +81,43 @@ object MineshaftESP : Module(
         on<WorldEvent.Change> { reset() }
 
         on<WorldEvent.Chunk.Load> {
+            if (!fossilEsp) return@on
+
+            val chunkKey = chunk.pos.pack()
+            if (!scannedFossilChunks.add(chunkKey)) return@on
+
+            chunk.findBlocks(::isFossilBlock) { pos, _ -> fossilBlocks += pos.immutable() }
+        }
+
+        on<WorldEvent.Chunk.Unload> {
             scannedFossilChunks -= chunk.pos.pack()
             fossilBlocks.removeAll(chunk.pos::contains)
-            if (fossilEsp) scanChunk(chunk)
         }
 
         on<BlockEvent.Update> {
+            if (!fossilEsp) return@on
             when {
-                updated.block == Blocks.BONE_BLOCK -> fossilBlocks += pos.immutable()
-                old.block == Blocks.BONE_BLOCK -> fossilBlocks -= pos
+                isFossilBlock(updated) -> fossilBlocks += pos.immutable()
+                isFossilBlock(old) -> fossilBlocks -= pos
             }
         }
 
-        on<TickEvent.End> {
-            if (player.tickCount % 20 != 0) return@on
+        on<EntityEvent.ArmorStandHeadEquipmentUpdate> {
+            val type = entity.getMineshaftType() ?: return@on
+            waypoints.putIfAbsent(entity.blockPosition(), type)
+        }
 
-            if (corpseEsp) {
-                val found = linkedMapOf<BlockPos, MineshaftType>()
+        on<ChatEvent.Packet> {
+            if (!hideLootedCorpses) return@on
 
-                getEntities<ArmorStand>().forEach { stand ->
-                    val type = stand.getMineshaftType() ?: return@forEach
-                    found.putIfAbsent(stand.blockPosition(), type)
-                }
+            val type = CorpseType.entries.firstOrNull { unformatted.trim() == "${it.name} CORPSE LOOT!" } ?: return@on
+            val looted = waypoints.asSequence()
+                .filter { (pos, corpseType) -> corpseType == type && player.distanceToSqr(pos.center) <= 25.0 }
+                .minByOrNull { (pos, _) -> player.distanceToSqr(pos.center) }
+                ?.key
+                ?: return@on
 
-                waypoints.clear()
-                waypoints.putAll(found)
-            }
-
-            if (fossilEsp) {
-                val center = player.chunkPosition()
-                val radius = mc.options.effectiveRenderDistance
-
-                for (chunkX in (center.x - radius)..(center.x + radius)) {
-                    for (chunkZ in (center.z - radius)..(center.z + radius)) {
-                        val chunk = level.chunkSource.getChunk(chunkX, chunkZ, ChunkStatus.FULL, false) ?: continue
-                        scanChunk(chunk)
-                    }
-                }
-            }
+            waypoints -= looted
         }
 
         on<RenderEvent.World> {
@@ -134,17 +128,6 @@ object MineshaftESP : Module(
                     val fillColour = type.fillColour()
 
                     ctx.drawStyledBox(style.selected, waypointBox, colour, fillColour)
-
-                    if (beaconBeam) {
-                        val pose = com.mojang.blaze3d.vertex.PoseStack()
-                        val cameraPos = mc.gameRenderer.mainCamera.position()
-                        val time = (level.gameTime + mc.deltaTracker.getGameTimeDeltaPartialTick(true))
-
-                        pose.pushPose()
-                        pose.translate(pos.x.toDouble() - cameraPos.x, pos.y.toDouble() - cameraPos.y, pos.z.toDouble() - cameraPos.z)
-                        BeaconRenderer.submitBeaconBeam(pose, ctx.submitNodeCollector(), BeaconRenderer.BEAM_LOCATION, 1.0f, time, colour.rgb, 0, 160, 0.2f, 0.25f)
-                        pose.popPose()
-                    }
 
                     val textPos = pos.vec3.add(0.5, 2.5, 0.5)
                     if (names) {
@@ -171,13 +154,9 @@ object MineshaftESP : Module(
 
     override fun onDisable() { reset() }
 
-    private fun scanChunk(chunk: LevelChunk) {
-        val chunkKey = chunk.pos.pack()
-        if (!scannedFossilChunks.add(chunkKey)) return
-
-        chunk.findBlocks({ state -> state.block == Blocks.BONE_BLOCK }) { pos, _ ->
-            fossilBlocks += pos.immutable()
-        }
+    private fun isFossilBlock(state: BlockState) = when (state.block) {
+        Blocks.QUARTZ_BLOCK, Blocks.QUARTZ_STAIRS, Blocks.QUARTZ_SLAB -> true
+        else -> false
     }
 
     private fun reset() {
@@ -186,47 +165,47 @@ object MineshaftESP : Module(
         scannedFossilChunks.clear()
     }
 
-    private val Entity.espType: EntityEspType?
+    private val Entity.espType: MineshaftMob?
         get() = when {
             !isAlive -> null
-            type == EntityType.WOLF -> EntityEspType.GLACITE_MUTT
-            this is Player -> EntityEspType.fromName(cleanName)
+            type == EntityType.WOLF -> MineshaftMob.GLACITE_MUTT
+            this is Player -> MineshaftMob.fromName(cleanName)
             else -> null
         }
 
     private val Entity.cleanName: String
         get() = (customName ?: displayName).string.noControlCodes.trim()
 
-    private fun ArmorStand.getMineshaftType(): MineshaftType? {
+    private fun ArmorStand.getMineshaftType(): CorpseType? {
         val helmet = getItemBySlot(EquipmentSlot.HEAD).takeUnless { it.isEmpty } ?: return null
         val id = helmet.skyblockId ?: helmet.extraAttributes?.toString()
-        return MineshaftType.entries.firstOrNull { type ->
+        return CorpseType.entries.firstOrNull { type ->
             id?.contains(type.skyblockId, true) == true
         }
     }
 
-    private enum class MineshaftType(val skyblockId: String, val label: String) {
+    private enum class CorpseType(val skyblockId: String, val label: String) {
         LAPIS("LAPIS_ARMOR_HELMET", "&9&lLapis"),
         UMBER("ARMOR_OF_YOG_HELMET", "&6&lUmber"),
         TUNGSTEN("MINERAL_HELMET", "&7&lTungsten"),
         VANGUARD("VANGUARD_HELMET", "&b&lVanguard")
     }
 
-    private fun MineshaftType.colour() = when (this) {
-        MineshaftType.LAPIS -> lapisColour
-        MineshaftType.UMBER -> umberColour
-        MineshaftType.TUNGSTEN -> tungstenColour
-        MineshaftType.VANGUARD -> vanguardColour
+    private fun CorpseType.colour() = when (this) {
+        CorpseType.LAPIS -> lapisColour
+        CorpseType.UMBER -> umberColour
+        CorpseType.TUNGSTEN -> tungstenColour
+        CorpseType.VANGUARD -> vanguardColour
     }
 
-    private fun MineshaftType.fillColour() = when (this) {
-        MineshaftType.LAPIS -> lapisFillColour
-        MineshaftType.UMBER -> umberFillColour
-        MineshaftType.TUNGSTEN -> tungstenFillColour
-        MineshaftType.VANGUARD -> vanguardFillColour
+    private fun CorpseType.fillColour() = when (this) {
+        CorpseType.LAPIS -> lapisFillColour
+        CorpseType.UMBER -> umberFillColour
+        CorpseType.TUNGSTEN -> tungstenFillColour
+        CorpseType.VANGUARD -> vanguardFillColour
     }
 
-    private enum class EntityEspType {
+    private enum class MineshaftMob {
         GLACITE_BOWMAN,
         GLACITE_CAVER,
         GLACITE_MAGE,
@@ -238,19 +217,19 @@ object MineshaftESP : Module(
         }
     }
 
-    private fun EntityEspType.colour() = when (this) {
-        EntityEspType.GLACITE_BOWMAN -> bowmanColour
-        EntityEspType.GLACITE_CAVER -> caverColour
-        EntityEspType.GLACITE_MAGE -> mageColour
-        EntityEspType.LITTLEFOOT -> littlefootColour
-        EntityEspType.GLACITE_MUTT -> muttColour
+    private fun MineshaftMob.colour() = when (this) {
+        MineshaftMob.GLACITE_BOWMAN -> bowmanColour
+        MineshaftMob.GLACITE_CAVER -> caverColour
+        MineshaftMob.GLACITE_MAGE -> mageColour
+        MineshaftMob.LITTLEFOOT -> littlefootColour
+        MineshaftMob.GLACITE_MUTT -> muttColour
     }
 
-    private fun EntityEspType.fillColour() = when (this) {
-        EntityEspType.GLACITE_BOWMAN -> bowmanFillColour
-        EntityEspType.GLACITE_CAVER -> caverFillColour
-        EntityEspType.GLACITE_MAGE -> mageFillColour
-        EntityEspType.LITTLEFOOT -> littlefootFillColour
-        EntityEspType.GLACITE_MUTT -> muttFillColour
+    private fun MineshaftMob.fillColour() = when (this) {
+        MineshaftMob.GLACITE_BOWMAN -> bowmanFillColour
+        MineshaftMob.GLACITE_CAVER -> caverFillColour
+        MineshaftMob.GLACITE_MAGE -> mageFillColour
+        MineshaftMob.LITTLEFOOT -> littlefootFillColour
+        MineshaftMob.GLACITE_MUTT -> muttFillColour
     }
 }
