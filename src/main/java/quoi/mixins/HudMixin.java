@@ -9,8 +9,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import quoi.module.impl.player.PlayerDisplay;
-import quoi.module.impl.player.PlayerDisplay.HudType;
+import quoi.module.impl.general.PlayerDisplay;
+import quoi.module.impl.general.PlayerDisplay.HudType;
 
 @Mixin(Hud.class)
 public class HudMixin {
