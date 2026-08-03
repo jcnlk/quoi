@@ -1,7 +1,7 @@
 package quoi.module.impl.mining
 
 import quoi.api.events.core.on
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
+import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket
 import net.minecraft.world.entity.player.Inventory
 import net.minecraft.world.item.ItemStack
 import quoi.api.abobaui.dsl.px
@@ -9,74 +9,45 @@ import quoi.api.abobaui.elements.impl.Text.Companion.shadow
 import quoi.api.abobaui.elements.impl.Text.Companion.textSupplied
 import quoi.api.colour.Colour
 import quoi.api.colour.withAlpha
-import quoi.api.events.AreaEvent
 import quoi.api.events.ChatEvent
 import quoi.api.events.GuiEvent
-import quoi.api.events.TickEvent
+import quoi.api.events.PacketEvent
 import quoi.api.events.WorldEvent
 import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.location.Location.currentArea
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.visibleIf
-import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.WorldUtils.tablist
 import quoi.utils.render.DrawContextUtils.rect
 import quoi.utils.skyblock.item.ItemUtils.lore
 import quoi.utils.skyblock.player.PlayerUtils
 import quoi.utils.ui.hud.HudManager
 import quoi.utils.ui.hud.impl.TextHud
+import java.util.WeakHashMap
 
 object CommissionDisplay : Module(
     "Commision Display",
     area = Island.Mining,
     desc = "Displays your commissions without you having to open the tab menu!"
 ) {
-    private const val MAX_DISPLAYED_COMMISSIONS = 8
-    private const val COMMISSION_SECTION_TITLE = "Commissions"
-    private const val TITLE = "&cCommissions:"
-    private const val NONE_AVAILABLE = "&cNo commissions available!"
-
-    private val infoSectionRegex = Regex("^(?:Info|Account Info|Player Stats|Dungeon Stats)$")
-    private val commissionRegex = Regex("^(.*): ([\\d,.]+%|DONE)$")
-    private val commissionCompleteRegex = Regex("^(.*) Commission Complete! Visit the King to claim your rewards!$")
-    private val previewLines = listOf(
-        TITLE,
-        "&7- &fExample: &a100%",
-        "&7- &fExample: &b75%",
-        "&7- &fExample: &c7%",
-    )
     private val completionTitle by switch("Completion title", desc = "Shows a title when a commission is completed.")
     private val highlightDoneCommissions by switch("Highlight done commissions", desc = "Highlights completed commissions in the commissions menu.")
-    private val doneCommissionColour by colourPicker("Done commission colour", Colour.GREEN.withAlpha(90), allowAlpha = true)
-        .visibleIf { highlightDoneCommissions }
+    private val doneCommissionColour by colourPicker("Done commission colour", Colour.GREEN.withAlpha(90), allowAlpha = true).visibleIf { highlightDoneCommissions }
 
     @Suppress("unused")
-    private val hud by textHud("Commision Display", font = TextHud.HudFont.Minecraft, toggleable = false) {
+    private val hud by textHud("Commision Display") {
         visibleIf { this@CommissionDisplay.enabled && inCommissionArea() }
-
         column {
-            if (preview) {
-                previewLines.forEach { line ->
-                    text(
-                        string = line,
-                        font = font,
-                        size = 18.px,
-                        colour = colour,
-                    ).shadow = shadow
-                }
-                return@column
-            }
-
-            textSupplied(
-                supplier = { TITLE },
+            text(
+                string = "&cCommissions:",
                 colour = colour,
                 font = font,
                 size = 18.px,
             ).shadow = shadow
 
-            repeat(MAX_DISPLAYED_COMMISSIONS) { index ->
+            repeat(5) { index ->
                 textSupplied(
-                    supplier = { displayLine(index) },
+                    supplier = { commissionLines.getOrNull(index) ?: if (index == 0) NO_COMMISSIONS else "" },
                     colour = colour,
                     font = font,
                     size = 18.px,
@@ -85,43 +56,38 @@ object CommissionDisplay : Module(
         }
     }.setting()
 
-    private var commissions: List<CommissionEntry> = emptyList()
-    private var clientTicks = 0
+    private const val NO_COMMISSIONS = "&cNo commissions available!"
+    private const val COMPLETION_SUFFIX = " Commission Complete! Visit the King to claim your rewards!"
 
-    override fun onEnable() {
-        refreshCommissions()
-        super.onEnable()
-    }
+    private val commissionRegex = Regex("^ ([^:]+): (\\d+(?:\\.\\d+)?%|DONE)$")
+
+    private var commissionLines: List<String> = emptyList()
+    private val completedBooks = WeakHashMap<ItemStack, Boolean>()
+
+    override fun onEnable() = refreshCommissions()
 
     override fun onDisable() {
-        commissions = emptyList()
-        super.onDisable()
+        commissionLines = emptyList()
     }
 
     init {
-        on<TickEvent.End> {
-            clientTicks++
-            if (clientTicks % 20 == 0) refreshCommissions()
+        on<PacketEvent.ReceivedPost, ClientboundPlayerInfoUpdatePacket> {
+            if (packet.actions().none {
+                    it == ClientboundPlayerInfoUpdatePacket.Action.ADD_PLAYER ||
+                        it == ClientboundPlayerInfoUpdatePacket.Action.UPDATE_DISPLAY_NAME
+                }) return@on
+
+            refreshCommissions()
         }
 
         on<WorldEvent.Change> {
-            commissions = emptyList()
-            clientTicks = 0
-        }
-
-        on<AreaEvent.Main> {
-            refreshCommissions()
+            commissionLines = emptyList()
         }
 
         on<ChatEvent.Packet> {
             if (!completionTitle || !inCommissionArea()) return@on
-
-            val commissionName = commissionCompleteRegex.matchEntire(message.noControlCodes)
-                ?.groupValues
-                ?.getOrNull(1)
-                ?.trim()
-                ?.takeIf(String::isNotEmpty)
-                ?: return@on
+            if (!unformatted.endsWith(COMPLETION_SUFFIX)) return@on
+            val commissionName = unformatted.dropLast(COMPLETION_SUFFIX.length).ifEmpty { return@on }
 
             PlayerUtils.setTitle(
                 title = commissionName,
@@ -134,110 +100,62 @@ object CommissionDisplay : Module(
 
         on<GuiEvent.Slot.Draw> {
             if (!highlightDoneCommissions || !inCommissionArea()) return@on
-
-            val screen = screen as? AbstractContainerScreen<*> ?: return@on
-            if (screen.title.string.noControlCodes != COMMISSION_SECTION_TITLE) return@on
+            if (screen.title.string != "Commissions") return@on
             if (slot.container is Inventory) return@on
-            if (!slot.item.isCompletedCommissionBook()) return@on
+            if (!completedBooks.getOrPut(slot.item) { slot.item.lore?.any { it == "COMPLETED" } == true }) return@on
 
             ctx.rect(slot.x, slot.y, 16, 16, doneCommissionColour.rgb)
         }
     }
 
-    private fun inCommissionArea(): Boolean = currentArea.isArea(
-        Island.DwarvenMines,
-        Island.CrystalHollows,
-        Island.Mineshaft,
-    )
+    private fun inCommissionArea(): Boolean = currentArea.isArea(Island.DwarvenMines, Island.CrystalHollows, Island.Mineshaft)
 
     private fun refreshCommissions() {
-        val parsed = parseCommissions()
-        if (parsed.size != commissions.size) {
-            commissions = parsed
-            HudManager.reinit(immediately = false)
-            return
-        }
-        commissions = parsed
+        val lines = parseCommissions().map(::formatCommissionLine)
+        val layoutChanged = lines.size != commissionLines.size
+        commissionLines = lines
+        if (layoutChanged) HudManager.reinit(immediately = false)
     }
 
     private fun parseCommissions(): List<CommissionEntry> {
         if (!inCommissionArea()) return emptyList()
 
-        var inCommissionWidget = false
-        val parsed = mutableListOf<CommissionEntry>()
+        return tablist
+            .asSequence()
+            .mapNotNull { it.tabListDisplayName?.string }
+            .dropWhile { it != "Commissions:" }
+            .drop(1)
+            .takeWhile { it.startsWith(' ') }
+            .mapNotNull { line ->
+                val match = commissionRegex.matchEntire(line) ?: return@mapNotNull null
 
-        for (line in infoTabLines()) {
-            val trimmed = line.trim()
-
-            if (trimmed.equals(COMMISSION_SECTION_TITLE, true) || trimmed.equals("$COMMISSION_SECTION_TITLE:", true)) {
-                inCommissionWidget = true
-                continue
+                CommissionEntry(name = match.groupValues[1], percentage = parsePercentage(match.groupValues[2]))
             }
-
-            if (!inCommissionWidget) continue
-
-            val match = commissionRegex.matchEntire(trimmed) ?: break
-            parsed += CommissionEntry(
-                name = match.groupValues[1].trim(),
-                progress = parseProgress(match.groupValues[2]),
-            )
-        }
-
-        return parsed
-    }
-
-    private fun infoTabLines(): List<String> = tablist
-        .take(80)
-        .map { it.tabListDisplayName?.string ?: it.profile.name }
-        .chunked(20)
-        .filter { chunk -> chunk.firstOrNull()?.noControlCodes?.trim()?.matches(infoSectionRegex) == true }
-        .flatMap { chunk -> chunk.drop(1) }
-        .map { it.noControlCodes.trimEnd() }
-        .filter(String::isNotBlank)
-
-    private fun displayLine(index: Int): String = when {
-        commissions.isEmpty() && index == 0 -> NONE_AVAILABLE
-        commissions.isEmpty() -> ""
-        else -> commissions.getOrNull(index)?.let(::formatCommissionLine).orEmpty()
+            .toList()
     }
 
     internal fun currentActiveCommissionNames(): List<String> = parseCommissions()
-        .filter { it.progress < 1f }
+        .filter { it.percentage < 100f }
         .map { it.name }
 
-    private fun parseProgress(value: String): Float {
-        if (value.equals("DONE", true)) return 1f
-
-        val percent = value
-            .removeSuffix("%")
-            .replace(",", "")
-            .toFloatOrNull()
-            ?: return 0f
-
-        return (percent / 100f).coerceIn(0f, 1f)
-    }
+    private fun parsePercentage(value: String): Float =
+        if (value == "DONE") 100f else value.dropLast(1).toFloat().coerceIn(0f, 100f)
 
     private fun formatCommissionLine(entry: CommissionEntry): String {
-        val percent = (entry.progress * 100f).coerceIn(0f, 100f)
-        val value = if (percent % 1f == 0f) percent.toInt().toString() else "%.1f".format(percent)
-        return "&7- &f${entry.name}: ${progressColour(percent)}${value}%"
-    }
+        val percentage = entry.percentage
+        val colour = when {
+            percentage >= 100f -> "&a"
+            percentage >= 75f -> "&b"
+            percentage >= 50f -> "&e"
+            percentage >= 25f -> "&6"
+            else -> "&c"
+        }
 
-    private fun progressColour(percent: Float): String = when {
-        percent >= 100f -> "&a"
-        percent >= 75f -> "&b"
-        percent >= 50f -> "&e"
-        percent >= 25f -> "&6"
-        else -> "&c"
-    }
-
-    private fun ItemStack.isCompletedCommissionBook(): Boolean {
-        if (isEmpty) return false
-        return lore?.any { it.noControlCodes.contains("COMPLETED", ignoreCase = true) } == true
+        return "&7- &f${entry.name}: $colour${percentage.toString().removeSuffix(".0")}%"
     }
 
     private data class CommissionEntry(
         val name: String,
-        val progress: Float,
+        val percentage: Float,
     )
 }
