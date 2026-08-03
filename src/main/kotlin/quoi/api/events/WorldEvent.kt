@@ -6,6 +6,7 @@ import net.minecraft.world.level.chunk.LevelChunk
 abstract class WorldEvent {
     abstract class Chunk {
         class Load(val chunk: LevelChunk) : UnfilteredEvent()
+        class Unload(val chunk: LevelChunk) : UnfilteredEvent()
     }
     class Change : UnfilteredEvent()
     abstract class Load {

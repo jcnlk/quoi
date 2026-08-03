@@ -82,6 +82,10 @@ object EventDispatcher {
             if (mc.level != null && mc.player != null) WorldEvent.Chunk.Load(chunk).post()
         }
 
+        ClientChunkEvents.CHUNK_UNLOAD.register { _, chunk ->
+            if (mc.level != null && mc.player != null) WorldEvent.Chunk.Unload(chunk).post()
+        }
+
         ClientPlayConnectionEvents.JOIN.register { handler, _, _ ->
             ServerEvent.Connect(handler.serverData?.ip ?: "SinglePlayer").post()
         }
