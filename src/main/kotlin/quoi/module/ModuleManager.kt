@@ -17,6 +17,7 @@ import quoi.module.impl.misc.catmode.CatMode
 import quoi.module.impl.general.chat.Chat
 import quoi.module.impl.misc.dojo.Dojo
 import quoi.module.impl.general.inventory.Inventory
+import quoi.module.impl.mining.glacitetunnels.GlaciteTunnels
 import quoi.module.impl.misc.riftsolvers.MirrorverseSolvers
 import quoi.module.impl.misc.slayers.Slayers
 import quoi.module.impl.render.*
