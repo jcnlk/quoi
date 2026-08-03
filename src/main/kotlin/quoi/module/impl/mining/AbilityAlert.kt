@@ -16,14 +16,10 @@ object AbilityAlert : Module(
     init {
         on<ChatEvent.Packet> {
             val formatted = text.formattedString
-            if (!formatted.startsWith("§6") ||
-                !formatted.endsWith("§ais now available!")
-            ) return@on
+            if (!formatted.startsWith("§6") || !formatted.endsWith("§ais now available!")) return@on
 
-            val ability = AVAILABLE_PATTERN.matchEntire(unformatted)
-                ?.groupValues
-                ?.get(1)
-                ?: return@on
+            val ability = unformatted.removeSuffix(" is now available!")
+            if (ability.isEmpty()) return@on
 
             PlayerUtils.setTitle(
                 title = "§6${ability.uppercase()}!",
@@ -35,6 +31,4 @@ object AbilityAlert : Module(
             )
         }
     }
-
-    private val AVAILABLE_PATTERN = Regex("^(.+) is now available!$")
 }
