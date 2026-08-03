@@ -1,8 +1,6 @@
 package quoi.module.impl.dungeon
 
-import kotlinx.coroutines.launch
 import net.minecraft.world.item.ItemStack
-import quoi.QuoiMod.scope
 import quoi.api.events.ChatEvent
 import quoi.api.events.DungeonEvent
 import quoi.api.events.core.on
@@ -12,7 +10,7 @@ import quoi.api.skyblock.location.invoke
 import quoi.module.Module
 import quoi.utils.ChatUtils
 import quoi.utils.ChatUtils.modMessage
-import quoi.utils.Scheduler.wait
+import quoi.utils.Scheduler
 import quoi.utils.items
 import quoi.utils.skyblock.item.ItemUtils.extraAttributes
 import quoi.utils.skyblock.player.container.ContainerUtils
@@ -36,7 +34,7 @@ object AutoPotions : Module(
     private val preventMoving by switch("Prevent moving", desc = "Stops your movement while grabbing potions is in progress.")
     private val blockInputs by switch("Block inputs", desc = "Blocks keyboard and mouse input while grabbing potions.")
     private val fastMode by switch("Fast mode", desc = "Blocks movement and input only from the menu opening until the target click.")
-    private val triggerDelay by slider("Trigger delay", 0, 1, 20, 1, "Extra delay until potion grab starts.", "t")
+    private val triggerDelay by slider("Trigger delay", 1, 0, 20, 1, "Delay until potion grab starts.", "t")
     private val grabDelay by slider("Grab delay", 0, 0, 10, 1, "Extra delay before grabbing potion from potion bag.", "t")
 
     private val floors by multiSelect(
@@ -55,65 +53,63 @@ object AutoPotions : Module(
 
     init {
         on<DungeonEvent.Enter> {
-            mc.submit {
-                scope.launch {
-                    wait(triggerDelay)
-                    if (!active || floor !in floors) return@launch
-                    if (task?.let { it.result == null } == true) return@launch
+            Scheduler.scheduleTask(triggerDelay) {
+                if (!active || floor !in floors) return@scheduleTask modMessage("no floor match")
+                if (task?.let { it.result == null } == true) return@scheduleTask modMessage("result shit")
 
-                    val inventory = mc.player?.inventory?.items?.take(36) ?: return@launch
-                    val existingTier = inventory.mapNotNull { it.dungeonPotionTier() }.maxByOrNull(PotionTier::level)
+                val inventory = mc.player?.inventory?.items?.take(36) ?: return@scheduleTask modMessage("inv shit")
+                val existingTier = inventory.mapNotNull { it.dungeonPotionTier() }.maxByOrNull(PotionTier::level)
 
-                    if (existingTier != null && existingTier.level >= minimumPotionTier.selected.level) {
-                        modMessage("&eAlready have a Dungeon $existingTier Potion.")
-                        return@launch
-                    }
-
-                    if (inventory.none(ItemStack::isEmpty)) {
-                        modMessage("&cCouldn't get a potion: your inventory is full.")
-                        return@launch
-                    }
-
-                    modMessage("Getting potion!")
-
-                    val newTask = containerTask(
-                        name = "Getting potion",
-                        force = true,
-                        preventMovement = preventMoving,
-                        blockInput = blockInputs,
-                        fastMode = fastMode
-                    ) {
-                        action { ChatUtils.command("potionbag") }
-                        awaitContainer("Potion Bag", waitForItems = true)
-                        check("No potion left in slot 1 of your Potion Bag") {
-                            player.containerMenu.items.getOrNull(0)?.isEmpty == false
-                        }
-                        if (grabDelay > 0) this.wait(grabDelay)
-                        pickup(0.menu)
-                        action { mc.player?.closeContainer() }
-
-                        onFinished { result ->
-                            if (result != ContainerTaskResult.Success &&
-                                result != ContainerTaskResult.Busy &&
-                                ContainerUtils.containerId != 0
-                            ) {
-                                mc.player?.closeContainer()
-                            }
-
-                            when (result) {
-                                ContainerTaskResult.Success,
-                                ContainerTaskResult.Cancelled -> Unit
-                                ContainerTaskResult.Busy -> modMessage("&cCouldn't get a potion: another container action is active.")
-                                is ContainerTaskResult.Failure -> modMessage("&cCouldn't get a potion: ${result.message}.")
-                            }
-
-                            task = null
-                        }
-                    }
-
-                    task = newTask
-                    newTask.run()
+                if (existingTier != null && existingTier.level >= minimumPotionTier.selected.level) {
+                    modMessage("&eAlready have a Dungeon $existingTier Potion.")
+                    return@scheduleTask
                 }
+
+                if (inventory.none(ItemStack::isEmpty)) {
+                    modMessage("&cCouldn't get a potion: your inventory is full.")
+                    return@scheduleTask
+                }
+
+                modMessage("Getting potion!")
+
+                val newTask = containerTask(
+                    name = "Getting potion",
+                    force = true,
+                    preventMovement = preventMoving,
+                    blockInput = blockInputs,
+                    fastMode = fastMode
+                ) {
+                    action { ChatUtils.command("potionbag") }
+                    awaitContainer("Potion Bag", waitForItems = true)
+                    check("No potion left in slot 1 of your Potion Bag") {
+                        player.containerMenu.items.getOrNull(0)?.isEmpty == false
+                    }
+                    if (grabDelay > 0) wait(grabDelay)
+                    pickup(0.menu)
+                    action { mc.player?.closeContainer() }
+
+                    onFinished { result ->
+                        if (result != ContainerTaskResult.Success &&
+                            result != ContainerTaskResult.Busy &&
+                            ContainerUtils.containerId != 0
+                        ) {
+                            mc.player?.closeContainer()
+                        }
+
+                        when (result) {
+                            ContainerTaskResult.Success,
+                            ContainerTaskResult.Cancelled -> Unit
+
+                            ContainerTaskResult.Busy -> modMessage("&cCouldn't get a potion: another container action is active.")
+                            is ContainerTaskResult.Failure -> modMessage("&cCouldn't get a potion: ${result.message}.")
+                        }
+
+                        task = null
+                    }
+                }
+
+                task = newTask
+                newTask.run()
             }
         }
 
