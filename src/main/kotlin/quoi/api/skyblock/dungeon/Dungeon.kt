@@ -391,13 +391,10 @@ object Dungeon : EventListener, Shortcuts {
         return previousTeammates
     }
 
-    private val WITHER_ESSENCE_IDS = setOf(
-        UUID.fromString("2865274b-3097-394e-8149-ec629c72d850"),
-        UUID.fromString("e0f3e929-869e-3dca-9504-54c666ee6f23"), // Still active on alpha
-    )
+    private val WITHER_ESSENCE_IDS = UUID.fromString("2865274b-3097-394e-8149-ec629c72d850")
     private val REDSTONE_KEY = UUID.fromString("fed95410-aba1-39df-9b95-1d4f361eb66e")
 
-    fun isWitherEssence(id: UUID?): Boolean = id in WITHER_ESSENCE_IDS
+    fun isWitherEssence(id: UUID?): Boolean = id == WITHER_ESSENCE_IDS
     fun isRedstoneKey(id: UUID?): Boolean = id == REDSTONE_KEY
 
     /**
