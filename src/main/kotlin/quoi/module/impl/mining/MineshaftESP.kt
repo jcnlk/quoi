@@ -9,6 +9,7 @@ import net.minecraft.world.entity.decoration.ArmorStand
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.level.chunk.status.ChunkStatus
 import quoi.api.colour.Colour
 import quoi.api.colour.withAlpha
 import quoi.api.events.*
@@ -79,12 +80,24 @@ object MineshaftESP : Module(
     init {
         on<WorldEvent.Change> { reset() }
 
-        on<WorldEvent.Chunk.Load> {
+        on<AreaEvent.Main> {
             if (!fossilEsp) return@on
 
-            val chunkKey = chunk.pos.pack()
-            if (!scannedFossilChunks.add(chunkKey)) return@on
+            val center = player.chunkPosition()
+            val radius = mc.options.effectiveRenderDistance
 
+            for (chunkX in (center.x - radius)..(center.x + radius)) {
+                for (chunkZ in (center.z - radius)..(center.z + radius)) {
+                    val chunk = level.chunkSource.getChunk(chunkX, chunkZ, ChunkStatus.FULL, false) ?: continue
+                    if (!scannedFossilChunks.add(chunk.pos.pack())) continue
+
+                    chunk.findBlocks(::isFossilBlock) { pos, _ -> fossilBlocks += pos.immutable() }
+                }
+            }
+        }
+
+        on<WorldEvent.Chunk.Load> {
+            if (!fossilEsp || !scannedFossilChunks.add(chunk.pos.pack())) return@on
             chunk.findBlocks(::isFossilBlock) { pos, _ -> fossilBlocks += pos.immutable() }
         }
 
