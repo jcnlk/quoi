@@ -132,6 +132,9 @@ object Dungeon : EventListener, Shortcuts {
     inline val princeKilled: Boolean
         get() = dungeonStats.princeKilled
 
+    inline val batKilled: Boolean
+        get() = dungeonStats.batKilled
+
     inline val currentRoom: OdonRoom?
         get() = ScanUtils.currentRoom
 
@@ -143,6 +146,7 @@ object Dungeon : EventListener, Shortcuts {
             var score = cryptCount.coerceAtMost(5)
             if (mimicKilled) score += 2
             if (princeKilled) score += 1
+            if (batKilled) score *= 1
 //            if ((isPaul && togglePaul == 0) || togglePaul == 2) score += 10
             return score
         }
@@ -293,12 +297,16 @@ object Dungeon : EventListener, Shortcuts {
 
                         when (partyMessageRegex.find(message)?.groupValues?.get(1)?.lowercase() ?: return@on) {
                             "mimic killed", "mimic slain", "mimic killed!",
-                            "mimic dead", "mimic dead!", $$"$skytils-dungeon-score-mimic$", /*Mimic.mimicMessage*/ ->
+                            "mimic dead", "mimic dead!", $$"$skytils-dungeon-score-mimic$" -> // rip Skytils
                                 dungeonStats.mimicKilled = true
 
                             "prince killed", "prince slain", "prince killed!",
-                            "prince dead", "prince dead!", $$"$skytils-dungeon-score-prince$", /*Mimic.princeMessage*/ ->
+                            "prince dead", "prince dead!", $$"$skytils-dungeon-score-prince$" -> // rip Skytils
                                 dungeonStats.princeKilled = true
+
+                            "bat killed", "bat slain", "bat killed!",
+                            "bat dead", "bat dead!", $$"$skytils-dungeon-score-bat$" -> // rip Skytils
+                                dungeonStats.batKilled = true
 
                             "blaze done!", "blaze done", "blaze puzzle solved!" ->
                                 puzzles.find { it == Puzzle.BLAZE }.let { it?.status = PuzzleStatus.Completed }
@@ -325,7 +333,6 @@ object Dungeon : EventListener, Shortcuts {
 //                                -1
 
                     }
-
                 }
             }
         }
@@ -540,6 +547,7 @@ object Dungeon : EventListener, Shortcuts {
         var elapsedTime: String = "0s",
         var mimicKilled: Boolean = false,
         var princeKilled: Boolean = false,
+        var batKilled: Boolean = false,
         var doorOpener: String = "Unknown",
         var bloodDone: Boolean = false,
         var bloodOpen: Boolean = false,
