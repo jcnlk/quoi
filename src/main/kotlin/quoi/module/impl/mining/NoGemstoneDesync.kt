@@ -8,6 +8,7 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import quoi.api.events.BlockEvent
 import quoi.api.events.TickEvent
+import quoi.api.events.WorldEvent
 import quoi.api.events.core.on
 import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.location.Location.currentArea
@@ -25,6 +26,7 @@ object NoGemstoneDesync : Module(
         Island.Rift,
     )
     private val pendingUpdates = mutableSetOf<BlockPos>()
+    private var applyingPendingUpdates = false
 
     init {
         on<BlockEvent.Update> {
@@ -40,13 +42,26 @@ object NoGemstoneDesync : Module(
             pendingUpdates.clear()
 
             if (!active || currentArea !in affectedIslands) return@on
-            updates.forEach { pos -> level.getBlockState(pos).updateNeighbourShapes(level, pos, Block.UPDATE_ALL) }
+            applyingPendingUpdates = true
+            try {
+                updates.forEach { pos ->
+                    val state = level.getBlockState(pos)
+                    if (state.isAir) state.updateNeighbourShapes(level, pos, Block.UPDATE_ALL)
+                }
+            } finally {
+                applyingPendingUpdates = false
+            }
         }
+
+        on<WorldEvent.Change> { reset() }
     }
 
     @JvmStatic
     fun shouldFillDisconnectedPane(state: BlockState): Boolean =
-        active && currentArea in affectedIslands && state.block is StainedGlassPaneBlock &&
+        applyingPendingUpdates &&
+            active &&
+            currentArea in affectedIslands &&
+            state.block is StainedGlassPaneBlock &&
             !state.getValue(BlockStateProperties.NORTH) &&
             !state.getValue(BlockStateProperties.EAST) &&
             !state.getValue(BlockStateProperties.SOUTH) &&
@@ -63,7 +78,10 @@ object NoGemstoneDesync : Module(
     private fun isStainedGlass(state: BlockState): Boolean =
         state.block is StainedGlassBlock || state.block is StainedGlassPaneBlock
 
-    override fun onDisable() {
+    override fun onDisable() { reset() }
+
+    private fun reset() {
         pendingUpdates.clear()
+        applyingPendingUpdates = false
     }
 }
