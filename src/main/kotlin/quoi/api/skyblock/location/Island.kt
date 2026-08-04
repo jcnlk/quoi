@@ -7,32 +7,40 @@ import quoi.api.skyblock.dungeon.Stage
 import quoi.module.impl.render.clickgui.ClickGui
 
 enum class Island(val displayName: String, val command: String? = null) : Area {
-    // personal
-    PrivateIsland("Private Island", /*"home"*/),
+    // general
+    PrivateIsland("Private Island"),
+    PrivateIslandGuest("Private Island Guest"), // basically useless but who cares
+    Hub("Hub", "hub"),
+    DarkAuction("Dark Auction"),
+    JerryWorkshop("Jerry's Workshop", "jerry"),
+
+    // farming
+    FarmingIsland("The Farming Islands"), // TODO: add warp command
     Garden("Garden", "garden"),
+    GardenGuest("Garden Guest"), // basically useless but who cares
+
+    // fishing
+    BackwaterBayou("Backwater Bayou", "bayou"),
+    LotusAtoll("Lotus Atoll"), // TODO: add warp command
 
     // combat
     TheEnd("The End", "end"),
     SpiderDen("Spider's Den", "spider"),
     CrimsonIsle("Crimson Isle", "crimson"),
-    FarmingIsland("The Farming Islands"),
 
     // instanced
     Dungeon("Catacombs"),
     DungeonHub("Dungeon Hub", "dh"),
     Kuudra("Kuudra"),
 
-    // hubs
-    Hub("Hub"),
-    DarkAuction("Dark Auction"),
-    JerryWorkshop("Jerry's Workshop"),
-    Rift("The Rift"),
-
-    // foraging/modern
+    // foraging
     ThePark("The Park", "park"),
-    BackwaterBayou("Backwater Bayou"),
     Galatea("Galatea", "galatea"),
-    LotusAtoll("Lotus Atoll"),
+    TorrhusCanyon("Torrhus Canyon"), // TODO: add warp command
+
+    // special/misc
+    Safari("Safari", "safari"),
+    Rift("The Rift", "rift"),
 
     // mining
     GoldMine("Gold Mine", "gold"),
