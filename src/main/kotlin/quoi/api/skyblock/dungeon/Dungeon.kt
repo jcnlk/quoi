@@ -146,7 +146,7 @@ object Dungeon : EventListener, Shortcuts {
             var score = cryptCount.coerceAtMost(5)
             if (mimicKilled) score += 2
             if (princeKilled) score += 1
-            if (batKilled) score *= 1
+            if (batKilled) score += 1
 //            if ((isPaul && togglePaul == 0) || togglePaul == 2) score += 10
             return score
         }
