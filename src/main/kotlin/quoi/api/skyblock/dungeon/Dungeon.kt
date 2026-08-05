@@ -98,9 +98,6 @@ object Dungeon : EventListener, Shortcuts {
     inline val dungeonTime: String
         get() = dungeonStats.elapsedTime
 
-//    inline val currentRoomName: String
-//        get() = DungeonListener.currentRoom?.data?.name ?: "Unknown"
-
     var dungeonTeammates: ArrayList<DungeonPlayer> = ArrayList(5)
         private set
 
@@ -147,7 +144,6 @@ object Dungeon : EventListener, Shortcuts {
             if (mimicKilled) score += 2
             if (princeKilled) score += 1
             if (batKilled) score += 1
-//            if ((isPaul && togglePaul == 0) || togglePaul == 2) score += 10
             return score
         }
 
@@ -217,13 +213,7 @@ object Dungeon : EventListener, Shortcuts {
                     else null
             isPaul = false
             deathTick = -1
-//            enterTime = 0L
         }
-
-//        on<RoomEnterEvent>(priority = 100) {
-//            val room = room?.takeUnless { room -> passedRooms.any { it.data.name == room.data.name } } ?: return@on
-//            dungeonStats.knownSecrets += room.data.secrets
-//        }
 
         on<PacketEvent.Received> {
             with(packet) {
@@ -327,11 +317,6 @@ object Dungeon : EventListener, Shortcuts {
                         if (!inClear) return@on
                         val gameTime = level.gameTime
                         deathTick = 40 - (gameTime % 40).toInt()
-//                            if (openRoomCount == 0)
-//                                40 - (gameTime % 40).toInt()
-//                            else
-//                                -1
-
                     }
                 }
             }
