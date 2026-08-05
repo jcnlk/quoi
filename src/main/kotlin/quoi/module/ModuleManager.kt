@@ -89,7 +89,6 @@ object ModuleManager : EventListener {
             AutoSell,
             AutoWardrobe,
             Chat,
-            ChatReplacements,
             EscrowFix,
             Inventory,
             PetKeybinds,

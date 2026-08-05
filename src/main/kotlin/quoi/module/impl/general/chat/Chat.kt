@@ -17,5 +17,7 @@ object Chat : Module(
         KeepChatHistory
         DisableAutoScroll
         AutoDialogue
+        ChatEmojis
+        ChatReplacements
     }
 }

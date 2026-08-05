@@ -1,118 +1,113 @@
-package quoi.module.impl.general
+package quoi.module.impl.general.chat.impl
 
 import quoi.api.events.ChatEvent
 import quoi.api.events.core.on
-import quoi.module.Module
-import quoi.utils.ChatUtils.command
+import quoi.module.impl.general.chat.Chat
+import quoi.module.settings.group.ToggleableGroup
 import quoi.utils.ChatUtils.modMessage
-import quoi.utils.ChatUtils.say
 import quoi.utils.StringUtils.noControlCodes
 
-object ChatReplacements : Module("Chat Replacements", desc = "temp") { // THIS IS A TEMP MODULE. todo replace with custom hiders
-    private val chatEmotes by switch("Chat emotes")
-    private val cleanerDungeons by switch("Cleaner dungeons")
-    private val cleanerPf by switch("Cleaner PF")
-    private val hideOtherMessages by switch("Hide useless messages")
-    private val hideMoreMessages by switch("Hide even more useless messages")
+object ChatReplacements : ToggleableGroup(
+    Chat,
+    "Chat replacements",
+    desc = "Cleans up and replaces selected chat messages."
+) {
+    private val cleanDungeonMessages by switch("Cleaner dungeons")
+    private val cleanPartyFinderMessages by switch("Cleaner PF")
+    private val hideUselessMessages by switch("Hide useless messages")
     private val hideNonRankInvites by switch("Hide non rank invites", desc = "Hides party invites from players without a rank.")
 
-    private val hideDiscordWarnings by switch("Hide discord warnings", desc = "Hides Discord warning messages.")
-    private val hideMicrosoftWarnings by switch("Hide microsoft warnings", desc = "Hides Microsoft account warnings.")
-
-    private val hideActionbar by switch("Hide actionbar", desc = "Hides ALL actionbar messages/contents.")
-    private val hideScoreboardShit by switch("Hide scoreboard shit", desc = "Hides the Server ID and www.hypixel.net")
-    private val hideEmptyChats by switch("Hide empty chat messages", desc = "Hides chat messages with no text.")
-    private var pendingSentReplacement: String? = null
-
-    @JvmStatic val shouldHideServerId get() = this.enabled && hideScoreboardShit
-
     init {
-//        on<ChatEvent.Packet> { event ->
-//            if (handleChatMessage(event.message)) event.cancel()
-//        }
-
         on<ChatEvent.Receive> {
-            if (handleChatMessage(message)) cancel()
-            if (hideEmptyChats && message.isBlank()) cancel()
-        }
-
-        on<ChatEvent.Sent> {
-            if (pendingSentReplacement == message) {
-                pendingSentReplacement = null
-                return@on
+            when (val action = resolveReceivedMessage(message)) {
+                KeepMessage -> Unit
+                HideMessage -> cancel()
+                is ReplaceMessage -> {
+                    modMessage(action.message, prefix = action.prefix)
+                    cancel()
+                }
             }
-
-            var replacedMessage = message
-            var replaced = false
-
-            if (chatEmotes) {
-                val defaultMessage = replaceDefaultEmotes(replacedMessage)
-                replaced = defaultMessage != replacedMessage
-                replacedMessage = defaultMessage
-            }
-
-            if (!replaced) return@on
-
-            cancel()
-            pendingSentReplacement = replacedMessage
-            if (isCommand) command(replacedMessage) else say(replacedMessage)
         }
     }
 
-    @JvmStatic
-    val shouldHideActionBar get() = this.enabled && hideActionbar
+    private sealed interface ReceivedMessageAction
 
-    data class Replacement(val pattern: Regex, val replacement: String)
+    private data object KeepMessage : ReceivedMessageAction
 
-    private fun replaceDefaultEmotes(message: String): String {
-        var replaced = false
-        val words = message.split(" ").toMutableList()
+    private data object HideMessage : ReceivedMessageAction
 
-        for (i in words.indices) {
-            emojiMap[words[i]]?.let {
-                replaced = true
-                words[i] = it
-            }
+    private data class ReplaceMessage(val message: String, val prefix: String = "") : ReceivedMessageAction
+
+    private data class MessageReplacement(val pattern: Regex, val replacement: String)
+
+    private fun resolveReceivedMessage(message: String): ReceivedMessageAction {
+        val plainMessage = message.noControlCodes
+
+        if (shouldHideNonRankInvite(plainMessage)) return HideMessage
+
+        if (cleanDungeonMessages) {
+            resolveDungeonMessage(plainMessage)?.let { return it }
         }
 
-        return if (replaced) words.joinToString(" ") else message
+        if (cleanPartyFinderMessages) {
+            resolvePartyFinderMessage(plainMessage)?.let { return it }
+        }
+
+        if (hideUselessMessages) {
+            resolveUselessMessage(message, plainMessage)?.let { return it }
+        }
+
+        return KeepMessage
     }
 
-    val emojiMap = hashMapOf(
-        "<3" to "❤",
-        "o/" to "( ﾟ◡ﾟ)/",
-        ":star:" to "✮",
-        ":yes:" to "✔",
-        ":no:" to "✖",
-        ":java:" to "☕",
-        ":arrow:" to "➜",
-        ":shrug:" to "¯\\_(ツ)_/¯",
-        ":tableflip:" to "(╯°□°）╯︵ ┻━┻",
-        ":totem:" to "☉_☉",
-        ":typing:" to "✎...",
-        ":maths:" to "√(π+x)=L",
-        ":snail:" to "@'-'",
-        ":thinking:" to "(0.o?)",
-        ":gimme:" to "༼つ◕_◕༽つ",
-        ":wizard:" to "(' - ')⊃━☆ﾟ.*･｡ﾟ",
-        ":pvp:" to "⚔",
-        ":peace:" to "✌",
-        ":puffer:" to "<('O')>",
-        "h/" to "ヽ(^◇^*)/",
-        ":sloth:" to "(・⊝・)",
-        ":dog:" to "(ᵔᴥᵔ)",
-        ":dj:" to "ヽ(⌐■_■)ノ♬",
-        ":yey:" to "ヽ (◕◡◕) ﾉ",
-        ":snow:" to "☃",
-        ":dab:" to "<o/",
-        ":cat:" to "= ＾● ⋏ ●＾ =",
-        ":cute:" to "(✿◠‿◠)",
-        ":skull:" to "☠"
-    )
+    private fun shouldHideNonRankInvite(message: String): Boolean {
+        if (!hideNonRankInvites) return false
+        val inviter = nonRankInviteRegex.find(message)?.groupValues?.get(1) ?: return false
+        return '[' !in inviter
+    }
 
-    private const val DUNGEON_PREFIX = "§dDungeon§f >"
+    private fun resolveDungeonMessage(message: String): ReceivedMessageAction? {
+        for (replacement in dungeonMessageReplacements) {
+            val match = replacement.pattern.find(message) ?: continue
+            val replacedMessage = match.value.replace(replacement.pattern, replacement.replacement)
+            return ReplaceMessage(replacedMessage, "§dDungeon§f >")
+        }
 
-    private val rareDropsToRemove = listOf(
+        if (message in hiddenDungeonRareDrops) return HideMessage
+        if (hiddenDungeonMessagePatterns.any { it.containsMatchIn(message) }) return HideMessage
+        return null
+    }
+
+    private fun resolvePartyFinderMessage(message: String): ReceivedMessageAction? {
+        partyFinderMessageReplacements[message]?.let { return ReplaceMessage(it) }
+
+        pfClassChangeRegex.find(message)?.let { match ->
+            val (player, clazz, level) = match.destructured
+            return ReplaceMessage("§dPF > §b$player §echanged to §b$clazz $level§e!")
+        }
+
+        pfJoinRegex.find(message)?.let { match ->
+            val (player, clazz, level) = match.destructured
+            return ReplaceMessage("§dPF > §b$player §ejoined the group! (§b$clazz $level§e)")
+        }
+
+        return null
+    }
+
+    private fun resolveUselessMessage(message: String, plainMessage: String): ReceivedMessageAction? {
+        if (formattedUselessMessagePatterns.any { it.containsMatchIn(message) }) return HideMessage
+        if (plainUselessMessagePatterns.any { it.containsMatchIn(plainMessage) }) return HideMessage
+
+        if (discordWarningRegex.containsMatchIn(message)) {
+            return ReplaceMessage(message.replace(discordWarningRegex, "").trimEnd())
+        }
+
+        if (microsoftWarningRegex.containsMatchIn(plainMessage)) return HideMessage
+        if (message.isBlank()) return HideMessage
+        return null
+    }
+
+    private val hiddenDungeonRareDrops = setOf(
         "RARE DROP! Machine Gun Shortbow",
         "RARE DROP! Beating Heart",
         "RARE DROP! Zombie Commander Boots",
@@ -120,7 +115,7 @@ object ChatReplacements : Module("Chat Replacements", desc = "temp") { // THIS I
         "RARE DROP! Earth Shard"
     )
 
-    private val toRemove = listOf(
+    private val hiddenDungeonMessagePatterns = listOf(
         Regex("^There are blocks in the way!"),
         Regex("^You cannot use abilities in this room!"),
 
@@ -150,28 +145,28 @@ object ChatReplacements : Module("Chat Replacements", desc = "temp") { // THIS I
         Regex("^(.+) has obtained Premium Flesh!")
     )
 
-    private val toReplace = listOf(
-        Replacement(Regex("^Your (.+) stats are doubled because you are the only player using this class!$"), "§7Recieved double class stats. (No dupe)"),
-        Replacement(Regex("^Starting in (\\d) (.+)"), "§aStarting in $1..."),
-        Replacement(Regex("^(.+) Milestone (.+): You have (.+)$"), "§6Milestone $2"),
-        Replacement(Regex("^DUNGEON BUFF! (.+) found a Blessing of (Power|Life|Stone|Wisdom) (.+)! ?(.+)?$"), "§7$2 $3"),
-        Replacement(Regex("^DUNGEON BUFF! A Blessing of (Power|Life|Stone|Wisdom|Time) (.+) was found! (.+)$"), "§7$1 $2"),
-        Replacement(Regex("^A Blessing of (Power|Life|Stone|Wisdom) (.+) was found! (.+)$"), "§7$1"),
-        Replacement(Regex("^ESSENCE! (.+) found x10 (Ice|Spider|Gold|Diamond) Essence!$"), "§b$2 Essence."),
-        Replacement(Regex("^(.+) found a Wither Essence! Everyone gains an extra essence!$"), "§bWither Essence."),
-        Replacement(Regex("^You hear the sound of something opening\\.\\.\\.$"), "§7You used a lever."),
-        Replacement(Regex("^This lever has already been used\\.$"), "§cThis lever has been used."),
-        Replacement(Regex("^This chest has already been searched!$"), "§cThis chest has been searched!"),
-        Replacement(Regex("^That chest is locked!$"), "§cThat chest is locked!"),
-        Replacement(Regex("^(.+) is ready to use! Press DROP to activate it!$"), "§9Ultimate Available"),
-        Replacement(Regex("^(.+) has obtained Wither Key!$"), "§eWither Key picked up!"),
-        Replacement(Regex("^A Wither Key was picked up!$"), "§eWither Key picked up!"),
-        Replacement(Regex("^(.+) has obtained Blood Key!$"), "§cBlood Key picked up!"),
-        Replacement(Regex("^A Blood Key was picked up!$"), "§cBlood Key picked up"),
-        Replacement(Regex("^◕ You picked up a (.+) from (.+) healing you for (.+) and granting you \\+(.+)% (.+) for 10 seconds.$"), "§e$1 picked up §7(§e+§c$3§7)§e!")
+    private val dungeonMessageReplacements = listOf(
+        MessageReplacement(Regex("^Your (.+) stats are doubled because you are the only player using this class!$"), "§7Recieved double class stats. (No dupe)"),
+        MessageReplacement(Regex("^Starting in (\\d) (.+)"), "§aStarting in $1..."),
+        MessageReplacement(Regex("^(.+) Milestone (.+): You have (.+)$"), "§6Milestone $2"),
+        MessageReplacement(Regex("^DUNGEON BUFF! (.+) found a Blessing of (Power|Life|Stone|Wisdom) (.+)! ?(.+)?$"), "§7$2 $3"),
+        MessageReplacement(Regex("^DUNGEON BUFF! A Blessing of (Power|Life|Stone|Wisdom|Time) (.+) was found! (.+)$"), "§7$1 $2"),
+        MessageReplacement(Regex("^A Blessing of (Power|Life|Stone|Wisdom) (.+) was found! (.+)$"), "§7$1"),
+        MessageReplacement(Regex("^ESSENCE! (.+) found x10 (Ice|Spider|Gold|Diamond) Essence!$"), "§b$2 Essence."),
+        MessageReplacement(Regex("^(.+) found a Wither Essence! Everyone gains an extra essence!$"), "§bWither Essence."),
+        MessageReplacement(Regex("^You hear the sound of something opening\\.\\.\\.$"), "§7You used a lever."),
+        MessageReplacement(Regex("^This lever has already been used\\.$"), "§cThis lever has been used."),
+        MessageReplacement(Regex("^This chest has already been searched!$"), "§cThis chest has been searched!"),
+        MessageReplacement(Regex("^That chest is locked!$"), "§cThat chest is locked!"),
+        MessageReplacement(Regex("^(.+) is ready to use! Press DROP to activate it!$"), "§9Ultimate Available"),
+        MessageReplacement(Regex("^(.+) has obtained Wither Key!$"), "§eWither Key picked up!"),
+        MessageReplacement(Regex("^A Wither Key was picked up!$"), "§eWither Key picked up!"),
+        MessageReplacement(Regex("^(.+) has obtained Blood Key!$"), "§cBlood Key picked up!"),
+        MessageReplacement(Regex("^A Blood Key was picked up!$"), "§cBlood Key picked up"),
+        MessageReplacement(Regex("^◕ You picked up a (.+) from (.+) healing you for (.+) and granting you \\+(.+)% (.+) for 10 seconds.$"), "§e$1 picked up §7(§e+§c$3§7)§e!")
     )
 
-    private val otherPatterns = listOf(
+    private val formattedUselessMessagePatterns = listOf(
         Regex("§f +§r§7You are now §r§.Event Level §r§.*§r§7!"),
         Regex("§f +§r§7You earned §r§.* Event Silver§r§7!"),
         Regex("§f +§r§.§k#§r§. LEVEL UP! §r§.§k#"),
@@ -198,15 +193,10 @@ object ChatReplacements : Module("Chat Replacements", desc = "temp") { // THIS I
         Regex("^§aYou are playing on profile: §e"),
         Regex("^§8Profile ID: "),
 
-        Regex("§6§lRARE REWARD! (.*) §r§efound a (.*) §r§ein their (.*) Chest§r§e!"),
-
-        Regex("§f +§r§7You are now §r§.Event Level §r§.*§r§7!"),
-        Regex("§f +§r§7You earned §r§.* Event Silver§r§7!"),
-        Regex("§f +§r§.§k#§r§. LEVEL UP! §r§.§k#"),
-        Regex("§aYou earned §r§2.* GEXP (§r§a\\+ §r§.* Event EXP )?§r§afrom playing SkyBlock!")
+        Regex("§6§lRARE REWARD! (.*) §r§efound a (.*) §r§ein their (.*) Chest§r§e!")
     )
 
-    private val otherPatternsNoControlCodes = listOf(
+    private val plainUselessMessagePatterns = listOf(
         Regex("Sending to server .+"),
         Regex("Rabbit .+"),
         Regex("Wait a moment..."),
@@ -301,7 +291,6 @@ object ChatReplacements : Module("Chat Replacements", desc = "temp") { // THIS I
         Regex("PUZZLE SOLVED!.+"),
         Regex("DUNGEON BUFF! .+"),
         Regex("You summoned your.+"),
-        Regex("\\[BOMB] Creeper:.+"),
         Regex("\\[Sacks] .+ item.+"),
         Regex("The .+ Trap hit you for .+ damage!"),
         Regex("Healer Milestone.+"),
@@ -461,7 +450,7 @@ object ChatReplacements : Module("Chat Replacements", desc = "temp") { // THIS I
     private val pfClassChangeRegex = Regex("""^Party Finder > (.+?) set their class to (\w+) Level (\d+)!$""")
     private val pfJoinRegex = Regex("""^Party Finder > (.+?) joined the dungeon group! \((\w+) Level (\d+)\)$""")
 
-    private val pfReplaceMap = mapOf(
+    private val partyFinderMessageReplacements = mapOf(
         "Party Finder > Your group has been de-listed!" to "§dPF > §aParty Delisted.",
         "Party Finder > Your party has been queued in the party finder!" to "§dPF > §aParty Queued.",
         "Party Finder > Your group has been removed from the party finder!" to "§dPF > §cParty Removed.",
@@ -484,60 +473,4 @@ You should NEVER enter your Microsoft account details anywhere but on official M
 External links from untrusted sources should be avoided.
 -----------------------------------------------------"""
     )
-
-    private fun handleChatMessage(message: String): Boolean {
-        val noCodes = message.noControlCodes
-        nonRankInviteRegex.find(noCodes)?.let { match ->
-            if (hideNonRankInvites && '[' !in match.groupValues[1]) return true
-        }
-
-        if (cleanerDungeons) {
-            for (r in toReplace) {
-                val m = r.pattern.find(noCodes) ?: continue
-                modMessage(m.value.replace(r.pattern, r.replacement), prefix = DUNGEON_PREFIX)
-                return true
-            }
-            if (rareDropsToRemove.contains(noCodes)) return true
-            if (toRemove.any { it.containsMatchIn(noCodes) }) return true
-        }
-        if (cleanerPf) {
-            pfReplaceMap[noCodes]?.let { new ->
-                modMessage(new, prefix = "")
-                return true
-            }
-
-            pfClassChangeRegex.find(noCodes)?.let { match ->
-                val player = match.groupValues[1]
-                val clazz = match.groupValues[2]
-                val level = match.groupValues[3]
-                val cleanedMsg = "§dPF > §b$player §echanged to §b$clazz $level§e!"
-                modMessage(cleanedMsg, prefix = "")
-                return true
-            }
-
-            pfJoinRegex.find(noCodes)?.let { match ->
-                val player = match.groupValues[1]
-                val clazz = match.groupValues[2]
-                val level = match.groupValues[3]
-                val cleanedMsg = "§dPF > §b$player §ejoined the group! (§b$clazz $level§e)"
-                modMessage(cleanedMsg, prefix = "")
-                return true
-            }
-        }
-
-        if (hideOtherMessages && otherPatterns.any { it.containsMatchIn(message) }) return true
-        if (hideMoreMessages && otherPatternsNoControlCodes.any { it.containsMatchIn(noCodes)}) return true
-
-        if (hideDiscordWarnings && discordWarningRegex.containsMatchIn(message)) {
-            val cleaned = message.replace(discordWarningRegex, "").trimEnd()
-            modMessage(cleaned, prefix = "")
-            return true
-        }
-
-        if (hideMicrosoftWarnings && microsoftWarningRegex.containsMatchIn(noCodes)) {
-            return true
-        }
-
-        return false
-    }
 }
