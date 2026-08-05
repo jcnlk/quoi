@@ -1,5 +1,6 @@
 package quoi.utils.skyblock.player
 
+import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import quoi.QuoiMod.mc
 import quoi.annotations.Init
@@ -7,13 +8,17 @@ import quoi.api.events.ChatEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
 import quoi.api.events.core.EventListener
+import quoi.api.events.core.Priority
 import quoi.api.events.core.on
+import quoi.api.input.CatKeyboard
+import quoi.api.input.CatMouse
 import quoi.api.skyblock.dungeon.Dungeon.dungeonTeammatesNoSelf
 import quoi.api.skyblock.dungeon.Dungeon.getMageCooldownMultiplier
 import quoi.api.skyblock.dungeon.Dungeon.inDungeons
 import quoi.api.skyblock.dungeon.DungeonClass
 import quoi.api.skyblock.dungeon.DungeonPlayer
 import quoi.utils.ChatUtils.modMessage
+import quoi.utils.key
 import quoi.utils.skyblock.player.container.ContainerUtils
 import quoi.utils.skyblock.player.container.task.*
 
@@ -29,6 +34,7 @@ object LeapManager : EventListener {
     private var activeLeap: LeapRequest? = null
     private var pendingLeap: LeapRequest? = null
     private var task: ContainerTask? = null
+    private var useInputSuppressed = false
 
     var lastLeap = 0L
         private set
@@ -54,6 +60,10 @@ object LeapManager : EventListener {
             pendingLeap = null
             task?.cancel()
             resetActiveLeap()
+        }
+
+        on<TickEvent.Start>(Priority.HIGHEST) {
+            if (useInputSuppressed) suppressUseInput()
         }
 
         on<TickEvent.Server> {
@@ -128,6 +138,7 @@ object LeapManager : EventListener {
             val selectedSlot = mc.player?.inventory?.selectedSlot ?: return
             val swap = SwapManager.swapById("INFINITE_SPIRIT_LEAP", "SPIRIT_LEAP")
             if (!swap.success) return
+            suppressUseInput()
             selectedSlot.takeIf { leap.swapBack && !swap.already }
         } else null
 
@@ -188,5 +199,26 @@ object LeapManager : EventListener {
     private fun resetActiveLeap() {
         activeLeap = null
         task = null
+        restoreUseInput()
+    }
+
+    private fun suppressUseInput() {
+        useInputSuppressed = true
+        mc.options.keyUse.apply {
+            isDown = false
+            while (consumeClick()) Unit
+        }
+    }
+
+    private fun restoreUseInput() {
+        if (!useInputSuppressed) return
+        useInputSuppressed = false
+
+        val useKey = mc.options.keyUse.key
+        mc.options.keyUse.isDown = when (useKey.type) {
+            InputConstants.Type.MOUSE -> CatMouse.isButtonDown(useKey.value)
+            InputConstants.Type.KEYSYM -> CatKeyboard.isKeyDown(useKey.value)
+            InputConstants.Type.SCANCODE -> false
+        }
     }
 }
