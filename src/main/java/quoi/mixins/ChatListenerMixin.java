@@ -1,6 +1,5 @@
 package quoi.mixins;
 
-import quoi.module.impl.general.ChatReplacements;
 import quoi.module.impl.general.PlayerDisplay;
 import net.minecraft.client.multiplayer.chat.ChatListener;
 import net.minecraft.network.chat.Component;
@@ -13,10 +12,6 @@ public class ChatListenerMixin {
 
     @ModifyArg(method = "handleSystemMessage", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/Gui;setOverlayMessage(Lnet/minecraft/network/chat/Component;Z)V"), index = 0)
     private Component modifyOverlayMessage(Component original) {
-        if (ChatReplacements.getShouldHideActionBar()) {
-            return Component.empty();
-        }
-
         return PlayerDisplay.modifyActionBar(original);
     }
 }
