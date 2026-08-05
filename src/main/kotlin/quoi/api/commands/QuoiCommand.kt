@@ -52,7 +52,7 @@ object QuoiCommand : EventListener {
     private const val TRANSFER_COOLDOWN_NANOS = 3_000_000_000L
     private const val WARP_RETRY_NANOS = 5_000_000_000L
 
-    val command = BaseCommand("quoi") {
+    val command = BaseCommand("quoi", "requise") { // https://imgur.com/a/tpz09C5
         open(clickGui)
     }
 
