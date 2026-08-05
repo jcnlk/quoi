@@ -15,13 +15,13 @@ enum class Island(val displayName: String, val command: String? = null) : Area {
     JerryWorkshop("Jerry's Workshop", "jerry"),
 
     // farming
-    FarmingIsland("The Farming Islands"), // TODO: add warp command
+    FarmingIsland("The Farming Islands", "farming"),
     Garden("Garden", "garden"),
     GardenGuest("Garden Guest"), // basically useless but who cares
 
     // fishing
     BackwaterBayou("Backwater Bayou", "bayou"),
-    LotusAtoll("Lotus Atoll"), // TODO: add warp command
+    LotusAtoll("Lotus Atoll", "atoll"),
 
     // combat
     TheEnd("The End", "end"),
@@ -36,7 +36,7 @@ enum class Island(val displayName: String, val command: String? = null) : Area {
     // foraging
     ThePark("The Park", "park"),
     Galatea("Galatea", "galatea"),
-    TorrhusCanyon("Torrhus Canyon"), // TODO: add warp command
+    TorrhusCanyon("Torrhus Canyon", "canyon"),
 
     // special/misc
     Safari("Safari", "safari"),

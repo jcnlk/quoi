@@ -35,7 +35,6 @@ import quoi.utils.ChatUtils.literal
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.LegacyIdMapper
 import quoi.utils.Scheduler.scheduleLoop
-import quoi.utils.Scheduler.scheduleTask
 import quoi.utils.Scheduler.wait
 import quoi.utils.StringUtils.capitaliseFirst
 import quoi.utils.WorldUtils
@@ -50,9 +49,6 @@ import quoi.utils.ui.hud.HudManager
 import quoi.utils.ui.screens.UIScreen.Companion.open
 
 object QuoiCommand : EventListener {
-    private const val TRANSFER_COOLDOWN_NANOS = 3_000_000_000L
-    private const val WARP_RETRY_NANOS = 5_000_000_000L
-
     val command = BaseCommand("quoi", "requise") { // https://imgur.com/a/tpz09C5
         open(clickGui)
     }
@@ -71,7 +67,7 @@ object QuoiCommand : EventListener {
     init {
         on<WorldEvent.Change> {
             worldChangeId++
-            transferCooldownEnd = System.nanoTime() + TRANSFER_COOLDOWN_NANOS
+            transferCooldownEnd = System.currentTimeMillis() + 3_000L
         }
 
         with(devCommand) {
@@ -165,10 +161,6 @@ object QuoiCommand : EventListener {
                     }
                 }
             }
-
-//            "rooms" {
-//                modMessage("Rooms: ${uniqueRooms.joinToString(", ") { it.name }}")
-//            }
 
             "area" {
                 modMessage("Area: $currentArea, Sub: $subarea, Server: $currentServer, Floor: ${Dungeon.floor?.name}")
@@ -288,7 +280,7 @@ object QuoiCommand : EventListener {
                     return@scheduleLoop
                 }
 
-                val now = System.nanoTime()
+                val now = System.currentTimeMillis()
                 attemptedInWorld?.let { attemptWorld ->
                     if (worldChangeId != attemptWorld) {
                         warpToTarget = !warpToTarget
@@ -302,7 +294,7 @@ object QuoiCommand : EventListener {
 
                 command("warp ${if (warpToTarget) targetWarp else "hub"}")
                 attemptedInWorld = worldChangeId
-                retryAt = now + WARP_RETRY_NANOS
+                retryAt = now + 5_000L
             }
         }.description("Finds lobby with specified criteria.")
         .requires("&cYou are not in skyblock!") { inSkyblock }
@@ -336,17 +328,6 @@ object QuoiCommand : EventListener {
             mc.gui.hud.chat.clearMessages(false)
             CompactChat.chatList.clear()
             modMessage("Cleared chat.")
-        }.register()
-
-        BaseCommand("lsb") {
-            command("l")
-            scheduleTask(10) { command("play sb") }
-        }.register()
-
-        BaseCommand("ld") {
-            command("l")
-            scheduleTask(10) { command("play sb") }
-            scheduleTask(30) { command("warp dungeon_hub") }
         }.register()
 
         BaseCommand("ptr") {

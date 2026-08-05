@@ -2,18 +2,24 @@ package quoi.utils.skyblock
 
 import quoi.annotations.Init
 import quoi.api.events.ChatEvent
+import quoi.api.events.PartyEvent
 import quoi.api.events.core.EventListener
 import quoi.api.events.core.on
+import quoi.api.skyblock.dungeon.DungeonClass
 import quoi.utils.Shortcuts
 
 /**
- * from OdinFabric (BSD 3-Clause)
+ * TODO:
+ *  make stuff regexless
+ */
+
+/**
+ * modified OdinFabric (BSD 3-Clause)
  * copyright (c) 2025-2026 odtheking
  * original: https://github.com/odtheking/OdinFabric/blob/main/src/main/kotlin/com/odtheking/odin/utils/skyblock/PartyUtils.kt
  */
 @Init
 object PartyUtils : EventListener, Shortcuts {
-
     private val joinedSelf = Regex("^You have joined ((?:\\[[^]]*?])? ?)?(\\w{1,16})'s? party!$")
     private val joinedOther = Regex("^((?:\\[[^]]*?])? ?)?(\\w{1,16}) joined the party\\.$")
     private val leftParty = Regex("^((?:\\[[^]]*?])? ?)?(\\w{1,16}) has left the party\\.$")
@@ -43,9 +49,13 @@ object PartyUtils : EventListener, Shortcuts {
         Regex("^You are not currently in a party.$")
     )
 
-    val members = mutableListOf<String>()
+    private val partyMembers = mutableListOf<String>()
 
-    val membersNoSelf get() = members.filter { it != player.name.string }
+    val members: List<String>
+        get() = partyMembers
+
+    val membersNoSelf
+        get() = partyMembers.filter { it != player.name.string }
 
     var partyLeader: String? = null
         private set
@@ -59,7 +69,7 @@ object PartyUtils : EventListener, Shortcuts {
 
             joinedSelf.find(message)?.let {
                 addMember(it.groupValues[2])
-                partyLeader = it.groupValues[2]
+                updateLeader(it.groupValues[2])
                 addMember(player.gameProfile.name)
                 return@on
             }
@@ -75,41 +85,43 @@ object PartyUtils : EventListener, Shortcuts {
             transferBy.find(message)?.let {
                 addMember(it.groupValues[2])
                 addMember(it.groupValues[4])
-                partyLeader = it.groupValues[2]
+                updateLeader(it.groupValues[2])
                 return@on
             }
 
             transferLeave.find(message)?.let {
                 addMember(it.groupValues[2])
-                partyLeader = it.groupValues[2]
+                updateLeader(it.groupValues[2])
                 removeMember(it.groupValues[4])
                 return@on
             }
 
             leaderDisconnected.find(message)?.let {
-                partyLeader = it.groupValues[2]
+                updateLeader(it.groupValues[2])
                 return@on
             }
 
             leaderRejoined.find(message)?.let {
-                partyLeader = it.groupValues[2]
+                updateLeader(it.groupValues[2])
                 return@on
             }
 
-            partyChat.find(message)?.let {
-                addMember(it.groupValues[2])
+            partyChat.find(message)?.let { match ->
+                val sender = match.groupValues[2]
+                addMember(sender)
+                PartyEvent.Message(sender, match.groupValues[3]).post()
                 return@on
             }
 
             partyInvite.find(message)?.let {
                 addMember(it.groupValues[2])
-                if (partyLeader == null) partyLeader = it.groupValues[2]
+                if (partyLeader == null) updateLeader(it.groupValues[2])
                 return@on
             }
 
             queuedInFinder.find(message)?.let {
                 addMember(player.gameProfile.name)
-                if (partyLeader == null) partyLeader = player.gameProfile.name
+                if (partyLeader == null) updateLeader(player.gameProfile.name)
                 return@on
             }
 
@@ -123,7 +135,7 @@ object PartyUtils : EventListener, Shortcuts {
                 match.groupValues[2].split(" ●").forEach { segment ->
                     val memberMatch = memberFormat.find(segment.trim()) ?: return@forEach
                     addMember(memberMatch.groupValues[2])
-                    if (type == "Leader") partyLeader = memberMatch.groupValues[2]
+                    if (type == "Leader") updateLeader(memberMatch.groupValues[2])
 
                     return@on
                 }
@@ -139,26 +151,62 @@ object PartyUtils : EventListener, Shortcuts {
 
             kuudraJoin.find(message)?.let { return@on addMember(it.groupValues[2]) }
 
-            dungeonJoin.find(message)?.let { return@on addMember(it.groupValues[1]) }
+            dungeonJoin.find(message)?.let { match ->
+                val clazz = DungeonClass.entries.find { it.name.equals(match.groupValues[2], ignoreCase = true) }
+                return@on addMember(match.groupValues[1], clazz)
+            }
         }
     }
 
-    private fun addMember(playerName: String) {
-        if (!isInParty) isInParty = true
-        if (playerName !in members) members.add(playerName)
+    private fun addMember(playerName: String, clazz: DungeonClass? = null) {
+        if (playerName in partyMembers) {
+            if (clazz != null) PartyEvent.Member.Join(playerName, clazz).post()
+            return
+        }
+
+        val created = !isInParty
+
+        isInParty = true
+        partyMembers.add(playerName)
+
+        if (created) PartyEvent.Create().post()
+        PartyEvent.Member.Join(playerName, clazz).post()
     }
 
     private fun removeMember(playerName: String) {
-        if (playerName !in members) return
-        members.remove(playerName)
+        if (!partyMembers.remove(playerName)) return
 
-        if (members.isEmpty()) disband()
+        PartyEvent.Member.Leave(playerName).post()
+
+        if (partyMembers.isEmpty()) disband()
+    }
+
+    private fun updateLeader(newLeader: String) {
+        val oldLeader = partyLeader
+        if (oldLeader == newLeader) return
+
+        partyLeader = newLeader
+
+        PartyEvent.Leader.Change(oldLeader, newLeader).post()
     }
 
     private fun disband() {
-        members.clear()
+        if (!isInParty && partyMembers.isEmpty() && partyLeader == null) return
+
+        val members = partyMembers.toList()
+        val oldLeader = partyLeader
+
+        partyMembers.clear()
         partyLeader = null
         isInParty = false
+
+        members.forEach { PartyEvent.Member.Leave(it).post() }
+
+        if (oldLeader != null) {
+            PartyEvent.Leader.Change(oldLeader, null).post()
+        }
+
+        PartyEvent.Disband().post()
     }
 
     fun isLeader(): Boolean = partyLeader == player.gameProfile.name
