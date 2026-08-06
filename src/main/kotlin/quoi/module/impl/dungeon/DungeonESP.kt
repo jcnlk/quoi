@@ -27,7 +27,6 @@ import quoi.api.skyblock.dungeon.Dungeon.inBoss
 import quoi.api.skyblock.dungeon.odonscanning.ScanUtils
 import quoi.api.skyblock.dungeon.odonscanning.tiles.OdonRoom
 import quoi.api.skyblock.dungeon.odonscanning.tiles.RoomState
-import quoi.api.skyblock.location.invoke
 import quoi.module.Module
 import quoi.module.impl.misc.Test
 import quoi.module.settings.Setting.Companion.json
@@ -49,7 +48,7 @@ import quoi.utils.render.drawStyledBox
 object DungeonESP : Module(
     "Dungeon ESP",
     desc = "Highlights various dungeon entities.",
-    area = Island.Dungeon(inClear = true)
+    area = Island.Dungeon
 ) {
     private val teammateEsp by switch("Teammate ESP", true, desc = "Highlights dungeon teammates based on their class colour.")
         .json("Teammate class glow")
@@ -103,8 +102,8 @@ object DungeonESP : Module(
     }
 
     init {
-        scheduleLoop(10) { // maybe move to dungeon utils
-            if (/*!enabled || !starEsp || */!Dungeon.inClear/* || style.selected == "Glow"*/) return@scheduleLoop
+        scheduleLoop(10) {
+            if (!Dungeon.inDungeons) return@scheduleLoop
             updateEntities()
             Test.collectMobs()
         }
