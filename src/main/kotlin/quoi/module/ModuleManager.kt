@@ -63,6 +63,7 @@ object ModuleManager : EventListener {
             TickTimers,
             AutoInvincibility,
             InvincibilityTimer,
+            WitherCloak,
 
             // MISC
             Test,
