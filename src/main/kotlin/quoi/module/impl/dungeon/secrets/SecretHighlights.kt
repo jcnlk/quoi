@@ -16,7 +16,6 @@ import quoi.module.settings.impl.SwitchComponent
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.utils.EntityUtils.interpolatedBox
 import quoi.utils.Scheduler.scheduleTask
-import quoi.utils.SoundUtils
 import quoi.utils.StringUtils.containsOneOf
 import quoi.utils.aabb
 import quoi.utils.render.drawFilledBox
@@ -46,24 +45,23 @@ object SecretHighlights : SettingGroup(Secrets, highlightsToggle) {
 
     private data class Secret(val blockPos: BlockPos, var isLocked: Boolean = false)
     private val clickedSecrets = CopyOnWriteArrayList<Secret>()
-    private var lastPlayed = System.currentTimeMillis()
     private val itemEntities = CopyOnWriteArrayList<ItemEntity>()
 
     init {
         on<DungeonEvent.Secret.Interact> {
             if (!highlightsToggle.enabled) return@on
             secretHighlight(blockPos)
-            playSecretSound()
+            if (secretChime) clickSound.play(10)
         }
 
         on<DungeonEvent.Secret.Item> {
             if (!highlightsToggle.enabled) return@on
-            playSecretSound() // dropSound
+            if (secretChime) clickSound.play(10) // dropSound
         }
 
         on<DungeonEvent.Secret.Bat> {
             if (!highlightsToggle.enabled) return@on
-            playSecretSound() // dropSound?
+            if (secretChime) clickSound.play(10) // dropSound?
         }
 
         on<ChatEvent.Packet> {
@@ -90,7 +88,7 @@ object SecretHighlights : SettingGroup(Secrets, highlightsToggle) {
                 var colour = farColour
 
                 if (item.distanceTo(player) <= 3.5) {
-                    if (playSound) SoundUtils.play(itemSound)
+                    if (playSound) itemSound.play(10)
                     colour = closeColour
                 }
                 ctx.drawFilledBox(item.interpolatedBox.inflate(sizeOffset), colour)
@@ -110,13 +108,6 @@ object SecretHighlights : SettingGroup(Secrets, highlightsToggle) {
         on<WorldEvent.Change> {
             clickedSecrets.clear()
             itemEntities.clear()
-        }
-    }
-
-    private fun playSecretSound() {
-        if (System.currentTimeMillis() - lastPlayed > 10 && secretChime) {
-            SoundUtils.play(clickSound)
-            lastPlayed = System.currentTimeMillis()
         }
     }
 
