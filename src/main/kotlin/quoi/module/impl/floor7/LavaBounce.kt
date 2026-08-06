@@ -15,18 +15,16 @@ import quoi.api.events.TickEvent
 import quoi.api.events.core.on
 import quoi.api.input.CatKeys
 import quoi.api.skyblock.location.Island
-import quoi.api.skyblock.dungeon.Dungeon
+import quoi.api.skyblock.dungeon.Floor7Utils.inF7Boss
 import quoi.api.skyblock.location.invoke
 import quoi.config.configList
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf
-import quoi.module.settings.UIComponent.Companion.visibleIf
+import quoi.module.settings.group.SettingGroup.Companion.childOf
 import quoi.utils.ChatUtils
 import quoi.utils.aabb
 import quoi.utils.isWithinFov
 import quoi.utils.minFovDot
-import quoi.utils.render.drawFilledBox
-import quoi.utils.render.drawWireFrameBox
 import quoi.utils.skyblock.player.PlayerUtils.eyePosition
 import quoi.utils.skyblock.player.SwapManager
 
@@ -36,35 +34,26 @@ object LavaBounce : Module(
     desc = "Automatically places soul sand, chests, or ender chests for lava bounce spots."
 ) {
     private val auto by switch("Auto", desc = "Automatically places a bounce block while falling into configured lava.")
-    private val autoFov by slider("FOV", 360, 10, 360, 1, unit = "°", desc = "Only auto places on lava spots inside this field of view.")
-        .childOf(::auto)
+    private val autoFov by slider("FOV", 360, 10, 360, 1, unit = "°", desc = "Only auto places on lava spots inside this field of view.").childOf(::auto)
     private val triggerbot by switch("Triggerbot", desc = "Places a bounce block when looking at a valid P3 lava bounce spot.")
     private val cooldown by slider("Cooldown", 500L, 0L, 2_000L, 50L, unit = "ms", desc = "Cooldown per bounce block.")
-
     private val useConfig by switch("Use config", desc = "Only uses lava positions configured with Toggle lava.")
+
+    @Suppress("unused")
     private val toggleLava by keybind("Toggle lava", CatKeys.KEY_NONE, desc = "Adds or removes the lava block you are looking at.")
         .onPress {
-            if (!enabled || !Dungeon.inBoss || Dungeon.floor?.floorNumber != 7) return@onPress
+            if (!enabled || !inF7Boss) return@onPress
             toggleLookedLava()
         }
 
-    private val renderBlocks by switch("Render blocks", true, desc = "Highlights configured lava bounce spots.")
-        .childOf(::useConfig)
-    private val renderStyle by selector("Style", "Filled box", arrayListOf("Box", "Filled box", "Filled"), desc = "Render style for configured lava bounce spots.")
-        .childOf(::renderBlocks)
-        .visibleIf { useConfig && renderBlocks }
-    private val outlineColour by colourPicker("Outline colour", Colour.RED.withAlpha(180), allowAlpha = true, desc = "Outline colour for configured lava bounce spots.")
-        .childOf(::renderBlocks)
-        .visibleIf { useConfig && renderBlocks && renderStyle.selected != "Filled" }
-    private val fillColour by colourPicker("Fill colour", Colour.RED.withAlpha(90), allowAlpha = true, desc = "Fill colour for configured lava bounce spots.")
-        .childOf(::renderBlocks)
-        .visibleIf { useConfig && renderBlocks && renderStyle.selected != "Box" }
-    private val thickness by slider("Thickness", 2f, 1f, 8f, 1f, desc = "Outline thickness for configured lava bounce spots.")
-        .childOf(::renderBlocks)
-        .visibleIf { useConfig && renderBlocks && renderStyle.selected != "Filled" }
-    private val depth by switch("Depth check", true, desc = "Renders lava bounce highlights with depth check.")
-        .childOf(::renderBlocks)
-        .visibleIf { useConfig && renderBlocks }
+    private val renderBlocks by switch("Render blocks", true, desc = "Highlights configured lava bounce spots.").childOf(::useConfig)
+    private val blockHighlight = highlight(
+        desc = "Render style for configured lava bounce spots.",
+        colour = Colour.RED.withAlpha(180),
+        fillColour = Colour.RED.withAlpha(90),
+        glow = false,
+        defaultStyle = "Filled box",
+    ).childOf(::renderBlocks)
 
     private val lavaBlocks by configList<BlockPos>("dungeon/lavabounce_blocks.json")
     private val cooldowns = hashMapOf<BlockPos, Long>()
@@ -75,19 +64,12 @@ object LavaBounce : Module(
             if (!useConfig || !renderBlocks) return@on
 
             for (pos in lavaBlocks) {
-                when (renderStyle.selected) {
-                    "Box" -> ctx.drawWireFrameBox(pos.aabb, outlineColour, thickness, depth)
-                    "Filled box" -> {
-                        ctx.drawFilledBox(pos.aabb, fillColour, depth)
-                        ctx.drawWireFrameBox(pos.aabb, outlineColour, thickness, depth)
-                    }
-                    "Filled" -> ctx.drawFilledBox(pos.aabb, fillColour, depth)
-                }
+                blockHighlight.draw(ctx, pos.aabb)
             }
         }
 
         on<TickEvent.Start> {
-            if (mc.screen != null || !Dungeon.inBoss || Dungeon.floor?.floorNumber != 7) return@on
+            if (mc.screen != null || !inF7Boss) return@on
 
             if (auto) tickAuto()
             if (triggerbot) tickTriggerbot()
