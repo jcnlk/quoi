@@ -12,6 +12,7 @@ import quoi.api.skyblock.SkyblockPlayer.Mask
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.Floor7Utils
 import quoi.api.skyblock.dungeon.Phase
+import quoi.api.skyblock.location.Island
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.utils.ChatUtils.modMessage
@@ -24,14 +25,14 @@ import quoi.utils.skyblock.player.SwapManager
 
 object AutoInvincibility : Module(
     "Auto Invincibility",
-    desc = "Automatically swaps to invincibility items."
+    desc = "Automatically swaps to invincibility items.",
+    area = Island.Dungeon
 ) {
     private val useSpiritMask by switch("Spirit Mask", false, desc = "Equips Spirit Mask after proccing.")
     private val useBonzoMask by switch("Bonzo's Mask", false, desc = "Equips Bonzo's Mask after proccing.")
     private val usePhoenixPet by switch("Phoenix Pet", false, desc = "Swaps to Phoenix pet after proccing.")
     private val swapDelay by slider("Swap delay", 0, 0, 40, 1, desc = "Ticks to wait before swapping after an invincibility proc.", unit = "t")
     private val phoenixSwapMethod by selector("Swap method", PhoenixSwapMethod.RodSwap, desc = "Method used to swap to the Phoenix pet. Rod Swap ignores input blocking.").childOf(::usePhoenixPet)
-    private val dungeonsOnly by switch("Dungeons only", desc = "Only triggers while being in dungeons.")
     private val bossOnly by switch("Boss only", desc = "Only triggers while being in boss room.")
     private val p3Only by switch("Phase 3 only", desc = "Only triggers during phase 3.")
     private val blockInputs by switch("Block inputs", desc = "Blocks keyboard and mouse input while equipping masks or swapping through the pet menu. Does not affect Rod Swap.")
@@ -60,7 +61,6 @@ object AutoInvincibility : Module(
         }
 
         on<ChatEvent.Packet> {
-            if (dungeonsOnly && !Dungeon.inDungeons) return@on
             if (bossOnly && !Dungeon.inBoss) return@on
             if (p3Only && !Floor7Utils.inPhase(Phase.P3)) return@on
 
