@@ -6,6 +6,7 @@ import quoi.api.skyblock.SkyblockPlayer.AUTOPET_REGEX
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf
+import quoi.module.settings.group.SettingGroup.Companion.childOf
 import quoi.utils.skyblock.player.PlayerUtils
 
 // THIS IS A TEMP MODULE KYLEAN.
