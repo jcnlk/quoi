@@ -9,13 +9,13 @@ import quoi.api.events.WorldEvent
 import quoi.api.events.core.EventListener
 import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.Dungeon.getMageCooldownMultiplier
-import quoi.module.impl.floor7.InvincibilityTimer.cataLevel
-import quoi.module.impl.floor7.InvincibilityTimer.mageReduction
 import quoi.module.impl.render.clickgui.impl.Data
 import quoi.utils.Scheduler.scheduleLoop
 import quoi.utils.Shortcuts
 import quoi.utils.StringUtils.capitaliseFirst
+import quoi.utils.skyblock.item.ItemUtils.lore
 import kotlin.math.floor
+import kotlin.math.roundToInt
 
 @Init
 @OptIn(Internal::class)
@@ -180,6 +180,8 @@ object SkyblockPlayer : EventListener, Shortcuts {
         PHOENIX(Regex("^Your Phoenix Pet saved you from certain death!$"), 1200);
 
         companion object {
+            private val BONZO_COOLDOWN_REGEX = Regex("^Cooldown: ([\\d.]+)s$")
+
             fun fromMessage(message: String): InvincibilityType? = entries.firstOrNull { it.regex.matches(message) }
         }
 
@@ -188,13 +190,24 @@ object SkyblockPlayer : EventListener, Shortcuts {
         var currentCooldown = 0
             private set
 
-        fun proc(customCooldown: Int = cooldownTime) {
-            val multiplier = if (mageReduction) getMageCooldownMultiplier() else 1.0
+        fun proc(customCooldown: Int = defaultCooldown()) {
+            val multiplier = getMageCooldownMultiplier()
             currentCooldown = when (this) {
-                SPIRIT -> (customCooldown * multiplier).toInt()
-                BONZO -> ((customCooldown - cataLevel * 72) * multiplier).toInt()
+                BONZO, SPIRIT -> (customCooldown * multiplier).toInt()
                 PHOENIX -> customCooldown
             }
+        }
+
+        private fun defaultCooldown(): Int {
+            if (this != BONZO) return cooldownTime
+
+            return player.inventory.getItem(39).lore
+                ?.firstNotNullOfOrNull { line ->
+                    BONZO_COOLDOWN_REGEX.matchEntire(line.trim())
+                        ?.groupValues?.get(1)?.toDoubleOrNull()
+                }
+                ?.let { (it * 20).roundToInt() }
+                ?: cooldownTime
         }
 
         fun tick() {

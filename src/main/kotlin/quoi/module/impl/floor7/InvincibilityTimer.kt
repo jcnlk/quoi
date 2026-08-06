@@ -24,8 +24,6 @@ object InvincibilityTimer : Module(
 ) {
     private val invincibilityAnnounce by switch("Announce Invincibility", desc = "Announces when you get invincibility in party chat.")
     private val bossOnly by switch("Boss only", desc = "Active in boss room only.")
-    val mageReduction by switch("Mage reduction", desc = "Accounts for mage cooldown reduction.")
-    val cataLevel by slider("Catacombs level", 0, 0, 50, desc = "Catacombs level for Bonzo's mask ability.")
 
     @Suppress("unused")
     private val hud by textHud("Invincibility timer", Colour.PINK, toggleable = false) {
@@ -57,7 +55,7 @@ object InvincibilityTimer : Module(
                 }
             }
         }
-    }.withSettings(::bossOnly, ::mageReduction, ::cataLevel).setting()
+    }.withSettings(::bossOnly).setting()
 
     init {
         on<ChatEvent.Packet> {
