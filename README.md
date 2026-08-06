@@ -29,8 +29,6 @@ Use [actions tab](https://github.com/jcnlk/quoi/actions) to download (you need t
 - `/route <em|add|rm|restore|clear|edit|editdb|chain|convert|reload> ...` - Auto Routes editor/runtime command set
 - `/grieferpro` or `/gp <add|update|remove|get|list|donotgrief> ...` - manages the Griefer Tracker player list
 - `/clearchat` - clears the in-game chat
-- `/lsb` - reconnects to SkyBlock
-- `/ld` - reconnects to the Dungeon Hub
 - `/ptr` - transfers the party to a random member
 - `/quoi <ep|ij|sl|sb|dd|tap|twap> [amount]` - refills common dungeon items from sacks
 - `/f0` to `/f7`, `/m1` to `/m7` - quick dungeon floor instance commands
@@ -39,24 +37,16 @@ Use [actions tab](https://github.com/jcnlk/quoi/actions) to download (you need t
 <details>
 <summary><b>Dungeon</b></summary>
 
-- **Arrow Align**
-  - Automatically completes arrows align device.
 - **Auto Close Chest**
   - Automatically closes secret chests.
 - **Auto Croesus**
   - Automatically claims profitable Croesus dungeon chests.
-- **Auto GFS**
-  - Automatically refills certain items from your sacks.
 - **Auto Door Opener**
   - Automatically opens nearby Wither and Blood doors.
-- **Auto Invincibility**
-  - Automatically swaps to invincibility items.
-- **Auto Leap**
-  - Automatically leaps to predefined targets.
+- **Auto Potions**
+  - Automatically gets a potion from your potion bag.
 - **Auto Routes** (Beta)
   - Route editor/runtime support via `/route`.
-- **Barrier Boom**
-  - Automatically blows up Goldor fight gates.
 - **Blood Camp**
   - Predicts blood mob spawn positions and timings.
 - **Dungeon Abilities**
@@ -68,22 +58,12 @@ Use [actions tab](https://github.com/jcnlk/quoi/actions) to download (you need t
   - In-dungeon map HUD.
 - **Fire Freeze**
   - Shows the F3/M3 Fire Freeze timer and can automate the use.
-- **Fuck Diorite**
-  - Replaces Storm pillars with glass
 - **Full Block Hitboxes**
-  - Enlarges interactable dungeon hitboxes
+  - Expands the hitboxes of buttons, chests, levers, mushrooms, and skulls.
 - **Interactive Map** (Beta)
   - Automatically teleports to a specified target.
-- **Invincibility Timer**
-  - Gives visual information about your invincibility times.
-- **Lava Bounce**
-  - Automatically places soul sand, chests, or ender chests for lava bounce spots.
 - **Leap Menu**
   - Adds a custom leap menu.
-- **Lights Device**
-  - Adds triggerbot and hides useless levers for the lights device.
-- **Necron Platform Highlight**
-  - Highlights 3x3 area to mine after Goldor dies.
 - **Puzzle Solvers**
   - Displays solutions and automatically completes dungeon puzzles: Ice Fill, Teleport Maze, Quiz, Three Weirdos, Tic Tac Toe, Water Board, Creeper Beams, Blaze, Ice Path, and Boulder.
 - **Secret Aura**
@@ -94,80 +74,106 @@ Use [actions tab](https://github.com/jcnlk/quoi/actions) to download (you need t
   - Highlights collected secrets.
 - **Shadow Assassin Alert**
   - Sends an alert when SA jumps you.
-- **Simon Says**
-  - Automatically completes Simon Says device.
 - **Splits**
   - Shows timers for various phases.
-- **Terminal Aura**
-  - Automatically opens terminals.
-- **Tick Timers**
-  - Displays tick timers for floor seven boss fight.
 - **Warp Cooldown**
   - Dungeon warp cooldown display.
 
 </details>
 
 <details>
-<summary><b>Misc</b></summary>
+<summary><b>Floor 7</b></summary>
+
+- **Arrow Align**
+  - Shows the solution and can automatically complete the Arrow Align device.
+- **Auto Invincibility**
+  - Automatically swaps to invincibility items.
+- **Auto Leap**
+  - Automatically leaps to predefined targets.
+- **Barrier Boom**
+  - Automatically blows up Goldor fight gates.
+- **Fuck Diorite**
+  - Replaces Storm's pillars with glass.
+- **Invincibility Timer**
+  - Gives visual information about your invincibility times.
+- **Lava Bounce**
+  - Automatically places soul sand, chests, or ender chests for lava bounce spots.
+- **Lights Device**
+  - Adds triggerbot and hides useless levers for the Lights device.
+- **P4 Platform Highlight**
+  - Highlights the 3x3 area to mine after Goldor dies.
+- **Simon Says**
+  - Automatically completes the Simon Says device.
+- **Terminal Aura**
+  - Automatically opens terminals.
+- **Tick Timers**
+  - Displays tick timers for the Floor 7 boss fight.
+- **Wither Cloak**
+  - Tracks Creeper Veil and optionally hides nearby cloak creepers.
+
+</details>
+
+<details>
+<summary><b>General</b></summary>
 
 - **AntiNick**
   - Detects nicked players.
-- **Auto Carnival**
-  - Automates Carnival tasks.
 - **Auto Book Combine**
   - Automatically combines matching enchanted books in the Hypixel Anvil.
 - **Auto Clicker**
   - A simple auto clicker for both left and right click. Activates when the corresponding key is being held down.
+- **Auto GFS**
+  - Automatically refills certain items from your sacks.
 - **Auto Hotbar**
   - Saves and equips hotbar presets, with optional chat trigger, dungeon floor and class requirements.
 - **Auto Join SkyBlock**
   - Automatically joins SkyBlock after connecting to Hypixel.
-- **Auto Loadout**
-  - Automatically equips loadout.
 - **Auto Kick**
   - Automatically kicks selected party members.
+- **Auto Loadout**
+  - Automatically equips loadout.
 - **Auto Sell**
   - Automatically sells items in trades and cookie menus.
 - **Auto Wardrobe**
   - Automatically equips wardrobe slots.
-- **Cat Mode**
-  - MEOWMEOWMEOWMEOWMEOWMEOWMEOW.
+- **Auto Sprint**
+  - Automatically sprints.
 - **Chat**
   - Various chat related tweaks.
 - **Chat Replacements**
-- **Chocolate Factory**
-  - Automates the Chocolate Factory.
-- **Dojo** (Beta)
-  - Helpers for Dojo challenges.
 - **Escrow Fix**
   - Automatically reopens the Auction House or Bazaar after escrow closes it.
 - **Inventory**
   - Inventory search/HUD helpers and other GUI QoL
-- **Item Animations**
-  - Changes how the held item looks on screen.
-- **Mirrorverse Solvers**
-  - Lava Maze, Lava Parkour, Craft Room, Red Green, Tiny Dancer, and Tubulator
 - **Pet Keybinds**
   - Keybinds for the pets menu.
-- **Slayers**
-  - Slayer boss alerts and ESP helpers.
-- **Test**
-  - Dev module for testing
+- **Player Display**
+  - HUD elements for SkyBlock player stats.
 - **Titles**
+- **Tweaks**
+  - Various player tweaks.
 - **Wardrobe Keybinds**
   - Keybinds for wardrobe.
 
 </details>
 
 <details>
-<summary><b>Player</b></summary>
+<summary><b>Misc</b></summary>
 
-- **Auto Sprint**
-  - Automatically sprints.
-- **Player Display**
-  - HUD elements for SkyBlock player stats
-- **Tweaks**
-  - Various player tweaks.
+- **Auto Carnival**
+  - Automates Carnival tasks.
+- **Cat Mode**
+  - MEOWMEOWMEOWMEOWMEOWMEOWMEOW.
+- **Chocolate Factory**
+  - Automates the Chocolate Factory.
+- **Dojo** (Beta)
+  - Helpers for Dojo challenges.
+- **Mirrorverse Solvers**
+  - Automatically completes Mirrorverse puzzles: Lava Maze, Lava Parkour, Craft Room, Red Green, Tiny Dancer, and Tubulator.
+- **Slayers**
+  - Slayer boss alerts and ESP helpers.
+- **Test**
+  - Dev module for testing.
 
 </details>
 
@@ -184,6 +190,8 @@ Use [actions tab](https://github.com/jcnlk/quoi/actions) to download (you need t
   - Hides players in the world.
 - **Info HUD**
   - Shows useful information on the screen.
+- **Item Animations**
+  - Changes how the held item looks on screen.
 - **Name Tags**
   - Customisable nametags for entities.
 - **Nick Hider**
@@ -204,6 +212,8 @@ Use [actions tab](https://github.com/jcnlk/quoi/actions) to download (you need t
 <details>
 <summary><b>Mining</b></summary>
 
+- **Ability Alert**
+  - Shows an alert when your mining ability is available again.
 - **Commision Display**
   - Displays your commissions without you having to open the tab menu.
 - **Crystal Hollows Map**
@@ -214,15 +224,14 @@ Use [actions tab](https://github.com/jcnlk/quoi/actions) to download (you need t
   - Tracks griefers in Crystal Hollows.
 - **Ghost ESP**
   - Highlights ghosts in the Dwarven Mines.
+- **Glacite Tunnels**
+  - Navigation and utilities for the Glacite Tunnels.
 - **Mineshaft ESP**
-  - Highlights Umber, Tungsten, Lapis and Vanguard spots in Glacite Mineshafts.
+  - Highlights corpses, fossils, and mobs in Glacite Mineshafts.
 - **No Break Reset**
   - Prevents held item updates from resetting block breaking progress and the equip animation.
 - **No Gemstone Desync**
   - Fixes adjacent gemstone blocks not updating correctly after mining.
-- **Ability Alert**
-  - Shows an alert when your mining ability is available again.
-
 </details>
 
 ## Development
