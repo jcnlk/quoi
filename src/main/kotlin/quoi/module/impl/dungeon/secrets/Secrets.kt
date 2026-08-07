@@ -1,11 +1,12 @@
-package quoi.module.impl.dungeon
+package quoi.module.impl.dungeon.secrets
 
 import quoi.api.skyblock.location.Island
 import quoi.module.Module
-import quoi.module.impl.dungeon.secrets.AutoCloseChest
-import quoi.module.impl.dungeon.secrets.SecretAura
-import quoi.module.impl.dungeon.secrets.SecretHighlights
-import quoi.module.impl.dungeon.secrets.SecretTriggerbot
+import quoi.module.impl.dungeon.secrets.impl.AutoCloseChest
+import quoi.module.impl.dungeon.secrets.impl.FullBlock
+import quoi.module.impl.dungeon.secrets.impl.SecretAura
+import quoi.module.impl.dungeon.secrets.impl.SecretHighlights
+import quoi.module.impl.dungeon.secrets.impl.SecretTriggerbot
 
 @Suppress("unused_expression")
 object Secrets : Module(
@@ -18,6 +19,7 @@ object Secrets : Module(
         SecretAura
         SecretTriggerbot
         AutoCloseChest
+        FullBlock
 
         command.sub("clearaura") {
             SecretAura.clear()

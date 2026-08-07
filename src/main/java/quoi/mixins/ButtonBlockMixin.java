@@ -1,6 +1,6 @@
 package quoi.mixins;
 
-import quoi.module.impl.dungeon.FullBlockHitboxes;
+import quoi.module.impl.dungeon.secrets.impl.FullBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.ButtonBlock;
@@ -40,8 +40,8 @@ public class ButtonBlockMixin {
 
     @Inject(method = "getShape", at = @At("HEAD"), cancellable = true)
     private void onGetShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context, CallbackInfoReturnable<VoxelShape> cir) {
-        if (FullBlockHitboxes.shouldExpandHitbox(FullBlockHitboxes.BlockType.Buttons)) {
-            if (FullBlockHitboxes.shouldUseFullBlockButtonHitbox()) {
+        if (FullBlock.shouldExpandHitbox(FullBlock.BlockType.Buttons)) {
+            if (FullBlock.shouldUseFullBlockButtonHitbox()) {
                 cir.setReturnValue(Shapes.block());
                 return;
             }
