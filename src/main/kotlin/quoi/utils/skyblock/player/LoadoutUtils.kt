@@ -4,7 +4,6 @@ import net.minecraft.world.item.ItemStack
 import quoi.QuoiMod.mc
 import quoi.annotations.Init
 import quoi.api.commands.QuoiCommand
-import quoi.api.skyblock.location.Location.inSkyblock
 import quoi.utils.ChatUtils
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.StringUtils.noControlCodes
@@ -18,8 +17,6 @@ import quoi.utils.skyblock.player.container.task.containerTask
 @Init
 object LoadoutUtils {
     private val loadoutSlots = listOf(14, 15, 16, 23, 24, 25, 32, 33, 34, 41, 42, 43)
-    private val menuTitle = Regex("""^\(\d+/\d+\) Loadouts$""", RegexOption.IGNORE_CASE)
-
     private var task: ContainerTask? = null
 
     init {
@@ -39,10 +36,6 @@ object LoadoutUtils {
             modMessage("&cInvalid loadout slot. Use &e/quoi loadout <1-${loadoutSlots.size}>&c.")
             return false
         }
-        if (!inSkyblock) {
-            modMessage("&cYou are not in SkyBlock.")
-            return false
-        }
         if (task?.let { it.result == null } == true) return false
 
         val targetSlot = loadoutSlots[slot - 1]
@@ -54,13 +47,13 @@ object LoadoutUtils {
             fastMode = fastMode,
         ) {
             action { ChatUtils.command("/loadout") }
-            awaitContainer(menuTitle, waitForItems = true)
+            awaitContainer("(1/3) Loadouts", waitForItems = true)
             check("Loadout slot $slot is not equipable") {
                 mc.player?.containerMenu?.items?.getOrNull(targetSlot)?.isLoadoutButton() == true
             }
             pickup(IndexSlot(targetSlot, true))
             action { mc.player?.closeContainer() }
-            awaitContainer(menuTitle)
+            awaitContainer("(1/3) Loadouts")
             action { mc.player?.closeContainer() }
 
             onFinished { result ->
@@ -73,7 +66,7 @@ object LoadoutUtils {
 
                 when (result) {
                     ContainerTaskResult.Success -> modMessage("&aEquipped loadout &f$slot")
-                    ContainerTaskResult.Busy -> Unit
+                    ContainerTaskResult.Busy,
                     ContainerTaskResult.Cancelled -> Unit
                     is ContainerTaskResult.Failure -> modMessage("&c${result.message}.")
                 }
@@ -89,6 +82,6 @@ object LoadoutUtils {
 
     private fun ItemStack.isLoadoutButton(): Boolean {
         val lore = loreString?.noControlCodes ?: return false
-        return lore.contains("Left-click to equip!", ignoreCase = true)
+        return lore.contains("Left-click to equip!")
     }
 }
