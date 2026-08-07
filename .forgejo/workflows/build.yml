@@ -13,8 +13,6 @@ on:
       - ".run/**"
       - "LICENSE"
   pull_request:
-  schedule:
-    - cron: "0 3 * * *"
   workflow_dispatch:
 
 permissions:
@@ -67,17 +65,3 @@ jobs:
           if-no-files-found: warn
           compression-level: 0
           retention-days: 14
-
-      - name: Add Artifact Link
-        if: ${{ !cancelled() && github.event_name != 'pull_request' }}
-        run: |
-          title="Build artifacts"
-          if [ "$GITHUB_EVENT_NAME" = "schedule" ]; then
-            title="Nightly artifacts"
-          fi
-          repo_path="${GITHUB_REPOSITORY#git.jcnlk.com/}"
-          {
-            echo "### ${title}"
-            echo ""
-            echo "[Open actions](https://git.jcnlk.com/${repo_path}/actions)"
-          } >> "$GITHUB_STEP_SUMMARY"
