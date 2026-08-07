@@ -1,7 +1,7 @@
 package quoi.mixins;
 
 import quoi.mixininterfaces.IOriginalCollisionShapeProvider;
-import quoi.module.impl.dungeon.FullBlockHitboxes;
+import quoi.module.impl.dungeon.secrets.impl.FullBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockGetter;
@@ -25,7 +25,7 @@ public class WallSkullBlockMixin implements IOriginalCollisionShapeProvider {
 
     @Inject(method = "getShape", at = @At("HEAD"), cancellable = true)
     private void onGetShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context, CallbackInfoReturnable<VoxelShape> cir) {
-        if (FullBlockHitboxes.shouldExpandHitbox(FullBlockHitboxes.BlockType.Skulls)) {
+        if (FullBlock.shouldExpandHitbox(FullBlock.BlockType.Skulls)) {
             cir.setReturnValue(Shapes.block());
         }
     }

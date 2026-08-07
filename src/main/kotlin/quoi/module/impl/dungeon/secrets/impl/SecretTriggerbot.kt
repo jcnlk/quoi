@@ -1,4 +1,4 @@
-package quoi.module.impl.dungeon.secrets
+package quoi.module.impl.dungeon.secrets.impl
 
 import net.minecraft.core.BlockPos
 import net.minecraft.world.InteractionHand
@@ -9,9 +9,8 @@ import quoi.api.events.WorldEvent
 import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.Dungeon.inBoss
-import quoi.module.impl.dungeon.Secrets
-import quoi.module.settings.group.SettingGroup
-import quoi.module.settings.impl.SwitchComponent
+import quoi.module.impl.dungeon.secrets.Secrets
+import quoi.module.settings.group.ToggleableGroup
 import quoi.utils.Ticker
 import quoi.utils.equalsOneOf
 import quoi.utils.skyblock.player.SwapManager
@@ -19,15 +18,21 @@ import quoi.utils.skyblock.player.SwapResult
 import quoi.utils.ticker
 
 // Kyleen
-private val triggerbotToggle = SwitchComponent("Triggerbot", desc = "Automatically collects secrets when looking at them.")
-
-object SecretTriggerbot : SettingGroup(Secrets, triggerbotToggle) {
-
+object SecretTriggerbot : ToggleableGroup(
+    Secrets,
+    "Triggerbot",
+    desc = "Automatically collects secrets when looking at them."
+) {
     private val swapSlot by slider("Swap slot", 1, 1, 9, 1, desc = "Hotbar slot to swap to (1-9).")
     private val swapBack by switch("Swap back", desc = "Swaps back to original slot after clicking.")
     private val reactionDelay by slider("Interact delay", 0, 0, 5, 1, desc = "Ticks to wait before triggering.")
 
     private val clickedBlocks = HashSet<BlockPos>()
+
+    override fun onDisable() {
+        clickedBlocks.clear()
+        tBotTicker = null
+    }
 
     init {
         on<WorldEvent.Change> {
@@ -35,11 +40,6 @@ object SecretTriggerbot : SettingGroup(Secrets, triggerbotToggle) {
         }
 
         on<TickEvent.End> {
-            if (!triggerbotToggle.enabled) {
-                clickedBlocks.clear()
-                tBotTicker = null
-                return@on
-            }
             if (mc.gui.screen() != null || inBoss) return@on
             if (Dungeon.currentRoom?.name == "Water Board") {
                 tBotTicker = null

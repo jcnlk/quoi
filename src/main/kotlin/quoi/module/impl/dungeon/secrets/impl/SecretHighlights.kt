@@ -1,4 +1,4 @@
-package quoi.module.impl.dungeon.secrets
+package quoi.module.impl.dungeon.secrets.impl
 
 import net.minecraft.core.BlockPos
 import net.minecraft.world.entity.item.ItemEntity
@@ -10,10 +10,9 @@ import quoi.api.events.RenderEvent
 import quoi.api.events.WorldEvent
 import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.Dungeon.dungeonItemDrops
-import quoi.module.impl.dungeon.Secrets
-import quoi.module.settings.group.SettingGroup
-import quoi.module.settings.impl.SwitchComponent
+import quoi.module.impl.dungeon.secrets.Secrets
 import quoi.module.settings.UIComponent.Companion.childOf
+import quoi.module.settings.group.ToggleableGroup
 import quoi.utils.EntityUtils.interpolatedBox
 import quoi.utils.Scheduler.scheduleTask
 import quoi.utils.StringUtils.containsOneOf
@@ -22,10 +21,12 @@ import quoi.utils.render.drawFilledBox
 import quoi.utils.render.drawWireFrameBox
 import java.util.concurrent.CopyOnWriteArrayList
 
-private val highlightsToggle = SwitchComponent("Highlights", desc = "Highlights collected secrets.")
-
 // https://github.com/Noamm9/CatgirlAddons/blob/main/src/main/kotlin/catgirlroutes/module/impl/dungeons/Secrets.kt
-object SecretHighlights : SettingGroup(Secrets, highlightsToggle) {
+object SecretHighlights : ToggleableGroup(
+    Secrets,
+    "Highlights",
+    desc = "Highlights collected secrets."
+) {
     private val secretChime by switch("Chime", desc = "Plays a sound on secret click.")
     private val clickSound = sound("Secret sound").childOf(::secretChime)
 //    private val dropSound = createSoundSettings("Drop", chimeDropdown) { secretChime }
@@ -47,36 +48,32 @@ object SecretHighlights : SettingGroup(Secrets, highlightsToggle) {
     private val clickedSecrets = CopyOnWriteArrayList<Secret>()
     private val itemEntities = CopyOnWriteArrayList<ItemEntity>()
 
+    override fun onDisable() {
+        clickedSecrets.clear()
+        itemEntities.clear()
+    }
+
     init {
         on<DungeonEvent.Secret.Interact> {
-            if (!highlightsToggle.enabled) return@on
             secretHighlight(blockPos)
             if (secretChime) clickSound.play(10)
         }
 
         on<DungeonEvent.Secret.Item> {
-            if (!highlightsToggle.enabled) return@on
             if (secretChime) clickSound.play(10) // dropSound
         }
 
         on<DungeonEvent.Secret.Bat> {
-            if (!highlightsToggle.enabled) return@on
             if (secretChime) clickSound.play(10) // dropSound?
         }
 
         on<ChatEvent.Packet> {
-            if (!highlightsToggle.enabled) return@on
             if (secretClicks && unformatted == "That chest is locked!") {
                 clickedSecrets.lastOrNull()?.isLocked = true
             }
         }
 
         on<RenderEvent.World> {
-            if (!highlightsToggle.enabled) {
-                clickedSecrets.clear()
-                itemEntities.clear()
-                return@on
-            }
             clickedSecrets.forEach { (blockPos, locked) ->
                 val colour = if (locked) lockedColour else clickColour
                 val aabb = blockPos.aabb
@@ -97,7 +94,7 @@ object SecretHighlights : SettingGroup(Secrets, highlightsToggle) {
         }
 
         on<RenderEvent.Entity> {
-            if (!highlightsToggle.enabled || !itemHighlight) return@on
+            if (!itemHighlight) return@on
             val itemEntity = entity as? ItemEntity ?: return@on
             if (itemEntity.item.hoverName.string.containsOneOf(dungeonItemDrops, true)) {
                 itemEntities.addIfAbsent(itemEntity)

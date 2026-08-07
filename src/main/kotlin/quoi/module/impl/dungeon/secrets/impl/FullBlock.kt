@@ -1,12 +1,13 @@
-package quoi.module.impl.dungeon
+package quoi.module.impl.dungeon.secrets.impl
 
-import quoi.api.skyblock.dungeon.Dungeon.inDungeons
-import quoi.module.Module
+import quoi.module.impl.dungeon.secrets.Secrets
 import quoi.module.settings.UIComponent.Companion.childOf
+import quoi.module.settings.group.ToggleableGroup
 
 // Kyleen
-object FullBlockHitboxes : Module(
-    "Full Block Hitboxes",
+object FullBlock : ToggleableGroup(
+    Secrets,
+    "Full block",
     desc = "Expands the hitboxes of buttons, chests, levers, mushrooms, and skulls."
 ) {
     private val buttons by switch("Buttons")
@@ -19,11 +20,10 @@ object FullBlockHitboxes : Module(
     private val levers by switch("Levers")
     private val mushrooms by switch("Mushrooms")
     private val skulls by switch("Skulls")
-    private val dungeonsOnly by switch("Dungeons only", desc = "Only expands hitboxes while in dungeons.")
 
     @JvmStatic
     fun shouldExpandHitbox(blockType: BlockType): Boolean =
-        enabled && blockType.isEnabled && (!dungeonsOnly || inDungeons)
+        Secrets.active && enabled && blockType.isEnabled
 
     @JvmStatic
     fun shouldUseFullBlockButtonHitbox(): Boolean = buttonHitbox.selected == ButtonHitbox.FullBlock
