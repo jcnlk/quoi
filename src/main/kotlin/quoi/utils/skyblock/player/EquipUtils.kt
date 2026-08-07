@@ -20,7 +20,7 @@ import quoi.utils.skyblock.player.container.task.containerTask
 import java.util.concurrent.atomic.AtomicBoolean
 
 @Init
-object EquipUtils {
+object EquipUtils { // TODO: cleanup
     private const val MENU_TITLE = "Stats & Equipment"
 
     private val equipping = AtomicBoolean()

@@ -5,8 +5,6 @@ import quoi.QuoiMod.mc
 import quoi.annotations.Init
 import quoi.api.commands.QuoiCommand
 import quoi.api.commands.internal.GreedyString
-import quoi.api.skyblock.location.Location.inSkyblock
-import quoi.module.impl.general.PetKeybinds.petMap
 import quoi.utils.ChatUtils
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.StringUtils.noControlCodes
@@ -17,14 +15,10 @@ import quoi.utils.skyblock.player.container.task.ContainerTask
 import quoi.utils.skyblock.player.container.task.ContainerTaskResult
 import quoi.utils.skyblock.player.container.task.containerTask
 import quoi.utils.skyblock.player.container.task.item
-import quoi.utils.skyblock.player.container.task.menu
 
 @Init
 object PetUtils {
-    private val menuTitle = Regex(
-        """^(?:\(\d+/\d+\) )?Pets$""",
-        RegexOption.IGNORE_CASE,
-    )
+    private val menuTitle = Regex("""^(?:\(\d+/\d+\) )?Pets$""")
 
     @Volatile
     private var task: ContainerTask? = null
@@ -32,7 +26,7 @@ object PetUtils {
     init {
         QuoiCommand.command.sub("pet") { name: GreedyString ->
             if (!switchPet(name.string)) modMessage("&cA container action is already in progress.")
-        }.description("Switches pet by name.").suggests { petSuggestions() }
+        }.description("Switches pet by name.")
     }
 
     @JvmOverloads
@@ -45,14 +39,10 @@ object PetUtils {
         val cleanedName = cleanPetName(name).trim()
         val cleanedItem = item?.let(::cleanPetItemName)?.takeIf(String::isNotEmpty)
         if (cleanedName.isEmpty()) return false
-        if (!inSkyblock) {
-            modMessage("&cYou are not in SkyBlock.")
-            return false
-        }
         if (task?.let { it.result == null } == true) return false
 
         var matchedState = PetState.NOT_FOUND
-        val label = petLabel(cleanedName, cleanedItem)
+        val label = item?.let { "$cleanedName ($it)" } ?: cleanedName
         val target = item { stack -> stack.matchesPet(cleanedName, cleanedItem) }.menu
 
         val newTask = containerTask(
@@ -72,12 +62,7 @@ object PetUtils {
                 }
                 matchedState != PetState.SUMMONABLE
             }
-            wait(1)
-            action {
-                if (matchedState != PetState.SUMMONABLE && ContainerUtils.containerId != 0) {
-                    mc.player?.closeContainer()
-                }
-            }
+            action { mc.player?.closeContainer() }
 
             onFinished { result ->
                 if (result != ContainerTaskResult.Success &&
@@ -94,7 +79,7 @@ object PetUtils {
                         PetState.UNAVAILABLE -> modMessage("&c$label is not summonable")
                         PetState.NOT_FOUND -> modMessage("&cCouldn't find $label")
                     }
-                    ContainerTaskResult.Busy -> Unit
+                    ContainerTaskResult.Busy,
                     ContainerTaskResult.Cancelled -> Unit
                     is ContainerTaskResult.Failure -> modMessage("&c${result.message}.")
                 }
@@ -110,24 +95,15 @@ object PetUtils {
 
     fun isBusy(): Boolean = task?.let { it.result == null } == true
 
-    private fun petSuggestions(): List<String> = petMap.values
-        .map(::cleanPetName)
-        .distinctBy { it.lowercase() }
-        .sorted()
-
     private fun cleanPetName(name: String): String = name.noControlCodes
         .replace(Regex("""⭐?\s*\[Lvl \d+] """), "")
         .trim('[', ']', ' ')
 
     private fun cleanPetItemName(name: String): String = name.noControlCodes.trim()
 
-    private fun petLabel(name: String, item: String?): String = item?.let { "$name ($it)" } ?: name
+    private fun ItemStack.isEquippedPet(): Boolean = loreString?.contains("Click to despawn!") == true
 
-    private fun ItemStack.isEquippedPet(): Boolean =
-        loreString?.contains("Click to despawn!", ignoreCase = true) == true
-
-    private fun ItemStack.isSummonablePet(): Boolean =
-        loreString?.contains("Left-click to summon!", ignoreCase = true) == true
+    private fun ItemStack.isSummonablePet(): Boolean = loreString?.contains("Left-click to summon!") == true
 
     private fun ItemStack.matchesPet(name: String, item: String?): Boolean {
         val petName = cleanPetName(displayName.string)
@@ -149,9 +125,6 @@ object PetUtils {
     }
 
     private enum class PetState {
-        NOT_FOUND,
-        EQUIPPED,
-        SUMMONABLE,
-        UNAVAILABLE,
+        NOT_FOUND, EQUIPPED, SUMMONABLE, UNAVAILABLE,
     }
 }
