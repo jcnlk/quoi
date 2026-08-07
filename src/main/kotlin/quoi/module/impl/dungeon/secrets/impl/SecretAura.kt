@@ -1,4 +1,4 @@
-package quoi.module.impl.dungeon.secrets
+package quoi.module.impl.dungeon.secrets.impl
 
 import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet
@@ -26,10 +26,9 @@ import quoi.api.skyblock.location.Location.inSkyblock
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.Dungeon.currentRoom
 import quoi.api.skyblock.dungeon.Dungeon.inDungeons
-import quoi.module.impl.dungeon.Secrets
 import quoi.module.impl.dungeon.autoclear.executor.ClearExecutor
-import quoi.module.settings.group.SettingGroup
-import quoi.module.settings.impl.SwitchComponent
+import quoi.module.impl.dungeon.secrets.Secrets
+import quoi.module.settings.group.ToggleableGroup
 import quoi.module.settings.Setting.Companion.json
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.module.settings.UIComponent.Companion.visibleIf
@@ -41,10 +40,12 @@ import quoi.utils.skyblock.player.SwapResult
 import quoi.utils.skyblock.player.interact.AuraManager
 
 // modified https://github.com/Hypericat/NoobRoutes/blob/main/src/main/kotlin/noobroutes/features/dungeon/SecretAura.kt
-private val auraToggle = SwitchComponent("Aura", desc = "Automatically collects secrets.")
-
 @Suppress("UNNECESSARY_SAFE_CALL")
-object SecretAura : SettingGroup(Secrets, auraToggle) {
+object SecretAura : ToggleableGroup(
+    Secrets,
+    "Aura",
+    desc = "Automatically collects secrets."
+) {
     private val range by slider("Range", 6.2, 2.1, 6.5, 0.1, desc = "Maximum range for secret aura. Both levers and chests.").json("Chest range")
     private val skullRange by slider("Skull range", 4.7, 2.1, 4.7, 0.1, desc = "Maximum range for secret aura when clicking skulls.")
     private val bossRange by slider("Boss lever range", 5.7, 2.1, 6.5, 0.1, desc = "Maximum range for levers in boss room.").visibleIf { inBoss }
@@ -91,16 +92,16 @@ object SecretAura : SettingGroup(Secrets, auraToggle) {
 
     private val extraDevLever = BlockPos(59, 133, 142)
 
+    override fun onDisable() {
+        clear()
+    }
+
     init {
         on<WorldEvent.Change> {
             clear()
         }
 
         on<TickEvent.End> {
-            if (!auraToggle.enabled) {
-                clear()
-                return@on
-            }
             if (ClearExecutor.active) return@on
             if (!inSkyblock ||
                 (mc.screen != null && !inContainer) ||
@@ -224,12 +225,7 @@ object SecretAura : SettingGroup(Secrets, auraToggle) {
         }
 
         on<PacketEvent.Received> {
-            if (!auraToggle.enabled) return@on
             when (packet) {
-//                is ClientboundBlockEventPacket -> { // hypixel doesn't seem to be sending these
-//                    if (packet.block == Blocks.CHEST) blocksDone.add(packet.pos.immutable())
-//                }
-
                 is ClientboundBlockUpdatePacket -> {
                     handleChangedBlock(packet.blockState, packet.pos.immutable())
                 }

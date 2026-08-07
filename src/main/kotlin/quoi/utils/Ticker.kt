@@ -1,7 +1,7 @@
 package quoi.utils
 
 import quoi.module.impl.misc.Test
-import quoi.module.impl.dungeon.secrets.SecretTriggerbot
+import quoi.module.impl.dungeon.secrets.impl.SecretTriggerbot
 /**
  * Usage:
  * [Test.tickerExample]

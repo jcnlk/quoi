@@ -1,6 +1,6 @@
 package quoi.mixins;
 
-import quoi.module.impl.dungeon.FullBlockHitboxes;
+import quoi.module.impl.dungeon.secrets.impl.FullBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.MushroomBlock;
@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class MushroomBlockMixin {
     @Inject(method = "getShape", at = @At("HEAD"), cancellable = true)
     private void onGetShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context, CallbackInfoReturnable<VoxelShape> cir) {
-        if (FullBlockHitboxes.shouldExpandHitbox(FullBlockHitboxes.BlockType.Mushrooms)) {
+        if (FullBlock.shouldExpandHitbox(FullBlock.BlockType.Mushrooms)) {
             cir.setReturnValue(Shapes.block());
         }
     }

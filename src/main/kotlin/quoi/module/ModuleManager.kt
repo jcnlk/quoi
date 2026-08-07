@@ -9,6 +9,7 @@ import quoi.api.input.CatKeys
 import quoi.module.impl.dungeon.*
 import quoi.module.impl.dungeon.autoclear.impl.*
 import quoi.module.impl.dungeon.puzzlesolvers.PuzzleSolvers
+import quoi.module.impl.dungeon.secrets.Secrets
 import quoi.module.impl.floor7.*
 import quoi.module.impl.general.*
 import quoi.module.impl.mining.*
@@ -34,7 +35,6 @@ object ModuleManager : EventListener {
             ShadowAssassinAlert,
             LeapMenu,
             AutoDoorOpener,
-            FullBlockHitboxes,
             DungeonAbilities,
             DungeonBreaker,
             FireFreeze,

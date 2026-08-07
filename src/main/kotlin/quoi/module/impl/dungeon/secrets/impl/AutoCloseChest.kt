@@ -1,18 +1,19 @@
-package quoi.module.impl.dungeon.secrets
+package quoi.module.impl.dungeon.secrets.impl
 
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
 import net.minecraft.network.protocol.game.ServerboundContainerClosePacket
 import net.minecraft.world.inventory.MenuType
 import quoi.api.events.PacketEvent
 import quoi.api.events.core.on
-import quoi.module.impl.dungeon.Secrets
-import quoi.module.settings.group.SettingGroup
-import quoi.module.settings.impl.SwitchComponent
+import quoi.module.impl.dungeon.secrets.Secrets
+import quoi.module.settings.group.ToggleableGroup
 
 // Kyleen
-private val autoCloseChestToggle = SwitchComponent("Auto close chest", desc = "Automatically closes secret chests.")
-
-object AutoCloseChest : SettingGroup(Secrets, autoCloseChestToggle) {
+object AutoCloseChest : ToggleableGroup(
+    Secrets,
+    "Auto close chest",
+    desc = "Automatically closes secret chests."
+) {
 
     private val secretChestTitles = setOf("Chest", "Large Chest", "Trapped Chest")
     private val chestMenuTypes = setOf(
@@ -27,7 +28,6 @@ object AutoCloseChest : SettingGroup(Secrets, autoCloseChestToggle) {
 
     init {
         on<PacketEvent.Received, ClientboundOpenScreenPacket> {
-            if (!autoCloseChestToggle.enabled) return@on
             if (packet.type !in chestMenuTypes || packet.title.string.trim() !in secretChestTitles) return@on
 
             SecretAura.lastClickedPos?.let { pos ->
