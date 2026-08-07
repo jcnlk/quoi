@@ -4,7 +4,6 @@ import net.minecraft.world.item.ItemStack
 import quoi.QuoiMod.mc
 import quoi.annotations.Init
 import quoi.api.commands.QuoiCommand
-import quoi.api.skyblock.location.Location.inSkyblock
 import quoi.utils.ChatUtils
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.StringUtils.noControlCodes
@@ -16,8 +15,6 @@ import quoi.utils.skyblock.player.container.task.containerTask
 
 @Init
 object WardrobeUtils {
-    private val menuTitle = Regex("""^\(\d+/\d+\) Armor Sets$""", RegexOption.IGNORE_CASE)
-
     private var task: ContainerTask? = null
 
     init {
@@ -38,10 +35,6 @@ object WardrobeUtils {
             modMessage("&cInvalid wardrobe slot. Use &e/quoi wardrobe <1-9>&c.")
             return false
         }
-        if (!inSkyblock) {
-            modMessage("&cYou are not in SkyBlock.")
-            return false
-        }
         if (task?.let { it.result == null } == true) return false
 
         val targetSlot = slot + 35
@@ -55,20 +48,18 @@ object WardrobeUtils {
             fastMode = fastMode,
         ) {
             action { ChatUtils.command("wardrobe") }
-            awaitContainer(menuTitle, waitForItems = true)
+            awaitContainer("(1/3) Armor Sets", waitForItems = true)
 
             action {
-                state = mc.player?.containerMenu?.items?.getOrNull(targetSlot)?.wardrobeState()
-                    ?: WardrobeState.EMPTY
+                state = mc.player?.containerMenu?.items?.getOrNull(targetSlot)?.wardrobeState() ?: WardrobeState.EMPTY
             }
             check("Wardrobe slot $slot is empty") { state != WardrobeState.EMPTY }
             check("Wardrobe slot $slot is locked") { state != WardrobeState.LOCKED }
             check("Wardrobe slot $slot is not ready") { state != WardrobeState.UNKNOWN }
 
-            pickup(IndexSlot(targetSlot, true))
-                .unless { disableUnequip && it.wardrobeState() == WardrobeState.EQUIPPED }
+            pickup(IndexSlot(targetSlot, true)).unless { disableUnequip && it.wardrobeState() == WardrobeState.EQUIPPED }
             afterClick { mc.player?.closeContainer() }
-            awaitContainer(menuTitle)
+            awaitContainer("(1/3) Armor Sets")
             action { mc.player?.closeContainer() }
 
             onFinished { result ->
@@ -81,11 +72,10 @@ object WardrobeUtils {
 
                 when (result) {
                     ContainerTaskResult.Success -> when {
-                        disableUnequip && state == WardrobeState.EQUIPPED ->
-                            modMessage("&eWardrobe slot &f$slot &eis already equipped.")
+                        disableUnequip && state == WardrobeState.EQUIPPED -> modMessage("&eWardrobe slot &f$slot &eis already equipped.")
                         else -> modMessage("&aEquipped wardrobe slot &f$slot")
                     }
-                    ContainerTaskResult.Busy -> Unit
+                    ContainerTaskResult.Busy,
                     ContainerTaskResult.Cancelled -> Unit
                     is ContainerTaskResult.Failure -> modMessage("&c${result.message}.")
                 }
@@ -100,21 +90,17 @@ object WardrobeUtils {
     }
 
     private fun ItemStack.wardrobeState(): WardrobeState {
-        val name = displayName.string.noControlCodes
+        val name = hoverName.string.noControlCodes
         return when {
-            name.contains(": Empty", ignoreCase = true) -> WardrobeState.EMPTY
-            name.contains(": Equipped", ignoreCase = true) -> WardrobeState.EQUIPPED
-            name.contains(": Ready", ignoreCase = true) -> WardrobeState.READY
-            name.contains(": Locked", ignoreCase = true) -> WardrobeState.LOCKED
+            name.endsWith(": Empty") -> WardrobeState.EMPTY
+            name.endsWith(": Equipped") -> WardrobeState.EQUIPPED
+            name.endsWith(": Ready") -> WardrobeState.READY
+            name.endsWith(": Locked") -> WardrobeState.LOCKED
             else -> WardrobeState.UNKNOWN
         }
     }
 
     private enum class WardrobeState {
-        EQUIPPED,
-        READY,
-        EMPTY,
-        LOCKED,
-        UNKNOWN,
+        EQUIPPED, READY, EMPTY, LOCKED, UNKNOWN,
     }
 }
