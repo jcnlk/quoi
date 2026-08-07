@@ -1,12 +1,19 @@
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.tasks.compile.JavaCompile
+import org.gradle.jvm.tasks.Jar
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("fabric-loom")
     kotlin("jvm")
-    `maven-publish`
 }
 
-version = property("mod_version") as String
+val minecraftVersion = providers.gradleProperty("minecraft_version").get()
+val modVersion = providers.gradleProperty("mod_version").get()
+val archivesBaseName = providers.gradleProperty("archives_base_name").get()
+
+version = "$modVersion+$minecraftVersion"
 
 repositories {
     mavenCentral()
@@ -23,7 +30,7 @@ repositories {
 }
 
 base {
-    archivesName.set(property("archives_base_name") as String)
+    archivesName.set(archivesBaseName)
 }
 
 kotlin {
@@ -64,6 +71,7 @@ loom {
             runDirectory.set(layout.projectDirectory.dir("runs/${project.property("minecraft_version")}"))
             jvmArguments.addAll(
                 "-Dmixin.debug.export=true",
+                "-Dmixin.hotSwap=true",
                 "-Ddevauth.enabled=true",
                 "-Ddevauth.account=${providers.gradleProperty("devauth_account").orElse("main").get()}",
                 "-XX:+AllowEnhancedClassRedefinition",
@@ -71,7 +79,15 @@ loom {
             )
             jvmArguments.add(
                 providers.provider {
-                    "-javaagent:${configurations.compileClasspath.get().find { it.name.contains("sponge-mixin") }}"
+                    val mixinAgent = configurations.runtimeClasspath.get().incoming.artifactView {
+                        componentFilter {
+                            it is ModuleComponentIdentifier &&
+                                it.group == "net.fabricmc" &&
+                                it.module == "sponge-mixin"
+                        }
+                    }.files.singleFile
+
+                    "-javaagent:${mixinAgent.absolutePath}"
                 }
             )
         }
@@ -93,7 +109,7 @@ tasks {
             "loader_version",
             "fabric_api_version",
             "fabric_kotlin_version",
-            "minecraft_version",
+            "minecraft_dependency",
         ).associateWith { providers.gradleProperty(it).get() }
 
         inputs.properties(modProperties)
@@ -103,16 +119,23 @@ tasks {
         }
     }
 
-    compileKotlin {
+    withType<KotlinCompile>().configureEach {
         compilerOptions {
-            jvmTarget = JvmTarget.JVM_21
+            jvmTarget.set(JvmTarget.JVM_21)
             freeCompilerArgs.add("-Xlambdas=class")
         }
     }
 
-    compileJava {
+    withType<JavaCompile>().configureEach {
+        options.release.set(21)
         options.encoding = "UTF-8"
         options.compilerArgs.addAll(listOf("-Xlint:deprecation", "-Xlint:unchecked"))
+    }
+
+    named<Jar>("jar") {
+        from("LICENSE") {
+            rename("LICENSE", "LICENSE_$archivesBaseName")
+        }
     }
 }
 
