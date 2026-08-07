@@ -1,12 +1,23 @@
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.tasks.compile.JavaCompile
+import org.gradle.jvm.tasks.Jar
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("net.fabricmc.fabric-loom")
     kotlin("jvm")
-    `maven-publish`
 }
 
-version = property("mod_version") as String
+val minecraftVersion = providers.gradleProperty("minecraft_version").get()
+val modVersion = providers.gradleProperty("mod_version").get()
+val archivesBaseName = providers.gradleProperty("archives_base_name").get()
+
+version = "$modVersion+$minecraftVersion"
+
+base {
+    archivesName.set(archivesBaseName)
+}
 
 repositories {
     mavenCentral()
@@ -15,7 +26,11 @@ repositories {
             includeGroup("me.djtheredstoner")
         }
     }
-    maven("https://maven.terraformersmc.com/")
+    maven("https://maven.terraformersmc.com/") {
+        content {
+            includeGroup("com.terraformersmc")
+        }
+    }
 }
 
 dependencies {
@@ -24,13 +39,14 @@ dependencies {
     implementation("net.fabricmc:fabric-loader:${property("loader_version")}")
     implementation("net.fabricmc:fabric-language-kotlin:${property("fabric_kotlin_version")}")
     implementation("net.fabricmc.fabric-api:fabric-api:${property("fabric_api_version")}")
-    runtimeOnly("me.djtheredstoner:DevAuth-fabric:1.2.2")
-    runtimeOnly("org.apache.httpcomponents:httpclient:4.5.14")
+    runtimeOnly("me.djtheredstoner:DevAuth-fabric:${property("devauth_version")}")
+    runtimeOnly("org.apache.httpcomponents:httpclient:${property("httpclient_version")}")
     compileOnly("com.terraformersmc:modmenu:${property("modmenu_version")}")
 
-    implementation("io.github.classgraph:classgraph:4.8.186")
-    include("io.github.classgraph:classgraph:4.8.186")
-
+    property("classgraph_version").let {
+        implementation("io.github.classgraph:classgraph:$it")
+        include("io.github.classgraph:classgraph:$it")
+    }
 }
 
 loom {
@@ -40,6 +56,7 @@ loom {
         vmArgs.addAll(
             arrayOf(
                 "-Dmixin.debug.export=true",
+                "-Dmixin.hotSwap=true",
                 "-Ddevauth.enabled=true",
                 "-Ddevauth.account=${providers.gradleProperty("devauth_account").orElse("main").get()}",
                 "-XX:+AllowEnhancedClassRedefinition",
@@ -56,8 +73,16 @@ loom {
 }
 
 afterEvaluate {
+    val mixinAgent = configurations.runtimeClasspath.get().incoming.artifactView {
+        componentFilter {
+            it is ModuleComponentIdentifier &&
+                it.group == "net.fabricmc" &&
+                it.module == "sponge-mixin"
+        }
+    }.files.singleFile
+
     loom.runs.named("client") {
-        vmArg("-javaagent:${configurations.compileClasspath.get().find { it.name.contains("sponge-mixin") }}")
+        vmArg("-javaagent:${mixinAgent.absolutePath}")
     }
 }
 
@@ -69,6 +94,7 @@ tasks {
             "mod_name",
             "loader_version",
             "fabric_api_version",
+            "minecraft_dependency",
             "fabric_kotlin_version",
         ).associateWith { providers.gradleProperty(it).get() }
 
@@ -79,19 +105,28 @@ tasks {
         }
     }
 
-    compileKotlin {
+    withType<KotlinCompile>().configureEach {
         compilerOptions {
-            jvmTarget = JvmTarget.JVM_25
+            jvmTarget.set(JvmTarget.JVM_25)
             freeCompilerArgs.add("-Xlambdas=class")
         }
     }
 
-    compileJava {
-        sourceCompatibility = "25"
-        targetCompatibility = "25"
+    withType<JavaCompile>().configureEach {
+        options.release.set(25)
         options.encoding = "UTF-8"
         options.compilerArgs.addAll(listOf("-Xlint:deprecation", "-Xlint:unchecked"))
     }
+
+    named<Jar>("jar") {
+        from("LICENSE") {
+            rename("LICENSE", "LICENSE_$archivesBaseName")
+        }
+    }
+}
+
+kotlin {
+    jvmToolchain(25)
 }
 
 java {
