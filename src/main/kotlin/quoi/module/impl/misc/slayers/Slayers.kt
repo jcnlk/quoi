@@ -22,9 +22,11 @@ import quoi.module.impl.misc.slayers.enderman.BeaconESP
 import quoi.module.impl.misc.slayers.enderman.EndermanSlayer
 import quoi.module.settings.UIComponent.Companion.visibleIf
 import quoi.module.settings.group.SettingGroup.Companion.childOf
+import quoi.utils.ChatUtils.modMessage
 import quoi.utils.EntityUtils.getEntities
 import quoi.utils.EntityUtils.getEntity
 import quoi.utils.EntityUtils.interpolatedBox
+import quoi.utils.StringUtils.formatTime
 import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.romanToInt
 import quoi.utils.skyblock.player.PlayerUtils
@@ -36,28 +38,23 @@ object Slayers : Module(
     desc = "Various slayer features.",
     area = Island.Skyblock
 ) {
+    private val slayers: Set<ISlayer> = setOf(BlazeSlayer, EndermanSlayer)
 
-    private val slayers: Set<ISlayer> = setOf(
-        BlazeSlayer,
-        EndermanSlayer
-    )
-
-    internal val beaconHighlight = highlight(
-        colour = Colour.RED,
-        fillColour = Colour.RED,
-        glow = false
-    ).childOf(BeaconESP.component)
+    internal val beaconHighlight = highlight(colour = Colour.RED, fillColour = Colour.RED, glow = false).childOf(BeaconESP.component)
     internal val beaconTracer = tracer(colour = Colour.RED, distance = null).childOf(BeaconESP.component)
 
     private val esp by switch("Boss ESP")
     private val highlight = highlight(aabbOffset = true).childOf(::esp)
     private val tracer = tracer(distance = null).childOf(::esp)
 
-    private val spawnAlert by switch(
-        "Spawn Alert",
-        desc = "Shows an alert when your Slayer boss spawns."
-    )
+    private val spawnAlert by switch("Spawn Alert", desc = "Shows an alert when your Slayer boss spawns.")
+    private val spawnTime by switch("Spawn Time", desc = "Shows how long your Slayer boss took to spawn in chat.")
+    private val killTime by switch("Kill Time", desc = "Shows how long your Slayer boss took to kill in chat.")
 
+    private var spawnStartedAt = 0L
+    private var killStartedAt = 0L
+
+    @Suppress("unused")
     private val debug by textHud("Debug") {
         column {
             debugStrings.forEach { (name, str) ->
@@ -74,16 +71,42 @@ object Slayers : Module(
 
     init {
         on<SlayerEvent.State> {
-            if (!spawnAlert || new != QuestState.KILLING) return@on
+            val now = System.currentTimeMillis()
 
-            PlayerUtils.setTitle(
-                title = "§c§lBOSS SPAWNED!",
-                playSound = true,
-                sound = SoundEvents.EXPERIENCE_ORB_PICKUP,
-                pitch = 0f,
-                stayAlive = 30,
-                fadeOut = 10,
-            )
+            when (new) {
+                QuestState.SPAWNING -> {
+                    spawnStartedAt = now
+                    killStartedAt = 0L
+                }
+
+                QuestState.KILLING -> {
+                    if (old == QuestState.SPAWNING && spawnStartedAt != 0L && spawnTime) {
+                        modMessage("Spawn Time: §a${formatTime(now - spawnStartedAt)}")
+                    }
+                    killStartedAt = now
+
+                    if (spawnAlert) PlayerUtils.setTitle(
+                        title = "§c§lBOSS SPAWNED!",
+                        playSound = true,
+                        sound = SoundEvents.EXPERIENCE_ORB_PICKUP,
+                        pitch = 0f,
+                        stayAlive = 30,
+                        fadeOut = 10,
+                    )
+                }
+
+                QuestState.SLAIN -> {
+                    if (old == QuestState.KILLING && killStartedAt != 0L && killTime) {
+                        modMessage("Kill Time: §a${formatTime(now - killStartedAt)}")
+                    }
+                    killStartedAt = 0L
+                }
+
+                QuestState.FAILED, QuestState.NONE -> {
+                    spawnStartedAt = 0L
+                    killStartedAt = 0L
+                }
+            }
         }
 
         on<RenderEvent.World> {
