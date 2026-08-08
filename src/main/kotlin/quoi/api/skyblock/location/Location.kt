@@ -56,7 +56,10 @@ object Location : EventListener {
                             "Dungeon: "
                         ) == true
                     }?.displayName?.string ?: return@on
-                    val newArea = Island.entries.firstOrNull { area.contains(it.displayName, true) } ?: Island.Unknown
+                    val newArea = Island.entries
+                        .filter { area.contains(it.displayName, true) }
+                        .maxByOrNull { it.displayName.length }
+                        ?: Island.Unknown
                     if (newArea !== currentArea) {
                         currentArea = newArea
                         AreaEvent.Main(newArea).post()
