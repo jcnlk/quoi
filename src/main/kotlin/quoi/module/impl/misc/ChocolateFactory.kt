@@ -73,7 +73,8 @@ object ChocolateFactory : Module(
         Island.Hub,
         Island.BackwaterBayou,
         Island.Galatea,
-        Island.LotusAtoll
+        Island.LotusAtoll,
+        Island.TorrhusCanyon,
     )
     private val eggSpawnedPattern = Regex("A Chocolate (Breakfast|Lunch|Dinner|Brunch|Déjeuner|Supper) Egg has appeared!")
     private val eggFoundPattern = Regex("(?:found a|collected this) Chocolate (Breakfast|Lunch|Dinner|Brunch|Déjeuner|Supper) Egg")
