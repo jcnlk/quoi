@@ -16,7 +16,6 @@ import quoi.utils.EntityUtils.getEntities
 import quoi.utils.EntityUtils.helmet
 import quoi.utils.EntityUtils.interpolatedBox
 import quoi.utils.equalsOneOf
-import quoi.utils.items
 import quoi.utils.skyblock.player.SwapManager
 
 // sword shit

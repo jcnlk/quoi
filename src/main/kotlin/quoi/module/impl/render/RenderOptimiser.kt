@@ -23,7 +23,6 @@ import quoi.api.skyblock.dungeon.Phase
 import quoi.module.Module
 import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.skyblock.item.ItemUtils.texture
-import quoi.utils.textures
 
 /**
  * TODO:
@@ -129,7 +128,7 @@ object RenderOptimiser : Module(
             if (!hideRecipeBook) return@on
             Screens.getWidgets(screen)
                 .filterIsInstance<ImageButton>()
-                .firstOrNull { it.textures == RecipeBookComponent.RECIPE_BUTTON_SPRITES }
+                .firstOrNull { it.sprites == RecipeBookComponent.RECIPE_BUTTON_SPRITES }
                 ?.visible = false
         }
     }
