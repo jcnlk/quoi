@@ -6,10 +6,9 @@ import quoi.api.events.core.on
 import quoi.module.impl.general.chat.Chat
 import quoi.module.settings.group.ToggleableGroup
 import quoi.utils.ChatUtils
+import quoi.utils.ChatUtils.add
 import quoi.utils.ChatUtils.literal
 import quoi.utils.Scheduler
-import quoi.utils.add
-import quoi.utils.scrolledLines
 
 object CompactChat : ToggleableGroup(Chat, "Compact chat", desc = "Compacts message duplicates.") {
     private val compactTime by slider("Compact time", 60, 5, 120, desc = "Time until compact chat no longer compacts the same message.", unit = "s")
@@ -34,11 +33,11 @@ object CompactChat : ToggleableGroup(Chat, "Compact chat", desc = "Compacts mess
                 this.cancel()
 
                 Scheduler.scheduleTask {
-                    val scrollBefore = mc.gui.hud.chat.scrolledLines // without this scroll resets every time message gets compacted. visual bug: scroll bar changes colour for a split second. I can't be asked fixing it
+                    val scrollBefore = mc.gui.hud.chat.chatScrollbarPos // without this scroll resets every time message gets compacted. visual bug: scroll bar changes colour for a split second. I can't be asked fixing it
                     ChatUtils.removeLines(id, msg)
                     mc.gui.hud.chat.add(text.copy().append(literal(" &7($count)")), id)
                     chatList[msg] = Pair(count, System.currentTimeMillis())
-                    mc.gui.hud.chat.scrolledLines = scrollBefore
+                    mc.gui.hud.chat.chatScrollbarPos = scrollBefore
                 }
 
                 return@on

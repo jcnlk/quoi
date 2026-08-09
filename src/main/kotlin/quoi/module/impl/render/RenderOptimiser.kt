@@ -26,11 +26,6 @@ import quoi.utils.skyblock.item.ItemUtils.texture
 import net.minecraft.world.entity.EntityType.getKey
 import java.util.Optional
 
-/**
- * TODO:
- *  use SettingsGroup
- */
-
 object RenderOptimiser : Module(
     "Render Optimiser",
     desc = "Various render optimisation features."
