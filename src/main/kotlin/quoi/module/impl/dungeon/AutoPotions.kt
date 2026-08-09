@@ -11,7 +11,6 @@ import quoi.module.Module
 import quoi.utils.ChatUtils
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.Scheduler
-import quoi.utils.items
 import quoi.utils.skyblock.item.ItemUtils.extraAttributes
 import quoi.utils.skyblock.player.container.ContainerUtils
 import quoi.utils.skyblock.player.container.task.ContainerTask

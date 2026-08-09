@@ -3,7 +3,6 @@ package quoi.utils.skyblock.player
 import net.minecraft.world.inventory.ClickType
 import net.minecraft.world.item.ItemStack
 import quoi.QuoiMod.mc
-import quoi.utils.items
 import quoi.utils.skyblock.item.ItemUtils.skyblockId
 import quoi.utils.skyblock.item.ItemUtils.skyblockUuid
 

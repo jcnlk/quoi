@@ -60,15 +60,10 @@
     "ServerboundUseItemPacketMixin",
     "SkullBlockMixin",
     "WallSkullBlockMixin",
-    "accessors.ChatComponentAccessor",
     "accessors.AbstractContainerScreenAccessor",
-    "accessors.InventoryAccessor",
-    "accessors.KeyMappingAccessor",
-    "accessors.LocalPlayerAccessor",
     "accessors.RenderSetupAccessor",
     "accessors.RenderTypeAccessor",
     "accessors.MultiPlayerGameModeAccessor",
-    "accessors.ImageButtonAccessor",
     "accessors.ItemInHandRendererAccessor",
     "accessors.ItemStackLayerRenderStateAccessor"
   ]

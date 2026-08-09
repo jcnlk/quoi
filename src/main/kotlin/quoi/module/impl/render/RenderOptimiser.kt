@@ -28,13 +28,7 @@ import quoi.api.skyblock.dungeon.Phase
 import quoi.module.Module
 import quoi.utils.skyblock.item.ItemUtils.skyblockId
 import quoi.utils.skyblock.item.ItemUtils.texture
-import quoi.utils.textures
 import java.util.Optional
-
-/**
- * TODO:
- *  use SettingsGroup
- */
 
 object RenderOptimiser : Module(
     "Render Optimiser",
@@ -141,7 +135,7 @@ object RenderOptimiser : Module(
             if (!hideRecipeBook) return@on
             Screens.getButtons(screen)
                 .filterIsInstance<ImageButton>()
-                .firstOrNull { it.textures == RecipeBookComponent.RECIPE_BUTTON_SPRITES }
+                .firstOrNull { it.sprites == RecipeBookComponent.RECIPE_BUTTON_SPRITES }
                 ?.visible = false
         }
     }

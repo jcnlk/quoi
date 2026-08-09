@@ -11,7 +11,6 @@ import quoi.api.commands.internal.GreedyString
 import quoi.utils.ChatUtils
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.StringUtils.noControlCodes
-import quoi.utils.items
 import quoi.utils.skyblock.item.ItemUtils.skyblockId
 import quoi.utils.skyblock.player.container.ContainerUtils
 import quoi.utils.skyblock.player.container.task.ContainerTaskResult
