@@ -469,6 +469,7 @@ object AutoCroesus : Module(
         if (!invLoaded(container) || container.menu.slots.size < 32) return
         val chestTitle = container.title.string.removeSuffix(" Chest")
         if (chestTitle !in autoCroesusChestNames) return
+        waitingForChestToOpen = false
 
         if (tryingToKismet && chestTitle == "Bedrock") {
             val kismet = container.menu.slots.getOrNull(50)?.item
@@ -496,7 +497,6 @@ object AutoCroesus : Module(
             return
         }
 
-        waitingForChestToOpen = false
         slotToClick = 31
         if (currentChest?.chestSlot == -1) currentChest = null
     }
