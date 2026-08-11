@@ -18,7 +18,10 @@ import quoi.api.events.DungeonEvent
 import quoi.api.events.RenderEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
+import quoi.api.events.core.AreaBoundListener
+import quoi.api.events.core.onAsync
 import quoi.api.events.core.on
+import quoi.api.events.core.wait
 import quoi.api.pathfinding.impl.WalkPathfinder
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.Floor7Utils
@@ -32,7 +35,6 @@ import quoi.module.impl.dungeon.DungeonESP.starredMobs
 import quoi.module.impl.dungeon.autoclear.MobCluster
 import quoi.module.impl.dungeon.autoclear.MobClusterer
 import quoi.module.impl.render.clickgui.ClickGui
-import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.module.settings.group.ToggleableGroup
 import quoi.module.settings.impl.MapSetting
 import quoi.utils.*
@@ -60,10 +62,8 @@ import quoi.utils.ui.textPair
 
 object Test : Module("Test", desc = "Dev module for testing.") {
 
-    val highlightTest = highlight()
-    val tracerTest = tracer()
-
-    val testGroup = TestGroup(this)
+    private val testGroup = TestGroup(this)
+    private val testGroup2 = TestGroup2(testGroup)
     val auraDebug by switch("Aura debug")
     val uiDebug by switch("UI debug").onValueChanged { old, new -> ClickGui.reopen() }
     val reopen by button("Reopen") { ClickGui.reopen() }
@@ -252,6 +252,11 @@ object Test : Module("Test", desc = "Dev module for testing.") {
             clusters = MobClusterer.getOrderedClusters(player.position(), room.starredMobs)
         }
 
+//        onAsync<TickEvent.End> {
+//            modMessage(asyncScopes.size)
+//            wait(20)
+//        }
+
         on<RenderEvent.World> {
             if (clusters != null) {
                 val clusters = clusters!!
@@ -404,14 +409,20 @@ object Test : Module("Test", desc = "Dev module for testing.") {
     private class DungeonMob(val name: String, var starred: Boolean, val pos: IntArray)
 }
 
-class TestGroup(module: Module) : ToggleableGroup(module, "Test group", subarea = "carnival") {
-    val test by switch("test")
-    val text by switch("text").childOf(::test)
-
+private class TestGroup(module: AreaBoundListener) : ToggleableGroup(module, "Test 1") {
     init {
-        on<TickEvent.Start> {
-            println("if you see this the group is enabled")
-            if (test) println("   this is a test2")
+        onAsync<TickEvent.Start> {
+            modMessage("test 1")
+            wait(20)
+        }
+    }
+}
+
+private class TestGroup2(module: AreaBoundListener) : ToggleableGroup(module, "Test 2") {
+    init {
+        onAsync<TickEvent.Start> {
+            modMessage("test 2")
+            wait(20)
         }
     }
 }
