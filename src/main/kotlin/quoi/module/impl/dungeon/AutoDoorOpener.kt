@@ -1,7 +1,5 @@
 package quoi.module.impl.dungeon
 
-import quoi.api.events.core.on
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.core.BlockPos
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.level.block.Blocks
@@ -9,11 +7,12 @@ import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
 import quoi.api.events.TickEvent
-import quoi.api.skyblock.location.Island
+import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.odonscanning.ScanUtils
 import quoi.api.skyblock.dungeon.odonscanning.tiles.DoorType
 import quoi.api.skyblock.dungeon.odonscanning.tiles.OdonDoor
+import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.location.invoke
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.visibleIf
@@ -30,14 +29,13 @@ object AutoDoorOpener : Module(
     private val auraRange by slider("Range", 5.0, 2.0, 6.0, 0.1, desc = "Maximum distance for opening a door.").visibleIf { mode.selected == "Aura" }
     private val retryDelay by slider("Retry delay", 500, 100, 2000, 50, unit = "ms", desc = "Delay between attempts to open a door.")
     private val swing by switch("Swing hand", desc = "Swings the hand when opening a door.")
-    private val inContainer by switch("In container", desc = "Allows doors to be opened while a container is open.")
+    private val inMenus by switch("In menus", desc = "Allows doors to be opened while a menu is open.")
 
     private var lastClick = 0L
 
     init {
         on<TickEvent.End> {
-            val screen = mc.gui.screen()
-            if (Dungeon.isDead || screen != null && (!inContainer || screen !is AbstractContainerScreen<*>)) return@on
+            if (Dungeon.isDead || mc.gui.screen() != null && !inMenus) return@on
 
             val now = System.currentTimeMillis()
             if (now - lastClick < retryDelay) return@on
@@ -67,6 +65,9 @@ object AutoDoorOpener : Module(
 
     private fun findLookedAtDoor(doors: Collection<OdonDoor>): BlockPos? {
         val hitResult = (mc.hitResult as? BlockHitResult)?.takeIf { it.type == HitResult.Type.BLOCK } ?: return null
+        val interactionRange = player.blockInteractionRange()
+        if (player.eyePosition.distanceToSqr(hitResult.location) > interactionRange * interactionRange) return null
+
         val hitPos = hitResult.blockPos
 
         if (hitPos.y !in 69..73) return null
