@@ -32,6 +32,7 @@ object InteractiveMap : Module(
 ) {
     private val keepChunks by switch("Keep chunks loaded", true, desc = "Keeps the chunks loaded. Good for long distances.")
     private val closeOn by segmented("Close on", "Release", listOf("Release", "Repress"))
+    val faceDoorOnArrival by switch("Face door on arrival", desc = "Faces the targeted door after arriving.")
 
     @Suppress("unused")
     private val openKey by keybind("Open key")
@@ -62,7 +63,7 @@ object InteractiveMap : Module(
         .onPress {
             if (!enabled || !mapOpen || !Dungeon.inClear || Dungeon.isDead) return@onPress
             val door = getLockedDoor() ?: return@onPress modMessage("No locked doors found.")
-            pathToDoor(door)
+            pathToDoor(door, faceDoorOnArrival)
         }
 
     private val visuals by text("Visuals")

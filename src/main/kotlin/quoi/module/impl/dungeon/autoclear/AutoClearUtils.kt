@@ -32,10 +32,12 @@ import quoi.utils.addVec
 import quoi.utils.distanceToSqr
 import quoi.utils.equalsOneOf
 import quoi.utils.floorPos
+import quoi.utils.getDirection
 import quoi.utils.getLook
 import quoi.utils.player
 import quoi.utils.rayCastVec
 import quoi.utils.skyblock.player.PlayerUtils.getEyeHeight
+import quoi.utils.skyblock.player.RotationUtils.rotate
 import quoi.utils.vec3
 import kotlin.collections.filter
 
@@ -103,12 +105,19 @@ fun getLockedDoor(): OdonDoor? {
  *
  * @param door Destination door
  */
-fun pathToDoor(door: OdonDoor) {
+fun pathToDoor(door: OdonDoor, faceOnArrival: Boolean = false) {
     if (!canPath) return
     val goal = DungeonMapPathfinder.getDoorPos(Dungeon.currentRoom!!, door)
         ?: return modMessage("Could not find door coordinates")
 
-    ClearExecutor.etherPath(to = goal)
+    val onArrival = if (faceOnArrival) {
+        {
+            val doorCentre = Vec3(door.pos.x + 0.5, 71.0, door.pos.z + 0.5)
+            player.rotate(getDirection(doorCentre))
+        }
+    } else null
+
+    ClearExecutor.etherPath(to = goal, onComplete = onArrival)
 }
 
 /**

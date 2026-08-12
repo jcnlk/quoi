@@ -135,7 +135,7 @@ object MapRenderer {
                             outline(outlineCol, thickness = 2.px)
 
                             onClick {
-                                pathToDoor(door)
+                                pathToDoor(door, InteractiveMap.faceDoorOnArrival)
                             }
 
                             onMouseEnterExit {
