@@ -24,6 +24,7 @@ internal class AutoCroesusChestParser(
         "Shiny Wither Chestplate" to "WITHER_CHESTPLATE",
         "Shiny Wither Helmet" to "WITHER_HELMET",
         "Shiny Necron's Handle" to "NECRON_HANDLE",
+        "Bonzo Shard" to "SHARD_BONZO",
         "Wither Shard" to "SHARD_WITHER",
         "Thorn Shard" to "SHARD_THORN",
         "Apex Dragon Shard" to "SHARD_APEX_DRAGON",
