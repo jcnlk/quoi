@@ -1,6 +1,7 @@
 package quoi.module.impl.dungeon
 
 import quoi.api.events.core.on
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.core.BlockPos
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.level.block.Blocks
@@ -29,12 +30,14 @@ object AutoDoorOpener : Module(
     private val auraRange by slider("Range", 5.0, 2.0, 6.0, 0.1, desc = "Maximum distance for opening a door.").visibleIf { mode.selected == "Aura" }
     private val retryDelay by slider("Retry delay", 500, 100, 2000, 50, unit = "ms", desc = "Delay between attempts to open a door.")
     private val swing by switch("Swing hand", desc = "Swings the hand when opening a door.")
+    private val inContainer by switch("In container", desc = "Allows doors to be opened while a container is open.")
 
     private var lastClick = 0L
 
     init {
         on<TickEvent.End> {
-            if (Dungeon.isDead || mc.gui.screen() != null) return@on
+            val screen = mc.gui.screen()
+            if (Dungeon.isDead || screen != null && (!inContainer || screen !is AbstractContainerScreen<*>)) return@on
 
             val now = System.currentTimeMillis()
             if (now - lastClick < retryDelay) return@on
