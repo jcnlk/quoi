@@ -35,7 +35,7 @@ jobs:
           persist-credentials: false
 
       - name: Validate Gradle Wrapper
-        uses: gradle/actions/wrapper-validation@v6.2.0
+        uses: gradle/actions/wrapper-validation@v6.3.0
 
       - name: Set Up Java 21
         uses: actions/setup-java@v5.7.0
@@ -44,7 +44,7 @@ jobs:
           java-version: "21"
 
       - name: Set Up Gradle
-        uses: gradle/actions/setup-gradle@v6.2.0
+        uses: gradle/actions/setup-gradle@v6.3.0
         with:
           cache-provider: enhanced
           cache-read-only: ${{ github.event_name != 'push' }}
