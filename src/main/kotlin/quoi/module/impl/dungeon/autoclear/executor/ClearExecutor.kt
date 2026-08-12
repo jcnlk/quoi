@@ -3,6 +3,7 @@ package quoi.module.impl.dungeon.autoclear.executor
 import kotlinx.coroutines.launch
 import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ClientboundPlayerPositionPacket
+import quoi.QuoiMod.mc
 import quoi.QuoiMod.scope
 import quoi.annotations.Init
 import quoi.api.events.*
@@ -35,6 +36,8 @@ object ClearExecutor : EventListener {
     private var pendingInteract: Direction? = null
     private var position: MutableVec3? = null
     private var activeNode: ClearNode? = null
+    private var onComplete: (() -> Unit)? = null
+    private var pendingCompletion: (() -> Unit)? = null
 
     init {
         on<PacketEvent.Received> {
@@ -43,7 +46,12 @@ object ClearExecutor : EventListener {
 
         on<TickEvent.Server> {
             if (syncDelay < 2) return@on
-            if (syncDelay++ > 9) syncDelay = 0
+            if (syncDelay++ > 9) {
+                syncDelay = 0
+                val callback = pendingCompletion
+                pendingCompletion = null
+                if (callback != null) mc.submit { callback() }
+            }
         }
 
         on<TickEvent.Start> {
@@ -81,11 +89,16 @@ object ClearExecutor : EventListener {
             position = null
             active = false
             activeNode = null
+            onComplete = null
+            pendingCompletion = null
         }
     }
 
-    fun etherPath(to: BlockPos, config: PathConfig = PathConfig()) {
-        if (player.at(to)) return modMessage("Already there")
+    fun etherPath(to: BlockPos, config: PathConfig = PathConfig(), onComplete: (() -> Unit)? = null) {
+        if (player.at(to)) {
+            onComplete?.invoke()
+            return modMessage("Already there")
+        }
 
         scope.launch {
             val p = EtherwarpPathfinder.findDungeonPath(
@@ -94,7 +107,7 @@ object ClearExecutor : EventListener {
                 config = config,
             ) ?: return@launch
 
-            clearPath(p.map { it.toEther() })
+            clearPath(p.map { it.toEther() }, onComplete)
         }
     }
 
@@ -102,10 +115,12 @@ object ClearExecutor : EventListener {
 
     }
 
-    fun clearPath(path: List<ClearNode>) {
+    fun clearPath(path: List<ClearNode>, onComplete: (() -> Unit)? = null) {
         nodes = path.toMutableList()
         position = null
         pendingInteract = null
+        this.onComplete = onComplete
+        pendingCompletion = null
     }
 
     fun queueInteract(yaw: Float, pitch: Float) {
@@ -116,6 +131,8 @@ object ClearExecutor : EventListener {
         nodes = null
         position = null
         compDelay = 2
+        onComplete = null
+        pendingCompletion = null
     }
 
     private fun handleQueue(playerPos: MutableVec3, clearNodes: MutableList<ClearNode>) {
@@ -137,7 +154,11 @@ object ClearExecutor : EventListener {
             }
 
             if (clearNodes.isEmpty()) {
-                cancel()
+                nodes = null
+                position = null
+                compDelay = 2
+                pendingCompletion = onComplete
+                onComplete = null
                 syncDelay = 1
             }
         }
