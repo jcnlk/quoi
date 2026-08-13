@@ -2,26 +2,9 @@ version: 2
 updates:
   - package-ecosystem: "gradle"
     directory: "/"
-    target-branch: "1.21.11"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "04:10"
-      timezone: "UTC"
-    open-pull-requests-limit: 5
-    groups:
-      gradle-1-21-11:
-        patterns:
-          - "*"
-
-  - package-ecosystem: "gradle"
-    directory: "/"
     target-branch: "26.1.x"
     schedule:
       interval: "weekly"
-      day: "monday"
-      time: "04:20"
-      timezone: "UTC"
     open-pull-requests-limit: 5
     groups:
       gradle-26-1-x:
@@ -33,9 +16,6 @@ updates:
     target-branch: "26.2"
     schedule:
       interval: "weekly"
-      day: "monday"
-      time: "04:30"
-      timezone: "UTC"
     open-pull-requests-limit: 5
     groups:
       gradle-26-2:
@@ -44,26 +24,9 @@ updates:
 
   - package-ecosystem: "github-actions"
     directory: "/"
-    target-branch: "1.21.11"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "05:10"
-      timezone: "UTC"
-    open-pull-requests-limit: 5
-    groups:
-      actions-1-21-11:
-        patterns:
-          - "*"
-
-  - package-ecosystem: "github-actions"
-    directory: "/"
     target-branch: "26.1.x"
     schedule:
       interval: "weekly"
-      day: "monday"
-      time: "05:20"
-      timezone: "UTC"
     open-pull-requests-limit: 5
     groups:
       actions-26-1-x:
@@ -75,9 +38,6 @@ updates:
     target-branch: "26.2"
     schedule:
       interval: "weekly"
-      day: "monday"
-      time: "05:30"
-      timezone: "UTC"
     open-pull-requests-limit: 5
     groups:
       actions-26-2:
