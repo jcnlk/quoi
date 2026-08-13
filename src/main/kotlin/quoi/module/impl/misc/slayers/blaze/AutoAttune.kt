@@ -1,7 +1,6 @@
 package quoi.module.impl.misc.slayers.blaze
 
-import net.minecraft.network.protocol.game.ServerboundSwingPacket
-import net.minecraft.world.InteractionHand
+import net.minecraft.network.protocol.game.ServerboundPunchPacket
 import quoi.api.events.ChatEvent
 import quoi.api.events.PacketEvent
 import quoi.api.events.TickEvent
@@ -19,8 +18,7 @@ object AutoAttune : ToggleableGroup(BlazeSlayer, "Auto attune") {
     private var lastSwap = -1L
 
     init {
-        on<PacketEvent.Sent, ServerboundSwingPacket> {
-            if (packet.hand != InteractionHand.MAIN_HAND) return@on
+        on<PacketEvent.Sent, ServerboundPunchPacket> {
             if (System.currentTimeMillis() - lastSwap < 400L) return@on
             if (BlazeSlayer.attune == null) return@on
 

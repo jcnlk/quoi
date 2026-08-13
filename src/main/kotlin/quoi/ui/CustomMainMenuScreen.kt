@@ -1,6 +1,7 @@
 package quoi.ui
 
 import com.mojang.blaze3d.platform.NativeImage
+import org.lwjgl.sdl.SDLMouse
 import net.minecraft.SharedConstants
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.components.AbstractWidget
@@ -60,14 +61,14 @@ class CustomMainMenuScreen(
         addButton("Multiplayer") { minecraft?.gui?.setScreen(JoinMultiplayerScreen(this)) }
         if (CustomMainMenu.showHypixelButton) addButton("Join Hypixel") { joinServer("Hypixel", HYPIXEL_ADDRESS) }
         if (CustomMainMenu.showP3SimButton) addButton("Join P3Sim") { joinServer("P3Sim", p3SimAddress()) }
-        addButton("Options") { minecraft?.gui?.setScreen(OptionsScreen(this, requireNotNull(minecraft).options, false)) }
+        addButton("Options") { minecraft?.gui?.setScreen(OptionsScreen(this, requireNotNull(minecraft).options)) }
         externalTitleButtons.forEach { button ->
             addRenderableWidget(CustomMenuButton(x, y, buttonWidth, buttonHeight, button.message.string.noControlCodes.trim(), ::menuColour) {
                 button.mouseClicked(
                     MouseButtonEvent(
                         button.x + button.width / 2.0,
                         button.y + button.height / 2.0,
-                        MouseButtonInfo(0, 0),
+                        MouseButtonInfo(SDLMouse.SDL_BUTTON_LEFT, 0),
                     ),
                     false,
                 )

@@ -215,9 +215,8 @@ object LeapManager : EventListener {
 
         val useKey = mc.options.keyUse.key
         mc.options.keyUse.isDown = when (useKey.type) {
-            InputConstants.Type.MOUSE -> CatMouse.isButtonDown(useKey.value)
-            InputConstants.Type.KEYSYM -> CatKeyboard.isKeyDown(useKey.value)
-            InputConstants.Type.SCANCODE -> false
+            InputConstants.Type.MOUSE -> CatMouse.isSDLButtonDown(useKey.value)
+            InputConstants.Type.KEYBOARD -> CatKeyboard.isKeyDown(useKey.value)
         }
     }
 }

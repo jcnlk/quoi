@@ -30,9 +30,9 @@ public class KeyboardHandlerMixin {
             return;
         }
         if (action == 1) {
-            if (new KeyEvent.Press(input.input(), input.scancode(), input.modifiers()).post()) ci.cancel();
+            if (new KeyEvent.Press(input.input(), input.keycode(), input.modifiers()).post()) ci.cancel();
         } else if (action == 0) {
-            if (new KeyEvent.Release(input.input(), input.scancode(), input.modifiers()).post()) ci.cancel();
+            if (new KeyEvent.Release(input.input(), input.keycode(), input.modifiers()).post()) ci.cancel();
         }
     }
 

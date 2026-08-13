@@ -1,66 +1,45 @@
 package quoi.mixins;
 
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.client.renderer.ItemInHandRenderer;
+import net.minecraft.client.renderer.FirstPersonHandsAndItemsRenderer;
 import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.entity.state.AvatarRenderState;
+import net.minecraft.client.renderer.state.level.FirstPersonHandsAndItemsRenderState;
+import net.minecraft.client.renderer.state.level.PlayerRenderState;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.entity.HumanoidArm;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import org.joml.Quaternionfc;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import quoi.module.impl.render.ItemAnimations;
 
-@Mixin(ItemInHandRenderer.class)
+@Mixin(FirstPersonHandsAndItemsRenderer.class)
 public abstract class ItemInHandRendererMixin {
 
-    @Shadow private ItemStack mainHandItem;
-
-    @WrapOperation(
-            method = "renderHandsWithItems",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;getAttackAnim(F)F")
+    @ModifyExpressionValue(
+            method = "submitHandsWithItems",
+            at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/entity/state/AvatarRenderState;swingAnimation:F")
     )
-    private float quoi$itemAnimationsSwing(LocalPlayer instance, float v, Operation<Float> original) {
-        if (!ItemAnimations.INSTANCE.getEnabled()) return original.call(instance, v);
+    private float quoi$itemAnimationsSwing(float original, float frameInterp, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, PlayerRenderState playerState, FirstPersonHandsAndItemsRenderState state) {
+        if (!ItemAnimations.INSTANCE.getEnabled()) return original;
 
-        if (mainHandItem.isEmpty() && !ItemAnimations.affectHand()) {
-            return original.call(instance, v);
+        if (state.mainHandItem.isEmpty() && !ItemAnimations.affectHand()) {
+            return original;
         }
-        if (mainHandItem.has(DataComponents.MAP_ID) && !ItemAnimations.affectMap()) {
-            return original.call(instance, v);
+        if (state.mainHandItem.has(DataComponents.MAP_ID) && !ItemAnimations.affectMap()) {
+            return original;
         }
 
-        return ItemAnimations.getSwingAnimation(v);
-    }
-
-    @Inject(
-            method = "shouldInstantlyReplaceVisibleItem",
-            at = @At("HEAD"),
-            cancellable = true
-    )
-    private void quoi$itemAnimationsReequip(ItemStack itemStack, ItemStack itemStack2, CallbackInfoReturnable<Boolean> cir) {
-        if (ItemAnimations.disableReequip()) cir.setReturnValue(true);
-    }
-
-    @WrapOperation(
-            method = "tick",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;getAttackStrengthScale(F)F")
-    )
-    private float quoi$itemAnimationsBob(LocalPlayer instance, float v, Operation<Float> original) {
-        if (ItemAnimations.disableReequip() || ItemAnimations.disableSwingBob()) return 1f;
-        return original.call(instance, v);
+        return ItemAnimations.getSwingAnimation(frameInterp);
     }
 
     @Inject(
@@ -77,38 +56,42 @@ public abstract class ItemInHandRendererMixin {
     }
 
     @Inject(
-            method = "renderHandsWithItems",
+            method = "submitArmWithItem",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/client/renderer/ItemInHandRenderer;renderArmWithItem(Lnet/minecraft/client/player/AbstractClientPlayer;FFLnet/minecraft/world/InteractionHand;FLnet/minecraft/world/item/ItemStack;FLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;I)V",
-                    ordinal = 0
+                    target = "Lcom/mojang/blaze3d/vertex/PoseStack;pushPose()V",
+                    shift = At.Shift.AFTER
             )
     )
-    private void quoi$itemAnimationsMainTransform(float f, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, LocalPlayer localPlayer, int i, CallbackInfo ci) {
-        if (mainHandItem.isEmpty() && !ItemAnimations.affectHand()) return;
-        if (mainHandItem.has(DataComponents.MAP_ID) && !ItemAnimations.affectMap()) return;
-        ItemAnimations.applyTransformations(poseStack, mainHandItem);
+    private void quoi$itemAnimationsMainTransform(PlayerRenderState playerState, FirstPersonHandsAndItemsRenderState state, float partialTicks, float xRot, net.minecraft.world.InteractionHand hand, float attack, ItemStack itemStack, float inverseArmHeight, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int lightCoords, CallbackInfo ci) {
+        if (hand != net.minecraft.world.InteractionHand.MAIN_HAND) return;
+        if (itemStack.isEmpty() && !ItemAnimations.affectHand()) return;
+        if (itemStack.has(DataComponents.MAP_ID) && !ItemAnimations.affectMap()) return;
+        ItemAnimations.applyTransformations(poseStack, itemStack);
     }
 
     @Inject(
             method = "renderPlayerArm",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/EntityRenderDispatcher;getPlayerRenderer(Lnet/minecraft/client/player/AbstractClientPlayer;)Lnet/minecraft/client/renderer/entity/player/AvatarRenderer;")
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/FirstPersonHandsAndItemsRenderer;renderPlayerHand(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/world/entity/HumanoidArm;Lnet/minecraft/client/renderer/state/level/PlayerRenderState;)V")
     )
-    private void quoi$itemAnimationsArmScale(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, float f, float g, HumanoidArm humanoidArm, CallbackInfo ci) {
+    private void quoi$itemAnimationsArmScale(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, float f, float g, HumanoidArm humanoidArm, PlayerRenderState playerState, CallbackInfo ci) {
         if (!ItemAnimations.affectHand()) return;
         ItemAnimations.applyScale(poseStack);
     }
 
     @Inject(
-            method = "renderItem",
+            method = "submitArmWithItem",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/item/ItemStackRenderState;submit(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;III)V")
     )
-    private void quoi$itemAnimationsItemScale(LivingEntity livingEntity, ItemStack itemStack, ItemDisplayContext itemDisplayContext, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, CallbackInfo ci) {
-        ItemAnimations.applyScale(poseStack, itemStack, itemDisplayContext);
+    private void quoi$itemAnimationsItemScale(PlayerRenderState playerState, FirstPersonHandsAndItemsRenderState state, float partialTicks, float xRot, net.minecraft.world.InteractionHand hand, float attack, ItemStack itemStack, float inverseArmHeight, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int lightCoords, CallbackInfo ci) {
+        AvatarRenderState avatar = playerState.avatarRenderState;
+        HumanoidArm arm = hand == net.minecraft.world.InteractionHand.MAIN_HAND ? avatar.mainArm : avatar.mainArm.getOpposite();
+        ItemDisplayContext displayContext = arm == HumanoidArm.RIGHT ? ItemDisplayContext.FIRST_PERSON_RIGHT_HAND : ItemDisplayContext.FIRST_PERSON_LEFT_HAND;
+        ItemAnimations.applyScale(poseStack, itemStack, displayContext);
     }
 
     @WrapWithCondition(
-            method = "renderHandsWithItems",
+            method = "submitHandsWithItems",
             at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;mulPose(Lorg/joml/Quaternionfc;)V")
     )
     private boolean quoi$itemAnimationsSway(PoseStack instance, Quaternionfc quaternionfc) {
@@ -160,7 +143,7 @@ public abstract class ItemInHandRendererMixin {
             ),
             cancellable = true
     )
-    private void quoi$cancelEatTransform(PoseStack poseStack, float f, HumanoidArm humanoidArm, ItemStack itemStack, Player player, CallbackInfo ci) {
+    private void quoi$cancelEatTransform(PoseStack poseStack, float partialTicks, HumanoidArm humanoidArm, float useItemRemainingTicks, int useDuration, CallbackInfo ci) {
         if (ItemAnimations.disableEat()){
             ci.cancel();
         }
@@ -168,18 +151,18 @@ public abstract class ItemInHandRendererMixin {
 
     @Inject(
             method = "renderMapHand",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/core/ClientAsset$Texture;texturePath()Lnet/minecraft/resources/ResourceLocation;")
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/FirstPersonHandsAndItemsRenderer;renderPlayerHand(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/world/entity/HumanoidArm;Lnet/minecraft/client/renderer/state/level/PlayerRenderState;)V")
     )
-    private void quoi$mapScale1(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, HumanoidArm humanoidArm, CallbackInfo ci) {
+    private void quoi$mapScale1(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, HumanoidArm humanoidArm, PlayerRenderState playerState, CallbackInfo ci) {
         if (!ItemAnimations.affectMap()) return;
         ItemAnimations.applyScale(poseStack);
     }
 
     @Inject(
             method = "renderMap",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/SubmitNodeCollector;submitCustomGeometry(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/RenderType;Lnet/minecraft/client/renderer/SubmitNodeCollector$CustomGeometryRenderer;)V")
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/SubmitNodeCollector;submitCustomGeometry(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/rendertype/RenderType;Lnet/minecraft/client/renderer/SubmitNodeCollector$CustomGeometryRenderer;)V")
     )
-    private void quoi$mapScale2(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, ItemStack itemStack, CallbackInfo ci) {
+    private void quoi$mapScale2(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, ItemStack itemStack, boolean mainHand, FirstPersonHandsAndItemsRenderState state, CallbackInfo ci) {
         if (!ItemAnimations.INSTANCE.getEnabled()) return;
         if (!ItemAnimations.affectMap()) return;
         poseStack.translate(64f, 64f, 0f);

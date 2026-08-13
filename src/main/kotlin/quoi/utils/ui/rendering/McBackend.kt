@@ -1,9 +1,9 @@
 package quoi.utils.ui.rendering
 
-import com.mojang.blaze3d.pipeline.RenderPipeline
 import com.mojang.blaze3d.systems.RenderSystem
-import com.mojang.blaze3d.textures.FilterMode
 import com.mojang.blaze3d.vertex.VertexConsumer
+import com.mojang.renderpearl.api.pipeline.RenderPipeline
+import com.mojang.renderpearl.api.textures.FilterMode
 import it.unimi.dsi.fastutil.floats.FloatArrayList
 import it.unimi.dsi.fastutil.ints.IntArrayList
 import net.minecraft.client.gui.GuiGraphicsExtractor
@@ -27,7 +27,7 @@ import kotlin.math.sqrt
 
 /**
  * Minecraft-native [RendererBackend]: tessellates all primitives CPU-side ([UIGeometry])
- * and submits them as custom [GuiElementRenderState]s through the vanilla 26.2 GUI
+ * and submits them as custom [GuiElementRenderState]s through the vanilla 26.3 GUI
  * extraction pipeline (`RenderPipelines.GUI` / `GUI_TEXTURED`), which renders identically
  * on the OpenGL and Vulkan RenderDevice backends. No direct GL/VK calls.
  *

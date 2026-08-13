@@ -4,6 +4,7 @@ import quoi.QuoiMod.mc
 import quoi.api.abobaui.AbobaUI
 import quoi.api.input.CatKeyboard.Modifier.isCtrlDown
 import quoi.api.input.CatKeys
+import quoi.api.input.CatMouse
 import quoi.utils.Scheduler.scheduleTask
 import quoi.utils.sf
 import quoi.utils.ui.rendering.UIRenderer
@@ -31,10 +32,10 @@ class UIScreen(val instance: AbobaUI.Instance, val background: Boolean = true ) 
     }
 
     override fun mouseClicked(mouseButtonEvent: MouseButtonEvent, doubled: Boolean) =
-        instance.eventManager.onMouseClick(mouseButtonEvent.button())
+        instance.eventManager.onMouseClick(CatMouse.normalizeButton(mouseButtonEvent.button()))
 
     override fun mouseReleased(mouseButtonEvent: MouseButtonEvent): Boolean {
-        instance.eventManager.onMouseRelease(mouseButtonEvent.button())
+        instance.eventManager.onMouseRelease(CatMouse.normalizeButton(mouseButtonEvent.button()))
         return super.mouseReleased(mouseButtonEvent)
     }
 

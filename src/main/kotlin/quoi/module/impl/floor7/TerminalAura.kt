@@ -71,7 +71,7 @@ object TerminalAura : Module(
                 val packet = ServerboundInteractPacket(entity.id, InteractionHand.MAIN_HAND, hitVec.subtract(entity.position()), player.isShiftKeyDown)
 
                 connection.send(packet)
-                player.swing(InteractionHand.MAIN_HAND)
+                player.swing(InteractionHand.MAIN_HAND, net.minecraft.world.item.component.SwingAnimation.DEFAULT, false)
 
                 lastClick = System.currentTimeMillis()
                 break

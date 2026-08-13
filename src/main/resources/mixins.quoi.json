@@ -27,6 +27,7 @@
     "EntityMixin",
     "EntityRendererMixin",
     "FishingHookRendererMixin",
+    "FirstPersonHandsAndItemsMixin",
     "FogRendererMixin",
     "FontMixin",
     "GuiGraphicsMixin",

@@ -37,7 +37,7 @@ object BarrierBoom : Module( // todo move to triggerbot module
 
                     if (swap == SwapResult.SUCCESS || swap == SwapResult.ALREADY_SELECTED) {
                         gameMode.startDestroyBlock(result.blockPos, result.direction)
-                        player.swing(InteractionHand.MAIN_HAND)
+                        player.swing(InteractionHand.MAIN_HAND, net.minecraft.world.item.component.SwingAnimation.DEFAULT, false)
                         hasClickedBarrier = true
                     }
                 }

@@ -54,7 +54,7 @@ object PlayerUtils {
         val hand = InteractionHand.MAIN_HAND
         if (hitResult == null) gameMode.useItem(player, hand)
         else gameMode.useItemOn(player, hand, hitResult)
-        if (swing) player.swing(hand)
+        if (swing) player.swing(hand, net.minecraft.world.item.component.SwingAnimation.DEFAULT, false)
     }
 
     fun getEyeHeight(sneak: Boolean = false): Float {

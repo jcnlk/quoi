@@ -89,7 +89,7 @@ object CustomMainMenu : Module(
                 .filter(::isExternalTitleButton)
 
             // Replacing the screen while TitleScreen.init() is still on the stack leaves
-            // 26.2's GUI state inconsistent. Defer it to the next client task instead.
+            // The GUI state is inconsistent here. Defer it to the next client task instead.
             mc.submit {
                 if (mc.gui.screen() === screen) {
                     mc.gui.setScreen(CustomMainMenuScreen(extraButtons))

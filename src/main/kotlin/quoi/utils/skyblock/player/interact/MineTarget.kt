@@ -78,7 +78,7 @@ class MineTarget(
                 sequence,
             )
         }
-        if (swing) player.swing(InteractionHand.MAIN_HAND)
+        if (swing) player.swing(InteractionHand.MAIN_HAND, net.minecraft.world.item.component.SwingAnimation.DEFAULT, false)
 
         started = true
     }
@@ -92,7 +92,7 @@ class MineTarget(
                 sequence,
             )
         }
-        if (swing) player.swing(InteractionHand.MAIN_HAND)
+        if (swing) player.swing(InteractionHand.MAIN_HAND, net.minecraft.world.item.component.SwingAnimation.DEFAULT, false)
         finished = true
         player.resetRotation()
     }
@@ -136,7 +136,7 @@ class MineTarget(
 
         if (!started) {
             if (cd <= 0) start()
-            else if (swing) player.swing(InteractionHand.MAIN_HAND)
+            else if (swing) player.swing(InteractionHand.MAIN_HAND, net.minecraft.world.item.component.SwingAnimation.DEFAULT, false)
         } else {
             if (!custom) {
                 progress += state.getDestroyProgress(player, level, pos)
@@ -145,7 +145,7 @@ class MineTarget(
 
             level.addBreakingBlockEffect(pos, direction)
 
-            if (swing) player.swing(InteractionHand.MAIN_HAND)
+            if (swing) player.swing(InteractionHand.MAIN_HAND, net.minecraft.world.item.component.SwingAnimation.DEFAULT, false)
 
             if (progress >= 1.0f) {
                 if (doStop) stop()

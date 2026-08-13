@@ -17,10 +17,10 @@ object NoBreakReset : Module(
             if (packet.slot != 36 + player.inventory.selectedSlot) return@on
 
             // ReceivedPost runs after the packet has updated the inventory. Use that exact
-            // stack instance so ItemInHandRenderer's identity check also remains stable.
+            // stack instance so the first-person hand state's identity check remains stable.
             val stack = player.mainHandItem
             (gameMode as MultiPlayerGameModeAccessor).setDestroyingItem(stack)
-            (mc.entityRenderDispatcher.itemInHandRenderer as ItemInHandRendererAccessor).setMainHandItem(stack)
+            (player.firstPersonHandsAndItems() as ItemInHandRendererAccessor).setMainHandItem(stack)
         }
     }
 }

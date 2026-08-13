@@ -3,6 +3,7 @@ import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.jvm.tasks.Jar
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import net.fabricmc.loom.task.RunGameTask
 
 plugins {
     id("net.fabricmc.fabric-loom")
@@ -87,6 +88,10 @@ afterEvaluate {
 }
 
 tasks {
+    withType<RunGameTask>().configureEach {
+        notCompatibleWithConfigurationCache("Loom run classpaths can become stale after switching Minecraft version branches")
+    }
+
     processResources {
         val properties = listOf(
             "mod_id",

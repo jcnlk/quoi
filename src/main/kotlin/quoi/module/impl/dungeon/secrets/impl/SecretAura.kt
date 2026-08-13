@@ -223,7 +223,7 @@ object SecretAura : ToggleableGroup(
 
             lastClickedPos = blockCandidate.pos
             AuraManager.interactBlock(blockCandidate.pos)
-            if (swing && !player.isShiftKeyDown) player.swing(InteractionHand.MAIN_HAND)
+            if (swing && !player.isShiftKeyDown) player.swing(InteractionHand.MAIN_HAND, net.minecraft.world.item.component.SwingAnimation.DEFAULT, false)
         }
 
         on<PacketEvent.Received> {

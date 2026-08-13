@@ -278,12 +278,12 @@ object SimonSays : Module(
                 if (Dungeon.isDead || player.distanceToSqr(pos.center) > 25) return@rotateSmoothly
                 clickedButton = pos
                 AuraManager.interactBlock(pos)
-                player.swing(InteractionHand.MAIN_HAND)
+                player.swing(InteractionHand.MAIN_HAND, net.minecraft.world.item.component.SwingAnimation.DEFAULT, false)
             }
         } else {
             clickedButton = pos
             AuraManager.interactBlock(pos)
-            player.swing(InteractionHand.MAIN_HAND)
+            player.swing(InteractionHand.MAIN_HAND, net.minecraft.world.item.component.SwingAnimation.DEFAULT, false)
         }
 
         if (advanceProgress) {

@@ -1,7 +1,6 @@
 package quoi.api.input
 
-import quoi.QuoiMod.mc
-import org.lwjgl.glfw.GLFW
+import com.mojang.blaze3d.platform.InputConstants
 
 object CatKeyboard {
     val modifierCodes = intArrayOf(
@@ -43,10 +42,7 @@ object CatKeyboard {
     fun getKeyName(key: Int): String? {
         if (key == CatKeys.KEY_NONE) return "None"
 
-        val scancode = GLFW.glfwGetKeyScancode(key)
-        if (scancode == -1) return null
-
-        return GLFW.glfwGetKeyName(key, scancode) ?: when (key) {
+        return InputConstants.Type.KEYBOARD.getOrCreate(key).displayName.string.ifBlank { null } ?: when (key) {
             CatKeys.KEY_SPACE -> "Space"
             CatKeys.KEY_ENTER -> "Enter"
             CatKeys.KEY_TAB -> "Tab"
@@ -63,15 +59,16 @@ object CatKeyboard {
             CatKeys.KEY_RIGHT_CONTROL -> "RCtrl"
             CatKeys.KEY_LEFT_ALT -> "LAlt"
             CatKeys.KEY_RIGHT_ALT -> "RAlt"
-            in CatKeys.KEY_F1..GLFW.GLFW_KEY_F25 ->
+            in CatKeys.KEY_F1..CatKeys.KEY_F12 ->
                 "F${key - CatKeys.KEY_F1 + 1}"
+            in InputConstants.KEY_F13..InputConstants.KEY_F24 ->
+                "F${key - InputConstants.KEY_F13 + 13}"
             else -> null
         }
     }
 
     @JvmStatic
     fun isKeyDown(key: Int): Boolean {
-        val state = GLFW.glfwGetKey(mc.window.handle(), key)
-        return state == GLFW.GLFW_PRESS || state == GLFW.GLFW_REPEAT
+        return InputConstants.isKeyDown(key)
     }
 }

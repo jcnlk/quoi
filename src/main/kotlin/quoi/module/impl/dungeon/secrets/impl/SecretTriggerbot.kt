@@ -80,7 +80,7 @@ object SecretTriggerbot : ToggleableGroup(
             val result = mc.hitResult
             if (result is BlockHitResult && result.blockPos == pos) {
                 gameMode.useItemOn(player, InteractionHand.MAIN_HAND, result)
-                player.swing(InteractionHand.MAIN_HAND)
+                player.swing(InteractionHand.MAIN_HAND, net.minecraft.world.item.component.SwingAnimation.DEFAULT, false)
                 clickedBlocks.add(pos)
             }
         }

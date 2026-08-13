@@ -42,7 +42,7 @@ public class AbstractContainerScreenMixin {
     }
 
     @Inject(
-            method = "slotClicked",
+            method = "slotClicked(Lnet/minecraft/world/inventory/Slot;IILnet/minecraft/world/inventory/ContainerInput;)V",
             at = @At("HEAD"),
             cancellable = true
     )

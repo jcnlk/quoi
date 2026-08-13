@@ -10,6 +10,7 @@ import quoi.api.events.RenderEvent
 import quoi.api.events.ServerEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
+import quoi.api.input.CatMouse
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.Dungeon.dungeonItemDrops
 import quoi.utils.StringUtils.containsOneOf
@@ -92,13 +93,13 @@ object EventDispatcher {
 
         ScreenEvents.BEFORE_INIT.register { _, screen, _, _ ->
             ScreenMouseEvents.allowMouseClick(screen).register { _, click ->
-                val event = GuiEvent.Click(screen, click.x, click.y, click.button(), true)
+                val event = GuiEvent.Click(screen, click.x, click.y, CatMouse.normalizeButton(click.button()), true)
                 event.post()
                 !event.cancelled
             }
 
             ScreenMouseEvents.allowMouseRelease(screen).register { _, click ->
-                val event = GuiEvent.Click(screen, click.x, click.y, click.button(), false)
+                val event = GuiEvent.Click(screen, click.x, click.y, CatMouse.normalizeButton(click.button()), false)
                 event.post()
                 !event.cancelled
             }

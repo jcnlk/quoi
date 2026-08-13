@@ -48,7 +48,7 @@ object AutoDoorOpener : Module(
             } ?: return@on
 
             AuraManager.interactBlock(doorPos)
-            if (swing) player.swing(InteractionHand.MAIN_HAND)
+            if (swing) player.swing(InteractionHand.MAIN_HAND, net.minecraft.world.item.component.SwingAnimation.DEFAULT, false)
             lastClick = now
         }
     }

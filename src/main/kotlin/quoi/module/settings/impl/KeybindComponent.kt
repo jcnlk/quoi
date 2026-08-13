@@ -206,7 +206,7 @@ class Keybinding(var key: Int, val modifiers: MutableSet<Int> = mutableSetOf()) 
      * @return `true` if [key] is held down.
      */
     fun isDown(): Boolean {
-        if (key == 0) return false
+        if (key == CatKeys.KEY_NONE) return false
         val mainKeyDown = if (key < 0) CatMouse.isButtonDown(key + 100) else CatKeyboard.isKeyDown(key)
         if (!mainKeyDown) return false
 
@@ -216,7 +216,7 @@ class Keybinding(var key: Int, val modifiers: MutableSet<Int> = mutableSetOf()) 
     fun isModifierDown() = modifiers.all { CatKeyboard.isKeyDown(it) }
 
     fun clear() {
-        key = -1
+        key = CatKeys.KEY_NONE
         modifiers.clear()
     }
 

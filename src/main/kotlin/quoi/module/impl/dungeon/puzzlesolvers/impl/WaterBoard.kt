@@ -162,7 +162,7 @@ object WaterBoard : SettingGroup(PuzzleSolvers, "Water board"), Repositionable {
             val result = mc.gameMode?.useItemOn(player, InteractionHand.MAIN_HAND, hitResult) ?: return@on
             if (!result.consumesAction()) return@on
 
-            player.swing(InteractionHand.MAIN_HAND)
+            player.swing(InteractionHand.MAIN_HAND, net.minecraft.world.item.component.SwingAnimation.DEFAULT, false)
             lastClick = now
         }
 

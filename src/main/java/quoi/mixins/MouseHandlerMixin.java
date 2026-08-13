@@ -5,6 +5,7 @@ import net.minecraft.client.gui.screens.inventory.ContainerScreen;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Shadow;
 import quoi.api.events.MouseEvent;
+import quoi.api.input.CatMouse;
 import quoi.module.impl.general.chat.impl.ChatPeek;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.MouseHandler;
@@ -52,7 +53,7 @@ public class MouseHandlerMixin {
     )
     private void onMouseClick(long window, MouseButtonInfo input, int action, CallbackInfo ci) {
         if (checkShit(window)) return;
-        if (new MouseEvent.Click(input.button(), action == 1).post()) ci.cancel();
+        if (new MouseEvent.Click(CatMouse.normalizeButton(input.button()), action == 1).post()) ci.cancel();
     }
 
     @Inject(
@@ -60,7 +61,7 @@ public class MouseHandlerMixin {
             at = @At("HEAD"),
             cancellable = true
     )
-    private void onMouseMove(long window, double mx, double my, CallbackInfo ci) {
+    private void onMouseMove(long window, double mx, double my, double dx, double dy, CallbackInfo ci) {
         if (checkShit(window)) return;
         if (new MouseEvent.Move(mx, my).post()) ci.cancel();
     }
@@ -93,7 +94,7 @@ public class MouseHandlerMixin {
     @Inject(method = "releaseMouse", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;getWindow()Lcom/mojang/blaze3d/platform/Window;"))
     private void odin$correctCursorPosition(CallbackInfo ci) {
         if (Minecraft.getInstance().gui.screen() instanceof ContainerScreen && Tweaks.shouldHookMouse()) {
-            InputConstants.grabOrReleaseMouse(Minecraft.getInstance().getWindow(), InputConstants.CURSOR_NORMAL, this.beforeX, this.beforeY);
+            InputConstants.releaseMouse(Minecraft.getInstance().getWindow(), this.beforeX, this.beforeY);
             this.xpos = this.beforeX;
             this.ypos = this.beforeY;
         }

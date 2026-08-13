@@ -1,5 +1,5 @@
 [![discord badge](https://img.shields.io/discord/1371490329508839455?label=discord&color=9089DA&logo=discord&style=for-the-badge)](https://discord.gg/QCWgrQ57pN)
-![minecraft-version](https://img.shields.io/badge/Minecraft-26.2-6BAA57?style=for-the-badge&logoColor=white)
+![minecraft-version](https://img.shields.io/badge/Minecraft-26.3-6BAA57?style=for-the-badge&logoColor=white)
 
 Use [actions tab](https://github.com/jcnlk/quoi/actions) to download (you need to be logged in your github account).
 

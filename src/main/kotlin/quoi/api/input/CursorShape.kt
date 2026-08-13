@@ -1,13 +1,13 @@
 package quoi.api.input
 
-import org.lwjgl.glfw.GLFW
+import org.lwjgl.sdl.SDLMouse
 
 object CursorShape {
-    val ARROW by lazy { GLFW.glfwCreateStandardCursor(GLFW.GLFW_ARROW_CURSOR) }
-    val HAND by lazy { GLFW.glfwCreateStandardCursor(GLFW.GLFW_HAND_CURSOR) }
-    val IBEAM by lazy { GLFW.glfwCreateStandardCursor(GLFW.GLFW_IBEAM_CURSOR) }
-    val CROSSHAIR by lazy { GLFW.glfwCreateStandardCursor(GLFW.GLFW_CROSSHAIR_CURSOR) }
-    val HRESIZE by lazy { GLFW.glfwCreateStandardCursor(GLFW.GLFW_HRESIZE_CURSOR) }
-    val VRESIZE by lazy { GLFW.glfwCreateStandardCursor(GLFW.GLFW_VRESIZE_CURSOR) }
+    val ARROW by lazy { SDLMouse.SDL_CreateSystemCursor(SDLMouse.SDL_SYSTEM_CURSOR_DEFAULT) }
+    val HAND by lazy { SDLMouse.SDL_CreateSystemCursor(SDLMouse.SDL_SYSTEM_CURSOR_POINTER) }
+    val IBEAM by lazy { SDLMouse.SDL_CreateSystemCursor(SDLMouse.SDL_SYSTEM_CURSOR_TEXT) }
+    val CROSSHAIR by lazy { SDLMouse.SDL_CreateSystemCursor(SDLMouse.SDL_SYSTEM_CURSOR_CROSSHAIR) }
+    val HRESIZE by lazy { SDLMouse.SDL_CreateSystemCursor(SDLMouse.SDL_SYSTEM_CURSOR_EW_RESIZE) }
+    val VRESIZE by lazy { SDLMouse.SDL_CreateSystemCursor(SDLMouse.SDL_SYSTEM_CURSOR_NS_RESIZE) }
     const val NORMAL = 0L
 }
