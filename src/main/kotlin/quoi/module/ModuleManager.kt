@@ -55,7 +55,6 @@ object ModuleManager : EventListener {
             AutoLeap,
             BarrierBoom,
             FuckDiorite,
-            LavaBounce,
             LightsDevice,
             P4PlatformHighlight,
             SimonSays,
