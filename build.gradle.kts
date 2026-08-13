@@ -3,7 +3,6 @@ import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.jvm.tasks.Jar
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import net.fabricmc.loom.task.RunGameTask
 
 plugins {
     id("net.fabricmc.fabric-loom")
@@ -52,10 +51,10 @@ dependencies {
 
 loom {
     runConfigs.named("client") {
-        isIdeConfigGenerated = true
-        runDir = "runs/${project.property("minecraft_version")}"
-        vmArgs.addAll(
-            arrayOf(
+        generateRunConfig.set(true)
+        runDirectory.set(layout.projectDirectory.dir("runs/$minecraftVersion"))
+        jvmArguments.addAll(
+            listOf(
                 "-Dmixin.debug.export=true",
                 "-Dmixin.hotSwap=true",
                 "-Ddevauth.enabled=true",
@@ -67,7 +66,7 @@ loom {
     }
 
     runConfigs.named("server") {
-        isIdeConfigGenerated = false
+        generateRunConfig.set(false)
     }
 
     accessWidenerPath = file("src/main/resources/quoi.accesswidener")
@@ -83,15 +82,11 @@ afterEvaluate {
     }.files.singleFile
 
     loom.runs.named("client") {
-        vmArg("-javaagent:${mixinAgent.absolutePath}")
+        jvmArguments.add("-javaagent:${mixinAgent.absolutePath}")
     }
 }
 
 tasks {
-    withType<RunGameTask>().configureEach {
-        notCompatibleWithConfigurationCache("Loom run classpaths can become stale after switching Minecraft version branches")
-    }
-
     processResources {
         val properties = listOf(
             "mod_id",
