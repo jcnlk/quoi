@@ -35,7 +35,7 @@ enum class Island(val displayName: String, val command: String? = null) : Area {
 
     // foraging
     ThePark("The Park", "park"),
-    Galatea("Galatea", "galatea"),
+    Galatea("Moonglade Marsh", "galatea"),
     TorrhusCanyon("Torrhus Canyon", "canyon"),
 
     // special/misc
