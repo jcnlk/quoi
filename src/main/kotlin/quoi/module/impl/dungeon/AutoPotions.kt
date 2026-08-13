@@ -56,7 +56,7 @@ object AutoPotions : Module(
                 if (!active || floor !in floors) return@scheduleTask modMessage("no floor match")
                 if (task?.let { it.result == null } == true) return@scheduleTask modMessage("result shit")
 
-                val inventory = mc.player?.inventory?.items?.take(36) ?: return@scheduleTask modMessage("inv shit")
+                val inventory = mc.player?.inventory?.nonEquipmentItems?.take(36) ?: return@scheduleTask modMessage("inv shit")
                 val existingTier = inventory.mapNotNull { it.dungeonPotionTier() }.maxByOrNull(PotionTier::level)
 
                 if (existingTier != null && existingTier.level >= minimumPotionTier.selected.level) {
