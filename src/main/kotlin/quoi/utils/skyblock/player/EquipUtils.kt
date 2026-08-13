@@ -104,7 +104,7 @@ object EquipUtils { // TODO: cleanup
 
             val targets = onClientThread {
                 val player = mc.player ?: return@onClientThread null
-                findEquipmentTargets(player.inventory.items, player.equipmentItems(), pieces)
+                findEquipmentTargets(player.inventory.nonEquipmentItems, player.equipmentItems(), pieces)
             } ?: return EquipResult(success = false)
             if (targets.isEmpty()) return EquipResult(success = true)
 
