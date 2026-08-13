@@ -527,10 +527,21 @@ class McBackend : RendererBackend {
      * actual drawing at the precise window-pixel boundary.
      */
     private fun toScreenRect(rect: FloatArray): ScreenRectangle? {
-        val left = floor(rect[0] * invGuiScale).toInt()
-        val top = floor(rect[1] * invGuiScale).toInt()
-        val right = ceil(rect[2] * invGuiScale).toInt()
-        val bottom = ceil(rect[3] * invGuiScale).toInt()
+        // GuiRenderer only clamps the right and bottom edges before forwarding the
+        // scissor to RenderPass. Negative or completely off-screen rectangles therefore
+        // fail RenderPass's strict bounds validation instead of merely clipping content.
+        val windowWidth = mc.window.width.toFloat()
+        val windowHeight = mc.window.height.toFloat()
+        val clippedLeft = rect[0].coerceIn(0f, windowWidth)
+        val clippedTop = rect[1].coerceIn(0f, windowHeight)
+        val clippedRight = rect[2].coerceIn(0f, windowWidth)
+        val clippedBottom = rect[3].coerceIn(0f, windowHeight)
+        if (clippedRight <= clippedLeft || clippedBottom <= clippedTop) return EMPTY_SCISSOR
+
+        val left = floor(clippedLeft * invGuiScale).toInt()
+        val top = floor(clippedTop * invGuiScale).toInt()
+        val right = ceil(clippedRight * invGuiScale).toInt()
+        val bottom = ceil(clippedBottom * invGuiScale).toInt()
         if (right <= left || bottom <= top) return EMPTY_SCISSOR
         return ScreenRectangle(left, top, right - left, bottom - top)
     }
