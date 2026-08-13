@@ -12,10 +12,10 @@ Use [actions tab](https://github.com/jcnlk/quoi/actions) to download (you need t
 - `/quoi ping` - prints current and average ping
 - `/quoi tps` - prints current and average TPS
 - `/quoi toggle <module>` - toggles a module by name
-- `/quoi pet <name>` - queues a pet swap by name
-- `/quoi loadout <slot>` - equips a SkyBlock loadout slot
+- `/quoi pet <name>` - switches to a pet by name
+- `/quoi loadout <1-12>` - equips a SkyBlock loadout slot
 - `/quoi wardrobe <1-9>` - equips a wardrobe slot
-- `/quoi equip <mask>` - equips Bonzo/Spirit Mask
+- `/quoi equip <item[, item...]>` - equips one or more items from your inventory
 - `/quoi leap <name|class>` - leaps to a dungeon teammate
 - `/quoi order [p1] [p2] [p3] [p4]` - shows or sets Leap Menu custom order
 - `/quoi clearaura` - clears Secret Aura state
@@ -96,8 +96,6 @@ Use [actions tab](https://github.com/jcnlk/quoi/actions) to download (you need t
   - Replaces Storm's pillars with glass.
 - **Invincibility Timer**
   - Gives visual information about your invincibility times.
-- **Lava Bounce**
-  - Automatically places soul sand, chests, or ender chests for lava bounce spots.
 - **Lights Device**
   - Adds triggerbot and hides useless levers for the Lights device.
 - **P4 Platform Highlight**
