@@ -53,7 +53,7 @@ object HotbarSwapperUtils {
         val current = inventory.getItem(targetHotbarSlot)
         if (!current.isEmpty && hotbarItem.matches(current)) return NOT_FOUND
 
-        val slots = inventory.items.take(36)
+        val slots = inventory.nonEquipmentItems.take(36)
         val range = if (includeHotbar) HOTBAR_START..INVENTORY_END else INVENTORY_START..INVENTORY_END
 
         for (slot in range) {
@@ -67,7 +67,7 @@ object HotbarSwapperUtils {
     }
 
     fun findEmptyInventorySlot(ignoredSlots: Set<Int>): Int {
-        val slots = mc.player?.inventory?.items?.take(36) ?: return NOT_FOUND
+        val slots = mc.player?.inventory?.nonEquipmentItems?.take(36) ?: return NOT_FOUND
         for (slot in INVENTORY_START..INVENTORY_END) {
             val stack = slots.getOrNull(slot) ?: continue
             if (slot !in ignoredSlots && stack.isEmpty) return slot
