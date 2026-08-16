@@ -2,23 +2,21 @@ package quoi.api.skyblock
 
 import net.minecraft.world.entity.ai.attributes.Attributes
 import quoi.annotations.Init
-import quoi.annotations.Internal
 import quoi.api.events.ChatEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
 import quoi.api.events.core.EventListener
 import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.Dungeon.getMageCooldownMultiplier
-import quoi.module.impl.render.clickgui.impl.Data
 import quoi.utils.Scheduler.scheduleLoop
 import quoi.utils.Shortcuts
 import quoi.utils.StringUtils.capitaliseFirst
 import quoi.utils.skyblock.item.ItemUtils.lore
+import quoi.utils.skyblock.player.PetUtils
 import kotlin.math.floor
 import kotlin.math.roundToInt
 
 @Init
-@OptIn(Internal::class)
 object SkyblockPlayer : EventListener, Shortcuts {
     inline val health: Int
         get() = player.let { (maxHealth * it.health / it.maxHealth).toInt() }
@@ -65,9 +63,6 @@ object SkyblockPlayer : EventListener, Shortcuts {
     var currentMask: Mask = Mask.NONE
         private set
 
-    inline var currentPet get() = Data.currentPet
-        set(v) { Data.currentPet = v }
-
     inline val canUseCommands get() = commandsTick <= 0
 
     var commandsTick = -1
@@ -85,12 +80,8 @@ object SkyblockPlayer : EventListener, Shortcuts {
     val MANA_USAGE_REGEX = Regex("§b-[\\d,]+ Mana \\(§6.+?§b\\)|§c§lNOT ENOUGH MANA") // §b-50 Mana (§6Speed Boost§b) , §c§lNOT ENOUGH MANA
     val SECRETS_REGEX = Regex("\\s*§7(\\d+)/(\\d+) Secrets") // §76/10 Secrets§r
 
-    val SUMMON_REGEX = Regex("You (summoned|despawned) your ([A-Za-z ]+)(?: ✦)?!")
-    val AUTOPET_REGEX = Regex("Autopet.*?equipped your.*?\\[Lvl \\d+] (.*?)!.*VIEW RULE")
-
     init {
         on<ChatEvent.ActionBar> {
-//            if (packet !is ClientboundSystemChatPacket || !packet.overlay) return@on
             val message = message.replace(",", "")
 
             HP_REGEX.find(message)?.destructured?.let { (abs, max) ->
@@ -133,15 +124,6 @@ object SkyblockPlayer : EventListener, Shortcuts {
 
         on<ChatEvent.Packet> {
             InvincibilityType.fromMessage(unformatted)?.proc()
-
-            SUMMON_REGEX.find(unformatted)?.destructured?.let { (action, name, _) ->
-                currentPet =
-                    if (action == "summoned")
-                        name.trim()
-                    else
-                        ""
-            }
-            AUTOPET_REGEX.find(message)?.groupValues?.get(1)?.let { currentPet = it.trim() }
         }
 
         on<TickEvent.Server> {
@@ -163,8 +145,6 @@ object SkyblockPlayer : EventListener, Shortcuts {
             }
         }
     }
-
-    data class SkyblockPet(val name: String, val level: Int, val texture: String) // todo
 
     /**
      * modified OdinFabric (BSD 3-Clause)
@@ -219,7 +199,7 @@ object SkyblockPlayer : EventListener, Shortcuts {
         }
 
         fun getTime(): String {
-            val highlight = currentPet.contains("phoenix", true) && when(this) {
+            val highlight = PetUtils.currentPet?.matches("Phoenix") == true && when(this) {
                 BONZO -> currentMask == Mask.BONZO && PHOENIX.currentCooldown <= 0
                 SPIRIT -> currentMask == Mask.SPIRIT && PHOENIX.currentCooldown <= 0
                 PHOENIX -> (currentMask == Mask.SPIRIT && SPIRIT.currentCooldown <= 0)
@@ -234,7 +214,7 @@ object SkyblockPlayer : EventListener, Shortcuts {
         fun shouldDot(): Boolean = when (this) {
             BONZO -> currentMask == Mask.BONZO
             SPIRIT -> currentMask == Mask.SPIRIT
-            PHOENIX -> currentPet.contains("phoenix", true)
+            PHOENIX -> PetUtils.currentPet?.matches("Phoenix") == true
         }
     }
 

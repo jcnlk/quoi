@@ -19,6 +19,7 @@ import quoi.utils.ChatUtils.modMessage
 import quoi.utils.Scheduler.wait
 import quoi.utils.skyblock.item.ItemUtils.skyblockId
 import quoi.utils.skyblock.player.EquipUtils
+import quoi.utils.skyblock.player.PetSwitcher
 import quoi.utils.skyblock.player.PetUtils
 import quoi.utils.skyblock.player.PlayerUtils.rightClick
 import quoi.utils.skyblock.player.SwapManager
@@ -28,9 +29,9 @@ object AutoInvincibility : Module(
     desc = "Automatically swaps to invincibility items.",
     area = Island.Dungeon
 ) {
-    private val useSpiritMask by switch("Spirit Mask", false, desc = "Equips Spirit Mask after proccing.")
-    private val useBonzoMask by switch("Bonzo's Mask", false, desc = "Equips Bonzo's Mask after proccing.")
-    private val usePhoenixPet by switch("Phoenix Pet", false, desc = "Swaps to Phoenix pet after proccing.")
+    private val useSpiritMask by switch("Spirit Mask", desc = "Equips Spirit Mask after proccing.")
+    private val useBonzoMask by switch("Bonzo's Mask", desc = "Equips Bonzo's Mask after proccing.")
+    private val usePhoenixPet by switch("Phoenix Pet", desc = "Swaps to Phoenix pet after proccing.")
     private val swapDelay by slider("Swap delay", 0, 0, 40, 1, desc = "Ticks to wait before swapping after an invincibility proc.", unit = "t")
     private val phoenixSwapMethod by selector("Swap method", PhoenixSwapMethod.RodSwap, desc = "Method used to swap to the Phoenix pet. Rod Swap ignores input blocking.").childOf(::usePhoenixPet)
     private val bossOnly by switch("Boss only", desc = "Only triggers while being in boss room.")
@@ -140,7 +141,7 @@ object AutoInvincibility : Module(
 
                 if (!waitUntilNotInTerminal()) return@launch
 
-                val currentPet = SkyblockPlayer.currentPet.trim()
+                val currentPet = PetUtils.currentPet?.name.orEmpty()
                 if (currentPet.isNotEmpty() && !isPhoenixEquipped()) {
                     previousPet = currentPet
                 }
@@ -150,12 +151,12 @@ object AutoInvincibility : Module(
                     PhoenixSwapMethod.PetMenu -> {
                         modMessage("§eSwapping to Phoenix.")
 
-                        if (!PetUtils.switchPet("Phoenix", blockInput = blockInputs, fastMode = fastMode)) {
+                        if (!PetSwitcher.switchPet("Phoenix", blockInput = blockInputs, fastMode = fastMode)) {
                             modMessage("§cFailed to queue Phoenix swap.")
                             return@launch
                         }
 
-                        while (PetUtils.isBusy()) {
+                        while (PetSwitcher.isBusy()) {
                             wait(1)
                         }
                     }
@@ -200,7 +201,7 @@ object AutoInvincibility : Module(
         val watchId = phoenixWatchId
 
         scope.launch {
-            while (swapping || PetUtils.isBusy()) {
+            while (swapping || PetSwitcher.isBusy()) {
                 wait(1)
             }
 
@@ -213,8 +214,9 @@ object AutoInvincibility : Module(
             when (phoenixSwapMethod.selected) {
                 PhoenixSwapMethod.RodSwap -> triggerRodSwap()
                 PhoenixSwapMethod.PetMenu -> {
-                    val queued = PetUtils.switchPet(pet, blockInput = blockInputs, fastMode = fastMode)
-                    if (!queued) modMessage("§cFailed to queue previous pet switch.")
+                    if (!PetSwitcher.switchPet(pet, blockInput = blockInputs, fastMode = fastMode)) {
+                        modMessage("§cFailed to switch previous pet switch.")
+                    }
                 }
             }
         }
@@ -230,7 +232,7 @@ object AutoInvincibility : Module(
     }
 
     private fun isPhoenixEquipped(): Boolean {
-        return SkyblockPlayer.currentPet.contains("phoenix", ignoreCase = true)
+        return PetUtils.currentPet?.matches("Phoenix") == true
     }
 
     private fun resetSwapState() {
