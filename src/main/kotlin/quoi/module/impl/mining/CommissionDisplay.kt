@@ -1,6 +1,5 @@
 package quoi.module.impl.mining
 
-import quoi.api.events.core.on
 import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket
 import net.minecraft.world.entity.player.Inventory
 import net.minecraft.world.item.ItemStack
@@ -13,6 +12,7 @@ import quoi.api.events.ChatEvent
 import quoi.api.events.GuiEvent
 import quoi.api.events.PacketEvent
 import quoi.api.events.WorldEvent
+import quoi.api.events.core.on
 import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.location.Location.currentArea
 import quoi.module.Module
@@ -22,8 +22,7 @@ import quoi.utils.render.DrawContextUtils.rect
 import quoi.utils.skyblock.item.ItemUtils.lore
 import quoi.utils.skyblock.player.PlayerUtils
 import quoi.utils.ui.hud.HudManager
-import quoi.utils.ui.hud.impl.TextHud
-import java.util.WeakHashMap
+import java.util.*
 
 object CommissionDisplay : Module(
     "Commision Display",
