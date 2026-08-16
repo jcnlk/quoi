@@ -3,8 +3,8 @@ package quoi.module.impl.general
 import net.minecraft.network.protocol.game.ClientboundInitializeBorderPacket
 import quoi.api.events.ChatEvent
 import quoi.api.events.PacketEvent
+import quoi.api.events.PetEvent
 import quoi.api.events.core.on
-import quoi.api.skyblock.SkyblockPlayer.AUTOPET_REGEX
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf
@@ -30,10 +30,6 @@ object Titles : Module("Titles") {
             if (dungeonsOnly && !Dungeon.inDungeons) return@on
             if (bossOnly && !Dungeon.inBoss) return@on
 
-            if (autoPet) {
-                AUTOPET_REGEX.find(message)?.groupValues?.get(1)?.let { stupid(it.trim()) }
-            }
-
             if (invincibilityProc) {
                 when (unformatted) {
                     "Second Wind Activated! Your Spirit Mask saved your life!" ->
@@ -44,6 +40,13 @@ object Titles : Module("Titles") {
                         stupid("§6Phoenix")
                 }
             }
+        }
+
+        on<PetEvent.Change> {
+            if (!autoPet || cause != PetEvent.Cause.AUTOPET) return@on
+            if (dungeonsOnly && !Dungeon.inDungeons) return@on
+            if (bossOnly && !Dungeon.inBoss) return@on
+            pet?.let { stupid(it.name) }
         }
 
         on<PacketEvent.Received, ClientboundInitializeBorderPacket> {

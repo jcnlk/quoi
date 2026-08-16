@@ -1,8 +1,5 @@
 package quoi.utils.skyblock.item
 
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import net.minecraft.client.player.LocalPlayer
 import net.minecraft.core.component.DataComponents
 import net.minecraft.core.registries.BuiltInRegistries
@@ -22,11 +19,6 @@ object ItemUtils {
 
     inline val ItemStack?.skyblockUuid: String?
         get() = this.extraAttributes?.getString("uuid")?.orElse(null)
-
-    inline val ItemStack?.petHeldItem: String? // no good
-        get() = this?.extraAttributes?.getString("petInfo")?.orElse(null)?.let {
-            Json.parseToJsonElement(it).jsonObject["heldItem"]?.jsonPrimitive?.content
-        }
 
     inline val ItemStack?.lore: List<String>?
         get() = this?.get(DataComponents.LORE)?.lines?.map { it.string }
