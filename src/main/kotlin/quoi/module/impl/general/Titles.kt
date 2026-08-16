@@ -1,6 +1,8 @@
 package quoi.module.impl.general
 
+import net.minecraft.network.protocol.game.ClientboundInitializeBorderPacket
 import quoi.api.events.ChatEvent
+import quoi.api.events.PacketEvent
 import quoi.api.events.core.on
 import quoi.api.skyblock.SkyblockPlayer.AUTOPET_REGEX
 import quoi.api.skyblock.dungeon.Dungeon
@@ -9,12 +11,10 @@ import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.module.settings.group.SettingGroup.Companion.childOf
 import quoi.utils.skyblock.player.PlayerUtils
 
-// THIS IS A TEMP MODULE KYLEAN.
-// will be possible to customise in custom triggers
-object Titles : Module("Titles", desc = "temp module") {
-
+object Titles : Module("Titles") {
     private val autoPet by switch("Petrules", desc = "Show title upon petrule chat message")
     private val invincibilityProc by switch("Invincibility", desc = "Show title upon bonzo/spirit/phoenix proc")
+    private val shadowAssassin by switch("Shadow Assassin")
 
     private val titleSettings by text("Settings")
     private val dungeonsOnly by switch("Dungeons only").childOf(::titleSettings)
@@ -44,6 +44,12 @@ object Titles : Module("Titles", desc = "temp module") {
                         stupid("§6Phoenix")
                 }
             }
+        }
+
+        on<PacketEvent.Received, ClientboundInitializeBorderPacket> {
+            if (!shadowAssassin) return@on
+            if (Dungeon.isFloor(1, 2, 3) && Dungeon.inBoss) return@on
+            PlayerUtils.setTitle("", "§aShadow Assassin!", playSound = true, stayAlive = 35, fadeOut = 0)
         }
     }
 

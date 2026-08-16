@@ -32,7 +32,6 @@ object ModuleManager : EventListener {
         modules += listOf(
             ClickGui,
             // DUNGEON
-            ShadowAssassinAlert,
             LeapMenu,
             AutoDoorOpener,
             DungeonAbilities,
