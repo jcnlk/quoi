@@ -11,6 +11,7 @@ import quoi.api.commands.internal.GreedyString
 import quoi.api.events.GuiEvent
 import quoi.api.events.core.on
 import quoi.api.input.CatKeys
+import quoi.api.skyblock.Pet as SkyblockPet
 import quoi.config.Config
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf
@@ -20,11 +21,10 @@ import quoi.utils.ChatUtils
 import quoi.utils.ChatUtils.button
 import quoi.utils.ChatUtils.literal
 import quoi.utils.ChatUtils.modMessage
-import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.skyblock.item.ItemUtils.loreString
-import quoi.utils.skyblock.item.ItemUtils.petHeldItem
 import quoi.utils.skyblock.item.ItemUtils.skyblockId
 import quoi.utils.skyblock.item.ItemUtils.skyblockUuid
+import quoi.utils.skyblock.player.PetUtils.pet
 import quoi.utils.skyblock.player.container.ContainerUtils
 import quoi.utils.skyblock.player.container.ContainerUtils.clickSlot
 import quoi.utils.skyblock.player.container.task.ContainerTaskResult
@@ -91,7 +91,7 @@ object PetKeybinds : Module(
             if (petMap.size >= 9) return@sub modMessage("§cYou cannot add more than 9 pets to the list. Remove a pet using §e/petkeys remove §cor clear the list using §e/petkeys clear§c.")
             if (uuid in petMap) return@sub modMessage("§cThis pet is already in the list!")
 
-            val name = item.displayName.string.petName
+            val name = SkyblockPet.cleanName(item.hoverName.string)
             petMap[uuid] = name
             modMessage("§aAdded &r$name&a to the pet list in position §6${petMap.keys.indexOf(uuid) + 1}§a!")
             Config.save()
@@ -158,9 +158,6 @@ object PetKeybinds : Module(
         }
         return result
     }
-
-    private val String.petName
-        get() = this.noControlCodes.replace(Regex("""⭐?\s*\[Lvl \d+] """), "").trim('[', ']')
 
     private fun onClick(screen: AbstractContainerScreen<*>, keyCode: Int): Boolean {
         val title = petsRegex.matchEntire(screen.title.string) ?: return false
@@ -244,8 +241,8 @@ object PetKeybinds : Module(
     fun List<ItemStack>.asPet(): List<Pet> = map { stack ->
         Pet(
             stack.skyblockUuid,
-            stack.displayName.string.petName,
-            stack.petHeldItem?.replace("PET_ITEM_", "") ?: "NONE"
+            SkyblockPet.cleanName(stack.hoverName.string),
+            stack.pet?.heldItem?.removePrefix("PET_ITEM_") ?: "NONE"
         )
     }
 

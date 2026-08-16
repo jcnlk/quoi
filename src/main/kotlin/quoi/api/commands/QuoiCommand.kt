@@ -43,6 +43,7 @@ import quoi.utils.addVec
 import quoi.utils.skyblock.PartyUtils
 import quoi.utils.skyblock.player.MovementUtils.hold
 import quoi.utils.skyblock.player.MovementUtils.isMoving
+import quoi.utils.skyblock.player.PetUtils
 import quoi.utils.skyblock.player.RotationUtils.rotate
 import quoi.utils.ticker
 import quoi.utils.ui.hud.HudManager
@@ -100,7 +101,7 @@ object QuoiCommand : EventListener {
                                 Mask.SPIRIT -> add(InvincibilityType.SPIRIT)
                                 Mask.NONE -> Unit
                             }
-                            if (SkyblockPlayer.currentPet.contains("phoenix", ignoreCase = true)) {
+                            if (PetUtils.currentPet?.matches("Phoenix") == true) {
                                 add(InvincibilityType.PHOENIX)
                             }
                         }.filter { it.currentCooldown <= 0 }

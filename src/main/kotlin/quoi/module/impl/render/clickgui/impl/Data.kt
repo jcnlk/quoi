@@ -16,7 +16,7 @@ object Data : SettingGroup(ClickGui, TextComponent("").hide()) {
         }
     }
 
-    var currentPet by textInput("Current pet").hide()
+    var currentPet by textInput("Current pet", length = 0).hide()
 
     data class CategoryData(var x: Float, var y: Float, var extended: Boolean)
 }
