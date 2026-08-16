@@ -25,7 +25,6 @@ object FuckDiorite : Module(
     desc = "Replaces the pillars in the storm fight with glass.",
     area = Island.Dungeon(7, inBoss = true)
 ) {
-
     private val GLASS_STATE = Blocks.GLASS.defaultBlockState()
 
     private val STAINED_GLASS_BLOCKS = arrayOf(
@@ -68,7 +67,7 @@ object FuckDiorite : Module(
     )
 
     private val oneColour by switch("One colour", desc = "Swaps the diorite to one colour rather than pillar based colour.")
-    private val colour by selector("Colour", "None", COLS).visibleIf { oneColour }//.childOf(::oneColour)
+    private val colour by selector("Colour", "None", COLS).visibleIf { oneColour }
 
     private val pillars = arrayOf(
         BlockPos(46, 169, 41),

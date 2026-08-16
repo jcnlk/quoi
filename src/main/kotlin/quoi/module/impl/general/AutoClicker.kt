@@ -35,20 +35,17 @@ object AutoClicker: Module(
     private val favRight by ListSetting("FAVOURITE_ITEMS_RIGHT", mutableListOf<String>())
 
     private val blockDungeonBreaker by switch("Block dungeon breaker", true, desc = "Prevents auto clicker from working with Dungeon Breaker.")
-    private val terminatorOnly by switch("Terminator only", desc = "Only click when holding a Terminator and right click is held.")
-    private val terminatorCps by slider("Clicks per second", 5.0, 3.0, 15.0, 0.5, desc = "The amount of clicks per second to perform while Terminator only is enabled.").childOf(::terminatorOnly)
 
-    private val leftClick by switch("Enable Left Click", desc = "Toggles the auto clicker for left click.").json("Left Click").childOf(::terminatorOnly) { !it }
+    private val leftClick by switch("Enable Left Click", desc = "Toggles the auto clicker for left click.").json("Left Click")
     private val leftCps by rangeSlider("Left CPS", 10 to 12, 1, 20, desc = "The range of clicks per second to perform for left click.").childOf(::leftClick)
-    private val leftClickKeybind by keybind("Left click keybind", CatKeys.MOUSE_LEFT, desc = "The keybind to hold for left click auto clicking.").childOf(::terminatorOnly) { !it }
+    private val leftClickKeybind by keybind("Left click keybind", CatKeys.MOUSE_LEFT, desc = "The keybind to hold for left click auto clicking.")
 
-    private val rightClick by switch("Enable Right Click", desc = "Toggles the auto clicker for right click.").json("Right Click").childOf(::terminatorOnly) { !it }
+    private val rightClick by switch("Enable Right Click", desc = "Toggles the auto clicker for right click.").json("Right Click")
     private val rightCps by rangeSlider("Right CPS", 10 to 12, 1, 20, desc = "The range of clicks per second to perform for right click.").childOf(::rightClick)
-    private val rightClickKeybind by keybind("Right click keybind", CatKeys.MOUSE_RIGHT, desc = "The keybind to hold for right click auto clicking.").childOf(::terminatorOnly) { !it }
+    private val rightClickKeybind by keybind("Right click keybind", CatKeys.MOUSE_RIGHT, desc = "The keybind to hold for right click auto clicking.")
 
     private var leftJob: Job? = null
     private var rightJob: Job? = null
-    private var terminatorJob: Job? = null
     private var lastHeldSlot = -1
     private var isMining = false
 
@@ -68,12 +65,7 @@ object AutoClicker: Module(
     private fun shouldAutoClick(isLeft: Boolean): Boolean {
         val enabled = if (isLeft) leftClick else rightClick
         val keybind = if (isLeft) leftClickKeybind else rightClickKeybind
-        return this.enabled && !terminatorOnly && enabled && keybind.isDown() && shouldClick(isLeft)
-    }
-
-    private fun shouldTerminatorClick(): Boolean {
-        if (mc.screen != null) return false
-        return this.enabled && terminatorOnly && player.mainHandItem.skyblockId == "TERMINATOR" && mc.options.keyUse.isDown
+        return this.enabled && enabled && keybind.isDown() && shouldClick(isLeft)
     }
 
     private val lookingAtBreakable get() = breakBlocks && player.isLookingAtBreakable
@@ -111,14 +103,14 @@ object AutoClicker: Module(
         }.suggests("button", "left", "right")
 
         on<MouseEvent.Click> {
-            if (!state || button !in 0..1 || terminatorOnly) return@on
+            if (!state || button !in 0..1) return@on
 
             val isLeft = button == 0
             val enabled = if (isLeft) leftClick else rightClick
             val keybind = if (isLeft) leftClickKeybind else rightClickKeybind
             val mouseKey = CatKeys.MOUSE_LEFT + button
 
-            if (state && enabled && keybind.key == mouseKey && keybind.isModifierDown() && shouldClick(isLeft)) {
+            if (enabled && keybind.key == mouseKey && keybind.isModifierDown() && shouldClick(isLeft)) {
                 cancel()
             }
         }
@@ -126,9 +118,8 @@ object AutoClicker: Module(
         on<TickEvent.End> {
             val currentSlot = player.inventory.selectedSlot
             if (lastHeldSlot == -1) lastHeldSlot = currentSlot
-            if (stopOnSwap && currentSlot != lastHeldSlot) {
-                reset()
-            }
+            if (stopOnSwap && currentSlot != lastHeldSlot) reset()
+
             lastHeldSlot = currentSlot
 
             if (mc.screen != null) {
@@ -136,21 +127,11 @@ object AutoClicker: Module(
                 return@on
             }
 
-            if (terminatorOnly) {
-                stopClicking(true)
-                stopClicking(false)
+            if (shouldAutoClick(true)) startClicking(true)
+            else stopClicking(true)
 
-                if (shouldTerminatorClick()) startTerminatorClicking()
-                else stopTerminatorClicking()
-            } else {
-                stopTerminatorClicking()
-
-                if (shouldAutoClick(true)) startClicking(true)
-                else stopClicking(true)
-
-                if (shouldAutoClick(false)) startClicking(false)
-                else stopClicking(false)
-            }
+            if (shouldAutoClick(false)) startClicking(false)
+            else stopClicking(false)
 
             updateMiningState()
         }
@@ -170,11 +151,6 @@ object AutoClicker: Module(
         }
     }
 
-    private fun startTerminatorClicking() {
-        if (terminatorJob?.isActive == true) return
-        terminatorJob = scope.launch { clickTerminator() }
-    }
-
     private fun stopClicking(isLeft: Boolean) {
         if (isLeft) {
             leftJob?.cancel()
@@ -183,11 +159,6 @@ object AutoClicker: Module(
             rightJob?.cancel()
             rightJob = null
         }
-    }
-
-    private fun stopTerminatorClicking() {
-        terminatorJob?.cancel()
-        terminatorJob = null
     }
 
     private fun updateMiningState() {
@@ -215,34 +186,10 @@ object AutoClicker: Module(
                     return@execute
                 }
 
-                if (isLeft) {
-                    if (!lookingAtBreakable) player.leftClick()
-                } else {
-                    player.rightClick()
-                }
+                if (!isLeft) player.rightClick()
+                else if (!lookingAtBreakable) player.leftClick()
 
                 nextDelay.complete(randomDelay(if (isLeft) leftCps else rightCps))
-            }
-
-            val delayMillis = nextDelay.await()
-            if (delayMillis < 0) return
-            delay(delayMillis.milliseconds)
-        }
-    }
-
-    private suspend fun clickTerminator() {
-        val job = currentCoroutineContext()[Job] ?: return
-
-        while (job.isActive) {
-            val nextDelay = CompletableDeferred<Long>()
-            mc.execute {
-                if (!job.isActive || !shouldTerminatorClick()) {
-                    nextDelay.complete(-1)
-                    return@execute
-                }
-
-                player.leftClick()
-                nextDelay.complete(max(1.0, (1000.0 / terminatorCps) + ((Random.nextDouble() - 0.5) * 60.0)).toLong())
             }
 
             val delayMillis = nextDelay.await()
@@ -264,7 +211,6 @@ object AutoClicker: Module(
     private fun reset() {
         stopClicking(true)
         stopClicking(false)
-        stopTerminatorClicking()
         mc.options.keyAttack.isDown = false
         isMining = false
         lastHeldSlot = -1

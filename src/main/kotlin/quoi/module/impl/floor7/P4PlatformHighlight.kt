@@ -5,7 +5,6 @@ import quoi.api.colour.Colour
 import quoi.api.colour.withAlpha
 import quoi.api.events.RenderEvent
 import quoi.api.events.core.on
-import quoi.api.skyblock.dungeon.Floor7Utils
 import quoi.api.skyblock.dungeon.Stage
 import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.location.invoke
