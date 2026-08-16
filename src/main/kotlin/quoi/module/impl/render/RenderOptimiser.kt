@@ -1,29 +1,29 @@
 package quoi.module.impl.render
 
-import net.minecraft.network.chat.Component
-import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
-import net.minecraft.network.protocol.game.ClientboundAddEntityPacket
 import net.minecraft.core.particles.ParticleTypes
+import net.minecraft.network.chat.Component
+import net.minecraft.network.protocol.game.ClientboundAddEntityPacket
 import net.minecraft.network.protocol.game.ClientboundLevelParticlesPacket
+import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
 import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket
 import net.minecraft.network.protocol.game.ClientboundUpdateMobEffectPacket
 import net.minecraft.network.syncher.EntityDataSerializers
 import net.minecraft.world.effect.MobEffects
 import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.EntityType.getKey
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.decoration.ArmorStand
 import quoi.api.events.PacketEvent
 import quoi.api.events.core.on
-import quoi.api.skyblock.location.Island
-import quoi.api.skyblock.location.Location.currentArea
-import quoi.api.skyblock.dungeon.Dungeon
+import quoi.api.skyblock.dungeon.Dungeon.inDungeons
 import quoi.api.skyblock.dungeon.Floor7Utils
 import quoi.api.skyblock.dungeon.Phase
+import quoi.api.skyblock.location.Island
+import quoi.api.skyblock.location.Location.currentArea
 import quoi.module.Module
 import quoi.utils.skyblock.item.ItemUtils.skyblockId
 import quoi.utils.skyblock.item.ItemUtils.texture
-import net.minecraft.world.entity.EntityType.getKey
 import java.util.Optional
 
 object RenderOptimiser : Module(
@@ -33,18 +33,15 @@ object RenderOptimiser : Module(
     @JvmStatic val disableTextShadow by switch("Disable text shadow", desc = "Disables text shadows in hud elements.")
     @JvmStatic val containerTextShadow by switch("Container text shadow", desc = "Renders text in containers with shadow.")
     @JvmStatic val disableFog by switch("Disable fog", desc = "Disables fog rendering.")
-
     private val hideFallingBlocks by switch("Hide falling blocks", desc = "Disables falling blocks rendering.")
     private val hideLightning by switch("Hide lightning", desc = "Disables lightning rendering.")
     private val hideWeaver by switch("Hide soul weaver", desc = "Disables soul weaver skulls rendering.")
     private val hideFairy by switch("Hide healer fairy", desc = "Disables healer fairy rendering.")
     private val hideHealerOrbs by switch("Hide healer orbs", desc = "Hides healer support orbs in dungeons.")
-    private val hideRecipeBook by switch("Hide recipe book", desc = "Disables recipe book rendering.")
     private val hideBlindness by switch("Hide blindness", desc = "Disabled blindness effect rendering.")
     @JvmStatic val hideParticles by switch("Hide particles", desc = "Hides particles everywhere except floor 7 phase 5.")
     @JvmStatic val hidePotionBubbles by switch("Hide potion bubbles", desc = "Hides potion effect particles.")
     @JvmStatic val hideFire by switch("Hide fire overlay", desc = "Disables fire overlay rendering.")
-
     @JvmStatic val fullBright by switch("Full bright", desc = "Makes dark places bright.")
 
     private const val HEALER_FAIRY_TEXTURE = "ewogICJ0aW1lc3RhbXAiIDogMTcxOTQ2MzA5MTA0NywKICAicHJvZmlsZUlkIiA6ICIyNjRkYzBlYjVlZGI0ZmI3OTgxNWIyZGY1NGY0OTgyNCIsCiAgInByb2ZpbGVOYW1lIiA6ICJxdWludHVwbGV0IiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzJlZWRjZmZjNmExMWEzODM0YTI4ODQ5Y2MzMTZhZjdhMjc1MmEzNzZkNTM2Y2Y4NDAzOWNmNzkxMDhiMTY3YWUiCiAgICB9CiAgfQp9"
@@ -54,12 +51,7 @@ object RenderOptimiser : Module(
         "DUNGEON_RED_SUPPORT_ORB",
         "DUNGEON_GREEN_SUPPORT_ORB",
     )
-    private val HEALER_ORB_NAMES = listOf(
-        "ABILITY DAMAGE",
-        "DAMAGE",
-        "DEFENSE",
-    )
-
+    private val HEALER_ORB_NAMES = listOf("ABILITY DAMAGE", "DAMAGE", "DEFENSE")
 
     init {
         on<PacketEvent.Received> {
@@ -69,8 +61,9 @@ object RenderOptimiser : Module(
                     if (hideFallingBlocks && entityPath == "falling_block" ||
                         hideLightning && entityPath == "lightning_bolt") cancel()
                 }
+
                 is ClientboundSetEquipmentPacket -> {
-                    if (!Dungeon.inDungeons) return@on
+                    if (!inDungeons) return@on
                     packet.slots.forEach { slot ->
                         if (slot.second.isEmpty) return@forEach
                         val texture = slot.second.texture ?: return@forEach
@@ -91,7 +84,7 @@ object RenderOptimiser : Module(
                 }
 
                 is ClientboundSetEntityDataPacket -> {
-                    if (!hideHealerOrbs || !Dungeon.inDungeons) return@on
+                    if (!hideHealerOrbs || !inDungeons) return@on
                     val entity = level.getEntity(packet.id) as? ArmorStand ?: return@on
                     val hasHealerOrbName = packet.packedItems().any { item ->
                         if (item.serializer() != EntityDataSerializers.OPTIONAL_COMPONENT) return@any false
@@ -107,33 +100,14 @@ object RenderOptimiser : Module(
                         packet.effect == MobEffects.BLINDNESS) cancel()
                 }
 
-                is ClientboundLevelParticlesPacket -> {
-                    val isGeyserFishingParticle =
-                        currentArea.isArea(Island.CrimsonIsle) &&
-                        subarea?.contains("Blazing Volcano", ignoreCase = true) == true &&
-                        packet.particle.type == ParticleTypes.CLOUD &&
-                        packet.count == 15 &&
-                        packet.maxSpeed == 0.05f &&
-                        packet.xDist == 0.1f &&
-                        packet.yDist == 0.6f &&
-                        packet.zDist == 0.1f
-
-                    if (hideParticles &&
-                        !currentArea.isArea(Island.Garden) &&
-                        !Floor7Utils.inPhaseAt(Phase.P5) &&
-                        !isGeyserFishingParticle
-                    ) cancel()
+                is ClientboundLevelParticlesPacket -> { // TODO: exclude some more particles ig
+                    if (hideParticles && !currentArea.isArea(Island.Garden) && !Floor7Utils.inPhaseAt(Phase.P5)) cancel()
                     else if (hidePotionBubbles && packet.particle.type == ParticleTypes.ENTITY_EFFECT) cancel()
                 }
-
             }
         }
-
     }
 
     @JvmStatic
     fun should(condition: Boolean): Boolean = this.enabled && condition // idkman
-
-    @JvmStatic
-    fun shouldHideRecipeBook(): Boolean = should(hideRecipeBook)
 }
