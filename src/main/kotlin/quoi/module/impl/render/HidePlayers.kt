@@ -16,8 +16,7 @@ object HidePlayers : Module(
     "Hide Players",
 ) {
     private val hideAll by switch("Hide all", desc = "Hides all players, regardless of distance.")
-    private val distance by slider("Distance", 3.0, 0.0, 32.0, 0.5, desc = "The number of blocks away to hide players.", unit = " blocks")
-        .visibleIf { !hideAll }
+    private val distance by slider("Distance", 3.0, 0.0, 32.0, 0.5, desc = "The number of blocks away to hide players.", unit = " blocks").visibleIf { !hideAll }
     private val clickThrough by switch("Click Through", desc = "Allows clicking through players.")
     private val dungeonOnly by switch("Dungeon only", desc = "Only hides players in dungeons.")
     private val bossOnly by switch("Boss only", desc = "Only hides players in boss.")

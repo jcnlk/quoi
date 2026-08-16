@@ -13,7 +13,6 @@
   ],
   "client": [
     "AbstractContainerScreenMixin",
-    "AbstractRecipeBookScreenMixin",
     "BlockBehaviourMixin",
     "ButtonBlockMixin",
     "CameraMixin",
@@ -68,7 +67,6 @@
     "accessors.RenderSetupAccessor",
     "accessors.RenderTypeAccessor",
     "accessors.MultiPlayerGameModeAccessor",
-    "accessors.RecipeBookComponentAccessor",
     "accessors.ItemInHandRendererAccessor",
     "accessors.ItemStackLayerRenderStateAccessor"
   ]

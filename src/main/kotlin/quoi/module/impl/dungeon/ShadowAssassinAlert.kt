@@ -8,6 +8,7 @@ import quoi.api.skyblock.dungeon.Dungeon
 import quoi.module.Module
 import quoi.utils.skyblock.player.PlayerUtils
 
+// TODO: move into title module
 object ShadowAssassinAlert : Module(
     "Shadow Assassin Alert",
     area = Island.Dungeon,
@@ -15,7 +16,7 @@ object ShadowAssassinAlert : Module(
 ) {
     init {
         on<PacketEvent.Received, ClientboundInitializeBorderPacket> {
-            if ((Dungeon.isFloor(1, 2, 3) && Dungeon.inBoss)) return@on
+            if (Dungeon.isFloor(1, 2, 3) && Dungeon.inBoss) return@on
             PlayerUtils.setTitle("", "§aShadow Assassin!", playSound = true, stayAlive = 35, fadeOut = 0)
         }
     }

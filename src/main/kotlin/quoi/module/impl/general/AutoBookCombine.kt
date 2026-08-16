@@ -22,7 +22,7 @@ object AutoBookCombine : Module(
     private val clickDelay by slider("Click delay", 4, 1, 20, 1, desc = "Delay between clicks.", unit = " ticks").json("Click delay ticks")
     private val resultDelay by slider("Result delay", 10, 2, 40, 1, desc = "Delay before taking the combined book.", unit = " ticks").json("Result delay ticks")
     private val disableAfterFinish by switch("Disable after finish", true, desc = "Disables the module after all matching books have been combined.")
-    private val autoCloseAfterFinish by switch("Auto close after finish", false, desc = "Closes the anvil after successfully combining books.")
+    private val autoCloseAfterFinish by switch("Auto close after finish", desc = "Closes the anvil after successfully combining books.")
 
     private var combineTask: ContainerTask? = null
     private var finishedForCurrentAnvil = false
