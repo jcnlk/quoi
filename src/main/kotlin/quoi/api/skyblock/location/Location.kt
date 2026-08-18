@@ -44,7 +44,7 @@ object Location : EventListener {
     private val serverIdRegex = Regex("\\d\\d/\\d\\d/\\d\\d (\\w{0,6}) *")
 
     init {
-        on<PacketEvent.Received> {
+        on<PacketEvent.ReceivedPost> {
             when (packet) {
                 is ClientboundPlayerInfoUpdatePacket -> {
                     if (!currentArea.isArea(Island.Unknown) || packet.actions()
