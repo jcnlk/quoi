@@ -5,7 +5,7 @@ import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.ambient.Bat
 import net.minecraft.world.entity.boss.wither.WitherBoss
 import net.minecraft.world.entity.decoration.ArmorStand
-import net.minecraft.world.entity.monster.EnderMan
+import net.minecraft.world.entity.monster.Enderman
 import net.minecraft.world.entity.player.Player
 import quoi.annotations.AlwaysActive
 import quoi.api.colour.Colour
@@ -167,10 +167,10 @@ object DungeonESP : Module(
 
     private fun getColour(entity: Entity) = when (entity) {
         is Bat if (entity.maxHealth.equalsOneOf(100f, 200f, 400f, 800f)) -> colourBat to colourBatFill
-//        is EnderMan if (entity.name.string == "Dinnerbone") -> {
+//        is Enderman if (entity.name.string == "Dinnerbone") -> {
 //            colourStar to colourStarFill
 //        }
-        is EnderMan if (entity.name.string == "Dinnerbone") -> {
+        is Enderman if (entity.name.string == "Dinnerbone") -> {
             val stand = getEntity(entity.id + 1) as? ArmorStand
 
             if (stand?.customName?.string?.contains("✯") == true) {

@@ -5,7 +5,7 @@ import net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket
 import net.minecraft.network.protocol.game.ClientboundSectionBlocksUpdatePacket
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.decoration.ArmorStand
-import net.minecraft.world.entity.monster.EnderMan
+import net.minecraft.world.entity.monster.Enderman
 import net.minecraft.world.item.Items
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.AABB
@@ -51,7 +51,7 @@ object BeaconESP : ToggleableGroup(
             val now = System.currentTimeMillis()
             placedBeacons.entries.removeIf { now - it.value > 7_000L }
 
-            getEntities<EnderMan>()
+            getEntities<Enderman>()
                 .filter { it.carriedBlock?.block == Blocks.BEACON }
                 .forEach { entity ->
                     highlight.draw(ctx, entity.interpolatedBox)
