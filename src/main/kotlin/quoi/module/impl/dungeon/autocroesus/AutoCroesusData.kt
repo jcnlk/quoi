@@ -19,7 +19,7 @@ internal val defaultAutoCroesusWorthless = setOf(
 internal val defaultAutoCroesusAlwaysBuy = setOf(
     "NECRON_HANDLE", "DARK_CLAYMORE", "FIRST_MASTER_STAR", "SECOND_MASTER_STAR", "THIRD_MASTER_STAR",
     "FOURTH_MASTER_STAR", "FIFTH_MASTER_STAR", "SHADOW_FURY", "SHADOW_WARP_SCROLL", "IMPLOSION_SCROLL",
-    "WITHER_SHIELD_SCROLL", "DYE_LIVID"
+    "WITHER_SHIELD_SCROLL", "DYE_LIVID", "GIANTS_SWORD"
 )
 
 internal val autoCroesusFloors = listOf("F1", "F2", "F3", "F4", "F5", "F6", "F7", "M1", "M2", "M3", "M4", "M5", "M6", "M7")
