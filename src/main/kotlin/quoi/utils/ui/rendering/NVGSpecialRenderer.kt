@@ -1,6 +1,8 @@
 package quoi.utils.ui.rendering
 
+import com.mojang.blaze3d.opengl.GlConst
 import com.mojang.blaze3d.opengl.GlStateManager
+import com.mojang.blaze3d.opengl.GlTexture
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
 import net.minecraft.client.gui.GuiGraphicsExtractor
@@ -10,7 +12,6 @@ import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.state.gui.pip.PictureInPictureRenderState
 import org.joml.Matrix3x2f
 import org.lwjgl.opengl.GL33C
-import java.util.*
 
 /**
  * from OdinFabric (BSD 3-Clause)
@@ -20,24 +21,23 @@ import java.util.*
 class NVGSpecialRenderer(vertexConsumers: MultiBufferSource.BufferSource)
     : PictureInPictureRenderer<NVGSpecialRenderer.NVGRenderState>(vertexConsumers) {
 
+    private var frameBuffer = 0
+    private var colorTexture = 0
     private var stencilRenderBuffer = 0
     private var stencilWidth = 0
     private var stencilHeight = 0
 
     override fun renderToTexture(state: NVGRenderState, poseStack: PoseStack) {
         val colorView = RenderSystem.outputColorTextureOverride ?: return
+        val glColorTexture = colorView.texture() as? GlTexture ?: return
         val width = colorView.getWidth(0)
         val height = colorView.getHeight(0)
 
-        RenderSystem.getDevice().createCommandEncoder()
-            .createRenderPass({ "quoi_nvg_renderer" }, colorView, OptionalInt.empty())
-            .use {
-                attachStencilBuffer(width, height)
-                GL33C.glBindSampler(0, 0)
-                NVGRenderer.beginFrame(width.toFloat(), height.toFloat())
-                state.renderContent()
-                NVGRenderer.endFrame()
-            }
+        bindFrameBuffer(glColorTexture.glId(), width, height)
+        GL33C.glBindSampler(0, 0)
+        NVGRenderer.beginFrame(width.toFloat(), height.toFloat())
+        state.renderContent()
+        NVGRenderer.endFrame()
 
         GlStateManager._disableDepthTest()
         GlStateManager._disableCull()
@@ -51,13 +51,36 @@ class NVGSpecialRenderer(vertexConsumers: MultiBufferSource.BufferSource)
 
     override fun close() {
         super.close()
+
+        if (frameBuffer != 0) {
+            GlStateManager._glDeleteFramebuffers(frameBuffer)
+            frameBuffer = 0
+        }
+
         if (stencilRenderBuffer != 0) {
             GL33C.glDeleteRenderbuffers(stencilRenderBuffer)
             stencilRenderBuffer = 0
         }
     }
 
-    private fun attachStencilBuffer(width: Int, height: Int) {
+    private fun bindFrameBuffer(texture: Int, width: Int, height: Int) {
+        if (frameBuffer == 0) {
+            frameBuffer = GlStateManager.glGenFramebuffers()
+        }
+
+        GlStateManager._glBindFramebuffer(GlConst.GL_FRAMEBUFFER, frameBuffer)
+
+        if (colorTexture != texture) {
+            GlStateManager._glFramebufferTexture2D(
+                GlConst.GL_FRAMEBUFFER,
+                GlConst.GL_COLOR_ATTACHMENT0,
+                GlConst.GL_TEXTURE_2D,
+                texture,
+                0
+            )
+            colorTexture = texture
+        }
+
         if (stencilRenderBuffer == 0) {
             stencilRenderBuffer = GL33C.glGenRenderbuffers()
         }
@@ -74,6 +97,14 @@ class NVGSpecialRenderer(vertexConsumers: MultiBufferSource.BufferSource)
             GL33C.GL_RENDERBUFFER,
             stencilRenderBuffer
         )
+        GL33C.glBindRenderbuffer(GL33C.GL_RENDERBUFFER, 0)
+
+        val status = GL33C.glCheckFramebufferStatus(GlConst.GL_FRAMEBUFFER)
+        check(status == GlConst.GL_FRAMEBUFFER_COMPLETE) {
+            "Quoi NanoVG framebuffer is incomplete: 0x${status.toString(16)}"
+        }
+
+        GlStateManager._viewport(0, 0, width, height)
         GL33C.glClear(GL33C.GL_STENCIL_BUFFER_BIT)
     }
 
