@@ -57,7 +57,7 @@ class ResizableHud(
             var resizing = false
 
             onClick {
-//                if (!CatKeyboard.Modifier.isShiftDown) return@onClick false
+//                if (!Keybinds.Modifier.isShiftDown) return@onClick false
                 clickedX = ui.mx
                 clickedY = ui.my
                 w = width.value

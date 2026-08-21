@@ -1,7 +1,7 @@
 package quoi.api.abobaui.events
 
-import quoi.api.input.CatKeyboard.ModState
-import quoi.api.input.CatKeyboard.Modifier
+import quoi.api.input.Keybinds.ModState
+import quoi.api.input.Keybinds.Modifier
 import quoi.api.input.CatKeys
 
 interface AbobaEvent {

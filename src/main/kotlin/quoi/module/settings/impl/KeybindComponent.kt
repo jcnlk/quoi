@@ -7,8 +7,8 @@ import quoi.api.abobaui.elements.ElementScope
 import quoi.api.abobaui.elements.impl.Block.Companion.outline
 import quoi.api.abobaui.elements.impl.Text.Companion.string
 import quoi.api.animations.Animation
-import quoi.api.input.CatKeyboard
-import quoi.api.input.CatKeyboard.modifierCodes
+import quoi.api.input.Keybinds
+import quoi.api.input.Keybinds.modifierCodes
 import quoi.api.input.CatKeys
 import quoi.api.input.CatMouse
 import quoi.api.input.CursorShape
@@ -82,12 +82,12 @@ class KeybindComponent(
         val sb = StringBuilder()
 
         value.modifiers.forEach { mod ->
-            val name = CatKeyboard.getKeyName(mod) ?: "Err" // should never err
+            val name = Keybinds.getKeyName(mod) ?: "Err" // should never err
             sb.append("$name + ")
         }
 
         val mainKey = when (val key = value.key) {
-            in 1..Int.MAX_VALUE -> CatKeyboard.getKeyName(key) ?: "Err"
+            in 1..Int.MAX_VALUE -> Keybinds.getKeyName(key) ?: "Err"
             else -> CatMouse.getButtonName(key + 100)
         }
         sb.append(mainKey.replaceFirstChar { it.uppercaseChar() })
@@ -115,7 +115,7 @@ class KeybindComponent(
         if (mainKey in modifierCodes) return
 
         modifierCodes.forEach { mod ->
-            if (CatKeyboard.isKeyDown(mod)) value.modifiers.add(mod)
+            if (Keybinds.isKeyDown(mod)) value.modifiers.add(mod)
         }
     }
 
@@ -207,13 +207,13 @@ class Keybinding(var key: Int, val modifiers: MutableSet<Int> = mutableSetOf()) 
      */
     fun isDown(): Boolean {
         if (key == 0) return false
-        val mainKeyDown = if (key < 0) CatMouse.isButtonDown(key + 100) else CatKeyboard.isKeyDown(key)
+        val mainKeyDown = if (key < 0) CatMouse.isButtonDown(key + 100) else Keybinds.isKeyDown(key)
         if (!mainKeyDown) return false
 
         return isModifierDown()
     }
 
-    fun isModifierDown() = modifiers.all { CatKeyboard.isKeyDown(it) }
+    fun isModifierDown() = modifiers.all { Keybinds.isKeyDown(it) }
 
     fun clear() {
         key = -1

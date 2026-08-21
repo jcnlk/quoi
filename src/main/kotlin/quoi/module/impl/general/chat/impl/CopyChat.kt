@@ -7,7 +7,7 @@ import net.minecraft.network.chat.HoverEvent
 import net.minecraft.network.chat.Style
 import quoi.api.events.GuiEvent
 import quoi.api.events.core.on
-import quoi.api.input.CatKeyboard
+import quoi.api.input.Keybinds
 import quoi.api.input.CatKeys
 import quoi.module.impl.general.chat.Chat
 import quoi.module.settings.group.ToggleableGroup
@@ -18,8 +18,8 @@ import quoi.utils.ChatUtils.toChatLineMY
 import quoi.utils.StringUtils.noControlCodes
 
 object CopyChat : ToggleableGroup(Chat, "Copy chat", desc = "Copies chat on mouse click.") {
-    private val copyKey by keybind("Copy key", CatKeys.MOUSE_RIGHT).includingOnly(CatKeys.MOUSE_RIGHT, CatKeys.MOUSE_LEFT, *CatKeyboard.modifierCodes)
-    private val copyCodesKey by keybind("Copy with codes key", CatKeys.KEY_NONE).includingOnly(CatKeys.MOUSE_RIGHT, CatKeys.MOUSE_LEFT, *CatKeyboard.modifierCodes)
+    private val copyKey by keybind("Copy key", CatKeys.MOUSE_RIGHT).includingOnly(CatKeys.MOUSE_RIGHT, CatKeys.MOUSE_LEFT, *Keybinds.modifierCodes)
+    private val copyCodesKey by keybind("Copy with codes key", CatKeys.KEY_NONE).includingOnly(CatKeys.MOUSE_RIGHT, CatKeys.MOUSE_LEFT, *Keybinds.modifierCodes)
 
     init {
         on<GuiEvent.Click> {

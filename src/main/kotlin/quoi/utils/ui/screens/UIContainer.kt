@@ -5,7 +5,7 @@ import quoi.api.abobaui.AbobaUI
 import quoi.api.events.GuiEvent
 import quoi.api.events.PacketEvent
 import quoi.api.events.core.on
-import quoi.api.input.CatKeyboard.Modifier.isCtrlDown
+import quoi.api.input.Keybinds.Modifier.isCtrlDown
 import quoi.api.input.CatKeys
 import quoi.utils.equalsOneOf
 import quoi.utils.height

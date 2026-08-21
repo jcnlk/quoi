@@ -2,7 +2,7 @@ package quoi.utils.ui.screens
 
 import quoi.QuoiMod.mc
 import quoi.api.abobaui.AbobaUI
-import quoi.api.input.CatKeyboard.Modifier.isCtrlDown
+import quoi.api.input.Keybinds.Modifier.isCtrlDown
 import quoi.api.input.CatKeys
 import quoi.utils.Scheduler.scheduleTask
 import quoi.utils.sf

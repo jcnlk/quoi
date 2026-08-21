@@ -4,15 +4,18 @@ on:
   push:
     branches:
       - 26.2
-    paths-ignore:
-      - "**/*.md"
-      - ".forgejo/**"
-      - ".github/dependabot.yml"
-      - ".gitignore"
-      - ".run/**"
+    paths: &build-paths
+      - ".gitattributes"
+      - ".github/workflows/build.yml"
+      - "buildSrc/**"
+      - "gradle/**"
+      - "src/**"
+      - "build.gradle.kts"
+      - "gradle.properties"
+      - "gradlew"
       - "LICENSE"
-  pull_request:
-  workflow_dispatch:
+      - "settings.gradle.kts"
+  pull_request: *build-paths
 
 permissions:
   contents: read

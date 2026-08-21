@@ -3,7 +3,7 @@ package quoi.api.input
 import quoi.QuoiMod.mc
 import org.lwjgl.glfw.GLFW
 
-object CatKeyboard {
+object Keybinds {
     val modifierCodes = intArrayOf(
         CatKeys.KEY_LEFT_CONTROL, CatKeys.KEY_RIGHT_CONTROL,
         CatKeys.KEY_LEFT_SHIFT, CatKeys.KEY_RIGHT_SHIFT,
