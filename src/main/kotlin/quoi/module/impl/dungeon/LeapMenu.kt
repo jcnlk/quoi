@@ -15,7 +15,7 @@ import quoi.api.colour.Colour
 import quoi.api.colour.withAlpha
 import quoi.api.events.GuiEvent
 import quoi.api.events.core.on
-import quoi.api.input.CatKeys
+import quoi.api.input.Keybinds
 import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.dungeon.Dungeon.allTeammatesNoSelf
 import quoi.api.skyblock.dungeon.Dungeon.leapTeammates
@@ -46,10 +46,10 @@ object LeapMenu : Module(
     private val bgCol by colourPicker("Background colour", Colour.MINECRAFT_DARK_GRAY.withAlpha(150), allowAlpha = true, desc = "Leap menu background colour.")
     private val scale by slider("Scale", 5.0f, 0.1f, 15.0f, 0.1f, desc = "Leap menu scale.")
     private val gap by slider("Gap", 50, 0, 500, 10)
-    private val topLeft by keybind("Top left", CatKeys.KEY_1, desc = "Leaps to the first person in the menu.").excluding(CatKeys.KEY_E) // maybe should get inventory open keybind. but idk
-    private val topRight by keybind("Top right", CatKeys.KEY_2, desc = "Leaps to the second person in the menu.").excluding(CatKeys.KEY_E)
-    private val botLeft by keybind("Bottom left", CatKeys.KEY_3, desc = "Leaps to the third person in the menu.").excluding(CatKeys.KEY_E)
-    private val botRight by keybind("Bottom right", CatKeys.KEY_4, desc = "Leaps to the fourth person in the menu.").excluding(CatKeys.KEY_E)
+    private val topLeft by keybind("Top left", Keybinds.KEY_1, desc = "Leaps to the first person in the menu.").excluding(Keybinds.KEY_E) // maybe should get inventory open keybind. but idk
+    private val topRight by keybind("Top right", Keybinds.KEY_2, desc = "Leaps to the second person in the menu.").excluding(Keybinds.KEY_E)
+    private val botLeft by keybind("Bottom left", Keybinds.KEY_3, desc = "Leaps to the third person in the menu.").excluding(Keybinds.KEY_E)
+    private val botRight by keybind("Bottom right", Keybinds.KEY_4, desc = "Leaps to the fourth person in the menu.").excluding(Keybinds.KEY_E)
 
     init {
         command.sub("order") { p1: String?, p2: String?, p3: String?, p4: String? ->

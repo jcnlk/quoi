@@ -10,7 +10,7 @@ import quoi.QuoiMod.scope
 import quoi.api.commands.internal.GreedyString
 import quoi.api.events.GuiEvent
 import quoi.api.events.core.on
-import quoi.api.input.CatKeys
+import quoi.api.input.Keybinds
 import quoi.api.skyblock.Pet as SkyblockPet
 import quoi.config.Config
 import quoi.module.Module
@@ -36,8 +36,8 @@ import quoi.utils.skyblock.player.container.task.containerTask
  * original: https://github.com/odtheking/Odin/blob/main/src/main/kotlin/com/odtheking/odin/features/impl/skyblock/PetKeybinds.kt
  */
 object PetKeybinds : Module(
-    name = "Pet Keybinds",
-    desc = "Keybinds for the pets menu."
+    name = "Pet CatKeyboard",
+    desc = "CatKeyboard for the pets menu."
 ) {
     private val unequipKeybind by keybind("Unequip", desc = "Unequips the current pet.")
     private val nextPageKeybind by keybind("Next page", desc = "Goes to the next page.")
@@ -46,9 +46,9 @@ object PetKeybinds : Module(
     private val closeIfAlreadyEquipped by switch("Close if already equipped", desc = "If the pet is already equipped, closes the Pets menu instead.")
     private val fastMode by switch("Fast mode", desc = "Blocks movement and input only while the Pets menu data is being read.")
 
-    private val advanced by text("Keybinds")
+    private val advanced by text("CatKeyboard")
     private val petKeys = (1..9).map { i ->
-        KeybindComponent("Pet $i", CatKeys.KEY_0 + i, "Pet $i on the list.").childOf(::advanced).value
+        KeybindComponent("Pet $i", Keybinds.KEY_0 + i, "Pet $i on the list.").childOf(::advanced).value
     }
 
 
@@ -65,7 +65,7 @@ object PetKeybinds : Module(
     const val GET_ID = 69
 
     init {
-        val petCommand = command.sub("petkeybinds").description("Pet Keybinds module settings.")
+        val petCommand = command.sub("petkeybinds").description("Pet CatKeyboard module settings.")
 
         petCommand.sub("clear") {
             petMap.clear()

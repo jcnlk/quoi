@@ -6,14 +6,13 @@ import quoi.api.abobaui.constraints.Positions
 import quoi.api.abobaui.dsl.registerEventUnit
 import quoi.api.abobaui.elements.AbobaDSL
 import quoi.api.abobaui.elements.ElementScope
-import quoi.api.abobaui.elements.impl.TextInput.Companion.maxWidth
 import quoi.api.abobaui.events.AbobaEvent
 import quoi.api.abobaui.events.Focus
 import quoi.api.abobaui.events.Keyboard
 import quoi.api.abobaui.events.Mouse
 import quoi.api.colour.Colour
 import quoi.api.colour.withAlpha
-import quoi.api.input.CatKeys
+import quoi.api.input.Keybinds
 import quoi.utils.StringUtils.dropAt
 import quoi.utils.StringUtils.removeRangeSafe
 import quoi.utils.StringUtils.substringSafe
@@ -199,7 +198,7 @@ class TextInput(
         }
         registerEventUnit(Keyboard.KeyTyped()) { (key, mods) ->
             when (key) {
-                CatKeys.KEY_BACKSPACE -> {
+                Keybinds.KEY_BACKSPACE -> {
                     if (selection != caret) {
                         deleteSelection()
                     } else if (mods.isCtrlDown) {
@@ -214,7 +213,7 @@ class TextInput(
                     clearSelection()
                 }
 
-                CatKeys.KEY_DELETE -> {
+                Keybinds.KEY_DELETE -> {
                     if (selection != caret) {
                         deleteSelection()
                         clearSelection()
@@ -223,7 +222,7 @@ class TextInput(
                     }
                 }
 
-                CatKeys.KEY_RIGHT -> {
+                Keybinds.KEY_RIGHT -> {
                     if (selection != caret && !mods.isShiftDown) {
                         caret = maxOf(caret, selection)
                         selection = caret
@@ -233,7 +232,7 @@ class TextInput(
                     }
                 }
 
-                CatKeys.KEY_LEFT -> {
+                Keybinds.KEY_LEFT -> {
                     if (selection != caret && !mods.isShiftDown) {
                         caret = minOf(caret, selection)
                         selection = caret
@@ -243,17 +242,17 @@ class TextInput(
                     }
                 }
 
-                CatKeys.KEY_HOME -> {
+                Keybinds.KEY_HOME -> {
                     caret = 0
                     if (!mods.isShiftDown) selection = caret
                 }
 
-                CatKeys.KEY_END -> {
+                Keybinds.KEY_END -> {
                     caret = text.length
                     if (!mods.isShiftDown) selection = caret
                 }
 
-                CatKeys.KEY_ESCAPE, CatKeys.KEY_ENTER -> {
+                Keybinds.KEY_ESCAPE, Keybinds.KEY_ENTER -> {
                     ui.unfocus()
                 }
 

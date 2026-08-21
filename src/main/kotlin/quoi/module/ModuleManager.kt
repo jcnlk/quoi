@@ -5,7 +5,7 @@ import quoi.api.events.KeyEvent
 import quoi.api.events.MouseEvent
 import quoi.api.events.core.EventListener
 import quoi.api.events.core.on
-import quoi.api.input.CatKeys
+import quoi.api.input.Keybinds
 import quoi.module.impl.dungeon.*
 import quoi.module.impl.dungeon.autoclear.impl.*
 import quoi.module.impl.dungeon.puzzlesolvers.PuzzleSolvers
@@ -139,7 +139,7 @@ object ModuleManager : EventListener {
     }
 
     private fun invokeKeybind(key: Int, pressed: Boolean) {
-        if (key == CatKeys.KEY_NONE) return
+        if (key == Keybinds.KEY_NONE) return
 
         modules.forEach { module ->
             module.settings.filterIsInstance<KeybindComponent>()

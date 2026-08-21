@@ -3,7 +3,7 @@ package quoi.module.impl.general
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import quoi.api.events.GuiEvent
 import quoi.api.events.core.on
-import quoi.api.input.CatKeys
+import quoi.api.input.Keybinds
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.module.settings.impl.KeybindComponent
@@ -17,17 +17,17 @@ import quoi.utils.skyblock.player.container.ContainerUtils.clickSlot
  * original: https://github.com/odtheking/OdinLegacy/blob/main/src/main/kotlin/me/odinmain/features/impl/skyblock/WardrobeKeybinds.kt
  */
 object WardrobeKeybinds : Module(
-    "Wardrobe Keybinds",
-    desc = "Keybinds for wardrobe."
+    "Wardrobe CatKeyboard",
+    desc = "CatKeyboard for wardrobe."
 ) {
     private val unequipKeybind by keybind("Unequip", desc = "Unequips the current slot.")
     private val nextPageKeybind by keybind("Next page", desc = "Goes to the next page.")
     private val previousPageKeybind by keybind("Previous page", desc = "Goes to the previous page.")
     private val noUnequip by switch("Disable unequip", desc = "Prevents using a wardrobe keybind to unequip a wardrobe. Does not prevent unequip keybind or normal clicking.")
 
-    private val advanced by text("Keybinds")
+    private val advanced by text("CatKeyboard")
     private val wardrobeKeys = (1..9).map { i ->
-        KeybindComponent("Slot $i", CatKeys.KEY_0 + i, "Slot $i on the menu.").childOf(::advanced).value
+        KeybindComponent("Slot $i", Keybinds.KEY_0 + i, "Slot $i on the menu.").childOf(::advanced).value
     }
 
     private val wardrobeRegex = Regex("""^\((\d+)/(\d+)\) Armor Sets$""")

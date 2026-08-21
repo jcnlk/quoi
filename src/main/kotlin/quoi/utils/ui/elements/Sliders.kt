@@ -19,7 +19,7 @@ import quoi.api.colour.green
 import quoi.api.colour.multiply
 import quoi.api.colour.red
 import quoi.api.colour.withAlpha
-import quoi.api.input.CatKeys
+import quoi.api.input.Keybinds
 import quoi.api.input.CursorShape
 import quoi.utils.ThemeManager.theme
 import quoi.utils.clean
@@ -155,13 +155,13 @@ fun <T : Number> ElementScope<*>.slider(
 
         onKeyPressed { (key) ->
             when(key) {
-                CatKeys.KEY_LEFT -> {
+                Keybinds.KEY_LEFT -> {
                     set(value.toDouble() - increment)
                     animate = true
                     true
                 }
 
-                CatKeys.KEY_RIGHT -> {
+                Keybinds.KEY_RIGHT -> {
                     set(value.toDouble() + increment)
                     animate = true
                     true
@@ -348,8 +348,8 @@ fun <T : Number> ElementScope<*>.rangeSlider(
         onKeyPressed { (key, mods) ->
             val knobToMove = if (mods.isShiftDown) 2 else 1
             val dir = when (key) {
-                CatKeys.KEY_LEFT -> -1.0
-                CatKeys.KEY_RIGHT -> 1.0
+                Keybinds.KEY_LEFT -> -1.0
+                Keybinds.KEY_RIGHT -> 1.0
                 else -> return@onKeyPressed false
             }
 

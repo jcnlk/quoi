@@ -1,8 +1,8 @@
 package quoi.mixins;
 
 
+import quoi.api.input.CatKeyboard;
 import quoi.api.input.Keybinds;
-import quoi.api.input.CatKeys;
 import quoi.mixininterfaces.ISearchMode;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.jetbrains.annotations.NotNull;
@@ -63,13 +63,13 @@ public class ChatScreenMixin extends Screen implements ISearchMode {
             cancellable = true
     )
     private void onKeyPressed(KeyEvent input, CallbackInfoReturnable<Boolean> cir) {
-        if (Keybinds.Modifier.INSTANCE.isCtrlDown() && input.input() == CatKeys.KEY_F) {
+        if (CatKeyboard.Modifier.INSTANCE.isCtrlDown() && input.input() == Keybinds.KEY_F) {
             toggleSearch(!isSearchActive);
             cir.setReturnValue(true);
             return;
         }
 
-        if (isSearchActive && input.input() == CatKeys.KEY_ESCAPE) {
+        if (isSearchActive && input.input() == Keybinds.KEY_ESCAPE) {
             toggleSearch(false);
             cir.setReturnValue(true);
         }

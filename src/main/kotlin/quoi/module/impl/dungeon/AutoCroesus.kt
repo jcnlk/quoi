@@ -17,8 +17,8 @@ import quoi.api.commands.internal.GreedyString
 import quoi.api.events.GuiEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
+import quoi.api.input.CatKeyboard
 import quoi.api.input.Keybinds
-import quoi.api.input.CatKeys
 import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.SkyblockPrices
 import quoi.api.skyblock.SkyblockPrices.BazaarPriceType
@@ -106,8 +106,8 @@ object AutoCroesus : Module(
         addDefaults("Worthless", worthless, defaultAutoCroesusWorthless)
     }
     @Suppress("unused")
-    private val startKey by keybind("Start key", CatKeys.KEY_NONE, desc = "Starts Auto Croesus.").onPress(::startFromKeybind)
-    private val killSwitch by keybind("Kill switch", CatKeys.KEY_NONE, desc = "Stops the current Auto Croesus claim.")
+    private val startKey by keybind("Start key", Keybinds.KEY_NONE, desc = "Starts Auto Croesus.").onPress(::startFromKeybind)
+    private val killSwitch by keybind("Kill switch", Keybinds.KEY_NONE, desc = "Stops the current Auto Croesus claim.")
     private val kismetFloors by multiSelect("Kismet floors", emptySet(), autoCroesusFloors, desc = "Floors where Auto Croesus may use Kismet Feathers.")
         .childOf(::useKismets)
     private val alwaysBuy by ListSetting("Always buy", mutableListOf<String>())
@@ -138,7 +138,7 @@ object AutoCroesus : Module(
         registerCommands()
 
         on<TickEvent.Start> {
-            if (claiming && killSwitch.key != CatKeys.KEY_NONE && Keybinds.isKeyDown(killSwitch.key)) {
+            if (claiming && killSwitch.key != Keybinds.KEY_NONE && CatKeyboard.isKeyDown(killSwitch.key)) {
                 reset()
                 modMessage("&cAuto Croesus stopped.")
                 return@on

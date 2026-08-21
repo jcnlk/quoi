@@ -1,6 +1,6 @@
 package quoi.module.impl.general
 
-import quoi.api.input.CatKeys
+import quoi.api.input.Keybinds
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.module.settings.impl.KeybindComponent
@@ -14,10 +14,10 @@ object AutoWardrobe : Module(
     private val preventMoving by switch("Prevent moving", desc = "Stops your movement while a wardrobe equip is in progress.")
     private val blockInputs by switch("Block inputs", desc = "Blocks keyboard and mouse input while a wardrobe equip is in progress.")
     private val fastMode by switch("Fast mode", desc = "Blocks movement and input only from the menu opening until the target click.")
-    private val keybinds by text("Keybinds")
+    private val keybinds by text("CatKeyboard")
     private val wardrobeKeys = (1..9).map { i ->
         register(
-            KeybindComponent("Slot $i", CatKeys.KEY_NONE, "Equips wardrobe slot $i.")
+            KeybindComponent("Slot $i", Keybinds.KEY_NONE, "Equips wardrobe slot $i.")
                 .childOf(::keybinds)
                 .onPress { onWardrobeKey(i) }
         )

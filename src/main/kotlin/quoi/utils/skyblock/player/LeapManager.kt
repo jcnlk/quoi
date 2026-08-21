@@ -10,7 +10,7 @@ import quoi.api.events.WorldEvent
 import quoi.api.events.core.EventListener
 import quoi.api.events.core.Priority
 import quoi.api.events.core.on
-import quoi.api.input.Keybinds
+import quoi.api.input.CatKeyboard
 import quoi.api.input.CatMouse
 import quoi.api.skyblock.dungeon.Dungeon.dungeonTeammatesNoSelf
 import quoi.api.skyblock.dungeon.Dungeon.getMageCooldownMultiplier
@@ -216,7 +216,7 @@ object LeapManager : EventListener {
         val useKey = mc.options.keyUse.key
         mc.options.keyUse.isDown = when (useKey.type) {
             InputConstants.Type.MOUSE -> CatMouse.isButtonDown(useKey.value)
-            InputConstants.Type.KEYSYM -> Keybinds.isKeyDown(useKey.value)
+            InputConstants.Type.KEYSYM -> CatKeyboard.isKeyDown(useKey.value)
             InputConstants.Type.SCANCODE -> false
         }
     }
