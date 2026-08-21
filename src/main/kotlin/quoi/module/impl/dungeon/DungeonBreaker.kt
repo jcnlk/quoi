@@ -12,7 +12,7 @@ import quoi.api.colour.Colour
 import quoi.api.colour.withAlpha
 import quoi.api.events.*
 import quoi.api.events.core.on
-import quoi.api.input.CatKeys
+import quoi.api.input.Keybinds
 import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.dungeon.Dungeon.floor
 import quoi.api.skyblock.dungeon.Dungeon.inBoss
@@ -81,7 +81,7 @@ object DungeonBreaker : Module(
     private val dbBlocks by configList<BlockPos>("dungeonbreaker_blocks.json")
 
     @Suppress("unused")
-    private val toggleBlock by keybind("Toggle block", CatKeys.KEY_NONE, desc = "Adds or removes the block you are currently looking at.")
+    private val toggleBlock by keybind("Toggle block", Keybinds.KEY_NONE, desc = "Adds or removes the block you are currently looking at.")
         .onPress {
             if (!enabled || !inBoss || floor?.floorNumber != 7) return@onPress
             if (disableInGUI()) return@onPress

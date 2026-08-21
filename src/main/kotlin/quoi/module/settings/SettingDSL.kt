@@ -3,7 +3,7 @@ package quoi.module.settings
 import quoi.api.colour.Colour
 import quoi.api.colour.withAlpha
 import quoi.api.events.core.AreaBoundListener
-import quoi.api.input.CatKeys
+import quoi.api.input.Keybinds
 import quoi.module.settings.impl.*
 import quoi.utils.ui.HighlightSettings
 import quoi.utils.ui.SoundSettings
@@ -21,7 +21,7 @@ abstract class SettingsDSL {
     protected fun colourPicker(name: String, colour: Colour, allowAlpha: Boolean = false, desc: String = "") =
         ColourPickerComponent(name, colour, allowAlpha, desc)
 
-    protected fun keybind(name: String, key: Int = CatKeys.KEY_NONE, desc: String = "") =
+    protected fun keybind(name: String, key: Int = Keybinds.KEY_NONE, desc: String = "") =
         KeybindComponent(name, key, desc)
 
     protected fun <T> selector(name: String, default: T, options: List<T>, desc: String = "") =

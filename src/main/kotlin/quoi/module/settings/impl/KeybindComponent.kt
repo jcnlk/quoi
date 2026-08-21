@@ -9,7 +9,7 @@ import quoi.api.abobaui.elements.impl.Text.Companion.string
 import quoi.api.animations.Animation
 import quoi.api.input.CatKeyboard
 import quoi.api.input.CatKeyboard.modifierCodes
-import quoi.api.input.CatKeys
+import quoi.api.input.Keybinds
 import quoi.api.input.CatMouse
 import quoi.api.input.CursorShape
 import quoi.utils.ThemeManager.theme
@@ -25,7 +25,7 @@ import java.util.Objects
 
 class KeybindComponent(
     name: String,
-    override val default: Keybinding = Keybinding(CatKeys.KEY_NONE),
+    override val default: Keybinding = Keybinding(Keybinds.KEY_NONE),
     desc: String = ""
 ) : UIComponent<Keybinding>(name, desc), Saving {
 
@@ -167,10 +167,10 @@ class KeybindComponent(
             }
 
             onKeyPressed { (key, _) ->
-                if (key == CatKeys.KEY_ESCAPE) {
+                if (key == Keybinds.KEY_ESCAPE) {
                     value.clear()
                     ui.unfocus()
-                } else if (key == CatKeys.KEY_ENTER) {
+                } else if (key == Keybinds.KEY_ENTER) {
                     ui.unfocus()
                 } else if (isAllowed(key)) {
                     updateBind(key)
@@ -206,7 +206,7 @@ class Keybinding(var key: Int, val modifiers: MutableSet<Int> = mutableSetOf()) 
      * @return `true` if [key] is held down.
      */
     fun isDown(): Boolean {
-        if (key == CatKeys.KEY_NONE) return false
+        if (key == Keybinds.KEY_NONE) return false
         val mainKeyDown = if (key < 0) CatMouse.isButtonDown(key + 100) else CatKeyboard.isKeyDown(key)
         if (!mainKeyDown) return false
 
@@ -216,7 +216,7 @@ class Keybinding(var key: Int, val modifiers: MutableSet<Int> = mutableSetOf()) 
     fun isModifierDown() = modifiers.all { CatKeyboard.isKeyDown(it) }
 
     fun clear() {
-        key = CatKeys.KEY_NONE
+        key = Keybinds.KEY_NONE
         modifiers.clear()
     }
 

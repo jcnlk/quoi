@@ -5,7 +5,6 @@ import com.terraformersmc.modmenu.api.ModMenuApi
 import quoi.module.impl.render.clickgui.ClickGui
 import quoi.utils.ui.screens.UIScreen
 
-@Suppress("unused")
 class ModMenuIntegration : ModMenuApi {
     override fun getModConfigScreenFactory(): ConfigScreenFactory<*> {
         return ConfigScreenFactory { UIScreen(ClickGui.clickGui) }

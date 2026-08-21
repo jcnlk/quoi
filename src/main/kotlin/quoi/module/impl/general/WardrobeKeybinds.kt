@@ -3,7 +3,7 @@ package quoi.module.impl.general
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import quoi.api.events.GuiEvent
 import quoi.api.events.core.on
-import quoi.api.input.CatKeys
+import quoi.api.input.Keybinds
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.module.settings.impl.KeybindComponent
@@ -27,7 +27,7 @@ object WardrobeKeybinds : Module(
 
     private val advanced by text("Keybinds")
     private val wardrobeKeys = (1..9).map { i ->
-        KeybindComponent("Slot $i", CatKeys.KEY_0 + i, "Slot $i on the menu.").childOf(::advanced).value
+        KeybindComponent("Slot $i", Keybinds.KEY_0 + i, "Slot $i on the menu.").childOf(::advanced).value
     }
 
     private val wardrobeRegex = Regex("""^\((\d+)/(\d+)\) Armor Sets$""")

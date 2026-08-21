@@ -22,7 +22,7 @@ import quoi.api.colour.Colour
 import quoi.api.colour.withAlpha
 import quoi.api.events.GuiEvent
 import quoi.api.events.WorldEvent
-import quoi.api.input.CatKeys
+import quoi.api.input.Keybinds
 import quoi.config.Config
 import quoi.module.settings.UIComponent
 import quoi.module.settings.impl.ColourPickerComponent
@@ -235,10 +235,10 @@ object HudManager : EventListener {
                 onKeyPressed { (key, mods) ->
                     val step = if (mods.isShiftDown) 10 else 1
                     val (x, y) = when (key) {
-                        CatKeys.KEY_RIGHT -> step to 0
-                        CatKeys.KEY_LEFT -> -step to 0
-                        CatKeys.KEY_UP -> 0 to -step
-                        CatKeys.KEY_DOWN -> 0 to step
+                        Keybinds.KEY_RIGHT -> step to 0
+                        Keybinds.KEY_LEFT -> -step to 0
+                        Keybinds.KEY_UP -> 0 to -step
+                        Keybinds.KEY_DOWN -> 0 to step
                         else -> return@onKeyPressed false
                     }
                     element.ensurePixelPosition()

@@ -3,7 +3,8 @@ package quoi.api.input
 import com.mojang.blaze3d.platform.InputConstants
 import org.lwjgl.sdl.SDLScancode
 
-object CatKeys {
+@Suppress("unused")
+object Keybinds {
     const val KEY_NONE: Int = -1
 
     const val KEY_ESCAPE: Int = InputConstants.KEY_ESCAPE

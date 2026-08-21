@@ -1,6 +1,6 @@
 package quoi.module.impl.general
 
-import quoi.api.input.CatKeys
+import quoi.api.input.Keybinds
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.module.settings.impl.KeybindComponent
@@ -17,7 +17,7 @@ object AutoWardrobe : Module(
     private val keybinds by text("Keybinds")
     private val wardrobeKeys = (1..9).map { i ->
         register(
-            KeybindComponent("Slot $i", CatKeys.KEY_NONE, "Equips wardrobe slot $i.")
+            KeybindComponent("Slot $i", Keybinds.KEY_NONE, "Equips wardrobe slot $i.")
                 .childOf(::keybinds)
                 .onPress { onWardrobeKey(i) }
         )

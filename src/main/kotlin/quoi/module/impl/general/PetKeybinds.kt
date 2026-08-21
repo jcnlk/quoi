@@ -10,7 +10,7 @@ import quoi.QuoiMod.scope
 import quoi.api.commands.internal.GreedyString
 import quoi.api.events.GuiEvent
 import quoi.api.events.core.on
-import quoi.api.input.CatKeys
+import quoi.api.input.Keybinds
 import quoi.api.skyblock.Pet as SkyblockPet
 import quoi.config.Config
 import quoi.module.Module
@@ -48,7 +48,7 @@ object PetKeybinds : Module(
 
     private val advanced by text("Keybinds")
     private val petKeys = (1..9).map { i ->
-        KeybindComponent("Pet $i", CatKeys.KEY_0 + i, "Pet $i on the list.").childOf(::advanced).value
+        KeybindComponent("Pet $i", Keybinds.KEY_0 + i, "Pet $i on the list.").childOf(::advanced).value
     }
 
 
