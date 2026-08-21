@@ -15,7 +15,8 @@ on:
       - "gradlew"
       - "LICENSE"
       - "settings.gradle.kts"
-  pull_request: *build-paths
+  pull_request:
+    paths: *build-paths
 
 permissions:
   contents: read
