@@ -5,9 +5,7 @@ on:
     branches:
       - 26.1.x
     paths: &build-paths
-      - ".gitattributes"
       - ".github/workflows/build.yml"
-      - "buildSrc/**"
       - "gradle/**"
       - "src/**"
       - "build.gradle.kts"
