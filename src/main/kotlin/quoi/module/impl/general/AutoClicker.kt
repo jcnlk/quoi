@@ -6,7 +6,7 @@ import quoi.api.events.MouseEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
 import quoi.api.events.core.on
-import quoi.api.input.CatKeys
+import quoi.api.input.Keybinds
 import quoi.config.Config
 import quoi.module.Module
 import quoi.module.settings.Setting.Companion.json
@@ -19,7 +19,6 @@ import quoi.utils.skyblock.item.ItemUtils.skyblockUuid
 import quoi.utils.skyblock.player.PlayerUtils.isLookingAtBreakable
 import quoi.utils.skyblock.player.PlayerUtils.leftClick
 import quoi.utils.skyblock.player.PlayerUtils.rightClick
-import kotlin.math.max
 import kotlin.random.Random
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -38,11 +37,11 @@ object AutoClicker: Module(
 
     private val leftClick by switch("Enable Left Click", desc = "Toggles the auto clicker for left click.").json("Left Click")
     private val leftCps by rangeSlider("Left CPS", 10 to 12, 1, 20, desc = "The range of clicks per second to perform for left click.").childOf(::leftClick)
-    private val leftClickKeybind by keybind("Left click keybind", CatKeys.MOUSE_LEFT, desc = "The keybind to hold for left click auto clicking.")
+    private val leftClickKeybind by keybind("Left click keybind", Keybinds.MOUSE_LEFT, desc = "The keybind to hold for left click auto clicking.")
 
     private val rightClick by switch("Enable Right Click", desc = "Toggles the auto clicker for right click.").json("Right Click")
     private val rightCps by rangeSlider("Right CPS", 10 to 12, 1, 20, desc = "The range of clicks per second to perform for right click.").childOf(::rightClick)
-    private val rightClickKeybind by keybind("Right click keybind", CatKeys.MOUSE_RIGHT, desc = "The keybind to hold for right click auto clicking.")
+    private val rightClickKeybind by keybind("Right click keybind", Keybinds.MOUSE_RIGHT, desc = "The keybind to hold for right click auto clicking.")
 
     private var leftJob: Job? = null
     private var rightJob: Job? = null
@@ -108,7 +107,7 @@ object AutoClicker: Module(
             val isLeft = button == 0
             val enabled = if (isLeft) leftClick else rightClick
             val keybind = if (isLeft) leftClickKeybind else rightClickKeybind
-            val mouseKey = CatKeys.MOUSE_LEFT + button
+            val mouseKey = Keybinds.MOUSE_LEFT + button
 
             if (enabled && keybind.key == mouseKey && keybind.isModifierDown() && shouldClick(isLeft)) {
                 cancel()

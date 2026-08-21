@@ -2,7 +2,8 @@ package quoi.api.input
 
 import org.lwjgl.glfw.GLFW
 
-object CatKeys {
+@Suppress("unused")
+object Keybinds {
     const val KEY_NONE: Int = GLFW.GLFW_KEY_UNKNOWN
 
     const val KEY_ESCAPE: Int = GLFW.GLFW_KEY_ESCAPE

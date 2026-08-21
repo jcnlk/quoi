@@ -5,12 +5,12 @@ import quoi.api.abobaui.dsl.*
 import quoi.api.abobaui.elements.ElementScope
 import quoi.api.customtriggers.TriggerContext
 import quoi.api.input.CatKeyboard
-import quoi.api.input.CatKeys
+import quoi.api.input.Keybinds
 import quoi.config.TypeName
 import quoi.utils.ThemeManager.theme
 
 @TypeName("key_pressed")
-class KeyPressCondition(var key: Int = CatKeys.KEY_NONE) : TriggerCondition {
+class KeyPressCondition(var key: Int = Keybinds.KEY_NONE) : TriggerCondition {
     override fun matches(ctx: TriggerContext): Boolean {
         return ctx is TriggerContext.Key && ctx.key == key
     }

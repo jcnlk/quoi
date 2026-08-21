@@ -2,7 +2,7 @@ package quoi.api.abobaui.events
 
 import quoi.api.input.CatKeyboard.ModState
 import quoi.api.input.CatKeyboard.Modifier
-import quoi.api.input.CatKeys
+import quoi.api.input.Keybinds
 
 interface AbobaEvent {
     interface NonSpecific: AbobaEvent
@@ -31,8 +31,8 @@ sealed interface Lifetime : AbobaEvent.NonSpecific {
 
 sealed interface Keyboard : AbobaEvent.NonSpecific {
     data class CharTyped(val key: Char = ' ', val mods: ModState = Modifier) : Keyboard
-    data class KeyTyped(val key: Int = CatKeys.KEY_NONE, val mods: ModState = Modifier) : Keyboard
-    data class KeyReleased(val key: Int = CatKeys.KEY_NONE, val mods: ModState = Modifier) : Keyboard
+    data class KeyTyped(val key: Int = Keybinds.KEY_NONE, val mods: ModState = Modifier) : Keyboard
+    data class KeyReleased(val key: Int = Keybinds.KEY_NONE, val mods: ModState = Modifier) : Keyboard
 }
 
 sealed interface Focus : AbobaEvent.NonSpecific {

@@ -1,7 +1,7 @@
 package quoi.module
 
 import quoi.api.commands.QuoiCommand
-import quoi.api.input.CatKeys
+import quoi.api.input.Keybinds
 import quoi.module.settings.Setting
 import quoi.module.settings.impl.Keybinding
 import quoi.utils.ChatUtils.modMessage
@@ -17,7 +17,7 @@ abstract class Module(
     val name: String,
     override val area: Area? = null,
     override val subarea: String? = null,
-    val key: Int = CatKeys.KEY_NONE,
+    val key: Int = Keybinds.KEY_NONE,
     @Transient val desc: String = "",
     toggled: Boolean = false,
     val tag: Tag = Tag.NONE

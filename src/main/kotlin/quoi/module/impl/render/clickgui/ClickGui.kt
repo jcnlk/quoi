@@ -43,7 +43,7 @@ import quoi.api.animations.Animation
 import quoi.api.colour.Colour
 import quoi.api.colour.colour
 import quoi.api.colour.withAlpha
-import quoi.api.input.CatKeys
+import quoi.api.input.Keybinds
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.Floor
 import quoi.config.Config
@@ -72,7 +72,7 @@ import java.net.URI
 @OptIn(Internal::class)
 object ClickGui : Module(
     "Click GUI",
-    key = CatKeys.KEY_RIGHT_SHIFT
+    key = Keybinds.KEY_RIGHT_SHIFT
 ) {
     val forceSkyblock by switch("Force skyblock")
     val forceDungeons by switch("Force dungeon").onValueChanged { _, new -> if (new) Dungeon.setFloor(dungeonFloor.selected) }

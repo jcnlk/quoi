@@ -1,6 +1,6 @@
 package quoi.module.impl.general
 
-import quoi.api.input.CatKeys
+import quoi.api.input.Keybinds
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.module.settings.impl.KeybindComponent
@@ -16,7 +16,7 @@ object AutoLoadout : Module(
     @Suppress("unused")
     private val loadoutKeys = (1..12).map { i ->
         register(
-            KeybindComponent("Slot $i", CatKeys.KEY_NONE, "Equips loadout slot $i.")
+            KeybindComponent("Slot $i", Keybinds.KEY_NONE, "Equips loadout slot $i.")
                 .childOf(::keybinds)
                 .onPress { onLoadoutKey(i) }
         )

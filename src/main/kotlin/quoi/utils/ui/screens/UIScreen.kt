@@ -3,7 +3,7 @@ package quoi.utils.ui.screens
 import quoi.QuoiMod.mc
 import quoi.api.abobaui.AbobaUI
 import quoi.api.input.CatKeyboard.Modifier.isCtrlDown
-import quoi.api.input.CatKeys
+import quoi.api.input.Keybinds
 import quoi.utils.Scheduler.scheduleTask
 import quoi.utils.sf
 import quoi.utils.ui.rendering.NVGSpecialRenderer
@@ -42,11 +42,11 @@ class UIScreen(val instance: AbobaUI.Instance, val background: Boolean = true ) 
         val a = instance.eventManager.onKeyTyped(keyEvent.key)
 
         val ctrlHotkeys = setOf(
-            CatKeys.KEY_V,
-            CatKeys.KEY_C,
-            CatKeys.KEY_W,
-            CatKeys.KEY_X,
-            CatKeys.KEY_A
+            Keybinds.KEY_V,
+            Keybinds.KEY_C,
+            Keybinds.KEY_W,
+            Keybinds.KEY_X,
+            Keybinds.KEY_A
         )
         var b = false
         if (isCtrlDown && keyEvent.key in ctrlHotkeys) {
