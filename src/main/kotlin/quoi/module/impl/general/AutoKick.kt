@@ -41,23 +41,23 @@ object AutoKick : Module(
 
         on<PartyEvent.Message> {
             if (!kickSkyblockerUsers || !content.startsWith("[Skyblocker] ")) return@on
-            requestKick(sender, "&cKicking $sender for using Skyblocker!", "SKYBLOCKER TAX!")
+            requestKick(sender, "SKYBLOCKER TAX!")
         }
     }
 
-    private fun requestKick(name: String, message: String, partyMessage: String? = null) {
+    private fun requestKick(name: String, partyMessage: String? = null) {
         if (name == player.gameProfile.name || !pendingKicks.add(name)) return
 
         scope.launch {
             try {
-                kick(name, message, partyMessage)
+                kick(name, partyMessage)
             } finally {
                 pendingKicks.remove(name)
             }
         }
     }
 
-    private suspend fun kick(name: String, message: String, partyMessage: String?) {
+    private suspend fun kick(name: String, partyMessage: String?) {
         wait(0, server = true)
         if (!shouldKick(name)) return
 
@@ -73,7 +73,6 @@ object AutoKick : Module(
         try {
             if (!await(name) { SkyblockPlayer.canUseCommands }) return
 
-            modMessage(message)
             partyMessage?.let {
                 command("party chat $it")
                 if (!await(name) { SkyblockPlayer.canUseCommands }) return
