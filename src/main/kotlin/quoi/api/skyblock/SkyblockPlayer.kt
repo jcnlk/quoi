@@ -126,6 +126,10 @@ object SkyblockPlayer : EventListener, Shortcuts {
             InvincibilityType.fromMessage(unformatted)?.proc()
         }
 
+        on<ChatEvent.Sent> {
+            if (isCommand) commandsTick = 4
+        }
+
         on<TickEvent.Server> {
             InvincibilityType.entries.forEach { it.tick() }
             if (commandsTick > 0) commandsTick--

@@ -65,71 +65,71 @@ object PartyUtils : EventListener, Shortcuts {
 
     init {
         on<ChatEvent.Packet> {
-            joinedOther.find(message)?.let { return@on addMember(it.groupValues[2]) }
+            joinedOther.find(unformatted)?.let { return@on addMember(it.groupValues[2]) }
 
-            joinedSelf.find(message)?.let {
+            joinedSelf.find(unformatted)?.let {
                 addMember(it.groupValues[2])
                 updateLeader(it.groupValues[2])
                 addMember(player.gameProfile.name)
                 return@on
             }
 
-            leftParty.find(message)?.let { return@on removeMember(it.groupValues[2]) }
+            leftParty.find(unformatted)?.let { return@on removeMember(it.groupValues[2]) }
 
-            kickedParty.find(message)?.let { return@on removeMember(it.groupValues[2]) }
+            kickedParty.find(unformatted)?.let { return@on removeMember(it.groupValues[2]) }
 
-            kickedOffline.find(message)?.let { return@on removeMember(it.groupValues[2]) }
+            kickedOffline.find(unformatted)?.let { return@on removeMember(it.groupValues[2]) }
 
-            kickedDisconnected.find(message)?.let { return@on removeMember(it.groupValues[2]) }
+            kickedDisconnected.find(unformatted)?.let { return@on removeMember(it.groupValues[2]) }
 
-            transferBy.find(message)?.let {
+            transferBy.find(unformatted)?.let {
                 addMember(it.groupValues[2])
                 addMember(it.groupValues[4])
                 updateLeader(it.groupValues[2])
                 return@on
             }
 
-            transferLeave.find(message)?.let {
+            transferLeave.find(unformatted)?.let {
                 addMember(it.groupValues[2])
                 updateLeader(it.groupValues[2])
                 removeMember(it.groupValues[4])
                 return@on
             }
 
-            leaderDisconnected.find(message)?.let {
+            leaderDisconnected.find(unformatted)?.let {
                 updateLeader(it.groupValues[2])
                 return@on
             }
 
-            leaderRejoined.find(message)?.let {
+            leaderRejoined.find(unformatted)?.let {
                 updateLeader(it.groupValues[2])
                 return@on
             }
 
-            partyChat.find(message)?.let { match ->
+            partyChat.find(unformatted)?.let { match ->
                 val sender = match.groupValues[2]
                 addMember(sender)
                 PartyEvent.Message(sender, match.groupValues[3]).post()
                 return@on
             }
 
-            partyInvite.find(message)?.let {
+            partyInvite.find(unformatted)?.let {
                 addMember(it.groupValues[2])
                 if (partyLeader == null) updateLeader(it.groupValues[2])
                 return@on
             }
 
-            queuedInFinder.find(message)?.let {
+            queuedInFinder.find(unformatted)?.let {
                 addMember(player.gameProfile.name)
                 if (partyLeader == null) updateLeader(player.gameProfile.name)
                 return@on
             }
 
             for (pattern in disbandPatterns) {
-                if (pattern.containsMatchIn(message)) return@on disband()
+                if (pattern.containsMatchIn(unformatted)) return@on disband()
             }
 
-            membersList.find(message)?.let { match ->
+            membersList.find(unformatted)?.let { match ->
                 val type = match.groupValues[1]
 
                 match.groupValues[2].split(" ●").forEach { segment ->
@@ -141,7 +141,7 @@ object PartyUtils : EventListener, Shortcuts {
                 }
             }
 
-            partyWith.find(message)?.let { match ->
+            partyWith.find(unformatted)?.let { match ->
                 match.groupValues[1].split(", ").forEach { playerName ->
                     val memberMatch = memberFormat.find(playerName.trim()) ?: return@forEach
                     addMember(memberMatch.groupValues[2])
@@ -149,9 +149,9 @@ object PartyUtils : EventListener, Shortcuts {
                 return@on
             }
 
-            kuudraJoin.find(message)?.let { return@on addMember(it.groupValues[2]) }
+            kuudraJoin.find(unformatted)?.let { return@on addMember(it.groupValues[2]) }
 
-            dungeonJoin.find(message)?.let { match ->
+            dungeonJoin.find(unformatted)?.let { match ->
                 val clazz = DungeonClass.entries.find { it.name.equals(match.groupValues[2], ignoreCase = true) }
                 return@on addMember(match.groupValues[1], clazz)
             }
