@@ -194,10 +194,12 @@ object AutoLeap : Module(
                 leapToConfigured(middleName, middleClass.selected)
             }
 
-            val pre4Done = deviceDoneRegex.matchEntire(unformatted)
-            if (pre4Done != null && pre4Done.groupValues[1] == player.name.string && pre4Leap && pre4Auto) {
-                leapToPre4Target()
-            }
+            if (!pre4Leap || !pre4Auto || !isAtPre4()) return@on
+
+            val (playerName) = deviceDoneRegex.matchEntire(unformatted)?.destructured ?: return@on
+            if (playerName != player.name.string) return@on
+
+            leapToPre4Target()
         }
 
         // based on https://github.com/Noamm9/NoammAddons/blob/1.1.9/src/main/kotlin/com/github/noamm9/features/impl/floor7/M7Relics.kt#L96-L104

@@ -9,7 +9,6 @@ import quoi.api.skyblock.SkyblockPlayer
 import quoi.api.skyblock.dungeon.DungeonClass
 import quoi.module.Module
 import quoi.utils.ChatUtils.command
-import quoi.utils.ChatUtils.modMessage
 import quoi.utils.Scheduler.wait
 import quoi.utils.skyblock.PartyUtils
 
