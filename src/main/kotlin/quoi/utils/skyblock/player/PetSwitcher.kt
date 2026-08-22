@@ -104,7 +104,7 @@ object PetSwitcher : EventListener {
         return newTask.result != ContainerTaskResult.Busy
     }
 
-    fun isBusy(): Boolean = task?.let { it.result == null } == true || pendingSwitch != null
+    fun isBusy(): Boolean = task != null || pendingSwitch != null
 
     private fun cleanPetItemName(name: String): String = name.noControlCodes.trim()
 
