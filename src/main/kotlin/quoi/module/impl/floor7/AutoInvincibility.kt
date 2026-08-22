@@ -18,7 +18,7 @@ import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.Scheduler.wait
 import quoi.utils.skyblock.item.ItemUtils.skyblockId
-import quoi.utils.skyblock.player.EquipUtils
+import quoi.utils.skyblock.player.EquipmentSwapper
 import quoi.utils.skyblock.player.PetSwitcher
 import quoi.utils.skyblock.player.PetUtils
 import quoi.utils.skyblock.player.PlayerUtils.rightClick
@@ -121,7 +121,7 @@ object AutoInvincibility : Module(
 
                 modMessage("§eEquipping $maskName.")
 
-                if (!EquipUtils.equipByName(maskName, blockInput = blockInputs, fastMode = fastMode)) {
+                if (!EquipmentSwapper.equip(maskName, blockInput = blockInputs, fastMode = fastMode)) {
                     modMessage("§cFailed to equip $maskName.")
                 }
             } finally {
