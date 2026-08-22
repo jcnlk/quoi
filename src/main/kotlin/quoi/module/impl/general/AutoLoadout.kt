@@ -4,7 +4,7 @@ import quoi.api.input.Keybinds
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.module.settings.impl.KeybindComponent
-import quoi.utils.skyblock.player.LoadoutUtils
+import quoi.utils.skyblock.player.LoadoutSwapper
 
 object AutoLoadout : Module(
     "Auto Loadout",
@@ -24,10 +24,10 @@ object AutoLoadout : Module(
 
     private fun onLoadoutKey(slot: Int) {
         if (!enabled || mc.gui.screen() != null) return
-        LoadoutUtils.equip(
+        LoadoutSwapper.equip(
             slot,
             preventMove = preventMoving,
-            blockInputs = blockInputs,
+            blockInput = blockInputs,
             fastMode = fastMode,
         )
     }

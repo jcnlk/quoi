@@ -15,7 +15,7 @@ import quoi.utils.skyblock.player.container.task.IndexSlot
 import quoi.utils.skyblock.player.container.task.containerTask
 
 @Init
-object LoadoutUtils {
+object LoadoutSwapper {
     private val loadoutSlots = listOf(14, 15, 16, 23, 24, 25, 32, 33, 34, 41, 42, 43)
     private var task: ContainerTask? = null
 
@@ -29,24 +29,24 @@ object LoadoutUtils {
     fun equip(
         slot: Int,
         preventMove: Boolean = true,
-        blockInputs: Boolean = false,
+        blockInput: Boolean = false,
         fastMode: Boolean = false,
     ): Boolean {
         if (slot !in 1..loadoutSlots.size) {
             modMessage("&cInvalid loadout slot. Use &e/quoi loadout <1-${loadoutSlots.size}>&c.")
             return false
         }
-        if (task?.let { it.result == null } == true) return false
+        if (task?.result == null) return false
 
         val targetSlot = loadoutSlots[slot - 1]
         val newTask = containerTask(
             name = "Loadout $slot",
             force = fastMode,
             preventMovement = preventMove,
-            blockInput = blockInputs,
+            blockInput = blockInput,
             fastMode = fastMode,
         ) {
-            action { ChatUtils.command("/loadout") }
+            action { ChatUtils.command("loadout") }
             awaitContainer("(1/3) Loadouts", waitForItems = true)
             check("Loadout slot $slot is not equipable") {
                 mc.player?.containerMenu?.items?.getOrNull(targetSlot)?.isLoadoutButton() == true
