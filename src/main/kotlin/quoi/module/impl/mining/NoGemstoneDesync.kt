@@ -1,14 +1,11 @@
 package quoi.module.impl.mining
 
-import net.minecraft.core.BlockPos
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.StainedGlassBlock
 import net.minecraft.world.level.block.StainedGlassPaneBlock
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import quoi.api.events.BlockEvent
-import quoi.api.events.TickEvent
-import quoi.api.events.WorldEvent
 import quoi.api.events.core.on
 import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.location.Location.currentArea
@@ -25,41 +22,17 @@ object NoGemstoneDesync : Module(
         Island.CrimsonIsle,
         Island.Rift,
     )
-    private val pendingUpdates = mutableSetOf<BlockPos>()
-    private var applyingPendingUpdates = false
-
     init {
         on<BlockEvent.Update> {
             if (!active || currentArea !in affectedIslands) return@on
-            if (updated.isAir && isStainedGlass(old)) pendingUpdates += pos.immutable()
+            if (!updated.isAir || !isStainedGlass(old)) return@on
+            updated.updateNeighbourShapes(level, pos, Block.UPDATE_ALL)
         }
-
-        // BlockEvent.Update is emitted before LevelChunk applies the new state. Waiting until
-        // the next tick ensures neighbours observe air at the mined block position.
-        on<TickEvent.Start> {
-            if (pendingUpdates.isEmpty()) return@on
-            val updates = pendingUpdates.toList()
-            pendingUpdates.clear()
-
-            if (!active || currentArea !in affectedIslands) return@on
-            applyingPendingUpdates = true
-            try {
-                updates.forEach { pos ->
-                    val state = level.getBlockState(pos)
-                    if (state.isAir) state.updateNeighbourShapes(level, pos, Block.UPDATE_ALL)
-                }
-            } finally {
-                applyingPendingUpdates = false
-            }
-        }
-
-        on<WorldEvent.Change> { reset() }
     }
 
     @JvmStatic
     fun shouldFillDisconnectedPane(state: BlockState): Boolean =
-        applyingPendingUpdates &&
-            active &&
+        active &&
             currentArea in affectedIslands &&
             state.block is StainedGlassPaneBlock &&
             !state.getValue(BlockStateProperties.NORTH) &&
@@ -77,11 +50,4 @@ object NoGemstoneDesync : Module(
 
     private fun isStainedGlass(state: BlockState): Boolean =
         state.block is StainedGlassBlock || state.block is StainedGlassPaneBlock
-
-    override fun onDisable() { reset() }
-
-    private fun reset() {
-        pendingUpdates.clear()
-        applyingPendingUpdates = false
-    }
 }
