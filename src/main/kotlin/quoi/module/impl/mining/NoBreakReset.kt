@@ -13,14 +13,15 @@ object NoBreakReset : Module(
 ) {
     init {
         on<PacketEvent.ReceivedPost, ClientboundContainerSetSlotPacket> {
-            if (!active || mc.gui.screen() != null || packet.containerId != 0) return@on
-            if (packet.slot != 36 + player.inventory.selectedSlot) return@on
+            if (!active || mc.gui.screen() != null) return@on
+            val player = mc.player ?: return@on
+            val gameMode = mc.gameMode ?: return@on
 
-            // ReceivedPost runs after the packet has updated the inventory. Use that exact
-            // stack instance so the first-person hand state's identity check remains stable.
-            val stack = player.mainHandItem
-            (gameMode as MultiPlayerGameModeAccessor).setDestroyingItem(stack)
-            (player.firstPersonHandsAndItems() as ItemInHandRendererAccessor).setMainHandItem(stack)
+            val slot = packet.slot
+            if (slot !in 36..44 || player.inventory.selectedSlot != slot - 36) return@on
+
+            (gameMode as MultiPlayerGameModeAccessor).setDestroyingItem(packet.item)
+            (player.firstPersonHandsAndItems() as ItemInHandRendererAccessor).setMainHandItem(packet.item)
         }
     }
 }
