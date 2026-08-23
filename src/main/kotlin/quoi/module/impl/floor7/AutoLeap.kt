@@ -13,6 +13,11 @@ import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.utils.skyblock.item.ItemUtils.skyblockId
 import quoi.utils.skyblock.player.LeapManager
 
+/**
+ * TODO:
+ *  - redo auto middle leap
+ */
+
 object AutoLeap : Module(
     "Auto Leap",
     desc = "Automatically leaps to predefined targets.",
@@ -28,7 +33,7 @@ object AutoLeap : Module(
     private val doorOpenerAuto by switch("Auto", desc = "Automatically leaps to a teammate when they open a Wither or Blood door.").json("Door opener auto").childOf(::doorOpenerLeap)
     private val disableAfterBloodOpen by switch("Disable after Blood Open", desc = "Disables Door Fast Leap after the Blood Room has been opened.").childOf(::doorOpenerLeap)
 
-    private val p1Leap by switch("Pre P2 leap", desc = "Leaps in P1.")
+    private val p1Leap by switch("P1 leap", desc = "Leaps in P1.").json("Pre P2 leap")
     private val p1Auto by switch("Auto", desc = "Automatically leaps after Maxor died.").json("P1 leap auto").childOf(::p1Leap)
 
     private val predevLeap by switch("Predev leap", desc = "Leaps before Storm dev.")
@@ -43,9 +48,9 @@ object AutoLeap : Module(
     private val purpleLeap by switch("Purple pad leap", desc = "Leaps on purple pad.")
     private val purpleAuto by switch("Auto", desc = "Automatically leaps when Storm is enraged.").json("Purple pad leap auto").childOf(::purpleLeap)
 
-    private val pre4Leap by switch("Pre4 leap", desc="Leaps on Pre4 dev.")
-    private val pre4Auto by switch("Auto", desc="Automatically leaps when Pre4 is done.").json("Pre4 leap auto").childOf(::pre4Leap)
-    private val pre4LeapMelody by switch("Leap Melody", desc = "Leaps to the player doing Melody when Pre4 is done.").childOf(::pre4Leap)
+    private val i4Leap by switch("I4 leap", desc="Leaps on Pre4 dev.").json("Pre4 leap")
+    private val i4Auto by switch("Auto", desc="Automatically leaps when Pre4 is done.").json("Pre4 leap auto").childOf(::i4Leap)
+    private val i4LeapMelody by switch("Leap Melody", desc = "Leaps to the player doing Melody when Pre4 is done.").childOf(::i4Leap)
 
     private val p3Leap by switch("P3 leap", desc = "Leaps in terminal phase.")
     private val p3Auto by switch("Auto", desc = "Automatically leaps when a section is finished.").json("P3 leap auto").childOf(::p3Leap)
@@ -54,8 +59,8 @@ object AutoLeap : Module(
     private val middleLeap by switch("Middle leap", desc = "Leaps in middle.")
     private val middleAuto by switch("Auto", desc = "Automatically leaps when instamid would send you to middle.").json("Middle leap auto").childOf(::middleLeap)
 
-    private val p5Leap by switch("P5 leap", desc = "Leaps at P5 start.")
-    private val p5Auto by switch("Auto", desc = "Automatically leaps after Necron died.").json("P5 leap auto").childOf(::p5Leap)
+    private val p4Leap by switch("P4 leap", desc = "Leaps at P5 start.").json("P5 leap")
+    private val p4Auto by switch("Auto", desc = "Automatically leaps after Necron died.").json("P5 leap auto").childOf(::p4Leap)
 
     private val relicLeap by switch("Relic leap", desc = "Leaps in relic.")
     private val relicAuto by switch("Auto", desc = "Automatically leaps after picking up a relic.").json("Relic leap auto").childOf(::relicLeap)
@@ -65,13 +70,13 @@ object AutoLeap : Module(
     private val greenName by textInput("Target", "Green", length = 16).json("Green leap name").childOf(::greenLeap) { greenLeap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
     private val yellowName by textInput("Target", "Yellow", length = 16).json("Yellow leap name").childOf(::yellowLeap) { yellowLeap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
     private val purpleName by textInput("Target", "Purple", length = 16).json("Purple leap name").childOf(::purpleLeap) { purpleLeap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
-    private val pre4Name by textInput("Target", "Pre4", length = 16).json("Pre4 leap name").childOf(::pre4Leap) { pre4Leap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
+    private val i4Name by textInput("Target", "Pre4", length = 16).json("Pre4 leap name").childOf(::i4Leap) { i4Leap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
     private val s1Name by textInput("S1 leap", "S1", length = 16).childOf(::p3Leap) { p3Leap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
     private val s2Name by textInput("S2 leap", "S2", length = 16).childOf(::p3Leap) { p3Leap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
     private val s3Name by textInput("S3 leap", "S3", length = 16).childOf(::p3Leap) { p3Leap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
     private val s4Name by textInput("S4 leap", "S4", length = 16).childOf(::p3Leap) { p3Leap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
     private val middleName by textInput("Target", "Middle", length = 16).json("Middle leap name").childOf(::middleLeap) { middleLeap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
-    private val p5Name by textInput("Target", "P5", length = 16).json("P5 leap name").childOf(::p5Leap) { p5Leap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
+    private val p4Name by textInput("Target", "P5", length = 16).json("P5 leap name").childOf(::p4Leap) { p4Leap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
     private val relicName by textInput("Target", "Relic", length = 16).json("Relic leap name").childOf(::relicLeap) { relicLeap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
 
     private val p1Class by selector("Target", DungeonClass.Unknown).json("P1 leap class").childOf(::p1Leap) { p1Leap && leapMode.selected == LeapMode.Class }
@@ -79,13 +84,13 @@ object AutoLeap : Module(
     private val greenClass by selector("Target", DungeonClass.Unknown).json("Green leap class").childOf(::greenLeap) { greenLeap && leapMode.selected == LeapMode.Class }
     private val yellowClass by selector("Target", DungeonClass.Unknown).json("Yellow leap class").childOf(::yellowLeap) { yellowLeap && leapMode.selected == LeapMode.Class }
     private val purpleClass by selector("Target", DungeonClass.Unknown).json("Purple leap class").childOf(::purpleLeap) { purpleLeap && leapMode.selected == LeapMode.Class }
-    private val pre4Class by selector("Target", DungeonClass.Unknown).json("Pre4 leap class").childOf(::pre4Leap) { pre4Leap && leapMode.selected == LeapMode.Class }
+    private val i4Class by selector("Target", DungeonClass.Unknown).json("Pre4 leap class").childOf(::i4Leap) { i4Leap && leapMode.selected == LeapMode.Class }
     private val s1Class by selector("S1 leap", DungeonClass.Healer).json("S1 leap class").childOf(::p3Leap) { p3Leap && leapMode.selected == LeapMode.Class }
     private val s2Class by selector("S2 leap", DungeonClass.Archer).json("S2 leap class").childOf(::p3Leap) { p3Leap && leapMode.selected == LeapMode.Class }
     private val s3Class by selector("S3 leap", DungeonClass.Mage).json("S3 leap class").childOf(::p3Leap) { p3Leap && leapMode.selected == LeapMode.Class }
     private val s4Class by selector("S4 leap", DungeonClass.Mage).json("S4 leap class").childOf(::p3Leap) { p3Leap && leapMode.selected == LeapMode.Class }
     private val middleClass by selector("Target", DungeonClass.Unknown).json("Middle leap class").childOf(::middleLeap) { middleLeap && leapMode.selected == LeapMode.Class }
-    private val p5Class by selector("Target", DungeonClass.Unknown).json("P5 leap class").childOf(::p5Leap) { p5Leap && leapMode.selected == LeapMode.Class }
+    private val p4Class by selector("Target", DungeonClass.Unknown).json("P5 leap class").childOf(::p4Leap) { p4Leap && leapMode.selected == LeapMode.Class }
     private val relicClass by selector("Target", DungeonClass.Unknown).json("Relic leap class").childOf(::relicLeap) { relicLeap && leapMode.selected == LeapMode.Class }
 
     private var lastClick = 0L
@@ -148,7 +153,7 @@ object AutoLeap : Module(
         on<ChatEvent.Packet> {
             if (!Floor7Utils.inF7Boss) return@on
 
-            if (pre4Leap && pre4LeapMelody && "Party" in unformatted && melodyProgress.any { it in unformatted }) {
+            if (i4Leap && i4LeapMelody && "Party" in unformatted && melodyProgress.any { it in unformatted }) {
                 melodyTarget = melodyPlayerRegex
                     .findAll(unformatted)
                     .lastOrNull()
@@ -181,10 +186,10 @@ object AutoLeap : Module(
                 leapToConfigured(predevName, predevClass.selected)
             }
 
-            if (unformatted == "[BOSS] Necron: ARGH!" && p5Leap && p5Auto) {
+            if (unformatted == "[BOSS] Necron: ARGH!" && p4Leap && p4Auto) {
                 arghCount++
                 if (arghCount == 2 && isInP4()) {
-                    leapToConfigured(p5Name, p5Class.selected)
+                    leapToConfigured(p4Name, p4Class.selected)
                 }
             }
 
@@ -194,7 +199,7 @@ object AutoLeap : Module(
                 leapToConfigured(middleName, middleClass.selected)
             }
 
-            if (!pre4Leap || !pre4Auto || !isAtPre4()) return@on
+            if (!i4Leap || !i4Auto || !isAtPre4()) return@on
 
             val (playerName) = deviceDoneRegex.matchEntire(unformatted)?.destructured ?: return@on
             if (playerName != player.name.string) return@on
@@ -262,12 +267,12 @@ object AutoLeap : Module(
     private fun leapToPre4Target(): Boolean {
         val melody = melodyTarget
 
-        if (pre4LeapMelody && melody != null) {
+        if (i4LeapMelody && melody != null) {
             leap(melody)
             return true
         }
 
-        return leapToConfigured(pre4Name, pre4Class.selected)
+        return leapToConfigured(i4Name, i4Class.selected)
     }
 
     private fun leap(name: String) {
@@ -325,12 +330,12 @@ object AutoLeap : Module(
             predevLeap && isInPredev() -> leapToConfigured(predevName, predevClass.selected)
             relicLeap && isInRelic() -> leapToConfigured(relicName, relicClass.selected)
             p1Leap && isInP1() -> leapToConfigured(p1Name, p1Class.selected)
-            p5Leap && isInMiddle() -> leapToConfigured(p5Name, p5Class.selected)
+            p4Leap && isInMiddle() -> leapToConfigured(p4Name, p4Class.selected)
             greenLeap && isInGreenPad() -> leapToConfigured(greenName, greenClass.selected)
             yellowLeap && isInYellowPad() -> leapToConfigured(yellowName, yellowClass.selected)
             purpleLeap && isInPurplePad() -> leapToConfigured(purpleName, purpleClass.selected)
             middleLeap && isOutsideMiddle() -> leapToConfigured(middleName, middleClass.selected)
-            pre4Leap && isAtPre4() -> leapToPre4Target()
+            i4Leap && isAtPre4() -> leapToPre4Target()
             else -> false
         }
     }
