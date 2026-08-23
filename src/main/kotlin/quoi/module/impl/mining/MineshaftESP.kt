@@ -113,7 +113,7 @@ object MineshaftESP : Module(
 
         on<ChatEvent.Packet> {
             if (!hideLootedCorpses) return@on
-            val type = CorpseType.entries.firstOrNull { unformatted == " ${it.name} CORPSE LOOT!" } ?: return@on // TODO: fixem
+            val type = CorpseType.entries.firstOrNull { unformatted.trim() == "${it.name} CORPSE LOOT!" } ?: return@on
             val looted = waypoints.asSequence()
                 .filter { (pos, corpseType) -> corpseType == type && player.distanceToSqr(pos.vec3.add(0.5, 0.5, 0.5)) <= 25.0 }
                 .minByOrNull { (pos, _) -> player.distanceToSqr(pos.vec3.add(0.5, 0.5, 0.5)) }
