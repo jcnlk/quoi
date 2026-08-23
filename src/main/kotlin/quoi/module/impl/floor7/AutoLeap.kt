@@ -1,5 +1,6 @@
 package quoi.module.impl.floor7
 
+import com.google.gson.JsonObject
 import net.minecraft.world.phys.AABB
 import quoi.api.events.*
 import quoi.api.events.core.on
@@ -7,9 +8,12 @@ import quoi.api.skyblock.dungeon.*
 import quoi.api.skyblock.dungeon.Dungeon.allTeammatesNoSelf
 import quoi.api.skyblock.dungeon.Dungeon.dungeonTeammatesNoSelf
 import quoi.api.skyblock.location.Island
+import quoi.config.configMap
 import quoi.module.Module
+import quoi.module.settings.Saving
 import quoi.module.settings.Setting.Companion.json
 import quoi.module.settings.UIComponent.Companion.childOf
+import quoi.utils.ChatUtils.modMessage
 import quoi.utils.skyblock.item.ItemUtils.skyblockId
 import quoi.utils.skyblock.player.LeapManager
 
@@ -23,11 +27,20 @@ object AutoLeap : Module(
     desc = "Automatically leaps to predefined targets.",
     area = Island.Dungeon
 ) {
+    private val presets by configMap<String, JsonObject>("auto_leap_presets.json")
+
     private val leapMode by selector("Leap mode", LeapMode.Name, "Leap mode for the module.").open()
     private val fastLeapClickDelay by slider("Fast leap click delay", 250L, 100L, 500L, 50L)
     private val blockInputs by switch("Block inputs", desc = "Blocks keyboard and mouse input while leaping.")
     private val fastMode by switch("Fast mode", desc = "Blocks movement and input only from the leap menu opening until the target click.")
     private val swapBack by switch("Swap back", desc = "Switches back to the previously held item after leaping.")
+
+    private var presetName by textInput("Preset name", length = 32, placeholder = "My preset").suggests { presets.keys.sorted() }
+
+    @Suppress("unused")
+    private val savePreset by button("Save preset", desc = "Saves the current Auto Leap settings under this preset name.") { savePreset() }
+    @Suppress("unused")
+    private val loadPreset by button("Load preset", desc = "Loads the Auto Leap settings saved under this preset name.") { loadPreset() }
 
     private val doorOpenerLeap by switch("Door opener leap", desc = "Outside of F7 boss, fast leap to the last wither door opener.")
     private val doorOpenerAuto by switch("Auto", desc = "Automatically leaps to a teammate when they open a Wither or Blood door.").json("Door opener auto").childOf(::doorOpenerLeap)
@@ -291,6 +304,44 @@ object AutoLeap : Module(
             fastMode = fastMode,
             swapBack = swapBack,
         )
+    }
+
+    private fun savePreset() {
+        val name = presetName.trim()
+        if (name.isEmpty()) {
+            modMessage("&cEnter a preset name first.")
+            return
+        }
+
+        val presetKey = presets.keys.firstOrNull { it.equals(name, ignoreCase = true) } ?: name
+        presets[presetKey] = JsonObject().apply {
+            settings.forEach { setting ->
+                if (setting is Saving && setting.jsonName != "Preset name") add(setting.jsonName, setting.write())
+            }
+        }
+        presetName = presetKey
+        modMessage("&aSaved Auto Leap preset &e$presetKey&a.")
+    }
+
+    private fun loadPreset() {
+        val name = presetName.trim()
+        if (name.isEmpty()) {
+            modMessage("&cEnter a preset name first.")
+            return
+        }
+
+        val presetKey = presets.keys.firstOrNull { it.equals(name, ignoreCase = true) }
+        val preset = presetKey?.let(presets::get)
+        if (presetKey == null || preset == null) {
+            modMessage("&cAuto Leap preset &e$name &cdoesn't exist.")
+            return
+        }
+
+        preset.entrySet().forEach { (settingName, value) ->
+            (getSettingByName(settingName) as? Saving)?.read(value)
+        }
+        presetName = presetKey
+        modMessage("&aLoaded Auto Leap preset &e$presetKey&a.")
     }
 
     private fun reset() {
