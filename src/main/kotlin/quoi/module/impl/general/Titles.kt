@@ -46,7 +46,7 @@ object Titles : Module("Titles") {
             if (!autoPet || cause != PetEvent.Cause.AUTOPET) return@on
             if (dungeonsOnly && !Dungeon.inDungeons) return@on
             if (bossOnly && !Dungeon.inBoss) return@on
-            pet?.let { stupid(it.name) }
+            pet?.let { stupid("${it.rarity.colorCode}${it.name}") }
         }
 
         on<PacketEvent.Received, ClientboundInitializeBorderPacket> {
