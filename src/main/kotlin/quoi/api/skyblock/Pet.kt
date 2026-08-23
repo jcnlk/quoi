@@ -34,8 +34,14 @@ data class Pet(
     }
 }
 
-enum class PetRarity {
-    COMMON, UNCOMMON, RARE, EPIC, LEGENDARY, MYTHIC, UNKNOWN;
+enum class PetRarity(val colorCode: String) {
+    COMMON("§f"),
+    UNCOMMON("§a"),
+    RARE("§9"),
+    EPIC("§5"),
+    LEGENDARY("§6"),
+    MYTHIC("§d"),
+    UNKNOWN("");
 
     companion object {
         fun fromName(name: String?): PetRarity = entries.firstOrNull {
