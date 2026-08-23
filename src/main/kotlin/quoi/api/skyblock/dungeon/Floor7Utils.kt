@@ -1,6 +1,6 @@
 package quoi.api.skyblock.dungeon
 
-import net.minecraft.client.player.LocalPlayer
+import net.minecraft.client.player.AbstractClientPlayer
 import quoi.annotations.Init
 import quoi.api.events.ChatEvent
 import quoi.api.events.DungeonEvent
@@ -67,7 +67,7 @@ object Floor7Utils : EventListener, Shortcuts {
     fun getPhase(): Phase = if (inF7Boss) phase else Phase.UNKNOWN
 
     @JvmOverloads
-    fun getPhaseAt(player: LocalPlayer? = mc.player): Phase {
+    fun getPhaseAt(player: AbstractClientPlayer? = mc.player): Phase {
         if (!inF7Boss || player == null) return Phase.UNKNOWN
 
         return with(player.y) {
@@ -83,7 +83,7 @@ object Floor7Utils : EventListener, Shortcuts {
 
     fun getStage(): Stage = if (inF7Boss) stage else Stage.UNKNOWN
 
-    fun getStageAt(player: LocalPlayer? = mc.player): Stage {
+    fun getStageAt(player: AbstractClientPlayer? = mc.player): Stage {
         if (!inF7Boss || player == null || getPhaseAt(player) != Phase.P3) return Stage.UNKNOWN
 
         val x = player.x
@@ -101,11 +101,11 @@ object Floor7Utils : EventListener, Shortcuts {
 
     fun inPhase(vararg phases: Phase): Boolean = getPhase() in phases
 
-    fun inPhaseAt(vararg phases: Phase, player: LocalPlayer? = mc.player): Boolean = player != null && getPhaseAt(player) in phases
+    fun inPhaseAt(vararg phases: Phase, player: AbstractClientPlayer? = mc.player): Boolean = player != null && getPhaseAt(player) in phases
 
     fun inStage(vararg stages: Stage): Boolean = getStage() in stages
 
-    fun inStageAt(vararg stages: Stage, player: LocalPlayer? = mc.player): Boolean = player != null && getStageAt(player) in stages
+    fun inStageAt(vararg stages: Stage, player: AbstractClientPlayer? = mc.player): Boolean = player != null && getStageAt(player) in stages
 
     private fun updateState(newPhase: Phase? = null, newStage: Stage? = null) {
         val oldPhase = phase

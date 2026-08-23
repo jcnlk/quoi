@@ -86,7 +86,7 @@ object AutoLeap : Module(
     private val greenName by textInput("Target", "Green", length = 16).json("Green leap name").childOf(::greenLeap) { greenLeap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
     private val yellowName by textInput("Target", "Yellow", length = 16).json("Yellow leap name").childOf(::yellowLeap) { yellowLeap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
     private val purpleName by textInput("Target", "Purple", length = 16).json("Purple leap name").childOf(::purpleLeap) { purpleLeap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
-    private val pyHealerName by textInput("Target", "PY healer", length = 16).json("PY healer leap name").childOf(::pyHealerLeap) {pyHealerLeap && leapMode.selected == LeapMode.Name }.suggests{ allTeammatesNoSelf }
+    private val pyHealerName by textInput("Target", "PY healer", length = 16).json("PY healer leap name").childOf(::pyHealerLeap) { pyHealerLeap && leapMode.selected == LeapMode.Name }.suggests{ allTeammatesNoSelf }
     private val i4Name by textInput("Target", "Pre4", length = 16).json("Pre4 leap name").childOf(::i4Leap) { i4Leap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
     private val s1Name by textInput("S1 leap", "S1", length = 16).childOf(::p3Leap) { p3Leap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
     private val s2Name by textInput("S2 leap", "S2", length = 16).childOf(::p3Leap) { p3Leap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
@@ -142,20 +142,15 @@ object AutoLeap : Module(
                 it != DungeonClass.Unknown && it.name.equals(target, ignoreCase = true)
             }
 
-            if (clazz != null) {
-                leap(clazz)
-            } else {
-                leap(target)
-            }
+            if (clazz != null) leap(clazz)
+            else leap(target)
         }.description("Leaps to a dungeon teammate by name or class.")
             .suggests("target") {
                 dungeonTeammatesNoSelf.map { it.name } +
                         DungeonClass.entries.filter { it != DungeonClass.Unknown }.map { it.name }
             }
 
-        on<WorldEvent.Change> {
-            reset()
-        }
+        on<WorldEvent.Change> { reset() }
 
         on<DungeonEvent.StageComplete> {
             if (!p3Leap || !p3Auto || !Floor7Utils.inPhaseAt(Phase.P3)) return@on
@@ -192,10 +187,7 @@ object AutoLeap : Module(
             }
 
             if (unformatted == "The Energy Laser is charging up!" && p1Leap && p1Auto) {
-                crystalCount++
-                if (crystalCount == 2 && isInP1()) {
-                    leapToConfigured(p1Name, p1Class.selected)
-                }
+                if (++crystalCount == 2 && isInP1()) leapToConfigured(p1Name, p1Class.selected)
             }
 
             if (unformatted == "[BOSS] Storm: I'd be happy to show you what that's like!" && predevLeap && predevAuto && isInPredev()) {
@@ -203,10 +195,7 @@ object AutoLeap : Module(
             }
 
             if (unformatted == "[BOSS] Necron: ARGH!" && p4Leap && p4Auto) {
-                arghCount++
-                if (arghCount == 2 && isInP4()) {
-                    leapToConfigured(p4Name, p4Class.selected)
-                }
+                if (++arghCount == 2 && isInP4()) leapToConfigured(p4Name, p4Class.selected)
             }
 
             if (unformatted == "[BOSS] Necron: That's a very impressive trick. I guess I'll have to handle this myself." &&
@@ -340,9 +329,7 @@ object AutoLeap : Module(
             return
         }
 
-        preset.entrySet().forEach { (settingName, value) ->
-            (getSettingByName(settingName) as? Saving)?.read(value)
-        }
+        preset.entrySet().forEach { (settingName, value) -> (getSettingByName(settingName) as? Saving)?.read(value) }
         presetName = presetKey
         modMessage("&aLoaded Auto Leap preset &e$presetKey&a.")
     }
