@@ -86,7 +86,7 @@ object AutoLeap : Module(
     private val greenName by textInput("Target", "Green", length = 16).json("Green leap name").childOf(::greenLeap) { greenLeap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
     private val yellowName by textInput("Target", "Yellow", length = 16).json("Yellow leap name").childOf(::yellowLeap) { yellowLeap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
     private val purpleName by textInput("Target", "Purple", length = 16).json("Purple leap name").childOf(::purpleLeap) { purpleLeap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
-    private val pyHealerName by textInput("Target", "Balls", length = 16).json("PY healer leap name").childOf(::pyHealerLeap) {pyHealerLeap && leapMode.selected == LeapMode.Name }.suggests{ allTeammatesNoSelf }
+    private val pyHealerName by textInput("Target", "PY healer", length = 16).json("PY healer leap name").childOf(::pyHealerLeap) {pyHealerLeap && leapMode.selected == LeapMode.Name }.suggests{ allTeammatesNoSelf }
     private val i4Name by textInput("Target", "Pre4", length = 16).json("Pre4 leap name").childOf(::i4Leap) { i4Leap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
     private val s1Name by textInput("S1 leap", "S1", length = 16).childOf(::p3Leap) { p3Leap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
     private val s2Name by textInput("S2 leap", "S2", length = 16).childOf(::p3Leap) { p3Leap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
@@ -364,7 +364,7 @@ object AutoLeap : Module(
     private fun isInGreenPad() = isIn(greenPadBox)
     private fun isInYellowPad() = isIn(yellowPadBox)
     private fun isInPurplePad() = isIn(purplePadBox)
-    private fun isInHealerPy() = isIn(healerPyBox) && Floor7Utils.inPhaseAt(Phase.P2) && Floor7Utils.inPhase(Phase.P2)
+    private fun isInHealerPy() = isIn(healerPyBox) && Floor7Utils.inPhase(Phase.P2)
     private fun isInMiddle() = isIn(middleBox)
     private fun isAtPre4() = isIn(pre4Box)
     private fun isOutsideMiddle() = Floor7Utils.inPhaseAt(Phase.P4) && !isInMiddle()
