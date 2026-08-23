@@ -61,6 +61,9 @@ object AutoLeap : Module(
     private val purpleLeap by switch("Purple pad leap", desc = "Leaps on purple pad.")
     private val purpleAuto by switch("Auto", desc = "Automatically leaps when Storm is enraged.").json("Purple pad leap auto").childOf(::purpleLeap)
 
+    private val pyHealerLeap by switch("PY healer leap", desc="Leaps on PY healer wait spot.")
+    private val pyHealerAuto by switch("Auto", desc="Leaps on after first Strom crush.").json("PY healer auto").childOf(::pyHealerLeap)
+
     private val i4Leap by switch("I4 leap", desc="Leaps on Pre4 dev.").json("Pre4 leap")
     private val i4Auto by switch("Auto", desc="Automatically leaps when Pre4 is done.").json("Pre4 leap auto").childOf(::i4Leap)
     private val i4LeapMelody by switch("Leap Melody", desc = "Leaps to the player doing Melody when Pre4 is done.").childOf(::i4Leap)
@@ -83,6 +86,7 @@ object AutoLeap : Module(
     private val greenName by textInput("Target", "Green", length = 16).json("Green leap name").childOf(::greenLeap) { greenLeap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
     private val yellowName by textInput("Target", "Yellow", length = 16).json("Yellow leap name").childOf(::yellowLeap) { yellowLeap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
     private val purpleName by textInput("Target", "Purple", length = 16).json("Purple leap name").childOf(::purpleLeap) { purpleLeap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
+    private val pyHealerName by textInput("Target", "Balls", length = 16).json("PY healer leap name").childOf(::pyHealerLeap) {pyHealerLeap && leapMode.selected == LeapMode.Name }.suggests{ allTeammatesNoSelf }
     private val i4Name by textInput("Target", "Pre4", length = 16).json("Pre4 leap name").childOf(::i4Leap) { i4Leap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
     private val s1Name by textInput("S1 leap", "S1", length = 16).childOf(::p3Leap) { p3Leap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
     private val s2Name by textInput("S2 leap", "S2", length = 16).childOf(::p3Leap) { p3Leap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
@@ -97,6 +101,7 @@ object AutoLeap : Module(
     private val greenClass by selector("Target", DungeonClass.Unknown).json("Green leap class").childOf(::greenLeap) { greenLeap && leapMode.selected == LeapMode.Class }
     private val yellowClass by selector("Target", DungeonClass.Unknown).json("Yellow leap class").childOf(::yellowLeap) { yellowLeap && leapMode.selected == LeapMode.Class }
     private val purpleClass by selector("Target", DungeonClass.Unknown).json("Purple leap class").childOf(::purpleLeap) { purpleLeap && leapMode.selected == LeapMode.Class }
+    private val pyHealerClass by selector("Target", DungeonClass.Unknown).json("PY healer class").childOf(::pyHealerLeap) { pyHealerLeap && leapMode.selected == LeapMode.Class }
     private val i4Class by selector("Target", DungeonClass.Unknown).json("Pre4 leap class").childOf(::i4Leap) { i4Leap && leapMode.selected == LeapMode.Class }
     private val s1Class by selector("S1 leap", DungeonClass.Healer).json("S1 leap class").childOf(::p3Leap) { p3Leap && leapMode.selected == LeapMode.Class }
     private val s2Class by selector("S2 leap", DungeonClass.Archer).json("S2 leap class").childOf(::p3Leap) { p3Leap && leapMode.selected == LeapMode.Class }
@@ -118,6 +123,7 @@ object AutoLeap : Module(
     private val greenPadBox = AABB(24.0, 170.0, 4.0, 41.0, 172.0, 21.0)
     private val yellowPadBox = AABB(24.0, 170.0, 86.0, 41.0, 172.0, 103.0)
     private val purplePadBox = AABB(95.0, 164.0, 86.0, 123.0, 172.0, 103.0)
+    private val healerPyBox = AABB(56.0, 69.0, 169.0, 171.0, 64.0, 68.0)
     private val middleBox = AABB(47.0, 64.0, 69.0, 61.0, 75.0, 83.0)
     private val pre4Box = AABB(62.0, 127.0, 34.0, 65.0, 130.0, 37.0)
 
@@ -167,17 +173,14 @@ object AutoLeap : Module(
             if (!Floor7Utils.inF7Boss) return@on
 
             if (i4Leap && i4LeapMelody && "Party" in unformatted && melodyProgress.any { it in unformatted }) {
-                melodyTarget = melodyPlayerRegex
-                    .findAll(unformatted)
-                    .lastOrNull()
-                    ?.groupValues
-                    ?.get(1)
+                melodyTarget = melodyPlayerRegex.findAll(unformatted).lastOrNull()?.groupValues?.get(1)
             }
 
             if (unformatted in stormCrushMessages) {
                 oofCount++
-                if (oofCount == 1 && greenLeap && greenAuto && isInGreenPad()) {
-                    leapToConfigured(greenName, greenClass.selected)
+                if (oofCount == 1) {
+                    if (greenLeap && greenAuto && isInGreenPad()) leapToConfigured(greenName, greenClass.selected)
+                    if (pyHealerLeap && pyHealerAuto && isInHealerPy()) leapToConfigured(pyHealerName, pyHealerClass.selected)
                 }
                 if (oofCount == 2 && yellowLeap && yellowAuto && isInYellowPad()) {
                     leapToConfigured(yellowName, yellowClass.selected)
@@ -361,6 +364,7 @@ object AutoLeap : Module(
     private fun isInGreenPad() = isIn(greenPadBox)
     private fun isInYellowPad() = isIn(yellowPadBox)
     private fun isInPurplePad() = isIn(purplePadBox)
+    private fun isInHealerPy() = isIn(healerPyBox) && Floor7Utils.inPhaseAt(Phase.P2) && Floor7Utils.inPhase(Phase.P2)
     private fun isInMiddle() = isIn(middleBox)
     private fun isAtPre4() = isIn(pre4Box)
     private fun isOutsideMiddle() = Floor7Utils.inPhaseAt(Phase.P4) && !isInMiddle()
@@ -385,6 +389,7 @@ object AutoLeap : Module(
             greenLeap && isInGreenPad() -> leapToConfigured(greenName, greenClass.selected)
             yellowLeap && isInYellowPad() -> leapToConfigured(yellowName, yellowClass.selected)
             purpleLeap && isInPurplePad() -> leapToConfigured(purpleName, purpleClass.selected)
+            pyHealerLeap && isInHealerPy() -> leapToConfigured(pyHealerName, pyHealerClass.selected)
             middleLeap && isOutsideMiddle() -> leapToConfigured(middleName, middleClass.selected)
             i4Leap && isAtPre4() -> leapToPre4Target()
             else -> false
