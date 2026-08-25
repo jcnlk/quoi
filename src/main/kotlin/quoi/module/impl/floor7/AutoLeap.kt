@@ -1,7 +1,12 @@
 package quoi.module.impl.floor7
 
 import com.google.gson.JsonObject
+import net.minecraft.network.protocol.game.ClientboundAddEntityPacket
+import net.minecraft.network.protocol.game.ClientboundEntityPositionSyncPacket
+import net.minecraft.network.protocol.game.ClientboundMoveEntityPacket
+import net.minecraft.network.protocol.game.ClientboundTeleportEntityPacket
 import net.minecraft.world.phys.AABB
+import net.minecraft.world.phys.Vec3
 import quoi.api.events.*
 import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.*
@@ -13,6 +18,7 @@ import quoi.module.Module
 import quoi.module.settings.Saving
 import quoi.module.settings.Setting.Companion.json
 import quoi.module.settings.UIComponent.Companion.childOf
+import quoi.mixins.accessors.ClientboundMoveEntityPacketAccessor
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.skyblock.item.ItemUtils.skyblockId
 import quoi.utils.skyblock.player.LeapManager
@@ -117,14 +123,15 @@ object AutoLeap : Module(
     private var oofCount = 0
     private var melodyTarget: String? = null
     private var pickedUpRelic = false
+    private var leapedHealerPy = false
 
     private val melodyProgress = setOf("1/4", "2/4", "3/4", "25%", "50%", "75%")
 
     private val greenPadBox = AABB(24.0, 170.0, 4.0, 41.0, 172.0, 21.0)
     private val yellowPadBox = AABB(24.0, 170.0, 86.0, 41.0, 172.0, 103.0)
-    private val purplePadBox = AABB(95.0, 164.0, 86.0, 123.0, 172.0, 103.0)
-    private val healerPyBox = AABB(56.0, 69.0, 169.0, 171.0, 64.0, 68.0)
-    private val middleBox = AABB(47.0, 64.0, 69.0, 61.0, 75.0, 83.0)
+    private val purplePadBox = AABB(95.0, 165.0, 86.0, 123.0, 172.0, 103.0)
+    private val healerPyBox = AABB(52.0, 169.0, 63.0, 59.0, 171.0, 70.0)
+    private val middleBox = AABB(47.0, 64.0, 69.0, 62.0, 75.0, 84.0)
     private val pre4Box = AABB(62.0, 127.0, 34.0, 65.0, 130.0, 37.0)
 
     private val melodyPlayerRegex = Regex("""([A-Za-z0-9_]{3,16}):""")
@@ -174,16 +181,12 @@ object AutoLeap : Module(
             if (unformatted in stormCrushMessages) {
                 oofCount++
                 if (oofCount == 1) {
+                    if (purpleLeap && purpleAuto && isInPurplePad()) leapToConfigured(purpleName, purpleClass.selected)
                     if (greenLeap && greenAuto && isInGreenPad()) leapToConfigured(greenName, greenClass.selected)
-                    if (pyHealerLeap && pyHealerAuto && isInHealerPy()) leapToConfigured(pyHealerName, pyHealerClass.selected)
                 }
                 if (oofCount == 2 && yellowLeap && yellowAuto && isInYellowPad()) {
                     leapToConfigured(yellowName, yellowClass.selected)
                 }
-            }
-
-            if (unformatted == "⚠ Storm is enraged! ⚠" && purpleLeap && purpleAuto && isInPurplePad()) {
-                leapToConfigured(purpleName, purpleClass.selected)
             }
 
             if (unformatted == "The Energy Laser is charging up!" && p1Leap && p1Auto) {
@@ -221,6 +224,35 @@ object AutoLeap : Module(
             pickedUpRelic = true
 
             leapToConfigured(relicName, relicClass.selected)
+        }
+
+        // based on https://github.com/Noamm9/NoammAddons/blob/b8e865539d7f45096d2603dacf80967821087cdc/src/main/kotlin/com/github/noamm9/features/impl/floor7/LeapCounter.kt#L45-L79
+        on<PacketEvent.ReceivedPost> {
+            if (!Floor7Utils.inF7Boss || !Floor7Utils.inPhase(Phase.P2)) return@on
+            if (!pyHealerLeap || !pyHealerAuto || oofCount != 1 || leapedHealerPy || !isInHealerPy()) return@on
+            if (packet !is ClientboundTeleportEntityPacket && packet !is ClientboundAddEntityPacket
+                && packet !is ClientboundMoveEntityPacket && packet !is ClientboundEntityPositionSyncPacket) return@on
+
+            val movedEntityId = when (packet) {
+                is ClientboundTeleportEntityPacket -> packet.id
+                is ClientboundAddEntityPacket -> packet.id
+                is ClientboundMoveEntityPacket -> (packet as ClientboundMoveEntityPacketAccessor).entityId
+                is ClientboundEntityPositionSyncPacket -> packet.id
+                else -> null
+            } ?: return@on
+            if (dungeonTeammatesNoSelf.none { it.entity?.id == movedEntityId }) return@on
+
+            val movedPosition = when (packet) {
+                is ClientboundTeleportEntityPacket -> packet.change.position
+                is ClientboundAddEntityPacket -> Vec3(packet.x, packet.y, packet.z)
+                is ClientboundMoveEntityPacket -> level.getEntity(movedEntityId)?.positionCodec?.base
+                is ClientboundEntityPositionSyncPacket -> packet.values.position
+                else -> null
+            } ?: return@on
+            if (!healerPyBox.contains(movedPosition)) return@on
+
+            leapedHealerPy = true
+            leapToConfigured(pyHealerName, pyHealerClass.selected)
         }
 
         on<MouseEvent.Click> {
@@ -340,6 +372,7 @@ object AutoLeap : Module(
         crystalCount = 0
         oofCount = 0
         pickedUpRelic = false
+        leapedHealerPy = false
     }
 
     private fun isIn(box: AABB): Boolean = box.contains(player.position())

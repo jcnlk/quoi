@@ -1,4 +1,3 @@
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.jvm.tasks.Jar
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -56,11 +55,10 @@ loom {
         vmArgs.addAll(
             arrayOf(
                 "-Dmixin.debug.export=true",
-                "-Dmixin.hotSwap=true",
                 "-Ddevauth.enabled=true",
                 "-Ddevauth.account=${providers.gradleProperty("devauth_account").orElse("main").get()}",
                 "-XX:+AllowEnhancedClassRedefinition",
-                "-XX:+IgnoreUnrecognizedVMOptions", // JetBrains Runtime only; Temurin/OpenJDK reject this flag. IntelliJ run configs use JBR.
+                "-XX+IgnoreUnrecognizedVMOptions",
             )
         )
     }
@@ -70,20 +68,6 @@ loom {
     }
 
     accessWidenerPath = file("src/main/resources/quoi.accesswidener")
-}
-
-afterEvaluate {
-    val mixinAgent = configurations.runtimeClasspath.get().incoming.artifactView {
-        componentFilter {
-            it is ModuleComponentIdentifier &&
-                it.group == "net.fabricmc" &&
-                it.module == "sponge-mixin"
-        }
-    }.files.singleFile
-
-    loom.runs.named("client") {
-        vmArg("-javaagent:${mixinAgent.absolutePath}")
-    }
 }
 
 tasks {

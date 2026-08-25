@@ -62,6 +62,7 @@
     "SkullBlockMixin",
     "WallSkullBlockMixin",
     "accessors.AbstractContainerScreenAccessor",
+    "accessors.ClientboundMoveEntityPacketAccessor",
     "accessors.GuiGraphicsExtractorAccessor",
     "accessors.RenderSetupAccessor",
     "accessors.RenderTypeAccessor",
