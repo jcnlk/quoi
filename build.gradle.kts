@@ -58,7 +58,7 @@ loom {
                 "-Ddevauth.enabled=true",
                 "-Ddevauth.account=${providers.gradleProperty("devauth_account").orElse("main").get()}",
                 "-XX:+AllowEnhancedClassRedefinition",
-                "-XX+IgnoreUnrecognizedVMOptions",
+                "-XX:+IgnoreUnrecognizedVMOptions",
             )
         )
     }

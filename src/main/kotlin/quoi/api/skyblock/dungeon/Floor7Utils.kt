@@ -33,7 +33,6 @@ object Floor7Utils : EventListener, Shortcuts {
                     Stage.resetAll()
                     Stage.S1.start()
                     updateState(newPhase = Phase.P3, newStage = Stage.S1)
-
                 }
                 // we don't use goldor's death message, since it could be dialog skipped
                 "[BOSS] Necron: Finally, I heard so much about you. The Eye likes you very much.", // first comp message
