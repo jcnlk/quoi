@@ -107,8 +107,10 @@ object AutoHotbar : Module(
         }
 
         on<ChatEvent.Packet> {
-            val preset = presets.firstOrNull { it.message != null && it.message == unformatted} ?: return@on
-            load(preset.name)
+            val preset = presets.firstOrNull {
+                it.message != null && it.message == unformatted && requirementsMet(it, reportMismatch = false)
+            } ?: return@on
+            load(preset)
         }
 
         on<TickEvent.Start> {
@@ -160,6 +162,11 @@ object AutoHotbar : Module(
         val preset = findPreset(presets, presetName, fuzzy = true)
             ?: return modMessage("&cPreset &e$presetName &cdoesn't exist.")
 
+        load(preset)
+    }
+
+    private fun load(preset: HotbarPreset) {
+        if (!enabled || isSwapping || swapJob?.isActive == true) return
         if (!requirementsMet(preset)) return
 
         swapJob = QuoiMod.scope.launch {
@@ -260,11 +267,13 @@ object AutoHotbar : Module(
         return swapWithHotbar(emptySlot, slot)
     }
 
-    private fun requirementsMet(preset: HotbarPreset): Boolean {
+    private fun requirementsMet(preset: HotbarPreset, reportMismatch: Boolean = true): Boolean {
         preset.requiredFloor?.takeIf { it.isNotBlank() }?.let { required ->
             val current = Dungeon.floor?.name?.lowercase()
             if (current != required.lowercase()) {
-                modMessage("&cPreset &e${preset.name} &crequires floor &4$required &cbut you're on &4${current ?: "unknown"}&c.")
+                if (reportMismatch) {
+                    modMessage("&cPreset &e${preset.name} &crequires floor &4$required &cbut you're on &4${current ?: "unknown"}&c.")
+                }
                 return false
             }
         }
@@ -272,7 +281,9 @@ object AutoHotbar : Module(
         preset.requiredClass?.takeIf { it.isNotBlank() }?.let { required ->
             val current = Dungeon.currentDungeonPlayer.clazz.name.lowercase()
             if (current != required.lowercase()) {
-                modMessage("&cPreset &e${preset.name} &crequires class &4$required &cbut you're playing &4$current&c.")
+                if (reportMismatch) {
+                    modMessage("&cPreset &e${preset.name} &crequires class &4$required &cbut you're playing &4$current&c.")
+                }
                 return false
             }
         }
