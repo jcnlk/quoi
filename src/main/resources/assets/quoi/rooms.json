@@ -831,7 +831,6 @@
     "shape": "1x1",
     "cores": [
       988444684,
-      1890757664,
       1186348038,
       -1160833644
     ],
@@ -4277,6 +4276,38 @@
     "reviveStones": 0,
     "secrets": 9,
     "crypts": 1
+  },
+  {
+    "name": "Rare Carpets",
+    "type": "RARE",
+    "shape": "1x1",
+    "cores": [
+      1890757664
+    ],
+    "secretDetails": {
+      "redstoneKey": 0,
+      "wither": 0,
+      "bat": 0,
+      "item": 0,
+      "chest": 1
+    },
+    "secretCoords": {
+      "redstoneKey": [],
+      "wither": [],
+      "bat": [],
+      "item": [],
+      "chest": [
+        {
+          "x": 15,
+          "y": 85,
+          "z": 15
+        }
+      ]
+    },
+    "trappedChests": 0,
+    "reviveStones": 0,
+    "secrets": 1,
+    "crypts": 0
   },
   {
     "name": "Rare Overgrown",
