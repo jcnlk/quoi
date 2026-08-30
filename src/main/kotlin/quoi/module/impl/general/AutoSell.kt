@@ -97,6 +97,7 @@ object AutoSell : Module(
         }
 
         on<GuiEvent.Key.Press> {
+            if (inventoryToggleKey.key == Keybinds.KEY_NONE) return@on
             if (key != inventoryToggleKey.key) return@on
             if (!inventoryToggleKey.isModifierDown()) return@on
 
