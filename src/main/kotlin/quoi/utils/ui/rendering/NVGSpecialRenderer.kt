@@ -22,7 +22,6 @@ class NVGSpecialRenderer(vertexConsumers: MultiBufferSource.BufferSource)
     : PictureInPictureRenderer<NVGSpecialRenderer.NVGRenderState>(vertexConsumers) {
 
     private var frameBuffer = 0
-    private var colorTexture = 0
     private var stencilRenderBuffer = 0
     private var stencilWidth = 0
     private var stencilHeight = 0
@@ -70,16 +69,13 @@ class NVGSpecialRenderer(vertexConsumers: MultiBufferSource.BufferSource)
 
         GlStateManager._glBindFramebuffer(GlConst.GL_FRAMEBUFFER, frameBuffer)
 
-        if (colorTexture != texture) {
-            GlStateManager._glFramebufferTexture2D(
-                GlConst.GL_FRAMEBUFFER,
-                GlConst.GL_COLOR_ATTACHMENT0,
-                GlConst.GL_TEXTURE_2D,
-                texture,
-                0
-            )
-            colorTexture = texture
-        }
+        GlStateManager._glFramebufferTexture2D(
+            GlConst.GL_FRAMEBUFFER,
+            GlConst.GL_COLOR_ATTACHMENT0,
+            GlConst.GL_TEXTURE_2D,
+            texture,
+            0
+        )
 
         if (stencilRenderBuffer == 0) {
             stencilRenderBuffer = GL33C.glGenRenderbuffers()
