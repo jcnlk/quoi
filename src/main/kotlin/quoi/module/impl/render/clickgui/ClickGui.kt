@@ -94,6 +94,7 @@ object ClickGui : Module(
     }
 
     override fun onKeybind() {
+        if (mc.screen != null) return
         open(clickGui)
     }
 
