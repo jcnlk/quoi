@@ -5,6 +5,7 @@ import quoi.api.events.KeyEvent;
 import net.minecraft.client.KeyboardHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.input.CharacterEvent;
+import org.lwjgl.glfw.GLFW;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -21,6 +22,10 @@ public class KeyboardHandlerMixin {
             cancellable = true
     )
     private void quoi$onKey(long window, int action, net.minecraft.client.input.KeyEvent input, CallbackInfo ci) {
+        // GLFW reports unsupported keys such as media controls as KEY_UNKNOWN, which
+        // is also the sentinel Quoi uses for an unassigned keybind.
+        if (input.input() == GLFW.GLFW_KEY_UNKNOWN) return;
+
         if (mc.screen != null) {
             if (action == 1) {
                 if (new GuiEvent.Key.Press(mc.screen, input.input()).post()) ci.cancel();

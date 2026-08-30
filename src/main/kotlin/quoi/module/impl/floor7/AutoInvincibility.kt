@@ -47,8 +47,8 @@ object AutoInvincibility : Module(
     private val rodSwapBlacklist = setOf("SOUL_WHIP", "FLAMING_FLAY", "GRAPPLING_HOOK")
     private val invincibilityPriority = listOf(
         InvincibilityType.SPIRIT,
+        InvincibilityType.BONZO,
         InvincibilityType.PHOENIX,
-        InvincibilityType.BONZO
     )
 
     override fun onDisable() {
