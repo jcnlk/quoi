@@ -22,8 +22,6 @@ public class KeyboardHandlerMixin {
             cancellable = true
     )
     private void quoi$onKey(long window, int action, net.minecraft.client.input.KeyEvent input, CallbackInfo ci) {
-        // GLFW reports unsupported keys such as media controls as KEY_UNKNOWN, which
-        // is also the sentinel Quoi uses for an unassigned keybind.
         if (input.input() == GLFW.GLFW_KEY_UNKNOWN) return;
 
         if (mc.screen != null) {
