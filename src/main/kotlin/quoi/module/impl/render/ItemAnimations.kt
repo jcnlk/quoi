@@ -125,9 +125,9 @@ object ItemAnimations : Module(
     fun applyTransformations(pose: PoseStack, stack: ItemStack?) {
         if (!enabled) return
 
-        pose.mulPose(Axis.XP.rotationDegrees(pitch))
-        pose.mulPose(Axis.YP.rotationDegrees(yaw))
-        pose.mulPose(Axis.ZP.rotationDegrees(roll))
+        pose.rotateDegrees(Axis.XP, pitch)
+        pose.rotateDegrees(Axis.YP, yaw)
+        pose.rotateDegrees(Axis.ZP, roll)
 
         var renderY = y
 
