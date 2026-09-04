@@ -143,7 +143,7 @@ class MineTarget(
                 level.destroyBlockProgress(player.id, pos, (progress * 10).toInt())
             }
 
-            level.addBreakingBlockEffect(pos, direction)
+            level.addBreakingBlockEffects(pos, direction, false)
 
             if (swing) player.swing(InteractionHand.MAIN_HAND, net.minecraft.world.item.component.SwingAnimation.DEFAULT, false)
 

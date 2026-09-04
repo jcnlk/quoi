@@ -46,7 +46,7 @@ object DungeonAbilities : Module(
 
             if (playerClass !in classes) return@on
 
-            player.drop(false)
+            gameMode.dropItem(player, false)
         }
     }
 }
