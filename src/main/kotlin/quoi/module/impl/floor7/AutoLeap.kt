@@ -70,6 +70,9 @@ object AutoLeap : Module(
     private val pyHealerLeap by switch("PY healer leap", desc="Leaps on PY healer wait spot.")
     private val pyHealerAuto by switch("Auto", desc="Leaps on after first Strom crush.").json("PY healer auto").childOf(::pyHealerLeap)
 
+    private val stormDeathLeap by switch("Storm death leap", desc="Leaps on storm death.")
+    private val stormDeathAuto by switch("Auto", desc="Leaps on after first Strom crush.").json("PY healer auto").childOf(::stormDeathLeap)
+
     private val i4Leap by switch("I4 leap", desc="Leaps on Pre4 dev.").json("Pre4 leap")
     private val i4Auto by switch("Auto", desc="Automatically leaps when Pre4 is done.").json("Pre4 leap auto").childOf(::i4Leap)
     private val i4LeapMelody by switch("Leap Melody", desc = "Leaps to the player doing Melody when Pre4 is done.").childOf(::i4Leap)
@@ -93,6 +96,7 @@ object AutoLeap : Module(
     private val yellowName by textInput("Target", "Yellow", length = 16).json("Yellow leap name").childOf(::yellowLeap) { yellowLeap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
     private val purpleName by textInput("Target", "Purple", length = 16).json("Purple leap name").childOf(::purpleLeap) { purpleLeap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
     private val pyHealerName by textInput("Target", "PY healer", length = 16).json("PY healer leap name").childOf(::pyHealerLeap) { pyHealerLeap && leapMode.selected == LeapMode.Name }.suggests{ allTeammatesNoSelf }
+    private val stormLeapName by textInput("Target", "Storm death", length = 16).json("Storm death leap name").childOf(::stormDeathLeap) { stormDeathLeap && leapMode.selected == LeapMode.Name }.suggests{ allTeammatesNoSelf }
     private val i4Name by textInput("Target", "Pre4", length = 16).json("Pre4 leap name").childOf(::i4Leap) { i4Leap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
     private val s1Name by textInput("S1 leap", "S1", length = 16).childOf(::p3Leap) { p3Leap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
     private val s2Name by textInput("S2 leap", "S2", length = 16).childOf(::p3Leap) { p3Leap && leapMode.selected == LeapMode.Name }.suggests { allTeammatesNoSelf }
@@ -108,6 +112,7 @@ object AutoLeap : Module(
     private val yellowClass by selector("Target", DungeonClass.Unknown).json("Yellow leap class").childOf(::yellowLeap) { yellowLeap && leapMode.selected == LeapMode.Class }
     private val purpleClass by selector("Target", DungeonClass.Unknown).json("Purple leap class").childOf(::purpleLeap) { purpleLeap && leapMode.selected == LeapMode.Class }
     private val pyHealerClass by selector("Target", DungeonClass.Unknown).json("PY healer class").childOf(::pyHealerLeap) { pyHealerLeap && leapMode.selected == LeapMode.Class }
+    private val stormDeathClass by selector("Target", DungeonClass.Unknown).json("Storm death class").childOf(::stormDeathLeap) { stormDeathLeap && leapMode.selected == LeapMode.Class }
     private val i4Class by selector("Target", DungeonClass.Unknown).json("Pre4 leap class").childOf(::i4Leap) { i4Leap && leapMode.selected == LeapMode.Class }
     private val s1Class by selector("S1 leap", DungeonClass.Healer).json("S1 leap class").childOf(::p3Leap) { p3Leap && leapMode.selected == LeapMode.Class }
     private val s2Class by selector("S2 leap", DungeonClass.Archer).json("S2 leap class").childOf(::p3Leap) { p3Leap && leapMode.selected == LeapMode.Class }
@@ -205,6 +210,10 @@ object AutoLeap : Module(
                 middleLeap && middleAuto && isOutsideMiddle()
             ) {
                 leapToConfigured(middleName, middleClass.selected)
+            }
+
+            if (unformatted == "[BOSS] Storm: I should have known that I stood no chance." && stormDeathLeap && stormDeathAuto) {
+                leapToConfigured(stormLeapName, stormDeathClass.selected)
             }
 
             if (!i4Leap || !i4Auto || !isAtPre4()) return@on
@@ -385,6 +394,7 @@ object AutoLeap : Module(
     private fun isInYellowPad() = isIn(yellowPadBox)
     private fun isInPurplePad() = isIn(purplePadBox)
     private fun isInHealerPy() = isIn(healerPyBox) && Floor7Utils.inPhase(Phase.P2)
+    private fun isInP2() = Floor7Utils.inPhaseAt(Phase.P2) && !isInPurplePad() && !isInGreenPad() && !isInYellowPad()
     private fun isInMiddle() = isIn(middleBox)
     private fun isAtPre4() = isIn(pre4Box)
     private fun isOutsideMiddle() = Floor7Utils.inPhaseAt(Phase.P4) && !isInMiddle()
@@ -410,6 +420,7 @@ object AutoLeap : Module(
             yellowLeap && isInYellowPad() -> leapToConfigured(yellowName, yellowClass.selected)
             purpleLeap && isInPurplePad() -> leapToConfigured(purpleName, purpleClass.selected)
             pyHealerLeap && isInHealerPy() -> leapToConfigured(pyHealerName, pyHealerClass.selected)
+            stormDeathLeap && isInP2() -> leapToConfigured(stormLeapName, stormDeathClass.selected)
             middleLeap && isOutsideMiddle() -> leapToConfigured(middleName, middleClass.selected)
             i4Leap && isAtPre4() -> leapToPre4Target()
             else -> false
