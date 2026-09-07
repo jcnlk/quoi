@@ -8,6 +8,7 @@ import quoi.api.commands.internal.GreedyString
 import quoi.utils.ChatUtils
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.StringUtils.noControlCodes
+import quoi.utils.skyblock.item.ItemUtils.skyblockId
 import quoi.utils.skyblock.player.container.ContainerUtils
 import quoi.utils.skyblock.player.container.task.ContainerTask
 import quoi.utils.skyblock.player.container.task.ContainerTaskResult
@@ -28,12 +29,15 @@ object EquipmentSwapper {
         name: String,
         blockInput: Boolean = false,
         fastMode: Boolean = false,
+        itemId: String? = null,
+        timeout: Int = 20,
     ): Boolean {
-        val player = mc.player ?: return false // should never happen but whatever
+        val player = mc.player ?: return false
         if (task != null) return false
 
         val matches = { stack: ItemStack ->
-            !stack.isEmpty && stack.displayName.string.noControlCodes.contains(name, ignoreCase = true)
+            !stack.isEmpty && if (itemId != null) stack.skyblockId == itemId
+            else stack.displayName.string.noControlCodes.contains(name, ignoreCase = true)
         }
 
         if ((36..39).any { matches(player.inventory.getItem(it)) }) return true
@@ -46,14 +50,17 @@ object EquipmentSwapper {
             fastMode = fastMode,
         ) {
             action { ChatUtils.command("stats") }
-            awaitContainer("Stats & Equipment", waitForItems = true)
+            awaitContainer("Stats & Equipment", waitForItems = true, timeout = timeout)
 
-            quickMove(item(matches).inv)
+            quickMove(item(matches).inv, timeout = timeout, failureMessage = "Could not find $name in your inventory.")
             afterClick { mc.player?.closeContainer() }
 
-            awaitContainer("Stats & Equipment")
+            awaitContainer("Stats & Equipment", timeout = timeout)
 
             onFinished { result ->
+                if (result is ContainerTaskResult.Failure) {
+                    modMessage("&cFailed to equip $name: ${result.message}")
+                }
                 if (result != ContainerTaskResult.Busy && ContainerUtils.containerId != 0) {
                     mc.player?.closeContainer()
                 }

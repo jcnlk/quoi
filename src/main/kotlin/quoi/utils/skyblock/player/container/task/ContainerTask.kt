@@ -15,9 +15,6 @@ sealed interface ContainerTaskResult {
     data class Failure(val message: String) : ContainerTaskResult
 }
 
-/**
- * Represents a sequence of [ContainerAction]s to be executed in [ContainerManager]
- */
 class ContainerTask(
     val name: String?,
     val actions: List<ContainerAction>,
@@ -54,25 +51,18 @@ class ContainerTask(
         it is ContainerAction.Click || it is ContainerAction.DynamicClick
     }
 
-    /**
-     * Submits this task to the [ContainerManager] for execution
-     */
     fun run(): ContainerTask = ContainerManager.execute(this)
 
-    /** Waits for the terminal result of a task submitted with [run]. */
     suspend fun await(): ContainerTaskResult = completion.await()
 
-    /** Cancels this task when it is currently managed by [ContainerManager]. */
     fun cancel() = ContainerManager.cancel(this)
 
-    /** Starts the one-shot input block used by [fastMode]. */
     internal fun beginFastBlock(): Boolean {
         if (!fastMode || fastBlockFinished) return false
         fastBlockActive = true
         return true
     }
 
-    /** Ends the fast block after the last planned click. */
     internal fun finishFastBlockAfterClick(): Boolean {
         if (!fastMode || !fastBlockActive) return false
         if (fastClicksRemaining > 0) fastClicksRemaining--
@@ -81,7 +71,6 @@ class ContainerTask(
         return finishFastBlock()
     }
 
-    /** Ends the fast block permanently so a later container reopen cannot re-arm it. */
     internal fun finishFastBlock(): Boolean {
         if (!fastMode || !fastBlockActive) return false
         fastBlockActive = false
@@ -131,27 +120,25 @@ class ContainerTaskBuilder(val force: Boolean) {
         button: Int = 0,
         timeout: Int = 20,
         failureMessage: String = "Timed out",
-    ) = click(slot, button, ContainerInput.PICKUP, timeout, failureMessage) // right/left click
+    ) = click(slot, button, ContainerInput.PICKUP, timeout, failureMessage)
 
-    fun pickupAll(slot: MenuSlot) = click(slot, 0, ContainerInput.PICKUP_ALL) // double click
+    fun pickupAll(slot: MenuSlot) = click(slot, 0, ContainerInput.PICKUP_ALL)
 
-    fun throwOne(slot: MenuSlot) = click(slot, 0, ContainerInput.THROW) // q
-    fun throwAll(slot: MenuSlot) = click(slot, 1, ContainerInput.THROW) // ctrl + q
+    fun throwOne(slot: MenuSlot) = click(slot, 0, ContainerInput.THROW)
+    fun throwAll(slot: MenuSlot) = click(slot, 1, ContainerInput.THROW)
 
-    fun quickMove(target: MenuSlot) = click(target, 0, ContainerInput.QUICK_MOVE) // shift click
-    fun swap(target: MenuSlot, hotbarSlot: Int) = click(target, hotbarSlot, ContainerInput.SWAP) // keys 1 to 9
+    fun quickMove(
+        target: MenuSlot,
+        timeout: Int = 20,
+        failureMessage: String = "Timed out",
+    ) = click(target, 0, ContainerInput.QUICK_MOVE, timeout, failureMessage)
+    fun swap(target: MenuSlot, hotbarSlot: Int) = click(target, hotbarSlot, ContainerInput.SWAP)
 
-    fun moveSlot(from: MenuSlot, to: MenuSlot, button: Int = 0) { // move from one slot to another
+    fun moveSlot(from: MenuSlot, to: MenuSlot, button: Int = 0) {
         pickup(from, button)
         pickup(to, button)
     }
 
-    /**
-     * Awaits for container to open before proceeding
-     * @param name container name to wait for
-     * @param waitForItems if `true`, waits for items to fill the container
-     * @param timeout time to wait for the container to open (client ticks)
-     */
     fun awaitContainer(
         name: Regex,
         waitForItems: Boolean = false,
@@ -164,10 +151,6 @@ class ContainerTaskBuilder(val force: Boolean) {
         timeout: Int = 20
     ) = awaitContainer(Regex(Regex.escape(name), RegexOption.IGNORE_CASE), waitForItems, timeout)
 
-    /**
-     * Applies [awaitContainer] before each action.
-     * Good for actions that will trigger container reopen (pagination, wardrobe swap, etc).
-     */
     fun awaitingContainer(
         name: String,
         waitForItems: Boolean = false,
@@ -188,48 +171,33 @@ class ContainerTaskBuilder(val force: Boolean) {
         }
     }
 
-    fun action(block: () -> Unit) = actions.add(ContainerAction.Other(block)) // custom action
+    fun action(block: () -> Unit) = actions.add(ContainerAction.Other(block))
 
-    /** Runs after a click and keeps its skip state available to the next await action. */
     fun afterClick(block: () -> Unit) = actions.add(ContainerAction.AfterClick(block))
 
     fun check(failureMessage: String, predicate: () -> Boolean) =
         actions.add(ContainerAction.Check(failureMessage, predicate))
 
-    fun wait(ticks: Int) = actions.add(ContainerAction.Wait(ticks)) // wait N ticks
+    fun wait(ticks: Int) = actions.add(ContainerAction.Wait(ticks))
 
-    fun onComplete(callback: () -> Unit) { // cb on task finish
+    fun onComplete(callback: () -> Unit) {
         onComplete = callback
     }
 
-    /** Invoked for success, failure, cancellation, and a busy manager. */
     fun onFinished(callback: (ContainerTaskResult) -> Unit) {
         onFinished = callback
     }
 
-    /**
-     * skips the action if the [block] is `true` for the item in the target slot.
-     */
     fun <T : ContainerAction> T.unless(block: (ItemStack) -> Boolean): T {
         skipIf = block
         return this
     }
 
-    /**
-     * skips the action if the item's name contains [text]
-     */
     fun <T : ContainerAction> T.unlessName(text: String): T = unless { it.displayName.string.contains(text) }
 
-    /**
-     * skips the action if the item's lore contains [text]
-     */
     fun <T : ContainerAction> T.unlessLore(text: String): T = unless { it.loreString?.contains(text) == true }
 }
 
-/**
- * @param force if btrue`, bypasses 1 action per tick limit
- * @param fastMode limits movement and input blocking to the first matching container opening through the final planned click
- */
 @TaskDsl
 fun containerTask(
     name: String? = null,

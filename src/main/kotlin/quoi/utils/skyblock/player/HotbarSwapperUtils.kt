@@ -100,8 +100,28 @@ data class HotbarPreset(
     var slots: MutableList<HotbarItem> = mutableListOf(),
     var message: String? = null,
     var requiredFloor: String? = null,
-    var requiredClass: String? = null
-)
+    var requiredClass: String? = null,
+    var partialMessageMatch: Boolean = false,
+    var equipCowHat: Boolean = false,
+    var helmetItemId: String? = null,
+    var oncePerRun: Boolean = false
+) {
+    val selectedHelmetId: String?
+        get() = helmetItemId ?: if (equipCowHat) "COW_HEAD" else null
+
+    val selectedHelmetName: String?
+        get() = when (selectedHelmetId) {
+            "COW_HEAD" -> "Cow Hat"
+            "DIAMOND_NECRON_HEAD" -> "Diamond Necron Head"
+            "STARRED_SPIRIT_MASK" -> "Spirit Mask"
+            else -> selectedHelmetId
+        }
+
+    fun matchesMessage(text: String): Boolean {
+        val trigger = message?.takeIf { it.isNotBlank() } ?: return false
+        return if (partialMessageMatch) text.contains(trigger) else text == trigger
+    }
+}
 
 data class HotbarItem(
     var uuid: String? = null,

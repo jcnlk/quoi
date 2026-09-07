@@ -1,8 +1,10 @@
 package quoi.module.impl.general
 
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
 import net.minecraft.client.KeyMapping
+import net.minecraft.network.protocol.game.ClientboundSystemChatPacket
 import quoi.QuoiMod
 import quoi.api.abobaui.dsl.px
 import quoi.api.abobaui.elements.impl.Text.Companion.shadow
@@ -15,7 +17,10 @@ import quoi.api.skyblock.dungeon.Dungeon
 import quoi.module.Module
 import quoi.module.settings.impl.ListSetting
 import quoi.utils.ChatUtils.modMessage
+import quoi.utils.ChatUtils.prefix
+import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.Scheduler.wait
+import quoi.utils.skyblock.player.EquipmentSwapper
 import quoi.utils.skyblock.player.HotbarItem
 import quoi.utils.skyblock.player.HotbarPreset
 import quoi.utils.skyblock.player.HotbarSwapperUtils
@@ -34,16 +39,12 @@ import quoi.utils.skyblock.player.MovementUtils.stop
 import quoi.utils.ui.hud.impl.TextHud
 import kotlin.random.Random
 
-/*
- * TODO:
- *  integrate into custom triggers
- */
-
 object AutoHotbar : Module(
     "Auto Hotbar",
     desc = "Saves and equips hotbar presets."
 ) {
     private val blockInput by switch("Block input", false, desc = "Blocks keyboard and mouse input during hotbar correction passes.")
+    private val helmetTimeout by slider("Helmet timeout", 100, 20, 400, 20, desc = "Maximum client ticks to wait for each helmet equipment step when the server is slow.")
     private val swapPassDelay by slider("Swap pass delay", 5, 0, 20, 1, desc = "Base delay in ticks before each hotbar correction pass.")
     private val passDelayRandomness by slider("Pass delay randomness", 3, 0, 20, 1, desc = "Adds 0 to this many random ticks to each correction pass delay.")
     private val clickDelay by slider("Click delay", 2, 0, 10, 1, desc = "Base delay in ticks after each hotbar swap click.")
@@ -55,6 +56,9 @@ object AutoHotbar : Module(
     private val validClasses = listOf("healer", "mage", "berserk", "archer", "tank")
     private var swapJob: Job? = null
     private var blockingGameInput = false
+    private val pendingChatMessages = ArrayDeque<Pair<String, Long>>()
+    private val triggeredPresets = mutableSetOf<String>()
+    private var triggerLevel = mc.level
 
     @Suppress("unused")
     private val hud by textHud("Auto Hotbar HUD", Colour.WHITE, font = TextHud.HudFont.Minecraft) {
@@ -93,6 +97,28 @@ object AutoHotbar : Module(
             }.description("Sets or clears the chat trigger for a preset.")
                 .suggests("presetName") { presets.map { it.name } }
 
+            hotbar.sub("setmatch") { presetName: String, mode: String ->
+                setMatch(presetName, mode)
+            }.description("Sets partial or full message matching for a preset.")
+                .suggests("presetName") { presets.map { it.name } }
+                .suggests("mode", listOf("partial", "full"))
+
+            hotbar.sub("setcowhat") { presetName: String, enabled: Boolean ->
+                setCowHat(presetName, enabled)
+            }.description("Enables or disables equipping Cow Hat after loading a preset.")
+                .suggests("presetName") { presets.map { it.name } }
+
+            hotbar.sub("sethelmet") { presetName: String, helmet: String ->
+                setHelmet(presetName, helmet)
+            }.description("Sets the helmet to equip after loading a preset: cow, necron, spirit, or none.")
+                .suggests("presetName") { presets.map { it.name } }
+                .suggests("helmet", listOf("cow", "necron", "spirit", "none"))
+
+            hotbar.sub("setonce") { presetName: String, enabled: Boolean ->
+                setOnce(presetName, enabled)
+            }.description("Limits a preset's automatic trigger to once per dungeon run.")
+                .suggests("presetName") { presets.map { it.name } }
+
             hotbar.sub("setfloor") { presetName: String, floor: String? ->
                 setFloor(presetName, floor)
             }.description("Sets or clears the dungeon floor requirement for a preset.")
@@ -106,11 +132,17 @@ object AutoHotbar : Module(
                 .suggests("className", validClasses)
         }
 
-        on<ChatEvent.Packet> {
-            val preset = presets.firstOrNull {
-                it.message != null && it.message == unformatted && requirementsMet(it, reportMismatch = false)
-            } ?: return@on
-            load(preset)
+        on<PacketEvent.Received, ClientboundSystemChatPacket>(acceptCancelled = true) {
+            if (packet.overlay) return@on
+            val message = packet.content.string
+            val level = mc.level
+            mc.execute {
+                if (mc.level === level) handleChatMessage(message, fromPacket = true)
+            }
+        }
+
+        on<ChatEvent.Receive>(acceptCancelled = true) {
+            handleChatMessage(message, fromPacket = false)
         }
 
         on<TickEvent.Start> {
@@ -118,6 +150,7 @@ object AutoHotbar : Module(
         }
 
         on<WorldEvent.Change> {
+            pendingChatMessages.clear()
             stopSwapping()
         }
 
@@ -143,8 +176,42 @@ object AutoHotbar : Module(
     }
 
     override fun onDisable() {
+        pendingChatMessages.clear()
         stopSwapping()
         super.onDisable()
+    }
+
+    private fun handleChatMessage(message: String, fromPacket: Boolean) {
+        if (!enabled || mc.player == null) return
+        if (triggerLevel !== mc.level) {
+            triggerLevel = mc.level
+            triggeredPresets.clear()
+            pendingChatMessages.clear()
+        }
+        val unformatted = message.noControlCodes
+        if (unformatted.startsWith("${prefix().string.noControlCodes} ")) return
+
+        val now = System.nanoTime()
+        while (pendingChatMessages.firstOrNull()?.let { now - it.second > 10_000_000_000L } == true) {
+            pendingChatMessages.removeFirst()
+        }
+        if (!fromPacket) {
+            val index = pendingChatMessages.indexOfFirst { it.first == unformatted }
+            if (index >= 0) {
+                pendingChatMessages.removeAt(index)
+                return
+            }
+        }
+
+        val preset = presets.firstOrNull {
+            !(it.oncePerRun && Dungeon.inDungeons && it.name in triggeredPresets) &&
+                it.matchesMessage(unformatted) && requirementsMet(it, reportMismatch = false)
+        } ?: return
+        if (fromPacket) {
+            if (pendingChatMessages.size >= 64) pendingChatMessages.removeFirst()
+            pendingChatMessages.addLast(unformatted to now)
+        }
+        load(preset, automatic = true)
     }
 
     private fun save(name: String) {
@@ -165,11 +232,15 @@ object AutoHotbar : Module(
         load(preset)
     }
 
-    private fun load(preset: HotbarPreset) {
+    private fun load(preset: HotbarPreset, automatic: Boolean = false) {
         if (!enabled || isSwapping || swapJob?.isActive == true) return
         if (!requirementsMet(preset)) return
+        if (automatic && Dungeon.inDungeons) {
+            if (preset.oncePerRun && preset.name in triggeredPresets) return
+            triggeredPresets.add(preset.name)
+        }
 
-        swapJob = QuoiMod.scope.launch {
+        swapJob = QuoiMod.scope.launch(mc.asCoroutineDispatcher()) {
             try {
                 waitUntilNotInTerminal()
 
@@ -178,6 +249,17 @@ object AutoHotbar : Module(
 
                 runSwapPasses(preset)
                 modMessage("&aPreset &e${preset.name} &aequipped.")
+                val helmetId = preset.selectedHelmetId
+                val helmetName = preset.selectedHelmetName
+                if (helmetId != null && helmetName != null) {
+                    waitUntilNotInTerminal()
+                    if (Dungeon.isDead) return@launch
+                    if (EquipmentSwapper.equip(helmetName, blockInput = blockInput, itemId = helmetId, timeout = helmetTimeout)) {
+                        modMessage("&aQueued $helmetName equip.")
+                    } else {
+                        modMessage("&cCould not queue $helmetName equip. Another equipment swap may be in progress.")
+                    }
+                }
             } finally {
                 endSwap(preset.name)
                 if (swapJob == this.coroutineContext[Job]) swapJob = null
@@ -225,7 +307,8 @@ object AutoHotbar : Module(
         if (!blockingGameInput) return
 
         blockingGameInput = false
-        KeyMapping.setAll()
+        if (mc.isSameThread) KeyMapping.setAll()
+        else mc.execute(KeyMapping::setAll)
     }
 
     private suspend fun runPass(preset: HotbarPreset, includeHotbar: Boolean): Boolean {
@@ -301,7 +384,10 @@ object AutoHotbar : Module(
             val trigger = preset.message ?: "None"
             val floor = preset.requiredFloor ?: "None"
             val clazz = preset.requiredClass ?: "None"
-            "&e${preset.name} &7- trigger: &f$trigger&7, floor: &f$floor&7, class: &f$clazz"
+            val match = if (preset.partialMessageMatch) "partial" else "full"
+            val helmet = preset.selectedHelmetName ?: "None"
+            val once = if (preset.oncePerRun) "on" else "off"
+            "&e${preset.name} &7- trigger: &f$trigger&7, match: &f$match&7, helmet: &f$helmet&7, once per run: &f$once&7, floor: &f$floor&7, class: &f$clazz"
         }, id = "hotbar_presets".hashCode())
     }
 
@@ -319,7 +405,56 @@ object AutoHotbar : Module(
 
         preset.message = message?.takeIf { it.isNotBlank() }
         if (preset.message == null) modMessage("&aRemoved trigger message for &e${preset.name}&a.")
-        else modMessage("&aPreset &e${preset.name} &awill trigger on: &c${preset.message}")
+        else {
+            val match = if (preset.partialMessageMatch) "partial" else "full"
+            modMessage("&aPreset &e${preset.name} &awill trigger on ($match match): &c${preset.message}")
+        }
+    }
+
+    private fun setMatch(presetName: String, mode: String) {
+        val preset = findPreset(presets, presetName, fuzzy = true)
+            ?: return modMessage("&cPreset not found.")
+
+        val normalized = mode.lowercase()
+        preset.partialMessageMatch = when (normalized) {
+            "partial" -> true
+            "full" -> false
+            else -> return modMessage("&cInvalid match mode. Use partial or full.")
+        }
+        modMessage("&aPreset &e${preset.name} &anow uses &e$normalized &amessage matching.")
+    }
+
+    private fun setCowHat(presetName: String, enabled: Boolean) {
+        val preset = findPreset(presets, presetName, fuzzy = true)
+            ?: return modMessage("&cPreset not found.")
+
+        preset.equipCowHat = enabled
+        if (enabled || preset.helmetItemId == "COW_HEAD") preset.helmetItemId = null
+        modMessage("&aCow Hat equip for &e${preset.name}&a: &e${if (enabled) "on" else "off"}&a.")
+    }
+
+    private fun setOnce(presetName: String, enabled: Boolean) {
+        val preset = findPreset(presets, presetName, fuzzy = true)
+            ?: return modMessage("&cPreset not found.")
+
+        preset.oncePerRun = enabled
+        modMessage("&aOnce per dungeon run for &e${preset.name}&a: &e${if (enabled) "on" else "off"}&a.")
+    }
+
+    private fun setHelmet(presetName: String, helmet: String) {
+        val preset = findPreset(presets, presetName, fuzzy = true)
+            ?: return modMessage("&cPreset not found.")
+
+        val itemId = when (helmet.lowercase()) {
+            "cow", "cow_head" -> "COW_HEAD"
+            "necron", "diamond_necron_head" -> "DIAMOND_NECRON_HEAD"
+            "spirit", "starred_spirit_mask" -> "STARRED_SPIRIT_MASK"
+            "none" -> null
+            else -> return modMessage("&cInvalid helmet. Use cow, necron, spirit, or none.")
+        }
+        preset.helmetItemId = itemId
+        preset.equipCowHat = false
+        modMessage("&aHelmet for &e${preset.name}&a: &e${preset.selectedHelmetName ?: "None"}&a.")
     }
 
     private fun setFloor(presetName: String, floor: String?) {
