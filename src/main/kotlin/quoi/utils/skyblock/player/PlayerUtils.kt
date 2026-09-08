@@ -1,6 +1,7 @@
 package quoi.utils.skyblock.player
 
 import com.google.gson.JsonParser
+import com.mojang.blaze3d.platform.InputConstants
 import com.mojang.authlib.GameProfile
 import com.mojang.authlib.properties.Property
 import net.minecraft.client.KeyMapping
@@ -15,6 +16,8 @@ import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
 import quoi.QuoiMod.mc
+import quoi.api.input.CatKeyboard
+import quoi.api.input.CatMouse
 import quoi.api.world.Direction
 import quoi.utils.*
 import quoi.utils.ChatUtils.literal
@@ -26,6 +29,8 @@ import quoi.utils.skyblock.player.RotationUtils.yaw
 import java.util.*
 
 object PlayerUtils {
+
+    private val itemUseBlockers = mutableSetOf<Any>()
 
     inline val breakerSlot: Int?
         get() = (0..8).find { getBreakerCharges(mc.player?.inventory?.getItem(it) ?: ItemStack.EMPTY) > 0 }
@@ -80,6 +85,32 @@ object PlayerUtils {
     fun LocalPlayer.rightClick() {
         val key = mc.options.keyUse.key
         KeyMapping.click(key)
+    }
+
+    fun suppressItemUse(owner: Any) {
+        itemUseBlockers.add(owner)
+        mc.options.keyUse.apply {
+            isDown = false
+            while (consumeClick()) Unit
+        }
+        val player = mc.player ?: return
+        if (player.isUsingItem) mc.gameMode?.releaseUsingItem(player)
+    }
+
+    fun restoreItemUse(owner: Any) {
+        val wasSuppressed = itemUseBlockers.remove(owner)
+        if (itemUseBlockers.isNotEmpty()) {
+            mc.options.keyUse.isDown = false
+            return
+        }
+        if (!wasSuppressed) return
+
+        val key = mc.options.keyUse.key
+        mc.options.keyUse.isDown = mc.isWindowActive && mc.player != null && when (key.type) {
+            InputConstants.Type.MOUSE -> CatMouse.isButtonDown(key.value)
+            InputConstants.Type.KEYSYM -> key.value >= 0 && CatKeyboard.isKeyDown(key.value)
+            InputConstants.Type.SCANCODE -> false
+        }
     }
 
     fun LocalPlayer.leftClick() {

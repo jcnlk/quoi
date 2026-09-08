@@ -36,6 +36,8 @@ import quoi.utils.skyblock.player.HotbarSwapperUtils.findPreset
 import quoi.utils.skyblock.player.HotbarSwapperUtils.isSwapping
 import quoi.utils.skyblock.player.HotbarSwapperUtils.swapWithHotbar
 import quoi.utils.skyblock.player.MovementUtils.stop
+import quoi.utils.skyblock.player.PlayerUtils.suppressItemUse
+import quoi.utils.skyblock.player.PlayerUtils.restoreItemUse
 import quoi.utils.ui.hud.impl.TextHud
 import kotlin.random.Random
 
@@ -146,7 +148,11 @@ object AutoHotbar : Module(
         }
 
         on<TickEvent.Start> {
-            if (blockingGameInput) player.stop()
+            if (blockingGameInput) {
+                player.stop()
+                if (blockInput) suppressItemUse(AutoHotbar)
+                else restoreItemUse(AutoHotbar)
+            }
         }
 
         on<WorldEvent.Change> {
@@ -292,6 +298,7 @@ object AutoHotbar : Module(
         blockingGameInput = true
         player.stop()
         try {
+            if (blockInput) suppressItemUse(AutoHotbar)
             var swapped = false
             passes.forEachIndexed { index, includeHotbar ->
                 if (index > 0) waitRandomDelay(swapPassDelay, passDelayRandomness)
@@ -307,8 +314,12 @@ object AutoHotbar : Module(
         if (!blockingGameInput) return
 
         blockingGameInput = false
-        if (mc.isSameThread) KeyMapping.setAll()
-        else mc.execute(KeyMapping::setAll)
+        val restore = Runnable {
+            KeyMapping.setAll()
+            restoreItemUse(AutoHotbar)
+        }
+        if (mc.isSameThread) restore.run()
+        else mc.execute(restore)
     }
 
     private suspend fun runPass(preset: HotbarPreset, includeHotbar: Boolean): Boolean {

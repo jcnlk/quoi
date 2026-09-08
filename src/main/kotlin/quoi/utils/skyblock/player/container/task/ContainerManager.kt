@@ -19,6 +19,8 @@ import quoi.utils.scaledHeight
 import quoi.utils.scaledWidth
 import quoi.utils.skyblock.player.MovementUtils.hasMovementInput
 import quoi.utils.skyblock.player.MovementUtils.stop
+import quoi.utils.skyblock.player.PlayerUtils.suppressItemUse
+import quoi.utils.skyblock.player.PlayerUtils.restoreItemUse
 
 /**
  * Manages execution of [ContainerTask]s
@@ -39,6 +41,8 @@ object ContainerManager : EventListener { // todo toggleable invwalk for contain
 
     init {
         on<TickEvent.Start>(priority = Priority.HIGHEST) {
+            if (shouldBlockInput) suppressItemUse(ContainerManager)
+            else restoreItemUse(ContainerManager)
             val preventMovement = activeTask?.shouldPreventMovement
                 ?: (endDelay > 0 && preventMovementDuringEndDelay)
             if (preventMovement) {
@@ -127,6 +131,7 @@ object ContainerManager : EventListener { // todo toggleable invwalk for contain
 
         task.queue = ArrayDeque(task.actions)
         activeTask = task
+        if (task.shouldBlockInput) suppressItemUse(ContainerManager)
 
         return task
     }
@@ -146,7 +151,8 @@ object ContainerManager : EventListener { // todo toggleable invwalk for contain
 
     /** Starts Fast Mode's one-shot block after the first matching container opens. */
     internal fun beginFastBlock() {
-        activeTask?.beginFastBlock()
+        val task = activeTask ?: return
+        if (task.beginFastBlock() && task.shouldBlockInput) suppressItemUse(ContainerManager)
     }
 
     /** Releases Fast Mode immediately after its final target click is handled. */
@@ -240,10 +246,14 @@ object ContainerManager : EventListener { // todo toggleable invwalk for contain
 
     /** Re-reads physically held keys after the final movement-suppression tick. */
     private fun restoreMovementKeys() {
-        if (!movementKeysSuppressed) return
+        val restoreMovement = movementKeysSuppressed
         movementKeysSuppressed = false
 
-        if (mc.isSameThread) KeyMapping.setAll()
-        else mc.execute(KeyMapping::setAll)
+        val restore = Runnable {
+            if (restoreMovement) KeyMapping.setAll()
+            restoreItemUse(ContainerManager)
+        }
+        if (mc.isSameThread) restore.run()
+        else mc.execute(restore)
     }
 }
