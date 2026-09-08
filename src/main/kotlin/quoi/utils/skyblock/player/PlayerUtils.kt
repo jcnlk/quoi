@@ -30,7 +30,7 @@ import java.util.*
 
 object PlayerUtils {
 
-    private val itemUseBlockers = mutableSetOf<Any>()
+    private val inputBlockers = mutableSetOf<Any>()
 
     inline val breakerSlot: Int?
         get() = (0..8).find { getBreakerCharges(mc.player?.inventory?.getItem(it) ?: ItemStack.EMPTY) > 0 }
@@ -88,25 +88,36 @@ object PlayerUtils {
     }
 
     fun suppressItemUse(owner: Any) {
-        itemUseBlockers.add(owner)
+        inputBlockers.add(owner)
         mc.options.keyUse.apply {
+            isDown = false
+            while (consumeClick()) Unit
+        }
+        mc.options.keyAttack.apply {
             isDown = false
             while (consumeClick()) Unit
         }
         val player = mc.player ?: return
         if (player.isUsingItem) mc.gameMode?.releaseUsingItem(player)
+        mc.gameMode?.stopDestroyBlock()
     }
 
     fun restoreItemUse(owner: Any) {
-        val wasSuppressed = itemUseBlockers.remove(owner)
-        if (itemUseBlockers.isNotEmpty()) {
+        val wasSuppressed = inputBlockers.remove(owner)
+        if (inputBlockers.isNotEmpty()) {
             mc.options.keyUse.isDown = false
+            mc.options.keyAttack.isDown = false
             return
         }
         if (!wasSuppressed) return
 
-        val key = mc.options.keyUse.key
-        mc.options.keyUse.isDown = mc.isWindowActive && mc.player != null && when (key.type) {
+        mc.options.keyUse.isDown = isPhysicallyDown(mc.options.keyUse.key)
+        mc.options.keyAttack.isDown = isPhysicallyDown(mc.options.keyAttack.key)
+    }
+
+    private fun isPhysicallyDown(key: InputConstants.Key): Boolean {
+        if (!mc.isWindowActive || mc.player == null) return false
+        return when (key.type) {
             InputConstants.Type.MOUSE -> CatMouse.isButtonDown(key.value)
             InputConstants.Type.KEYSYM -> key.value >= 0 && CatKeyboard.isKeyDown(key.value)
             InputConstants.Type.SCANCODE -> false
