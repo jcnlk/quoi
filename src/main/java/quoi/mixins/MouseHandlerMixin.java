@@ -62,7 +62,11 @@ public class MouseHandlerMixin {
     )
     private void onMouseMove(long window, double mx, double my, CallbackInfo ci) {
         if (checkShit(window)) return;
-        if (new MouseEvent.Move(mx, my).post()) ci.cancel();
+        if (new MouseEvent.Move(mx, my).post()) {
+            this.xpos = mx;
+            this.ypos = my;
+            ci.cancel();
+        }
     }
 
     @Unique
