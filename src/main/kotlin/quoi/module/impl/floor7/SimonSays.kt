@@ -7,9 +7,9 @@ import net.minecraft.world.entity.decoration.ArmorStand
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.AABB
+import net.minecraft.world.phys.BlockHitResult
+import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
-import quoi.api.abobaui.dsl.ms
-import quoi.api.animations.Animation
 import quoi.api.colour.Colour
 import quoi.api.colour.withAlpha
 import quoi.api.events.*
@@ -27,11 +27,12 @@ import quoi.utils.StringUtils
 import quoi.utils.WorldUtils.state
 import quoi.utils.getDirection
 import quoi.utils.render.drawFilledBox
-import quoi.utils.skyblock.player.RotationUtils.rotateSmoothly
+import quoi.utils.skyblock.player.RotationAnimation
+import quoi.utils.skyblock.player.RotationUtils.rotate
+import quoi.utils.skyblock.player.RotationUtils.rotationTask
 import quoi.utils.skyblock.player.interact.AuraManager
 import kotlin.random.Random
 
-// Kyleen
 @Suppress("UNNECESSARY_SAFE_CALL")
 object SimonSays : Module(
     "Simon Says",
@@ -44,45 +45,53 @@ object SimonSays : Module(
     private val thirdCol by colourPicker("Third colour", Colour.RED.withAlpha(0.5f), allowAlpha = true).childOf(::solver)
 
     private val auto by switch("Auto")
-    private val delay by slider("Delay", 200, 50, 500, 10, "Click delay", unit = "ms").childOf(::auto)
-    private val startDelay by slider("Start delay", 125, 50, 200, 1, "Delay between clicks when skipping a button.", unit = "ms").childOf(::auto)
-    private val smoothRotate by switch("Smooth rotate").childOf(::auto)
-    private val rotateStyle by selector("Style", Animation.Style.Linear).childOf(::smoothRotate)
-    private val dontCheck by switch("Faster SS?").childOf(::auto) //idk
-
+    private val delay by slider("Delay", 200, 50, 500, 10, "Minimum time between clicks. Smooth rotation can run during this cooldown.", unit = "ms").childOf(::auto)
+    private val startClicks by slider("Start Clicks", 3, 1, 10, 1, "Number of clicks sent to start the device.").childOf(::auto)
+    private val startDelay by slider("Start delay", 150, 50, 1250, 10, "Minimum time between start clicks.", unit = "ms").childOf(::auto)
+    private val rotationMode by selector("Rotation mode", RotationAnimation.Mode.None, desc = "None clicks without turning. Natural varies movement; Curve follows a smooth timed turn.").childOf(::auto)
+    private val rotationTime by slider("Rotation time", 180, 50, 500, 10, "Base turn duration. Larger turns take longer; natural movement varies.", unit = "ms").childOf(::rotationMode) { it.selected != RotationAnimation.Mode.None }
     private val announceTime by switch("Announce time", desc = "Announces device completion time in party chat")
-    private val forceDevice by switch("Force device")
-    @Suppress("unused")
-    private val resetSS by button("Reset") { fullReset() }
 
     private var lastClickTime = 0L
     private var progress = 0
     private var doneFirst = false
     private var doingSS = false
-    private var clicked = false
-    private var clicks = ArrayList<BlockPos>()
-    private var clickedButton: BlockPos? = null
-    private var allButtons = ArrayList<BlockPos>()
+    private val clicks = ArrayList<BlockPos>()
     private val startButton = BlockPos(110, 121, 91)
     private val standBox = AABB(108.0, 120.0, 90.0, 115.0, 125.0, 95.0)
 
     private var startActive = false
     private var startStep = 0
-    private var nextActionTime = 0L
+    private var nextStartClickAt = 0L
+    private var startUsesCrosshair = false
     private var lastManualReset = 0L
     private var startTime = 0L
-    private var smoothClickInFlight = false
+    private var pendingClick: PendingClick? = null
+    private var aim: Aim? = null
 
     init {
-        on<WorldEvent.Change> {
-            fullReset()
-        }
+        on<WorldEvent.Change> { fullReset() }
 
-        on<DungeonEvent.PhaseComplete> {
-            start()
-        }
+        on<DungeonEvent.PhaseComplete> { start(usingCrosshair = true) }
 
         on<PacketEvent.Sent, ServerboundUseItemOnPacket> {
+            val target = pendingClick?.pos
+            if (target != null && packet.hitResult.blockPos == target) {
+                lastClickTime = System.currentTimeMillis()
+                pendingClick = null
+                if (target == startButton) {
+                    startStep++
+                    nextStartClickAt = lastClickTime + startDelay
+                    if (startStep >= startClicks) {
+                        doingSS = true
+                        startTime = lastClickTime
+                        startActive = false
+                    }
+                    return@on
+                }
+                if (clicks.getOrNull(progress) == target) progress++
+                aim = null
+            }
             if (startActive || packet.hitResult.blockPos != startButton) return@on
 
             val isActive = EntityUtils.getEntities<ArmorStand>(standBox) {
@@ -111,21 +120,16 @@ object SimonSays : Module(
                 val buttonPos = BlockPos(110, pos.y, pos.z)
                 if (clicks.getOrNull(0) == buttonPos) {
                     progress = 0
-                    if (auto && smoothRotate && doingSS && !smoothClickInFlight) {
-                        player.rotateSmoothly(getDirection(pos.randomVec), duration = delay.ms, style = rotateStyle.selected)
-                    }
                 }
 
                 if (clicks.size == 2 && clicks[0] == buttonPos && !doneFirst) {
                     doneFirst = true
                     clicks.removeFirst()
-                    if (allButtons.isNotEmpty()) allButtons.removeFirst()
                 }
 
                 if (!clicks.contains(buttonPos)) {
                     progress = 0
                     clicks.add(buttonPos)
-                    allButtons.add(buttonPos)
                 }
                 return@on
             }
@@ -143,50 +147,71 @@ object SimonSays : Module(
 
         on<TickEvent.Start> {
             if (startActive) {
+                if (Dungeon.isDead || player.distanceToSqr(startButton.center) > 25 ||
+                    (auto && rotationMode.selected != RotationAnimation.Mode.None && startUsesCrosshair && (mc.hitResult as? BlockHitResult)?.blockPos != startButton)) {
+                    fullReset()
+                    return@on
+                }
                 if (!auto) {
                     doingSS = true
                     startTime = System.currentTimeMillis()
                     startActive = false
-                } else if (System.currentTimeMillis() >= nextActionTime) {
-                    when (startStep) {
-                        0, 1 -> {
-                            reset()
-                            clickButton(startButton)
-
-                            val waitMs = Random.nextInt(startDelay, (startDelay * 1.136).toInt())
-                            nextActionTime = System.currentTimeMillis() + waitMs
-                            startStep++
-                        }
-                        2 -> {
-                            clickButton(startButton)
-                            doingSS = true
-                            startTime = System.currentTimeMillis()
-                            startActive = false
-                        }
+                } else {
+                    pendingClick?.let {
+                        if (System.currentTimeMillis() - it.sentAt < 2000) return@on
+                        pendingClick = null
                     }
+                    if (System.currentTimeMillis() >= nextStartClickAt) sendStartClick()
                 }
                 return@on
             }
 
-            if (!doingSS || System.currentTimeMillis() - lastClickTime < delay) return@on
-            if (player.distanceToSqr(startButton.center) > 25) return@on
+            if (!doingSS) return@on
+            if (Dungeon.isDead || player.distanceToSqr(startButton.center) > 25) {
+                aim = null
+                pendingClick = null
+                return@on
+            }
 
-            val canClick = BlockPos(110, 123, 92).state.block == Blocks.STONE_BUTTON
+            if (!auto) {
+                aim = null
+                pendingClick = null
+            }
 
-            if (canClick || ((dontCheck && auto) && doneFirst)) {
+            val now = System.currentTimeMillis()
+            pendingClick?.let {
+                if (now - it.sentAt < 2000) return@on
+                pendingClick = null
+            }
 
-                if (!doneFirst && clicks.size == 3) {
-                    clicks.removeAt(0)
-                    if (allButtons.isNotEmpty()) allButtons.removeAt(0)
-                }
-
+            val canClick = BlockPos(110, 123, 92).state.block == Blocks.STONE_BUTTON || doneFirst
+            if (canClick) {
+                if (!doneFirst && clicks.size == 3) clicks.removeFirst()
                 doneFirst = true
+            }
 
-                if (auto) clicks.getOrNull(progress)?.let { nextPos ->
-                    if (nextPos.state.block == Blocks.STONE_BUTTON) {
-                        clickButton(nextPos, advanceProgress = true)
-                    }
+            if (!auto) return@on
+
+            val next = clicks.getOrNull(progress)
+            if (rotationMode.selected != RotationAnimation.Mode.None) {
+                val target = if (!doneFirst && startClicks > 1) clicks.getOrNull(1) else next ?: clicks.firstOrNull()
+                if (target != null) aimAtButton(target)
+            } else aim = null
+
+            if (!canClick || next == null || next.state.block != Blocks.STONE_BUTTON || now - lastClickTime < delay) return@on
+            if (rotationMode.selected != RotationAnimation.Mode.None) {
+                if (aim?.pos != next || aim?.ready != true) return@on
+                val hit = player.pick(5.0, 1.0f, false) as? BlockHitResult
+                if (hit?.type != HitResult.Type.BLOCK || hit.blockPos != next) {
+                    aim = null
+                    return@on
                 }
+                pendingClick = PendingClick(next, now)
+                gameMode.useItemOn(player, InteractionHand.MAIN_HAND, hit)
+                player.swing(InteractionHand.MAIN_HAND)
+            } else {
+                pendingClick = PendingClick(next, now)
+                clickButton(next)
             }
         }
 
@@ -195,7 +220,7 @@ object SimonSays : Module(
 
             if (doingSS) {
                 var finished = false
-                var active = forceDevice
+                var active = false
                 EntityUtils.getEntities<ArmorStand>(standBox) { it.distanceTo(player) < 6 }.forEach {
                     val name = it.displayName?.string ?: return@forEach
                     if ("Device Active" in name) finished = true
@@ -204,12 +229,10 @@ object SimonSays : Module(
 
                 if (finished) {
                     val time = StringUtils.formatTime(System.currentTimeMillis() - startTime)
-                    ChatUtils.modMessage("Simon Says took $time")
+                    modMessage("Simon Says took $time")
                     if (announceTime) ChatUtils.command("pc Simon Says took $time")
                     fullReset()
                 } else if (!active) fullReset()
-
-                if (System.currentTimeMillis() - lastClickTime > delay) clickedButton = null
             }
 
             if (!solver || !doingSS) return@on
@@ -233,66 +256,84 @@ object SimonSays : Module(
 
     private fun fullReset() {
         startActive = false
+        startStep = 0
+        nextStartClickAt = 0L
+        startUsesCrosshair = false
         reset()
     }
 
+    override fun onEnable() = fullReset()
+    override fun onDisable() = fullReset()
+
     private fun reset() {
-        allButtons.clear()
         clicks.clear()
         progress = 0
         doneFirst = false
         doingSS = false
-        clicked = false
         startTime = 0L
-        smoothClickInFlight = false
+        pendingClick = null
+        aim = null
     }
 
-    private fun start() {
-        if (Dungeon.isDead) return
-        if (player.distanceToSqr(startButton.center) > 25) return
+    private fun start(usingCrosshair: Boolean = false) {
+        if (Dungeon.isDead || player.distanceToSqr(startButton.center) > 25 || startActive || doingSS) return
+        if (auto && rotationMode.selected != RotationAnimation.Mode.None && usingCrosshair && (mc.hitResult as? BlockHitResult)?.blockPos != startButton) return
 
-        if (!startActive && !doingSS) {
-            reset()
-            clicked = true
-
-            startActive = true
-            startStep = 0
-            nextActionTime = System.currentTimeMillis()
-        }
+        reset()
+        startActive = true
+        startStep = 0
+        startUsesCrosshair = usingCrosshair
+        nextStartClickAt = System.currentTimeMillis()
     }
 
-    private fun clickButton(pos: BlockPos, advanceProgress: Boolean = false) {
+    private fun sendStartClick() {
+        if (startStep < startClicks - 1) reset()
+        pendingClick = PendingClick(startButton, System.currentTimeMillis())
+        clickButton(startButton)
+    }
+
+    private fun clickButton(pos: BlockPos) {
         if (Dungeon.isDead || player.distanceToSqr(pos.center) > 25) return
-
         lastClickTime = System.currentTimeMillis()
-        val shouldSmooth = auto && smoothRotate && (pos != startButton || startStep == 0)
+        AuraManager.interactBlock(pos)
+        player.swing(InteractionHand.MAIN_HAND)
+    }
 
-        if (shouldSmooth) {
-            if (smoothClickInFlight) return
-
-            smoothClickInFlight = true
-            player.rotateSmoothly(getDirection(pos.randomVec), duration = delay.ms, style = rotateStyle.selected) {
-                smoothClickInFlight = false
-                if (Dungeon.isDead || player.distanceToSqr(pos.center) > 25) return@rotateSmoothly
-                clickedButton = pos
-                AuraManager.interactBlock(pos)
-                player.swing(InteractionHand.MAIN_HAND)
-            }
-        } else {
-            clickedButton = pos
-            AuraManager.interactBlock(pos)
-            player.swing(InteractionHand.MAIN_HAND)
+    private fun aimAtButton(pos: BlockPos) {
+        aim?.let {
+            if (it.pos == pos && it.mode == rotationMode.selected && System.currentTimeMillis() - it.startedAt < 2000) return
+        }
+        val target = Aim(pos, Vec3(
+            pos.x + 0.9375,
+            pos.y + 0.5 + Random.nextDouble(-0.045, 0.045),
+            pos.z + 0.5 + Random.nextDouble(-0.075, 0.075),
+        ), rotationMode.selected)
+        aim = target
+        val currentHit = player.pick(5.0, 1.0f, false) as? BlockHitResult
+        if (currentHit?.type == HitResult.Type.BLOCK && currentHit.blockPos == pos) {
+            target.ready = true
+            return
         }
 
-        if (advanceProgress) {
-            progress++
+        val rotatingPlayer = player
+        val motion = RotationAnimation(player.yRot.toDouble(), player.xRot.toDouble(), rotationTime, target.mode)
+
+        rotationTask {
+            if (aim !== target || mc.player !== rotatingPlayer || !active || !auto ||
+                rotationMode.selected == RotationAnimation.Mode.None ||
+                rotationMode.selected != target.mode || !doingSS || Dungeon.isDead || distanceToSqr(pos.center) > 25) return@rotationTask true
+            val direction = getDirection(target.point)
+            val step = motion.sample(direction.yaw.toDouble(), direction.pitch.toDouble(), mc.options.sensitivity().get())
+            rotate(step.yaw, step.pitch)
+            target.ready = step.finished
+            target.ready
         }
     }
 
-    private val BlockPos.randomVec: Vec3
-        get() {
-        val yy = Random.nextDouble(-0.1, 0.1)
-        val zz = Random.nextDouble(-0.15, 0.15)
-        return Vec3(x + 0.9375, y + 0.5 + yy, z + 0.5 + zz)
+    private class PendingClick(val pos: BlockPos, val sentAt: Long)
+
+    private class Aim(val pos: BlockPos, val point: Vec3, val mode: RotationAnimation.Mode) {
+        val startedAt = System.currentTimeMillis()
+        var ready = false
     }
 }

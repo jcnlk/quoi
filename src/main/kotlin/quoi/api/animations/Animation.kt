@@ -92,6 +92,7 @@ class Animation(
      *
      * @see Animation
      */
+    @Suppress("unused")
     enum class Style : Strategy {
         Linear {
             override fun getValue(percent: Float): Float = percent
@@ -134,10 +135,22 @@ class Animation(
                 return 1f + c3 * (percent - 1f).pow(3f) + c1 * (percent - 1f).pow(2f)
             }
         },
-
         EaseInSine {
             override fun getValue(percent: Float): Float =
                 1f - cos((percent * PI.toFloat()) / 2f)
+        },
+        EaseInOutSine {
+            override fun getValue(percent: Float): Float =
+                (1f - cos(PI.toFloat() * percent)) / 2f
+        },
+        EaseInOutCubic {
+            override fun getValue(percent: Float): Float =
+                if (percent < 0.5f) 4f * percent * percent * percent
+                else 1f - (-2f * percent + 2f).pow(3f) / 2f
+        },
+        SmootherStep {
+            override fun getValue(percent: Float): Float =
+                percent * percent * percent * (percent * (percent * 6f - 15f) + 10f)
         },
     }
 }
