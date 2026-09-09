@@ -2,10 +2,10 @@ package quoi.mixins;
 
 import quoi.api.events.GuiEvent;
 import quoi.api.events.KeyEvent;
+import quoi.api.input.Keybinds;
 import net.minecraft.client.KeyboardHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.input.CharacterEvent;
-import org.lwjgl.glfw.GLFW;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -22,7 +22,7 @@ public class KeyboardHandlerMixin {
             cancellable = true
     )
     private void quoi$onKey(long window, int action, net.minecraft.client.input.KeyEvent input, CallbackInfo ci) {
-        if (input.input() == GLFW.GLFW_KEY_UNKNOWN) return;
+        if (input.input() == Keybinds.KEY_NONE) return;
 
         if (mc.gui.screen() != null) {
             if (action == 1) {
