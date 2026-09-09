@@ -92,6 +92,7 @@ class Animation(
      *
      * @see Animation
      */
+    @Suppress("unused")
     enum class Style : Strategy {
         Linear {
             override fun getValue(percent: Float): Float = percent
@@ -134,7 +135,6 @@ class Animation(
                 return 1f + c3 * (percent - 1f).pow(3f) + c1 * (percent - 1f).pow(2f)
             }
         },
-
         EaseInSine {
             override fun getValue(percent: Float): Float =
                 1f - cos((percent * PI.toFloat()) / 2f)
