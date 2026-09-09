@@ -30,7 +30,7 @@ import java.nio.charset.StandardCharsets
  * copyright (c) 2025-2026 odtheking
  * original: https://github.com/odtheking/Odin/blob/main/src/main/kotlin/com/odtheking/odin/features/impl/dungeon/puzzlesolvers/BoulderSolver.kt
  */
-object Boulder : SettingGroup(PuzzleSolvers, "Boulder") {
+object BoulderSolver : SettingGroup(PuzzleSolvers, "Boulder") {
     private val solver by switch("Solver", desc = "Shows the solution for the boulder puzzle.")
     private val showAll by switch("Show all clicks", desc = "Shows all clicks instead of only the next click.").childOf(::solver)
     private val style by selector("Style", "Box", arrayListOf("Box", "Filled box", "Filled"), desc = "Render style to be used.").childOf(::solver)

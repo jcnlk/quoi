@@ -6,16 +6,16 @@ import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.location.invoke
 import quoi.config.ConfigSystem.gson
 import quoi.module.Module
-import quoi.module.impl.dungeon.puzzlesolvers.impl.Boulder
-import quoi.module.impl.dungeon.puzzlesolvers.impl.CreeperBeams
-import quoi.module.impl.dungeon.puzzlesolvers.impl.Blaze
-import quoi.module.impl.dungeon.puzzlesolvers.impl.IceFill
-import quoi.module.impl.dungeon.puzzlesolvers.impl.IcePath
-import quoi.module.impl.dungeon.puzzlesolvers.impl.TeleportMaze
-import quoi.module.impl.dungeon.puzzlesolvers.impl.Quiz
-import quoi.module.impl.dungeon.puzzlesolvers.impl.TicTacToe
-import quoi.module.impl.dungeon.puzzlesolvers.impl.WaterBoard
-import quoi.module.impl.dungeon.puzzlesolvers.impl.ThreeWeirdos
+import quoi.module.impl.dungeon.puzzlesolvers.impl.BoulderSolver
+import quoi.module.impl.dungeon.puzzlesolvers.impl.CreeperBeamsSolver
+import quoi.module.impl.dungeon.puzzlesolvers.impl.BlazeSolver
+import quoi.module.impl.dungeon.puzzlesolvers.impl.IceFillSolver
+import quoi.module.impl.dungeon.puzzlesolvers.impl.IcePathSolver
+import quoi.module.impl.dungeon.puzzlesolvers.impl.TeleportMazeSolver
+import quoi.module.impl.dungeon.puzzlesolvers.impl.QuizSolver
+import quoi.module.impl.dungeon.puzzlesolvers.impl.TicTacToeSolver
+import quoi.module.impl.dungeon.puzzlesolvers.impl.WaterBoardSolver
+import quoi.module.impl.dungeon.puzzlesolvers.impl.ThreeWeirdosSolver
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.module.settings.UIComponent.Companion.visibleIf
 import java.io.InputStreamReader
@@ -28,19 +28,19 @@ object PuzzleSolvers : Module(
     area = Island.Dungeon(inClear = true)
 ) {
     init {
-        IceFill
-        TeleportMaze
-        Quiz
-        ThreeWeirdos
-        TicTacToe
-        WaterBoard
-        CreeperBeams
-        Blaze
-        IcePath
-        Boulder
+        IceFillSolver
+        TeleportMazeSolver
+        QuizSolver
+        ThreeWeirdosSolver
+        TicTacToeSolver
+        WaterBoardSolver
+        CreeperBeamsSolver
+        BlazeSolver
+        IcePathSolver
+        BoulderSolver
     }
 
-    private val bowDropdown by text("Bow settings").visibleIf { CreeperBeams.auto || Blaze.auto || IcePath.auto }
+    private val bowDropdown by text("Bow settings").visibleIf { CreeperBeamsSolver.auto || BlazeSolver.auto || IcePathSolver.auto }
     val shootCd by slider("Shoot cooldown", 500L, 250L, 1000L, 50L, unit = "ms").childOf(::bowDropdown)
     val missCd by slider("Miss cooldown", 550L, 300L, 1050L, 50L, unit = "ms").childOf(::bowDropdown)
 
