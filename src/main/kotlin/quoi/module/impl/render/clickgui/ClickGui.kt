@@ -45,7 +45,7 @@ import quoi.api.colour.colour
 import quoi.api.colour.withAlpha
 import quoi.api.input.Keybinds
 import quoi.api.skyblock.dungeon.Dungeon
-import quoi.api.skyblock.dungeon.Floor
+import quoi.api.skyblock.dungeon.enums.Floor
 import quoi.config.Config
 import quoi.module.Category
 import quoi.module.Module

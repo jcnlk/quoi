@@ -6,7 +6,7 @@ import net.minecraft.world.entity.decoration.ArmorStand
 import quoi.api.events.TickEvent
 import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.Dungeon
-import quoi.api.skyblock.dungeon.Phase
+import quoi.api.skyblock.dungeon.enums.Phase
 import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.location.invoke
 import quoi.module.Module

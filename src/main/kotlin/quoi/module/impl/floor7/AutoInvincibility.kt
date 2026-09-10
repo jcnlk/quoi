@@ -10,8 +10,8 @@ import quoi.api.skyblock.SkyblockPlayer
 import quoi.api.skyblock.SkyblockPlayer.InvincibilityType
 import quoi.api.skyblock.SkyblockPlayer.Mask
 import quoi.api.skyblock.dungeon.Dungeon
-import quoi.api.skyblock.dungeon.Floor7Utils
-import quoi.api.skyblock.dungeon.Phase
+import quoi.api.skyblock.dungeon.Floor7
+import quoi.api.skyblock.dungeon.enums.Phase
 import quoi.api.skyblock.location.Island
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf
@@ -64,7 +64,7 @@ object AutoInvincibility : Module(
 
         on<ChatEvent.Packet> {
             if (bossOnly && !Dungeon.inBoss) return@on
-            if (p3Only && !Floor7Utils.inPhase(Phase.P3)) return@on
+            if (p3Only && !Floor7.inPhase(Phase.P3)) return@on
 
             val proc = InvincibilityType.fromMessage(unformatted) ?: return@on
 

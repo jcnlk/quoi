@@ -15,7 +15,7 @@ import quoi.api.colour.withAlpha
 import quoi.api.events.*
 import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.Dungeon
-import quoi.api.skyblock.dungeon.Stage
+import quoi.api.skyblock.dungeon.enums.Stage
 import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.location.invoke
 import quoi.module.Module

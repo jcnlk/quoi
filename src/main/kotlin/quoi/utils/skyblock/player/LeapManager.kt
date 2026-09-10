@@ -15,8 +15,8 @@ import quoi.api.input.CatMouse
 import quoi.api.skyblock.dungeon.Dungeon.dungeonTeammatesNoSelf
 import quoi.api.skyblock.dungeon.Dungeon.getMageCooldownMultiplier
 import quoi.api.skyblock.dungeon.Dungeon.inDungeons
-import quoi.api.skyblock.dungeon.DungeonClass
-import quoi.api.skyblock.dungeon.DungeonPlayer
+import quoi.api.skyblock.dungeon.enums.DungeonClass
+import quoi.api.skyblock.dungeon.enums.DungeonPlayer
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.skyblock.player.container.ContainerUtils
 import quoi.utils.skyblock.player.container.task.*

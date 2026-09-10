@@ -12,8 +12,8 @@ import quoi.api.events.PacketEvent
 import quoi.api.events.RenderEvent
 import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.Dungeon.inDungeons
-import quoi.api.skyblock.dungeon.Floor7Utils
-import quoi.api.skyblock.dungeon.Phase
+import quoi.api.skyblock.dungeon.Floor7
+import quoi.api.skyblock.dungeon.enums.Phase
 import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.location.Location.currentArea
 import quoi.module.Module
@@ -60,7 +60,7 @@ object RenderOptimiser : Module(
                 }
 
                 is ClientboundLevelParticlesPacket -> { // TODO: exclude some more particles ig
-                    if (hideParticles && !currentArea.isArea(Island.Garden) && !Floor7Utils.inPhaseAt(Phase.P5)) cancel()
+                    if (hideParticles && !currentArea.isArea(Island.Garden) && !Floor7.inPhaseAt(Phase.P5)) cancel()
                     else if (hidePotionBubbles && packet.particle.type == ParticleTypes.ENTITY_EFFECT) cancel()
                 }
 

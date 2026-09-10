@@ -5,7 +5,7 @@ import quoi.api.events.ChatEvent
 import quoi.api.events.PartyEvent
 import quoi.api.events.core.EventListener
 import quoi.api.events.core.on
-import quoi.api.skyblock.dungeon.DungeonClass
+import quoi.api.skyblock.dungeon.enums.DungeonClass
 import quoi.utils.Shortcuts
 
 /**
