@@ -25,8 +25,6 @@ import quoi.api.skyblock.location.Location.currentArea
 import quoi.api.skyblock.location.Location.currentServer
 import quoi.api.skyblock.location.Location.inSkyblock
 import quoi.api.skyblock.location.Location.subarea
-import quoi.module.Module.Tag
-import quoi.module.ModuleManager
 import quoi.module.impl.general.chat.impl.CompactChat
 import quoi.module.impl.render.clickgui.ClickGui.clickGui
 import quoi.utils.ChatUtils.command
@@ -35,7 +33,6 @@ import quoi.utils.ChatUtils.modMessage
 import quoi.utils.LegacyIdMapper
 import quoi.utils.Scheduler.scheduleLoop
 import quoi.utils.Scheduler.wait
-import quoi.utils.StringUtils.capitaliseFirst
 import quoi.utils.WorldUtils
 import quoi.utils.WorldUtils.day
 import quoi.utils.addVec
@@ -71,11 +68,6 @@ object QuoiCommand : EventListener {
         }
 
         with(devCommand) {
-            "copy" { string: GreedyString ->
-                mc.keyboardHandler.clipboard = string.string
-                modMessage("Copied text to clipboard.")
-            }
-
             "simulate" { message: GreedyString ->
                 EventDispatcher.onPacketReceived(ClientboundSystemChatPacket(literal(message.string), false))
                 modMessage("simulated: ${message.string}")
@@ -166,38 +158,6 @@ object QuoiCommand : EventListener {
                 modMessage("Area: $currentArea, Sub: $subarea, Server: $currentServer, Floor: ${Dungeon.floor?.name}")
             }
 
-            "featurelist" { md: Boolean? ->
-                val featureList = StringBuilder()
-
-                for ((category, modulesInCategory) in ModuleManager.modules.groupBy { it.category }.entries) {
-                    val categoryName = category.displayName
-
-                    if (md == true) {
-                        featureList.appendLine("<details>")
-                        featureList.appendLine("<summary><b>$categoryName</b></summary>")
-                        featureList.appendLine()
-                    } else {
-                        featureList.appendLine("# $categoryName")
-                    }
-
-                    for (module in modulesInCategory.sortedBy { it.name }) {
-                        val tag = if (module.tag != Tag.NONE) " (${module.tag.name.capitaliseFirst()})" else ""
-                        featureList.appendLine("- **${module.name}**$tag")
-                        if (module.desc.isNotEmpty()) featureList.appendLine("  - ${module.desc}")
-                    }
-
-                    if (md == true) {
-                        featureList.appendLine()
-                        featureList.appendLine("</details>")
-                    }
-
-                    featureList.appendLine()
-                }
-
-                mc.keyboardHandler.clipboard = featureList.toString()
-                modMessage("Copied feature list to clipboard.")
-            }
-
             "centre" {
                 with(mc.player) {
                     this?.setPos(this.blockPosition().center.addVec(y = -0.5))
@@ -232,14 +192,6 @@ object QuoiCommand : EventListener {
         }
 
         with(command) {
-            "toggle" { moduleName: GreedyString ->
-                val module = ModuleManager.getModuleByName(moduleName.string)
-                module?.apply {
-                    toggle()
-                    toggleMessage()
-                } ?: modMessage("Unknown module name: ${moduleName.string}")
-            }.suggests { ModuleManager.modules.map { it.name } }.description("Toggles specified module.")
-
             "hud" { open(HudManager.editor()) }.description("Opens Hud editor.")
         }
 
