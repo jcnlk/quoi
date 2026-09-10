@@ -15,8 +15,8 @@ import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
 import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.Dungeon.isDead
-import quoi.api.skyblock.dungeon.Floor7Utils
-import quoi.api.skyblock.dungeon.Phase
+import quoi.api.skyblock.dungeon.Floor7
+import quoi.api.skyblock.dungeon.enums.Phase
 import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.location.invoke
 import quoi.module.Module
@@ -130,7 +130,7 @@ object ArrowAlign : Module(
 
     private fun handleAuto(currentFrames: Array<CachedFrame?>, solution: List<Int?>) {
 
-        val skippedFrame = if (!Floor7Utils.inPhase(Phase.P3)) {
+        val skippedFrame = if (!Floor7.inPhase(Phase.P3)) {
             (0 until 25).filter { i ->
                 val frame = currentFrames[i] ?: return@filter false
                 clicksNeeded(frame, solution[i]) > 0 && frame.entity.distanceToSqr(player) <= range * range
@@ -173,7 +173,7 @@ object ArrowAlign : Module(
         if (frame.entity.id != targetFrame.id) return
 
         if (clicksNeeded(frame, solution[frameIndex]) <= 0) return
-        if (!Floor7Utils.inPhase(Phase.P3) && totalClicksNeeded(currentFrames, solution) <= 1) return
+        if (!Floor7.inPhase(Phase.P3) && totalClicksNeeded(currentFrames, solution) <= 1) return
 
         recentClicks[frameIndex] = System.currentTimeMillis()
         lastTriggerbotClick = recentClicks[frameIndex]

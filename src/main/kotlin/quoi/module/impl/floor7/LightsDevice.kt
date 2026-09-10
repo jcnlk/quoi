@@ -14,8 +14,8 @@ import quoi.api.events.PacketEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
 import quoi.api.events.core.on
-import quoi.api.skyblock.dungeon.Floor7Utils
-import quoi.api.skyblock.dungeon.Phase
+import quoi.api.skyblock.dungeon.Floor7
+import quoi.api.skyblock.dungeon.enums.Phase
 import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.location.invoke
 import quoi.module.Module
@@ -61,7 +61,7 @@ object LightsDevice : Module(
 
     @JvmStatic
     fun shouldGhostLever(pos: BlockPos): Boolean {
-        return enabled && hideUselessLevers && Floor7Utils.inPhaseAt(Phase.P3) && pos in uselessLevers
+        return enabled && hideUselessLevers && Floor7.inPhaseAt(Phase.P3) && pos in uselessLevers
     }
 
     private fun BlockState.isUnpoweredDeviceLever(): Boolean {
@@ -81,7 +81,7 @@ object LightsDevice : Module(
         }
 
         on<TickEvent.End> {
-            if (!Floor7Utils.inPhaseAt(Phase.P3)) return@on
+            if (!Floor7.inPhaseAt(Phase.P3)) return@on
             val now = System.currentTimeMillis()
 
             pendingLevers.entries.removeIf { (pos, triggeredAt) ->

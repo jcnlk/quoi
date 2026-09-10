@@ -10,6 +10,9 @@ import net.minecraft.world.phys.Vec3
 import quoi.api.events.*
 import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.*
+import quoi.api.skyblock.dungeon.enums.DungeonClass
+import quoi.api.skyblock.dungeon.enums.Phase
+import quoi.api.skyblock.dungeon.enums.Stage
 import quoi.api.skyblock.dungeon.Dungeon.allTeammatesNoSelf
 import quoi.api.skyblock.dungeon.Dungeon.dungeonTeammatesNoSelf
 import quoi.api.skyblock.location.Island
@@ -165,19 +168,19 @@ object AutoLeap : Module(
         on<WorldEvent.Change> { reset() }
 
         on<DungeonEvent.StageComplete> {
-            if (!p3Leap || !p3Auto || !Floor7Utils.inPhaseAt(Phase.P3)) return@on
+            if (!p3Leap || !p3Auto || !Floor7.inPhaseAt(Phase.P3)) return@on
             if (whenBlown) return@on
             handleP3Leap(completedStage = stage)
         }
 
         on<DungeonEvent.StageComplete.Full> {
-            if (!p3Leap || !p3Auto || !Floor7Utils.inPhaseAt(Phase.P3)) return@on
+            if (!p3Leap || !p3Auto || !Floor7.inPhaseAt(Phase.P3)) return@on
             if (!whenBlown) return@on
             handleP3Leap(completedStage = stage)
         }
 
         on<ChatEvent.Packet> {
-            if (!Floor7Utils.inF7Boss) return@on
+            if (!Floor7.inF7Boss) return@on
 
             if (i4Leap && i4LeapMelody && "Party" in unformatted && melodyProgress.any { it in unformatted }) {
                 melodyTarget = melodyPlayerRegex.findAll(unformatted).lastOrNull()?.groupValues?.get(1)
@@ -237,7 +240,7 @@ object AutoLeap : Module(
 
         // based on https://github.com/Noamm9/NoammAddons/blob/b8e865539d7f45096d2603dacf80967821087cdc/src/main/kotlin/com/github/noamm9/features/impl/floor7/LeapCounter.kt#L45-L79
         on<PacketEvent.ReceivedPost> {
-            if (!Floor7Utils.inF7Boss || !Floor7Utils.inPhase(Phase.P2)) return@on
+            if (!Floor7.inF7Boss || !Floor7.inPhase(Phase.P2)) return@on
             if (!pyHealerLeap || !pyHealerAuto || oofCount != 1 || leapedHealerPy || !isInHealerPy()) return@on
             if (packet !is ClientboundTeleportEntityPacket && packet !is ClientboundAddEntityPacket
                 && packet !is ClientboundMoveEntityPacket && packet !is ClientboundEntityPositionSyncPacket) return@on
@@ -273,8 +276,8 @@ object AutoLeap : Module(
             if (currentTime - lastClick < fastLeapClickDelay) return@on
 
             if (!attemptFastLeap()) {
-                if (!p3Leap || !Floor7Utils.inF7Boss) return@on
-                handleP3Leap(Floor7Utils.getStageAt())
+                if (!p3Leap || !Floor7.inF7Boss) return@on
+                handleP3Leap(Floor7.getStageAt())
             }
             lastClick = currentTime
         }
@@ -386,18 +389,18 @@ object AutoLeap : Module(
 
     private fun isIn(box: AABB): Boolean = box.contains(player.position())
 
-    private fun isInP1() = Floor7Utils.inPhaseAt(Phase.P1)
-    private fun isInPredev() = Floor7Utils.inPhaseAt(Phase.P3) && Floor7Utils.inPhase(Phase.P1, Phase.P2)
-    private fun isInP4() = Floor7Utils.inPhaseAt(Phase.P4)
-    private fun isInRelic() = Floor7Utils.inPhaseAt(Phase.P5)
+    private fun isInP1() = Floor7.inPhaseAt(Phase.P1)
+    private fun isInPredev() = Floor7.inPhaseAt(Phase.P3) && Floor7.inPhase(Phase.P1, Phase.P2)
+    private fun isInP4() = Floor7.inPhaseAt(Phase.P4)
+    private fun isInRelic() = Floor7.inPhaseAt(Phase.P5)
     private fun isInGreenPad() = isIn(greenPadBox)
     private fun isInYellowPad() = isIn(yellowPadBox)
     private fun isInPurplePad() = isIn(purplePadBox)
-    private fun isInHealerPy() = isIn(healerPyBox) && Floor7Utils.inPhase(Phase.P2)
-    private fun isInP2() = Floor7Utils.inPhaseAt(Phase.P2) && !isInPurplePad() && !isInGreenPad() && !isInYellowPad()
+    private fun isInHealerPy() = isIn(healerPyBox) && Floor7.inPhase(Phase.P2)
+    private fun isInP2() = Floor7.inPhaseAt(Phase.P2) && !isInPurplePad() && !isInGreenPad() && !isInYellowPad()
     private fun isInMiddle() = isIn(middleBox)
     private fun isAtPre4() = isIn(pre4Box)
-    private fun isOutsideMiddle() = Floor7Utils.inPhaseAt(Phase.P4) && !isInMiddle()
+    private fun isOutsideMiddle() = Floor7.inPhaseAt(Phase.P4) && !isInMiddle()
 
     private fun attemptFastLeap(): Boolean {
         if (!Dungeon.inBoss) {
@@ -409,7 +412,7 @@ object AutoLeap : Module(
             return true
         }
 
-        if (!Floor7Utils.inF7Boss) return false
+        if (!Floor7.inF7Boss) return false
 
         return when {
             predevLeap && isInPredev() -> leapToConfigured(predevName, predevClass.selected)
@@ -428,9 +431,9 @@ object AutoLeap : Module(
     }
 
     private fun handleP3Leap(completedStage: Stage) {
-        val currentStage = Floor7Utils.getStageAt()
+        val currentStage = Floor7.getStageAt()
 
-        if (currentStage == Stage.UNKNOWN || currentStage.number > completedStage.number) return // don't leap if the player is already in a later stage.
+        if (currentStage == Stage.Unknown || currentStage.number > completedStage.number) return // don't leap if the player is already in a later stage.
 
         val (name, clazz) = when (completedStage) {
             Stage.S1 -> s1Name to s1Class.selected

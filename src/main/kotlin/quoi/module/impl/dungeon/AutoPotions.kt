@@ -4,7 +4,7 @@ import net.minecraft.world.item.ItemStack
 import quoi.api.events.ChatEvent
 import quoi.api.events.DungeonEvent
 import quoi.api.events.core.on
-import quoi.api.skyblock.dungeon.Floor
+import quoi.api.skyblock.dungeon.enums.Floor
 import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.location.invoke
 import quoi.module.Module

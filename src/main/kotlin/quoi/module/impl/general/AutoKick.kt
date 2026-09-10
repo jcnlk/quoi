@@ -6,7 +6,7 @@ import quoi.api.events.PartyEvent
 import quoi.api.events.WorldEvent
 import quoi.api.events.core.on
 import quoi.api.skyblock.SkyblockPlayer
-import quoi.api.skyblock.dungeon.DungeonClass
+import quoi.api.skyblock.dungeon.enums.DungeonClass
 import quoi.module.Module
 import quoi.utils.ChatUtils.command
 import quoi.utils.Scheduler.wait
