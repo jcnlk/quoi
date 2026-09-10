@@ -11,9 +11,9 @@ import quoi.api.events.core.EventListener
 import quoi.api.events.core.on
 import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.dungeon.Dungeon
-import quoi.api.skyblock.dungeon.Floor
-import quoi.api.skyblock.dungeon.Phase
-import quoi.api.skyblock.dungeon.Stage
+import quoi.api.skyblock.dungeon.enums.Floor
+import quoi.api.skyblock.dungeon.enums.Phase
+import quoi.api.skyblock.dungeon.enums.Stage
 import quoi.module.impl.dungeon.Splits
 import quoi.utils.Scheduler.scheduleTask
 

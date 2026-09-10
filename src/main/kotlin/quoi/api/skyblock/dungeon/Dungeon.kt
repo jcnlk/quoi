@@ -18,6 +18,12 @@ import quoi.api.events.PacketEvent
 import quoi.api.events.WorldEvent
 import quoi.api.events.core.EventListener
 import quoi.api.events.core.on
+import quoi.api.skyblock.dungeon.enums.Blessing
+import quoi.api.skyblock.dungeon.enums.DungeonClass
+import quoi.api.skyblock.dungeon.enums.DungeonPlayer
+import quoi.api.skyblock.dungeon.enums.Floor
+import quoi.api.skyblock.dungeon.enums.Puzzle
+import quoi.api.skyblock.dungeon.enums.PuzzleStatus
 import quoi.api.skyblock.dungeon.odonscanning.ScanUtils
 import quoi.api.skyblock.dungeon.odonscanning.tiles.OdonRoom
 import quoi.api.skyblock.location.Island
@@ -209,8 +215,8 @@ object Dungeon : EventListener, Shortcuts {
             dungeonTeammates.clear()
             puzzles.clear()
             floor = if (ClickGui.forceDungeons) ClickGui.dungeonFloor.selected
-                    else if (Location.onZapto) Floor.F7
-                    else null
+            else if (Location.onZapto) Floor.F7
+            else null
             isPaul = false
             deathTick = -1
         }

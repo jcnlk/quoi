@@ -19,7 +19,7 @@ import quoi.api.input.Keybinds
 import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.dungeon.Dungeon.allTeammatesNoSelf
 import quoi.api.skyblock.dungeon.Dungeon.leapTeammates
-import quoi.api.skyblock.dungeon.DungeonPlayer
+import quoi.api.skyblock.dungeon.enums.DungeonPlayer
 import quoi.config.Config
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf

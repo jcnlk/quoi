@@ -7,8 +7,8 @@ import net.minecraft.world.phys.HitResult
 import quoi.api.events.TickEvent
 import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.Dungeon.isDead
-import quoi.api.skyblock.dungeon.Floor7Utils
-import quoi.api.skyblock.dungeon.Phase
+import quoi.api.skyblock.dungeon.Floor7
+import quoi.api.skyblock.dungeon.enums.Phase
 import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.location.invoke
 import quoi.module.Module
@@ -25,7 +25,7 @@ object BarrierBoom : Module( // todo move to triggerbot module
 
     init {
         on<TickEvent.Start> {
-            val currentStage = Floor7Utils.getStage()
+            val currentStage = Floor7.getStage()
             if (mc.gui.screen() != null || isDead || currentStage.number !in 1..3 || currentStage.gate) return@on
 
             val result = mc.hitResult

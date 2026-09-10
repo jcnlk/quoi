@@ -14,7 +14,7 @@ import quoi.api.events.RenderEvent
 import quoi.api.events.WorldEvent
 import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.Dungeon.getMageCooldownMultiplier
-import quoi.api.skyblock.dungeon.Floor7Utils.inF7Boss
+import quoi.api.skyblock.dungeon.Floor7.inF7Boss
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.utils.ChatUtils.modMessage

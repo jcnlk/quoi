@@ -5,7 +5,7 @@ import quoi.api.events.core.on
 import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.dungeon.Dungeon.currentDungeonPlayer
 import quoi.api.skyblock.dungeon.Dungeon.isDead
-import quoi.api.skyblock.dungeon.DungeonClass
+import quoi.api.skyblock.dungeon.enums.DungeonClass
 import quoi.api.skyblock.location.invoke
 import quoi.module.Module
 

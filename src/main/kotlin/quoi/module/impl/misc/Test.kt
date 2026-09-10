@@ -24,7 +24,7 @@ import quoi.api.events.core.on
 import quoi.api.events.core.wait
 import quoi.api.pathfinding.impl.WalkPathfinder
 import quoi.api.skyblock.dungeon.Dungeon
-import quoi.api.skyblock.dungeon.Floor7Utils
+import quoi.api.skyblock.dungeon.Floor7
 import quoi.api.skyblock.dungeon.odonscanning.ScanUtils
 import quoi.api.skyblock.dungeon.odonscanning.tiles.RoomType
 import quoi.api.skyblock.location.Location
@@ -396,12 +396,12 @@ object Test : Module("Test", desc = "Dev module for testing.") {
         Data("Subarea", { Location.subarea ?: "None" }, { subarea_ }),
         Data("Boss", { Dungeon.inBoss }, { boss }),
         Data("Floor", { Dungeon.floor ?: "None" }, { floor }),
-        Data("P3 Section", { "${Floor7Utils.getStage().name} || ${Floor7Utils.getStageAt().name} }" }, { p3Stage }),
-        Data("   Duration", { "${formatTime(Floor7Utils.getStage().getDuration())} | " + formatTime(Floor7Utils.getStage().getDurationTicks() * 50) }, { p3Stage }),
-        Data("   Terminals", { "${Floor7Utils.getStage().terminals}/${Floor7Utils.getStage().reqTerminals}" }, { p3Stage }),
-        Data("   Levers", { "${Floor7Utils.getStage().levers}/2" }, { p3Stage }),
-        Data("   Device", { Floor7Utils.getStage().device }, { p3Stage }),
-        Data("   Gate", { Floor7Utils.getStage().gate }, { p3Stage }),
+        Data("P3 Section", { "${Floor7.getStage().name} || ${Floor7.getStageAt().name} }" }, { p3Stage }),
+        Data("   Duration", { "${formatTime(Floor7.getStage().getDuration())} | " + formatTime(Floor7.getStage().getDurationTicks() * 50) }, { p3Stage }),
+        Data("   Terminals", { "${Floor7.getStage().terminals}/${Floor7.getStage().reqTerminals}" }, { p3Stage }),
+        Data("   Levers", { "${Floor7.getStage().levers}/2" }, { p3Stage }),
+        Data("   Device", { Floor7.getStage().device }, { p3Stage }),
+        Data("   Gate", { Floor7.getStage().gate }, { p3Stage }),
         Data("Container", { "${mc.gui.screen() != null} | ${ContainerUtils.containerId}" }, { container })
     )
     private data class Data(val name: String, val value: () -> Any?, val enabled: () -> Boolean)

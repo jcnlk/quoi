@@ -8,8 +8,8 @@ import quoi.api.events.WorldEvent
 import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.Dungeon.deathTick
 import quoi.api.skyblock.dungeon.Dungeon.inBoss
-import quoi.api.skyblock.dungeon.Phase
-import quoi.api.skyblock.dungeon.Stage
+import quoi.api.skyblock.dungeon.enums.Phase
+import quoi.api.skyblock.dungeon.enums.Stage
 import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.location.invoke
 import quoi.module.Module
