@@ -36,7 +36,7 @@ object LoadoutSwapper {
             modMessage("&cInvalid loadout slot. Use &e/quoi loadout <1-${loadoutSlots.size}>&c.")
             return false
         }
-        if (task?.result == null) return false
+        if (task != null) return false
 
         val targetSlot = loadoutSlots[slot - 1]
         val newTask = containerTask(
