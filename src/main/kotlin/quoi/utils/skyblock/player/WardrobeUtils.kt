@@ -35,7 +35,7 @@ object WardrobeUtils {
             modMessage("&cInvalid wardrobe slot. Use &e/quoi wardrobe <1-9>&c.")
             return false
         }
-        if (task?.result == null) return false
+        if (task != null) return false
 
         val targetSlot = slot + 35
         var state = WardrobeState.UNKNOWN
