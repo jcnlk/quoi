@@ -1,8 +1,10 @@
 package quoi.api.customtriggers
 
 import quoi.api.abobaui.constraints.impl.positions.Centre
+import quoi.api.abobaui.constraints.impl.size.Bounding
 import quoi.api.abobaui.constraints.impl.size.Copying
 import quoi.api.abobaui.dsl.*
+import quoi.api.abobaui.elements.Layout
 import quoi.api.abobaui.elements.ElementScope
 import quoi.api.abobaui.elements.impl.Text.Companion.string
 import quoi.api.abobaui.elements.impl.Text.Companion.textSupplied
@@ -17,7 +19,7 @@ import quoi.utils.ui.elements.switch
 import quoi.utils.ui.elements.themedInput
 import kotlin.reflect.KMutableProperty0
 
-fun ElementScope<*>.textField(label: String, value: String, update: (String) -> Unit) = column(size(w = Copying), gap = 4.px) {
+fun ElementScope<*>.textField(label: String, value: String, update: (String) -> Unit) = column(size(w = 360.px.coerceAtMost(Copying)), gap = 4.px) {
     text(string = label, size = 14.px, colour = theme.onSurfaceVariant)
     themedInput(size = size(Copying, 28.px)) {
         textInput(string = value, pos = at(x = 8.px, y = Centre), size = 14.px,
@@ -28,14 +30,14 @@ fun ElementScope<*>.textField(label: String, value: String, update: (String) -> 
     }
 }
 
-fun ElementScope<*>.toggleField(label: String, value: KMutableProperty0<Boolean>) = column(size(w = Copying), gap = 4.px) {
+fun ElementScope<*>.toggleField(label: String, value: KMutableProperty0<Boolean>) = column(size(w = Bounding), gap = 4.px) {
     text(string = label, size = 14.px, colour = theme.onSurfaceVariant)
-    group(size(Copying, 28.px)) {
+    group(size(40.px, 28.px)) {
         switch(value, size = 18.px, pos = at(x = 0.px, y = Centre))
     }
 }
 
-fun <T> ElementScope<*>.choiceField(label: String, value: () -> T, entries: List<T>, display: (T) -> String = { it.toString() }, update: (T) -> Unit) = column(size(w = Copying), gap = 4.px) {
+fun <T> ElementScope<*>.choiceField(label: String, value: () -> T, entries: List<T>, display: (T) -> String = { it.toString() }, update: (T) -> Unit) = column(size(w = 200.px.coerceAtMost(Copying)), gap = 4.px) {
     text(string = label, size = 14.px, colour = theme.onSurfaceVariant)
     block(size(Copying, 28.px), colour = theme.surfaceContainerHighest, radius = 5.radius()) {
         textSupplied(supplier = { display(value()) }, size = 14.px, colour = theme.onSurface, pos = at(x = 8.px, y = Centre)).apply {
@@ -52,7 +54,7 @@ fun <T> ElementScope<*>.choiceField(label: String, value: () -> T, entries: List
     }
 }
 
-fun ElementScope<*>.numberField(label: String, value: () -> Double, min: Double = -30000000.0, max: Double = 30000000.0, update: (Double) -> Unit) = column(size(w = Copying), gap = 4.px) {
+fun ElementScope<*>.numberField(label: String, value: () -> Double, min: Double = -30000000.0, max: Double = 30000000.0, update: (Double) -> Unit) = column(size(w = 104.px.coerceAtMost(Copying)), gap = 4.px) {
     text(string = label, size = 14.px, colour = theme.onSurfaceVariant)
     themedInput(size = size(Copying, 28.px)) {
         textInput(string = value().toString(), pos = at(x = 8.px, y = Centre), size = 14.px,
@@ -66,7 +68,7 @@ fun ElementScope<*>.numberField(label: String, value: () -> Double, min: Double 
     }
 }
 
-fun ElementScope<*>.optionalNumberField(label: String, value: () -> Float?, update: (Float?) -> Unit) = column(size(w = Copying), gap = 4.px) {
+fun ElementScope<*>.optionalNumberField(label: String, value: () -> Float?, update: (Float?) -> Unit) = column(size(w = 104.px.coerceAtMost(Copying)), gap = 4.px) {
     text(string = label, size = 14.px, colour = theme.onSurfaceVariant)
     themedInput(size = size(Copying, 28.px)) {
         textInput(string = value()?.toString() ?: "", pos = at(x = 8.px, y = Centre), size = 14.px,
@@ -93,7 +95,32 @@ fun ElementScope<*>.fieldRow(vararg fields: ElementScope<*>.() -> Unit, weights:
     }
 }
 
-fun ElementScope<*>.intField(label: String, value: () -> Int, min: Int, max: Int, update: (Int) -> Unit) = column(size(w = Copying), gap = 4.px) {
+/** Controls use their own widths; unused space stays at the right edge. */
+fun ElementScope<*>.settingRow(vararg fields: ElementScope<*>.() -> Unit): ElementScope<*> {
+    val layout = object : Layout(size(w = Copying), 16.px) {
+        override fun prePosition() {
+            val spacing = gap!!.calculateSize(this, horizontal = true)
+            var nextX = 0f
+            var nextY = 0f
+            var rowHeight = 0f
+            children?.filter { it.enabled }?.forEach { child ->
+                if (nextX > 0f && nextX + child.width > width) {
+                    nextX = 0f
+                    nextY += rowHeight + spacing
+                    rowHeight = 0f
+                }
+                child.internalX = nextX
+                child.internalY = nextY
+                nextX += child.width + spacing
+                rowHeight = maxOf(rowHeight, child.height)
+            }
+        }
+    }
+    element.addElement(layout)
+    return ElementScope(layout).apply { fields.forEach { it() } }
+}
+
+fun ElementScope<*>.intField(label: String, value: () -> Int, min: Int, max: Int, update: (Int) -> Unit) = column(size(w = 104.px.coerceAtMost(Copying)), gap = 4.px) {
     text(string = label, size = 14.px, colour = theme.onSurfaceVariant)
     themedInput(size = size(Copying, 28.px)) {
         textInput(string = value().toString(), pos = at(x = 8.px, y = Centre), size = 14.px,
@@ -108,7 +135,7 @@ fun ElementScope<*>.intField(label: String, value: () -> Int, min: Int, max: Int
     }
 }
 
-fun ElementScope<*>.sliderField(label: String, value: KMutableProperty0<Float>, min: Float, max: Float) = column(size(w = Copying), gap = 4.px) {
+fun ElementScope<*>.sliderField(label: String, value: KMutableProperty0<Float>, min: Float, max: Float) = column(size(w = 200.px.coerceAtMost(Copying)), gap = 4.px) {
     textSupplied(supplier = { "$label: ${"%.2f".format(java.util.Locale.ROOT, value.get())}" }, size = 14.px, colour = theme.onSurfaceVariant)
     // The shared slider writes Double values. Bridge explicitly to the stored Float setting.
     val bridge = object {
@@ -121,7 +148,19 @@ fun ElementScope<*>.sliderField(label: String, value: KMutableProperty0<Float>, 
     }
 }
 
-fun ElementScope<*>.optionalSliderField(label: String, value: KMutableProperty0<Float?>, max: Float) = column(size(w = Copying), gap = 8.px) {
+fun ElementScope<*>.intSliderField(label: String, value: KMutableProperty0<Int>, min: Int, max: Int) = column(size(w = 200.px.coerceAtMost(Copying)), gap = 4.px) {
+    textSupplied(supplier = { "$label: ${value.get()}" }, size = 14.px, colour = theme.onSurfaceVariant)
+    val bridge = object {
+        var number: Double
+            get() = value.get().toDouble()
+            set(new) { value.set(new.toInt().coerceIn(min, max)) }
+    }
+    group(size(Copying, 28.px)) {
+        slider(bridge::number, min.toDouble(), max.toDouble(), 1, pos = at(x = 6.px, y = Centre), size = size(Copying - 12.px, 12.px))
+    }
+}
+
+fun ElementScope<*>.optionalSliderField(label: String, value: KMutableProperty0<Float?>, max: Float) = column(size(w = 200.px.coerceAtMost(Copying)), gap = 8.px) {
     choiceField(label, { value.get() != null }, listOf(false, true), { if (it) "Exact value" else "Any value" }) {
         value.set(if (it) value.get() ?: 1f else null)
     }

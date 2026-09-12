@@ -4,7 +4,7 @@ import quoi.api.abobaui.elements.ElementScope
 import quoi.api.customtriggers.TriggerContext
 import quoi.api.customtriggers.textField
 import quoi.api.customtriggers.choiceField
-import quoi.api.customtriggers.fieldRow
+import quoi.api.customtriggers.settingRow
 import quoi.config.TypeName
 import quoi.utils.ChatUtils
 
@@ -25,9 +25,8 @@ class SendMessageAction(var message: String = "", var client: Boolean = true) : 
         return "Send \"$msg\" $side side"
     }
 
-    override fun ElementScope<*>.draw() = fieldRow(
+    override fun ElementScope<*>.draw() = settingRow(
         { textField("Message", message) { message = it } },
-        { choiceField("Destination", { client }, listOf(true, false), { if (it) "Client" else "Server" }) { client = it } },
-        weights = listOf(3f, 1f)
+        { choiceField("Destination", { client }, listOf(true, false), { if (it) "Client" else "Server" }) { client = it } }
     )
 }
