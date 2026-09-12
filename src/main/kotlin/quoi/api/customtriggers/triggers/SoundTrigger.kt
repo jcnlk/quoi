@@ -5,7 +5,7 @@ import quoi.api.abobaui.dsl.*
 import quoi.api.abobaui.elements.ElementScope
 import quoi.api.customtriggers.TriggerContext
 import quoi.api.customtriggers.optionalSliderField
-import quoi.api.customtriggers.fieldRow
+import quoi.api.customtriggers.settingRow
 import quoi.api.customtriggers.textField
 import quoi.config.TypeName
 
@@ -51,7 +51,7 @@ class SoundTrigger(
 
     override fun ElementScope<*>.draw() = column(size(w = Copying), gap = 8.px) {
         textField("Sound ID", soundName) { soundName = it }
-        fieldRow(
+        settingRow(
             { optionalSliderField("Volume", ::volume, 10f) },
             { optionalSliderField("Pitch", ::pitch, 2f) }
         )

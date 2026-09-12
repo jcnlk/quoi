@@ -16,9 +16,8 @@ class ChatTrigger(var matcher: TextMatcher = TextMatcher()) : Trigger {
         return true
     }
     override fun displayString() = "Chat: ${matcher.pattern}"
-    override fun ElementScope<*>.draw() = fieldRow(
+    override fun ElementScope<*>.draw() = settingRow(
         { textField("Message", matcher.pattern) { matcher.pattern = it } },
-        { choiceField("Match", { matcher.mode }, TextMatchMode.entries, { it.label }) { matcher.mode = it } },
-        weights = listOf(3f, 1f)
+        { choiceField("Match", { matcher.mode }, TextMatchMode.entries, { it.label }) { matcher.mode = it } }
     )
 }

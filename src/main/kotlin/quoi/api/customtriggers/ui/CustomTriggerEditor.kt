@@ -95,7 +95,10 @@ class CustomTriggerEditor {
                             searchInput = element
                             quoi.api.abobaui.elements.impl.TextInput.run {
                                 maxWidth(Copying - 24.px)
-                                onTextChanged { search = it.string; groupArea.refresh() }
+                                onTextChanged {
+                                    search = it.string
+                                    groupArea.refresh()
+                                }
                             }
                         }
                     }
@@ -247,7 +250,10 @@ class CustomTriggerEditor {
                         maxWidth(Copying - 150.px)
                         onTextChanged { if (it.string.isNotBlank()) trigger.name = it.string.take(60) }
                     }
-                    onFocusLost { element.text = trigger.name; groupArea.refresh() }
+                    onFocusLost {
+                        element.text = trigger.name
+                        groupArea.refresh()
+                    }
                 }
             }
             val list = scrollable(constrain(y = 54.px, w = Copying, h = Copying - 124.px)) {
@@ -265,25 +271,34 @@ class CustomTriggerEditor {
                         }
                         with(trigger.trigger) { draw() }
                     }
-                    section("2. Conditions") {
-                        if (trigger.conditions.isEmpty()) text(string = "Optional state filters; all added conditions must match.", colour = theme.onSurfaceVariant, size = 14.px)
+                    section("2. Conditions (optional)") {
                         trigger.conditions.toList().forEachIndexed { index, condition ->
-                            componentRow(condition, { trigger.conditions.removeAt(index); mainArea.refresh() })
+                            componentRow(condition, {
+                                trigger.conditions.removeAt(index)
+                                mainArea.refresh()
+                            })
                         }
                         editorButton("+ Add Condition", compact = true, accent = true) {
                             val entries = TriggerManager.conditionEntries
                             triggerDropdown(entries, displayString = { humanName(it.first) }) { (_, factory) ->
-                                ui.unfocus(); trigger.conditions.add(factory()); mainArea.refresh()
+                                ui.unfocus()
+                                trigger.conditions.add(factory())
+                                mainArea.refresh()
                             }
                         }
                     }
                     section("3. Actions") {
                         trigger.actions.toList().forEachIndexed { index, action ->
-                            componentRow(action, { trigger.actions.removeAt(index); mainArea.refresh() }, index, trigger)
+                            componentRow(action, {
+                                trigger.actions.removeAt(index)
+                                mainArea.refresh()
+                            }, index, trigger)
                         }
                         editorButton("+ Add Action", compact = true, accent = true) {
                             triggerDropdown(TriggerManager.actionEntries.filter { it.second().supports(trigger.trigger) }, displayString = { humanName(it.first) }) { (_, factory) ->
-                                ui.unfocus(); trigger.actions.add(factory()); mainArea.refresh()
+                                ui.unfocus()
+                                trigger.actions.add(factory())
+                                mainArea.refresh()
                             }
                         }
                     }
@@ -332,10 +347,21 @@ class CustomTriggerEditor {
                 text(string = humanName((component as TypeNamed).typeName), colour = theme.onSurface, size = 14.px, pos = at(x = 0.px, y = Centre)) { maxWidth(Copying - if (trigger != null) 100.px else 40.px) }
                 row(at(x = 0.px.alignOpposite, y = Centre), gap = 4.px) {
                     if (trigger != null) {
-                        orderButton("↑", index > 0) { ui.unfocus(); trigger.actions.add(index - 1, trigger.actions.removeAt(index)); mainArea.refresh() }
-                        orderButton("↓", index < trigger.actions.lastIndex) { ui.unfocus(); trigger.actions.add(index + 1, trigger.actions.removeAt(index)); mainArea.refresh() }
+                        orderButton("↑", index > 0) {
+                            ui.unfocus()
+                            trigger.actions.add(index - 1, trigger.actions.removeAt(index))
+                            mainArea.refresh()
+                        }
+                        orderButton("↓", index < trigger.actions.lastIndex) {
+                            ui.unfocus()
+                            trigger.actions.add(index + 1, trigger.actions.removeAt(index))
+                            mainArea.refresh()
+                        }
                     }
-                    orderButton("×", true) { ui.unfocus(); remove() }
+                    orderButton("×", true) {
+                        ui.unfocus()
+                        remove()
+                    }
                 }
             }
             with(component) { draw() }
@@ -348,8 +374,17 @@ class CustomTriggerEditor {
         ui.unfocus()
         componentPopup = popup(copies(), smooth = false) {
             val popup = this
-            onRemove { componentPopup = null; ui.unfocus(); if (!closingEditor) refresh() }
-            block(copies(), colour = Colour.BLACK.withAlpha(0.6f)) { onClick { popup.closePopup(); true } }
+            onRemove {
+                componentPopup = null
+                ui.unfocus()
+                if (!closingEditor) refresh()
+            }
+            block(copies(), colour = Colour.BLACK.withAlpha(0.6f)) {
+                onClick {
+                    popup.closePopup()
+                    true
+                }
+            }
             block(size(480.px.coerceAtMost(90.percent), Bounding + 20.px), colour = theme.surfaceContainer, radius = 8.radius()) {
                 outline(theme.outlineVariant, 1.px)
                 onClick { true }
@@ -371,7 +406,12 @@ class CustomTriggerEditor {
             }
             fieldRow(
                 { editorButton("Cancel") { componentPopup?.closePopup() } },
-                { editorButton("Delete", danger = true) { action(); componentPopup?.closePopup() } }
+                {
+                    editorButton("Delete", danger = true) {
+                        action()
+                        componentPopup?.closePopup()
+                    }
+                }
             )
         }
     }
@@ -383,7 +423,10 @@ class CustomTriggerEditor {
         text(string = label, colour = if (danger) theme.error else if (accent) theme.primary else theme.onSurface, size = 14.px)
         cursor(CursorShape.HAND)
         tonalHover()
-        onClick { action(); true }
+        onClick {
+            action()
+            true
+        }
     }
 
     private fun ElementScope<*>.orderButton(label: String, available: Boolean, action: () -> Unit) = block(
@@ -399,7 +442,10 @@ class CustomTriggerEditor {
         if (available) {
             cursor(CursorShape.HAND)
             tonalHover()
-            onClick { action(); true }
+            onClick {
+                action()
+                true
+            }
         } else onClick { true }
     }
 

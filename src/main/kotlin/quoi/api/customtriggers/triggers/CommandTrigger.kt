@@ -21,8 +21,8 @@ class CommandTrigger(var command: String = "", var cancel: Boolean = true) : Tri
         return true
     }
     override fun displayString() = "Command /${command.removePrefix("/")}"
-    override fun ElementScope<*>.draw() = column(size(w = Copying), gap = 8.px) {
-        textField("Command, without arguments", command) { command = it }
-        toggleField("Consume matching command", ::cancel)
-    }
+    override fun ElementScope<*>.draw() = settingRow(
+        { textField("Command, without arguments", command) { command = it } },
+        { toggleField("Consume matching command", ::cancel) },
+    )
 }

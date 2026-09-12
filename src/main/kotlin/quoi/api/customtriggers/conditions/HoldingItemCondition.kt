@@ -22,11 +22,9 @@ class HoldingItemCondition(
         return !stack.isEmpty && matchesItem(stack.hoverName.string.noControlCodes, stack.skyblockId.orEmpty())
     }
     override fun displayString() = "Holding ${matcher.pattern}"
-    override fun ElementScope<*>.draw() = column(size(w = Copying), gap = 8.px) {
-        fieldRow(
-            { choiceField("Compare", { field }, Field.entries, { it.label }) { field = it } },
-            { choiceField("Match", { matcher.mode }, TextMatchMode.entries, { if (it == TextMatchMode.INCLUDES) "Contains" else it.label }) { matcher.mode = it } }
-        )
-        textField("Value", matcher.pattern) { matcher.pattern = it }
-    }
+    override fun ElementScope<*>.draw() = settingRow(
+        { choiceField("Compare", { field }, Field.entries, { it.label }) { field = it } },
+        { choiceField("Match", { matcher.mode }, TextMatchMode.entries, { if (it == TextMatchMode.INCLUDES) "Contains" else it.label }) { matcher.mode = it } },
+        { textField("Value", matcher.pattern) { matcher.pattern = it } },
+    )
 }
