@@ -1,21 +1,38 @@
 package quoi.api.customtriggers
 
-interface TriggerContext {
-    val data: MutableMap<String, String>
+/**
+ * Event values and placeholders shared by the conditions and actions of one rule.
+ * Each matching rule and suspended sequence receives a [snapshot].
+ */
+sealed class TriggerContext(val kind: Kind) {
+    enum class Kind { TICK, CHAT, SOUND, KEY, COMMAND }
 
-    data object Tick : TriggerContext {
-        override val data = mutableMapOf<String, String>()
-    }
+    val data = mutableMapOf<String, String>()
 
-    class Chat(val message: String, var cancelled: Boolean = false) : TriggerContext {
-        override val data = mutableMapOf<String, String>()
-    }
+    class Tick : TriggerContext(Kind.TICK)
+    class Chat(val message: String, var cancelled: Boolean = false) : TriggerContext(Kind.CHAT)
+    class Sound(val name: String, val volume: Float, val pitch: Float) : TriggerContext(Kind.SOUND)
+    class Key(val key: Int) : TriggerContext(Kind.KEY)
+    class Command(val command: String, var cancelled: Boolean = false) : TriggerContext(Kind.COMMAND)
 
-    class Sound(val name: String, val volume: Float, val pitch: Float) : TriggerContext {
-        override val data = mutableMapOf<String, String>()
-    }
+    /**
+     * Copies event values and placeholders for an independent execution context.
+     */
+    fun snapshot(): TriggerContext = when (this) {
+        is Tick -> Tick()
+        is Chat -> Chat(message, cancelled)
+        is Sound -> Sound(name, volume, pitch)
+        is Key -> Key(key)
+        is Command -> Command(command, cancelled)
+    }.also { it.data.putAll(data) }
 
-    class Key(val key: Int) : TriggerContext {
-        override val data = mutableMapOf<String, String>()
+    /**
+     * Replaces known placeholders in [template] once.
+     * Unknown placeholders and placeholders inside captured values are left unchanged.
+     */
+    fun expand(template: String): String = PLACEHOLDER.replace(template) { data[it.value] ?: it.value }
+
+    private companion object {
+        val PLACEHOLDER = Regex("%[A-Za-z0-9_]+%")
     }
 }

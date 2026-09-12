@@ -1,28 +1,19 @@
 package quoi.api.customtriggers.actions
 
-import quoi.api.abobaui.constraints.impl.positions.Centre
-import quoi.api.abobaui.constraints.impl.size.Copying
-import quoi.api.abobaui.constraints.impl.size.Fill
-import quoi.api.abobaui.dsl.*
 import quoi.api.abobaui.elements.ElementScope
-import quoi.api.abobaui.elements.Layout.Companion.divider
-import quoi.api.abobaui.elements.impl.TextInput.Companion.maxWidth
-import quoi.api.abobaui.elements.impl.TextInput.Companion.onTextChanged
 import quoi.api.customtriggers.TriggerContext
+import quoi.api.customtriggers.textField
+import quoi.api.customtriggers.choiceField
+import quoi.api.customtriggers.fieldRow
 import quoi.config.TypeName
 import quoi.utils.ChatUtils
-import quoi.utils.ThemeManager.theme
-import quoi.utils.ui.elements.switch
-import quoi.utils.ui.elements.themedInput
 
 @TypeName("send_message")
 class SendMessageAction(var message: String = "", var client: Boolean = true) : TriggerAction {
-    override fun execute(ctx: TriggerContext) {
-        var msg = message
+    override fun validationError() = if (message.isBlank()) "Enter a message." else null
 
-        ctx.data.forEach { (key, value) ->
-            msg = msg.replace(key, value)
-        }
+    override fun execute(ctx: TriggerContext) {
+        val msg = ctx.expand(message)
 
         if (client) ChatUtils.modMessage(msg, prefix = "")
         else ChatUtils.say(msg)
@@ -34,40 +25,9 @@ class SendMessageAction(var message: String = "", var client: Boolean = true) : 
         return "Send \"$msg\" $side side"
     }
 
-    override fun ElementScope<*>.draw() = column(size(w = Copying), gap = 10.px) {
-        column(size(w = Copying)) {
-            text(
-                string = "Message",
-                size = theme.textSize,
-                colour = theme.onSurfaceVariant,
-            )
-            divider(3.px)
-
-            themedInput {
-                textInput(
-                    string = message,
-                    pos = at(x = 3.percent),
-                    size = theme.textSize,
-                    colour = theme.onSurfaceVariant,
-                    caretColour = theme.primary
-                ) {
-                    maxWidth(Fill - 3.percent)
-                    onTextChanged { (string) ->
-                        message = string
-                    }
-                }
-            }
-        }
-
-        row(gap = 7.px) {
-            divider(2.px)
-            switch(::client, size = 16.px)
-            text(
-                string = "Client-side",
-                size = theme.textSize,
-                colour = theme.onSurfaceVariant,
-                pos = at(y = Centre)
-            )
-        }
-    }
+    override fun ElementScope<*>.draw() = fieldRow(
+        { textField("Message", message) { message = it } },
+        { choiceField("Destination", { client }, listOf(true, false), { if (it) "Client" else "Server" }) { client = it } },
+        weights = listOf(3f, 1f)
+    )
 }
