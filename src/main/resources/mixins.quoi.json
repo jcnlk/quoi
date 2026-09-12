@@ -48,6 +48,7 @@
     "LivingEntityRendererMixin",
     "LocalPlayerMixin",
     "MinecraftMixin",
+    "GuiMixin",
     "MouseHandlerMixin",
     "MultiPlayerGameModeMixin",
     "MushroomBlockMixin",

@@ -1,9 +1,16 @@
 package quoi.utils.skyblock.player.container.task
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
+import net.minecraft.world.inventory.AbstractContainerMenu
 import net.minecraft.world.inventory.ContainerInput
+import quoi.QuoiMod.logger
+import quoi.utils.ChatUtils
+import quoi.utils.skyblock.player.container.ContainerOptions
 import net.minecraft.world.item.ItemStack
 import quoi.utils.skyblock.item.ItemUtils.loreString
+import quoi.utils.skyblock.player.container.CONTAINER_ZERO
+import quoi.utils.skyblock.player.container.IContainerSettings
 
 @DslMarker
 private annotation class TaskDsl
@@ -17,84 +24,96 @@ sealed interface ContainerTaskResult {
 
 /**
  * Represents a sequence of [ContainerAction]s to be executed in [ContainerManager]
+ * Each task can only be run once
  */
 class ContainerTask(
     val name: String?,
     val actions: List<ContainerAction>,
     val force: Boolean,
-    val onComplete: (() -> Unit)?,
-    val preventMovement: Boolean = true,
-    val blockInput: Boolean = true,
-    val fastMode: Boolean = false,
-    val showProgress: Boolean = true,
+    settings: IContainerSettings,
+    private val onComplete: (() -> Unit)?,
     private val onFinished: ((ContainerTaskResult) -> Unit)? = null,
 ) {
+    // copy settings so changing them doesn't affect a running task
+    val settings = ContainerOptions(
+        settings.startDelay, settings.clickDelay, settings.endDelay,
+        settings.invWalk, settings.silent, settings.blockInput, settings.fastMode, settings.showProgress,
+    )
     private val completion = CompletableDeferred<ContainerTaskResult>()
-
-    var pending = true
-    var completed = false
-
-    val totalActions = actions.size
-    var completedActions = 0
-    var skippedLast = false
-    var ticksSinceLastClick = 0
-    var actionsThisTick = 0
-
-    var awaiting: ContainerAction? = null
-
-    var queue = ArrayDeque(actions)
-
     var result: ContainerTaskResult? = null
         private set
-
+    val completed: Boolean get() = result != null
+    val totalActions = actions.size
+    var completedActions = 0
+        internal set
+    internal var skippedLast = false
+    internal var ticksSinceLastClick = Int.MAX_VALUE
+    internal var containerRevision = 0L
+    internal var ownedMenu: AbstractContainerMenu? = null
+    internal var cleanupAllowed = true
+    internal var cancellationRequested = false
     internal var fastBlockActive = false
         private set
     private var fastBlockFinished = false
-    private var fastClicksRemaining = actions.count {
-        it is ContainerAction.Click || it is ContainerAction.DynamicClick
-    }
+    private var clicksRemaining = actions.count { it is ItemAction }
+
+    val stopsMovement: Boolean
+        get() = (!settings.invWalk || (!force && settings.clickDelay.second > 0 &&
+            actions.any { it is ContainerAction.Click && it.target.inContainer != true })) &&
+            (!settings.fastMode || fastBlockActive)
+
+    internal val blocksInput: Boolean
+        get() = settings.blockInput && (!settings.fastMode || fastBlockActive)
 
     /**
-     * Submits this task to the [ContainerManager] for execution
+     * Submits this task to the [ContainerManager] for execution on the client thread
      */
     fun run(): ContainerTask = ContainerManager.execute(this)
 
-    /** Waits for the terminal result of a task submitted with [run]. */
-    suspend fun await(): ContainerTaskResult = completion.await()
+    /**
+     * Waits for the result of a task submitted with [run]
+     * Cancelling the caller also cancels the task
+     */
+    suspend fun await(): ContainerTaskResult = try {
+        completion.await()
+    } catch (e: CancellationException) {
+        cancel()
+        throw e
+    }
 
-    /** Cancels this task when it is currently managed by [ContainerManager]. */
+    /**
+     * Cancels the task and any pending waits
+     */
     fun cancel() = ContainerManager.cancel(this)
 
-    /** Starts the one-shot input block used by [fastMode]. */
-    internal fun beginFastBlock(): Boolean {
-        if (!fastMode || fastBlockFinished) return false
-        fastBlockActive = true
-        return true
+    internal fun beginFastBlock() {
+        if (settings.fastMode && !fastBlockFinished) fastBlockActive = true
     }
 
-    /** Ends the fast block after the last planned click. */
-    internal fun finishFastBlockAfterClick(): Boolean {
-        if (!fastMode || !fastBlockActive) return false
-        if (fastClicksRemaining > 0) fastClicksRemaining--
-        if (fastClicksRemaining > 0) return false
-
-        return finishFastBlock()
-    }
-
-    /** Ends the fast block permanently so a later container reopen cannot re-arm it. */
-    internal fun finishFastBlock(): Boolean {
-        if (!fastMode || !fastBlockActive) return false
-        fastBlockActive = false
-        fastBlockFinished = true
-        return true
+    internal fun finishClick() {
+        if (clicksRemaining > 0) clicksRemaining--
+        if (clicksRemaining == 0) {
+            fastBlockActive = false
+            fastBlockFinished = true // don't block again if the container reopens
+        }
     }
 
     internal fun finish(result: ContainerTaskResult) {
         if (this.result != null) return
-
         this.result = result
-        onFinished?.invoke(result)
-        completion.complete(result)
+        try {
+            if (result == ContainerTaskResult.Success) onComplete?.invoke()
+        } catch (e: Exception) {
+            logger.error("Container completion callback failed", e)
+        } finally {
+            try {
+                onFinished?.invoke(result)
+            } catch (e: Exception) {
+                logger.error("Container result callback failed", e)
+            } finally {
+                completion.complete(result)
+            }
+        }
     }
 }
 
@@ -104,35 +123,14 @@ class ContainerTaskBuilder(val force: Boolean) {
     var onComplete: (() -> Unit)? = null
     var onFinished: ((ContainerTaskResult) -> Unit)? = null
 
-    private fun click(
-        slot: MenuSlot,
-        button: Int,
-        input: ContainerInput,
-        timeout: Int = 20,
-        failureMessage: String = "Timed out",
-    ): ContainerAction {
-        val action = when (slot) {
-            is IndexSlot -> ContainerAction.Click(slot.index, button, input, slot.inContainer)
-            is ItemSlot -> ContainerAction.DynamicClick(
-                slot.predicate,
-                button,
-                input,
-                slot.inContainer,
-                timeout,
-                failureMessage,
-            )
-        }
+    private fun click(slot: MenuSlot, button: Int, input: ContainerInput, timeout: Int = 20, failureMessage: String = "Timed out finding item"): ItemAction {
+        val action = ContainerAction.Click(slot, button, input, timeout, failureMessage)
         actions.add(action)
         return action
     }
 
-    fun pickup(
-        slot: MenuSlot,
-        button: Int = 0,
-        timeout: Int = 20,
-        failureMessage: String = "Timed out",
-    ) = click(slot, button, ContainerInput.PICKUP, timeout, failureMessage) // right/left click
-
+    fun pickup(slot: MenuSlot, button: Int = 0, timeout: Int = 20, failureMessage: String = "Timed out finding item") =
+        click(slot, button, ContainerInput.PICKUP, timeout, failureMessage) // right/left click
     fun pickupAll(slot: MenuSlot) = click(slot, 0, ContainerInput.PICKUP_ALL) // double click
 
     fun throwOne(slot: MenuSlot) = click(slot, 0, ContainerInput.THROW) // q
@@ -188,29 +186,45 @@ class ContainerTaskBuilder(val force: Boolean) {
         }
     }
 
-    fun action(block: () -> Unit) = actions.add(ContainerAction.Other(block)) // custom action
+    /**
+     * Opens a container with [command] and waits for it using [awaitContainer]
+     */
+    fun openContainer(command: String, name: String, waitForItems: Boolean = true, timeout: Int = 20) {
+        openContainer(command, Regex(Regex.escape(name), RegexOption.IGNORE_CASE), waitForItems, timeout)
+    }
 
-    /** Runs after a click and keeps its skip state available to the next await action. */
-    fun afterClick(block: () -> Unit) = actions.add(ContainerAction.AfterClick(block))
+    fun openContainer(command: String, name: Regex, waitForItems: Boolean = true, timeout: Int = 20) {
+        action { ChatUtils.command(command) }
+        awaitContainer(name, waitForItems, timeout)
+    }
 
+    fun closeContainer() = actions.add(ContainerAction.Close()) // only closes the task's container
+
+    /**
+     * Aborts the task with [failureMessage] if [predicate] is false
+     */
     fun check(failureMessage: String, predicate: () -> Boolean) =
         actions.add(ContainerAction.Check(failureMessage, predicate))
 
-    fun wait(ticks: Int) = actions.add(ContainerAction.Wait(ticks)) // wait N ticks
-
-    fun onComplete(callback: () -> Unit) { // cb on task finish
-        onComplete = callback
-    }
-
-    /** Invoked for success, failure, cancellation, and a busy manager. */
+    /**
+     * Called on success, failure, cancellation or if another task is already running
+     */
     fun onFinished(callback: (ContainerTaskResult) -> Unit) {
         onFinished = callback
+    }
+
+    fun action(block: () -> Unit) = actions.add(ContainerAction.Other(block)) // custom action
+
+    fun wait(ticks: Int) = actions.add(ContainerAction.Wait(ticks)) // wait N ticks
+
+    fun onComplete(callback: () -> Unit) { // cb on successful task finish
+        onComplete = callback
     }
 
     /**
      * skips the action if the [block] is `true` for the item in the target slot.
      */
-    fun <T : ContainerAction> T.unless(block: (ItemStack) -> Boolean): T {
+    fun <T : ItemAction> T.unless(block: (ItemStack) -> Boolean): T {
         skipIf = block
         return this
     }
@@ -218,37 +232,24 @@ class ContainerTaskBuilder(val force: Boolean) {
     /**
      * skips the action if the item's name contains [text]
      */
-    fun <T : ContainerAction> T.unlessName(text: String): T = unless { it.displayName.string.contains(text) }
+    fun <T : ItemAction> T.unlessName(text: String): T = unless { it.displayName.string.contains(text) }
 
     /**
      * skips the action if the item's lore contains [text]
      */
-    fun <T : ContainerAction> T.unlessLore(text: String): T = unless { it.loreString?.contains(text) == true }
+    fun <T : ItemAction> T.unlessLore(text: String): T = unless { it.loreString?.contains(text) == true }
 }
 
 /**
- * @param force if btrue`, bypasses 1 action per tick limit
- * @param fastMode limits movement and input blocking to the first matching container opening through the final planned click
+ * @param name optional task name. if not null it will be rendered in the middle of the screen
+ * @param force if `true`, bypasses [IContainerSettings.clickDelay] delay
+ * @param settings [IContainerSettings] for the task. [CONTAINER_ZERO] by default
  */
-@TaskDsl
 fun containerTask(
     name: String? = null,
     force: Boolean = false,
-    preventMovement: Boolean = true,
-    blockInput: Boolean = true,
-    fastMode: Boolean = false,
-    showProgress: Boolean = true,
+    settings: IContainerSettings = CONTAINER_ZERO,
     builder: ContainerTaskBuilder.() -> Unit
 ): ContainerTask = ContainerTaskBuilder(force).apply(builder).run {
-    ContainerTask(
-        name,
-        actions,
-        force,
-        onComplete,
-        preventMovement,
-        blockInput,
-        fastMode,
-        showProgress,
-        onFinished,
-    )
+    ContainerTask(name, actions.toList(), force, settings, onComplete, onFinished)
 }

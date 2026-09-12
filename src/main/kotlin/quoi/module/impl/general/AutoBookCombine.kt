@@ -10,9 +10,10 @@ import quoi.module.Module
 import quoi.module.settings.Setting.Companion.json
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.skyblock.item.ItemUtils.extraAttributes
-import quoi.utils.skyblock.player.container.ContainerUtils.containerSize
+import quoi.utils.skyblock.player.container.ContainerOptions
 import quoi.utils.skyblock.player.container.task.ContainerTask
-import quoi.utils.skyblock.player.container.task.any
+import quoi.utils.skyblock.player.container.task.inv
+import quoi.utils.skyblock.player.container.task.menu
 import quoi.utils.skyblock.player.container.task.containerTask
 
 object AutoBookCombine : Module(
@@ -43,22 +44,20 @@ object AutoBookCombine : Module(
 
             val task = containerTask(
                 force = true,
-                preventMovement = false,
-                blockInput = false,
-                showProgress = false,
+                settings = ContainerOptions(silent = false, showProgress = false),
             ) {
                 check("Anvil was closed", isCurrentAnvil)
-                quickMove(pair.first.any)
-                wait(clickDelay + 1)
+                quickMove(pair.first.inv)
+                wait(clickDelay)
 
                 check("Anvil was closed", isCurrentAnvil)
-                quickMove(pair.second.any)
-                wait(clickDelay + 1)
+                quickMove(pair.second.inv)
+                wait(clickDelay)
 
                 repeat(2) {
                     check("Anvil was closed", isCurrentAnvil)
-                    pickup(22.any) // combined book slot
-                    wait(resultDelay + 1)
+                    pickup(22.menu) // combined book slot
+                    wait(resultDelay)
                 }
 
                 onComplete { combinedInCurrentAnvil = true }
@@ -89,12 +88,14 @@ object AutoBookCombine : Module(
     private fun findBookPair(screen: AbstractContainerScreen<*>): Pair<Int, Int>? {
         val firstSlots = mutableMapOf<Enchantment, Int>()
 
-        for (slot in screen.menu.slots.drop(screen.menu.type.containerSize)) {
+        for (slot in screen.menu.slots.filter { it.container === player.inventory }) {
             val enchant = slot.item.singleEnchantment() ?: continue
             if (enchant.level == 5 || enchant.level == 10) continue
 
-            val firstSlot = firstSlots.putIfAbsent(enchant, slot.index)
-            if (firstSlot != null) return firstSlot to slot.index
+            val inventoryIndex = slot.containerSlot
+            val inventorySlot = if (inventoryIndex in 0..8) inventoryIndex + 36 else inventoryIndex
+            val firstSlot = firstSlots.putIfAbsent(enchant, inventorySlot)
+            if (firstSlot != null) return firstSlot to inventorySlot
         }
 
         return null

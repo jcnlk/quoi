@@ -1,5 +1,6 @@
 package quoi.module.impl.floor7
 
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
 import net.minecraft.world.item.Items
 import quoi.QuoiMod.scope
@@ -101,7 +102,7 @@ object AutoInvincibility : Module(
     private fun startPhoenixProcWatch() {
         val watchId = ++phoenixWatchId
 
-        scope.launch {
+        scope.launch(mc.asCoroutineDispatcher()) {
             wait(100, server = true)
 
             if (watchId != phoenixWatchId || Dungeon.isDead || !isPhoenixEquipped()) return@launch
@@ -114,7 +115,7 @@ object AutoInvincibility : Module(
         if (Dungeon.isDead || swapping) return
 
         swapping = true
-        scope.launch {
+        scope.launch(mc.asCoroutineDispatcher()) {
             try {
                 wait(swapDelay, server = true)
 
@@ -136,7 +137,7 @@ object AutoInvincibility : Module(
 
         val swapId = ++phoenixSwapId
         swapping = true
-        scope.launch {
+        scope.launch(mc.asCoroutineDispatcher()) {
             try {
                 wait(swapDelay, server = true)
 
@@ -201,7 +202,7 @@ object AutoInvincibility : Module(
         val swapId = phoenixSwapId
         val watchId = phoenixWatchId
 
-        scope.launch {
+        scope.launch(mc.asCoroutineDispatcher()) {
             while (swapping || PetSwitcher.isBusy()) {
                 wait(1)
             }

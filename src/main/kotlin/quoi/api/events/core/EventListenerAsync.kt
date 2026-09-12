@@ -1,9 +1,12 @@
 package quoi.api.events.core
 
 import kotlinx.coroutines.*
+import net.minecraft.network.protocol.Packet
 import quoi.QuoiMod.mc
+import quoi.api.events.PacketEvent
 import quoi.api.events.TickEvent
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.*
 
 class ListenerInactiveException(listener: EventListener) :
@@ -105,3 +108,75 @@ suspend fun EventListener.wait(ticks: Int) {
         cont.invokeOnCancellation { subscription.unregister() }
     }
 }
+
+/**
+ * Suspends until an event matches [predicate]
+ * @param timeout client ticks to wait. negative waits indefinitely, 0 returns immediately
+ * @return the matching event, or `null` on timeout
+ */
+suspend inline fun <reified T : Event> EventListener.await(
+    priority: Int = 0,
+    acceptCancelled: Boolean = false,
+    timeout: Int = -1,
+    crossinline predicate: T.() -> Boolean = { true },
+): T? {
+    if (timeout == 0) return null
+
+    return suspendCancellableCoroutine { cont ->
+        var ticks = 0
+        val settled = AtomicBoolean()
+        var timeoutSub: Subscription<TickEvent.Start>? = null
+        lateinit var eventSub: Subscription<T>
+        eventSub = on<T>(priority, acceptCancelled, register = false) {
+            if (settled.get()) return@on
+            try {
+                if (predicate(this) && settled.compareAndSet(false, true)) {
+                    eventSub.unregister()
+                    timeoutSub?.unregister()
+                    cont.resume(this)
+                }
+            } catch (e: Exception) {
+                if (settled.compareAndSet(false, true)) {
+                    eventSub.unregister()
+                    timeoutSub?.unregister()
+                    cont.resumeWithException(e)
+                }
+            }
+        }
+        if (timeout > 0) {
+            timeoutSub = on<TickEvent.Start>(priority, register = false) {
+                if (++ticks >= timeout && settled.compareAndSet(false, true)) {
+                    eventSub.unregister()
+                    timeoutSub?.unregister()
+                    cont.resume(null)
+                }
+            }
+        }
+
+        EventManager.register(eventSub)
+        timeoutSub?.let(EventManager::register)
+        cont.invokeOnCancellation {
+            settled.set(true)
+            eventSub.unregister()
+            timeoutSub?.unregister()
+        }
+        // the event may have arrived before the timeout subscription was registered
+        if (settled.get()) {
+            eventSub.unregister()
+            timeoutSub?.unregister()
+        }
+    }
+}
+
+/**
+ * [await] filtered to packets
+ */
+@JvmName("awaitPacket")
+suspend inline fun <reified E, reified P : Packet<*>> EventListener.await(
+    priority: Int = 0,
+    acceptCancelled: Boolean = false,
+    timeout: Int = -1,
+    crossinline predicate: PacketScope<E, P>.() -> Boolean = { true },
+): P? where E : Event, E : PacketEvent = await<E>(priority, acceptCancelled, timeout) {
+    packet is P && predicate(PacketScope(this, packet as P))
+}?.packet as? P

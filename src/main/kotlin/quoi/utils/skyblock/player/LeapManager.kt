@@ -19,6 +19,7 @@ import quoi.api.skyblock.dungeon.enums.DungeonClass
 import quoi.api.skyblock.dungeon.enums.DungeonPlayer
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.skyblock.player.container.ContainerUtils
+import quoi.utils.skyblock.player.container.menuSettings
 import quoi.utils.skyblock.player.container.task.*
 
 @Init
@@ -46,13 +47,15 @@ object LeapManager : EventListener {
 
     init {
         on<ChatEvent.Packet> {
-            if (!inProgress) return@on
             if (unformatted != "You cannot use this in a solo dungeon!" &&
                 unformatted != "There are no other players to teleport to!"
             ) return@on
 
-            modMessage("&cFailed to leap! You're in a solo dungeon!")
-            task?.cancel() ?: resetActiveLeap()
+            onClientThread {
+                if (!inProgress) return@onClientThread
+                modMessage("&cFailed to leap! You're in a solo dungeon!")
+                task?.cancel() ?: resetActiveLeap()
+            }
         }
 
         on<WorldEvent.Change> {
@@ -66,16 +69,18 @@ object LeapManager : EventListener {
         }
 
         on<TickEvent.Server> {
-            if (leapCD > 0) leapCD -= 1
+            onClientThread {
+                if (leapCD > 0) leapCD -= 1
 
-            val pending = pendingLeap
-            if (pending != null &&
-                mc.gui.screen() == null &&
-                ContainerUtils.containerId == 0 &&
-                ContainerManager.activeTask == null
-            ) {
-                pendingLeap = null
-                doLeap(pending)
+                val pending = pendingLeap
+                if (pending != null &&
+                    mc.gui.screen() == null &&
+                    ContainerUtils.containerId == 0 &&
+                    ContainerManager.activeTask == null
+                ) {
+                    pendingLeap = null
+                    doLeap(pending)
+                }
             }
         }
     }
@@ -86,10 +91,12 @@ object LeapManager : EventListener {
         fastMode: Boolean = false,
         swapBack: Boolean = false,
     ) {
-        if (name == "" || !inDungeons) return
+        onClientThread {
+            if (name == "" || !inDungeons) return@onClientThread
 
-        val teammate = dungeonTeammatesNoSelf.firstOrNull { !it.isDead && it.name == name }
-        startLeap(teammate, formatName(name), blockInput, fastMode, swapBack)
+            val teammate = dungeonTeammatesNoSelf.firstOrNull { !it.isDead && it.name == name }
+            startLeap(teammate, formatName(name), blockInput, fastMode, swapBack)
+        }
     }
 
     fun leap(
@@ -98,10 +105,19 @@ object LeapManager : EventListener {
         fastMode: Boolean = false,
         swapBack: Boolean = false,
     ) {
-        if (clazz == DungeonClass.Unknown || !inDungeons) return
+        onClientThread {
+            if (clazz == DungeonClass.Unknown || !inDungeons) return@onClientThread
 
-        val teammate = dungeonTeammatesNoSelf.firstOrNull { !it.isDead && it.clazz == clazz }
-        startLeap(teammate, "&${clazz.colourCode}${clazz.name}", blockInput, fastMode, swapBack)
+            val teammate = dungeonTeammatesNoSelf.firstOrNull { !it.isDead && it.clazz == clazz }
+            startLeap(teammate, "&${clazz.colourCode}${clazz.name}", blockInput, fastMode, swapBack)
+        }
+    }
+
+    private fun onClientThread(block: () -> Unit) {
+        val level = mc.level
+        mc.execute {
+            if (mc.level === level) block()
+        }
     }
 
     private fun startLeap(
@@ -144,10 +160,7 @@ object LeapManager : EventListener {
         activeLeap = leap
         val newTask = containerTask(
             name = "Leap to ${leap.target.name}",
-            force = leap.fastMode,
-            preventMovement = true,
-            blockInput = leap.blockInput,
-            fastMode = leap.fastMode,
+            settings = menuSettings(blockInput = leap.blockInput, fastMode = leap.fastMode),
         ) {
             if (!preOpened) {
                 action { PlayerUtils.interact() }
@@ -179,7 +192,6 @@ object LeapManager : EventListener {
             ContainerTaskResult.Cancelled -> Unit
             is ContainerTaskResult.Failure -> {
                 modMessage("&cFailed to leap to ${formatName(leap.target)}&c: ${result.message}")
-                if (ContainerUtils.containerId != 0) mc.player?.closeContainer()
             }
         }
 

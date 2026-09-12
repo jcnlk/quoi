@@ -25,7 +25,7 @@ import quoi.utils.skyblock.item.ItemUtils.loreString
 import quoi.utils.skyblock.item.ItemUtils.skyblockId
 import quoi.utils.skyblock.item.ItemUtils.skyblockUuid
 import quoi.utils.skyblock.player.PetUtils.pet
-import quoi.utils.skyblock.player.container.ContainerUtils
+import quoi.utils.skyblock.player.container.menuSettings
 import quoi.utils.skyblock.player.container.ContainerUtils.clickSlot
 import quoi.utils.skyblock.player.container.task.ContainerTaskResult
 import quoi.utils.skyblock.player.container.task.containerTask
@@ -200,12 +200,10 @@ object PetKeybinds : Module(
         var pets = emptyList<ItemStack>()
         val task = containerTask(
             name = "Read pets",
-            force = fastMode,
-            fastMode = fastMode,
-            showProgress = false,
+            settings = menuSettings(fastMode = fastMode, showProgress = false),
         ) {
-            action { ChatUtils.command("petsmenu") }
-            awaitContainer(
+            openContainer(
+                "petsmenu",
                 Regex(
                     """^(?:\(\d+/\d+\) )?Pets(?: \(\d+/\d+\))?$""",
                     RegexOption.IGNORE_CASE,
@@ -215,16 +213,12 @@ object PetKeybinds : Module(
             )
             action {
                 pets = player.containerMenu.items
-                    .slice(9..<45)
+                    .drop(9).take(36)
                     .filterIndexed { index, item -> index % 9 != 0 && index % 9 != 8 && !item.isEmpty }
+                    .map(ItemStack::copy)
             }
-            action { player.closeContainer() }
+            closeContainer()
 
-            onFinished { result ->
-                if (result != ContainerTaskResult.Busy && ContainerUtils.containerId != 0) {
-                    player.closeContainer()
-                }
-            }
         }
 
         if (mc.isSameThread) task.run() else mc.execute { task.run() }
