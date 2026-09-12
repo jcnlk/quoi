@@ -1,53 +1,60 @@
 package quoi.utils.skyblock.player.container
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectMaps
 import net.minecraft.client.player.LocalPlayer
-import net.minecraft.network.HashedStack
+import net.minecraft.network.protocol.Packet
+import net.minecraft.network.protocol.game.ClientGamePacketListener
 import net.minecraft.network.protocol.game.ClientboundContainerClosePacket
+import net.minecraft.network.protocol.game.ClientboundContainerSetContentPacket
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
-import net.minecraft.network.protocol.game.ServerboundContainerClickPacket
 import net.minecraft.network.protocol.game.ServerboundContainerClosePacket
 import net.minecraft.world.inventory.ContainerInput
 import net.minecraft.world.inventory.MenuType
-import net.minecraft.world.item.ItemStack
+import net.minecraft.world.inventory.AbstractContainerMenu
+import quoi.api.events.ContainerEvent
 import quoi.annotations.Init
 import quoi.api.events.PacketEvent
 import quoi.api.events.WorldEvent
 import quoi.api.events.core.EventListener
 import quoi.api.events.core.Priority
 import quoi.api.events.core.on
-import quoi.api.events.core.until
-import quoi.utils.ChatUtils
-import quoi.utils.Scheduler
 import quoi.utils.Shortcuts
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
+import quoi.utils.skyblock.player.container.task.ContainerAction
+import quoi.utils.skyblock.player.container.task.ContainerManager
 
 @Init
-object ContainerUtils : EventListener, Shortcuts { // todo cleanup
+object ContainerUtils : EventListener, Shortcuts {
+    @Volatile
     var containerId = 0
         private set
+    @Volatile
     var lastStateId = 0
         private set
 
+    @Volatile
     var containerServerSide = false
         private set
 
-    private var nextToCancel: String? = null
+    class OpenContainer(val title: String, val menu: AbstractContainerMenu, val revision: Long) {
+        var itemsLoaded = false
+            internal set
+    }
+
+    var current: OpenContainer? = null
+        private set
+    var revision = 0L
+        private set
 
     init {
-        on<PacketEvent.Received>(Priority.HIGHEST + 1) { // more than highest to ensure some ret doesn't cancel it on highest prio
+        on<PacketEvent.Received>(Priority.HIGHEST + 1) {
             when (packet) {
                 is ClientboundOpenScreenPacket -> {
                     containerId = packet.containerId
                     lastStateId = 0
-                    if (nextToCancel != null && packet.title.string.contains(nextToCancel!!, ignoreCase = true)) {
-                        nextToCancel = null
-                        cancel()
-                    }
+                    containerServerSide = false
                 }
                 is ClientboundContainerClosePacket -> {
+                    if (packet.containerId != containerId) return@on
                     containerId = 0
                     lastStateId = 0
                     containerServerSide = false
@@ -55,15 +62,60 @@ object ContainerUtils : EventListener, Shortcuts { // todo cleanup
                 is ClientboundContainerSetSlotPacket -> {
                     if (packet.containerId == containerId) lastStateId = packet.stateId
                 }
+                is ClientboundContainerSetContentPacket -> {
+                    if (packet.containerId == containerId) lastStateId = packet.stateId
+                }
             }
         }
         on<PacketEvent.Received, ClientboundOpenScreenPacket>(Priority.LOWEST - 1, acceptCancelled = true) {
+            val owner = ContainerManager.activeTask?.takeIf { task ->
+                task.settings.silent && task.actions.any {
+                    it is ContainerAction.AwaitContainer && it.containerName.containsMatchIn(packet.title.string)
+                }
+            }
+            if (owner != null) cancel()
             if (cancelled) {
-                containerServerSide = true
-                player.containerMenu = packet.type.create(packet.containerId, player.inventory)
+                val connection = mc.connection ?: return@on
+                val level = mc.level
+                // 26.1 handles queued packets before mc.execute tasks, so the menu must use the packet queue too
+                mc.packetProcessor().scheduleIfPossible(connection, object : Packet<ClientGamePacketListener> {
+                    override fun type() = packet.type()
+
+                    override fun handle(listener: ClientGamePacketListener) {
+                        val player = mc.player ?: return
+                        if (mc.connection !== connection || mc.level !== level) return
+                        // task was cancelled while the open packet was queued
+                        if (owner != null && (owner.cancellationRequested || owner.completed || ContainerManager.activeTask !== owner)) {
+                            connection.send(ServerboundContainerClosePacket(packet.containerId))
+                            return
+                        }
+                        containerServerSide = true
+                        player.containerMenu = packet.type.create(packet.containerId, player.inventory)
+                        if (owner != null) owner.ownedMenu = player.containerMenu
+                        opened(packet, player.containerMenu)
+                    }
+                })
+            }
+        }
+        on<PacketEvent.ReceivedPost>(Priority.LOWEST) {
+            when (val p = packet) {
+                is ClientboundOpenScreenPacket -> mc.player?.containerMenu?.let { menu ->
+                    if (menu.containerId == p.containerId) opened(p, menu)
+                }
+                is ClientboundContainerSetContentPacket -> loaded(p.containerId)
+                is ClientboundContainerSetSlotPacket -> {
+                    val container = current ?: return@on
+                    // servers that send slots individually finish with the last container slot
+                    val lastMenuSlot = container.menu.slots.indexOfLast { it.container !== mc.player?.inventory }
+                    if (p.slot == lastMenuSlot) loaded(p.containerId)
+                }
+                is ClientboundContainerClosePacket -> {
+                    if (current?.menu?.containerId == p.containerId) current = null
+                }
             }
         }
         on<PacketEvent.Sent, ServerboundContainerClosePacket>(Priority.HIGHEST + 1) {
+            if (packet.containerId != containerId) return@on
             containerId = 0
             lastStateId = 0
             containerServerSide = false
@@ -72,7 +124,21 @@ object ContainerUtils : EventListener, Shortcuts { // todo cleanup
             containerId = 0
             lastStateId = 0
             containerServerSide = false
+            current = null
         }
+    }
+
+    private fun opened(packet: ClientboundOpenScreenPacket, menu: AbstractContainerMenu) {
+        val container = OpenContainer(packet.title.string, menu, ++revision)
+        current = container
+        ContainerEvent.Open(container).post()
+    }
+
+    private fun loaded(id: Int) {
+        val container = current ?: return
+        if (container.menu.containerId != id || mc.player?.containerMenu !== container.menu) return
+        container.itemsLoaded = true
+        ContainerEvent.Items(container).post()
     }
 
     inline val MenuType<*>.containerSize: Int
@@ -92,78 +158,8 @@ object ContainerUtils : EventListener, Shortcuts { // todo cleanup
             else -> 54
         }
 
-    /**
-     * Opens a container via a command and fetches its items into a list.
-     *
-     * @param command The command to open the container (e.g., "petsmenu").
-     * @param containerName The name of the container to open (e.g., "Pets")
-     * @param slots The number of slots in the container (default 54).
-     * @param timeout Maximum number of ticks to wait for all items (default 20).
-     * @return A list of [ItemStack?] representing the container contents.
-     *  *         Slots with no item are `null`.
-     *  *         Returns an empty list if fetching fails, times out, or container could not be read.
-     *
-     *  Notes:
-     *  - If the container fails to load within [timeout] ticks, returns `emptyList()`.
-     *  - You should check for `emptyList()` to detect unsuccessful fetching.
-     *  - This function cancels GUI rendering on the client side.
-     *  - After fetching items, the container remains open server side. Use [closeContainer] if you want to close the container.
-     *    If you want to automatically close
-     *    it after fetching, use [getContainerItemsClose] instead.
-     */
-    suspend fun getContainerItems(command: String, containerName: String, slots: Int = 54, timeout: Int = 20): List<ItemStack?> = // todo remove or replace with containertask
-        suspendCoroutine { cont ->
-            val items = MutableList<ItemStack?>(slots) { null }
-            var windowId: Int? = null
-            var complete = false
-
-            ChatUtils.command(command)
-
-            val openSub = until<PacketEvent.Received, ClientboundOpenScreenPacket>(Priority.LOWEST) {
-                if (!packet.title.string.contains(containerName, true)) return@until false
-                windowId = packet.containerId
-                cancel()
-                true
-            }
-
-            val setSlotSub = until<PacketEvent.Received, ClientboundContainerSetSlotPacket>(Priority.LOWEST) {
-                if (packet.containerId != windowId) return@until false
-                val slot = packet.slot
-                if (slot !in 0..<slots) return@until false
-                items[slot] = if (packet.item.isEmpty) null else packet.item
-
-                if (slot == slots - 1) {
-                    complete = true
-                    cont.resume(items)
-                    true
-                } else {
-                    false
-                }
-            }
-
-            Scheduler.scheduleTask(timeout) {
-                if (!complete) {
-                    openSub.unregister()
-                    setSlotSub.unregister()
-                    ChatUtils.modMessage("&cError: fetching items. timed out")
-                    cont.resume(emptyList())
-                }
-            }
-        }
-
-    /**
-     * Same as [getContainerItems] but automatically closes the container afterward.
-     *
-     * @see [quoi.module.impl.general.PetKeybinds.getPets]
-     */
-    suspend fun getContainerItemsClose(command: String, containerName: String, slots: Int = 54, timeout: Int = 20): List<ItemStack?> { // todo remove or replace with containertask
-        val items = getContainerItems(command, containerName, slots, timeout)
-        closeContainer()
-        return items
-    }
-
     fun LocalPlayer.clickSlot(slot: Int, containerId: Int = ContainerUtils.containerId, button: Int = 0, shift: Boolean = false) {
-        if (containerId == 0) return
+        if (containerId == 0 || containerMenu.containerId != containerId || slot !in containerMenu.slots.indices) return
 
         val clickType = when {
             button == 2 -> ContainerInput.CLONE
@@ -172,39 +168,5 @@ object ContainerUtils : EventListener, Shortcuts { // todo cleanup
         }
 
         gameMode.handleContainerInput(containerId, slot, button, clickType, this)
-    }
-
-    fun click(slot: Int, button: Int = 0, shift: Boolean = false): Boolean { // todo remove
-        if (containerId == 0) return false
-
-        val ContainerInput = when {
-            button == 2 -> ContainerInput.CLONE
-            shift -> ContainerInput.QUICK_MOVE
-            else -> ContainerInput.PICKUP
-        }
-
-        Scheduler.scheduleTask {
-            connection.send(
-                ServerboundContainerClickPacket(
-                    containerId,
-                    lastStateId,
-                    slot.toShort(),
-                    button.toByte(),
-                    ContainerInput,
-                    Int2ObjectMaps.emptyMap(),
-                    HashedStack.EMPTY
-                )
-            )
-        }
-        return true
-    }
-
-    fun closeContainer(): Boolean {
-        if (containerId == 0) return false
-        Scheduler.scheduleTask {
-            connection.send(ServerboundContainerClosePacket(containerId))
-        }
-
-        return true
     }
 }
