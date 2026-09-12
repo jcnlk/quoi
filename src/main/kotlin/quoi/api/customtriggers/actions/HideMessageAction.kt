@@ -9,6 +9,9 @@ import quoi.utils.ThemeManager.theme
 
 @TypeName("hide_message")
 class HideMessageAction : TriggerAction {
+    override val requiredEvent get() = TriggerContext.Kind.CHAT
+    override val allowsDelay get() = false
+
     override fun execute(ctx: TriggerContext) {
         if (ctx is TriggerContext.Chat) ctx.cancelled = true
     }

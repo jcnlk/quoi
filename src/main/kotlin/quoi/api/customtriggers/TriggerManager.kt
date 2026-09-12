@@ -1,129 +1,167 @@
 package quoi.api.customtriggers
 
-import quoi.api.customtriggers.actions.HideMessageAction
-import quoi.api.customtriggers.actions.SendMessageAction
-import quoi.api.customtriggers.actions.TriggerAction
-import quoi.api.customtriggers.conditions.MessageCondition
-import quoi.api.customtriggers.conditions.PositionCondition
-import quoi.api.customtriggers.conditions.TriggerCondition
-import quoi.api.events.ChatEvent
-import quoi.api.events.KeyEvent
-import quoi.api.events.PacketEvent
-import quoi.api.events.TickEvent
-import quoi.config.ConfigMap
-import quoi.config.configMap
-import quoi.config.typedEntries
+import net.minecraft.network.protocol.game.ClientboundSoundEntityPacket
 import net.minecraft.network.protocol.game.ClientboundSoundPacket
-import net.minecraft.world.phys.AABB
+import quoi.QuoiMod.logger
+import quoi.QuoiMod.mc
+import quoi.api.customtriggers.actions.TriggerAction
+import quoi.api.customtriggers.conditions.TriggerCondition
+import quoi.api.customtriggers.triggers.Trigger
+import quoi.api.events.*
 import quoi.api.events.core.EventListener
 import quoi.api.events.core.on
-import java.util.UUID
-import java.util.concurrent.ConcurrentLinkedQueue
-import kotlin.getValue
+import quoi.config.ConfigMap
+import quoi.config.ConfigSystem
+import quoi.config.configPath
+import java.io.File
+import quoi.config.typedEntries
+import quoi.module.impl.misc.CustomTriggers
+import quoi.utils.ChatUtils.modMessage
+import quoi.utils.StringUtils.noControlCodes
 
+/**
+ * Connects game events to [TriggerEngine] and manages saved rules and editor previews.
+ */
 object TriggerManager : EventListener {
-    val triggers: ConfigMap<String, MutableList<Trigger>> by configMap("custom_triggers.json")
+    private val store = TriggerStore(File(configPath, "custom_triggers.json"), ConfigSystem.gson) { message, error ->
+        logger.warn(message, error)
+    }
+    val triggers: ConfigMap<String, MutableList<TriggerRule>> get() = store.triggers
+    val triggerEntries by lazy { typedEntries<Trigger>().sortedBy { it.first } }
+    val conditionEntries by lazy { typedEntries<TriggerCondition>().sortedBy { it.first } }
+    val actionEntries by lazy { typedEntries<TriggerAction>().sortedBy { it.first } }
 
-    val conditionEntries by lazy { typedEntries<TriggerCondition>() }
-    val actionEntries by lazy { typedEntries<TriggerAction>() }
-
-    private val actionQueue = ConcurrentLinkedQueue<QueuedAction>()
-
-    private data class QueuedAction(
-        val action: DelayedAction,
-        val context: TriggerContext,
-        var ticksRemaining: Int,
-        val data: Map<String, String>
+    private val engine = TriggerEngine(
+        triggers = { triggers.values.flatten() },
+        isActive = { canRun },
+        onError = { trigger, error ->
+            logger.error("Custom trigger '${trigger.name}' failed", error)
+            modMessage("&cCustom trigger '${trigger.name}' stopped: ${error.message}. Reopen the editor to retry.")
+        }
     )
+    private var previewTrigger: TriggerRule? = null
+    private val previewEngine = TriggerEngine(
+        triggers = { listOfNotNull(previewTrigger) },
+        isActive = { editing && CustomTriggers.enabled && mc.player != null && mc.level != null },
+        onError = { _, error ->
+            logger.error("Custom trigger preview failed", error)
+            modMessage("&cTrigger preview failed: ${error.message}")
+        }
+    )
+    private var initialized = false
+    @Volatile private var generation = 0L
+    var editing = false
+        set(value) {
+            field = value
+            reset()
+        }
+
+    private val canRun get() = CustomTriggers.enabled && !editing && mc.player != null && mc.level != null
 
     fun init() {
+        if (initialized) return
+        initialized = true
+        if (triggers.isEmpty()) triggers["General"] = mutableListOf()
+
         on<TickEvent.End> {
-            stupid()
-            handleEvent(TriggerContext.Tick)
+            if (editing) previewEngine.tick()
+            else if (!canRun) reset()
+            else engine.tick()
         }
-
-        on<ChatEvent.Receive.Post> {
-            val context = TriggerContext.Chat(message)
-            handleEvent(context)
-            if (context.cancelled) cancel()
-        }
-
-        on<KeyEvent.Press> {
-            handleEvent(TriggerContext.Key(key))
-        }
-
-        on<PacketEvent.Received> {
-            when (packet) {
-                is ClientboundSoundPacket -> {
-                    handleEvent(TriggerContext.Sound(packet.sound.registeredName, packet.volume, packet.pitch))
+        on<TickEvent.Server> {
+            // Server ticks originate on the network thread.
+            val level = mc.level
+            val started = generation
+            mc.execute {
+                if (mc.level === level && generation == started) {
+                    if (editing) previewEngine.tick(server = true)
+                    else if (canRun) engine.tick(server = true)
                 }
             }
         }
+        on<ChatEvent.Receive> {
+            if (!canRun) return@on
+            val context = TriggerContext.Chat(message.noControlCodes)
+            engine.handle(context)
+            if (context.cancelled) cancel()
+        }
+        on<ChatEvent.Sent> {
+            if (!canRun || !isCommand) return@on
+            val context = TriggerContext.Command(message.removePrefix("/"))
+            engine.handle(context)
+            if (context.cancelled) cancel()
+        }
+        on<KeyEvent.Press> {
+            if (canRun && mc.screen == null) engine.handle(TriggerContext.Key(key))
+        }
+        on<MouseEvent.Click> {
+            if (canRun && mc.screen == null && state) engine.handle(TriggerContext.Key(button - 100))
+        }
+        on<PacketEvent.ReceivedPost> {
+            if (!canRun) return@on
+            val context = when (val sound = packet) {
+                is ClientboundSoundPacket -> TriggerContext.Sound(sound.sound.registeredName, sound.volume, sound.pitch)
+                is ClientboundSoundEntityPacket -> TriggerContext.Sound(sound.sound.registeredName, sound.volume, sound.pitch)
+                else -> return@on
+            }
+            engine.handle(context)
+        }
+        on<WorldEvent.Change> { reset() }
+        on<ServerEvent.Disconnect> { reset() }
     }
 
-    fun addTrigger(group: String, trigger: Trigger) {
-        val list = triggers.getOrPut(group) { mutableListOf() }
-        list.add(trigger)
+    fun reset() {
+        generation++
+        engine.reset()
+        previewEngine.reset()
+        previewTrigger = null
+    }
+
+    /**
+     * Tests the actions of a rule while the editor is open.
+     * Event-editing actions require a real event and cannot be previewed.
+     *
+     * @return an error message if the preview cannot start, otherwise `null`
+     */
+    fun test(trigger: TriggerRule): String? {
+        if (!CustomTriggers.enabled) return "Enable Custom Triggers before testing actions."
+        if (!editing || mc.player == null || mc.level == null) return "Open the editor in a world to test actions."
+        trigger.validationError()?.let { return it }
+        if (trigger.actions.any { it.requiredEvent != null }) return "Hide/replace actions need a real incoming event and cannot be previewed."
+        val snapshot = ConfigSystem.gson.fromJson(ConfigSystem.gson.toJson(trigger), TriggerRule::class.java)
+            .copy(enabled = true)
+        reset()
+        previewTrigger = snapshot
+        previewEngine.preview(snapshot)
+        return null
+    }
+
+    fun addTrigger(group: String, trigger: TriggerRule) {
+        triggers.getOrPut(group) { mutableListOf() }.add(trigger)
         triggers.save()
     }
 
-    private fun handleEvent(ctx: TriggerContext) {
-        triggers.values.flatten().forEach { trigger ->
-            if (!trigger.enabled) return@forEach
-            ctx.data.clear()
+    val saveError get() = store.saveError
 
-            if (trigger.conditions.all { it.matches(ctx) }) {
-                if (trigger.state) return@forEach
-                trigger.state = true
-                trigger.actions.forEach { action ->
-                    if (action.delay > 0) actionQueue.add(QueuedAction(action, ctx, action.delay, HashMap(ctx.data)))
-                    else action.action.execute(ctx)
-                }
-            } else {
-                trigger.state = false
-            }
-        }
+    fun unsupportedCount(group: String) = store.unsupportedCount(group)
+
+    fun addGroup(): String {
+        val name = generateSequence(1) { it + 1 }.map { "Group $it" }.first { it !in triggers }
+        triggers[name] = mutableListOf()
+        return name
     }
 
-    private fun stupid() {
-        val iterator = actionQueue.iterator()
-        while (iterator.hasNext()) {
-            val action = iterator.next()
-            action.ticksRemaining--
+    fun deleteGroup(name: String) {
+        reset()
+        triggers.remove(name)
+        triggers.save()
+    }
 
-            if (action.ticksRemaining <= 0) {
-                action.context.data.clear()
-                action.context.data.putAll(action.data)
-
-                action.action.action.execute(action.context)
-                iterator.remove()
-            }
-        }
+    fun renameGroup(old: String, name: String): Boolean {
+        val new = name.trim()
+        if (new.isEmpty() || new.length > 40 || new in triggers) return false
+        if (old !in triggers) return false
+        store.renameGroup(old, new)
+        return true
     }
 }
-
-class TriggerBuilder { // temp
-    private val conditions = mutableListOf<TriggerCondition>()
-    private val actions = mutableListOf<DelayedAction>()
-
-    fun addCondition(condition: TriggerCondition): TriggerBuilder {
-        conditions.add(condition)
-        return this
-    }
-
-    fun addAction(action: TriggerAction, delay: Int = 0): TriggerBuilder {
-        actions.add(DelayedAction(action, delay))
-        return this
-    }
-
-    fun build(): Trigger {
-        return Trigger(UUID.randomUUID().toString(), "some name", true, conditions, actions)
-    }
-}
-
-fun testTrigger() = TriggerBuilder()
-    .addCondition(PositionCondition(AABB(66.0, 65.0, 109.0, 67.0, 66.0, 110.0)))
-    .addCondition(MessageCondition("TEST"))
-    .addAction(HideMessageAction())
-    .addAction(SendMessageAction("ABOB"))
-    .build()
