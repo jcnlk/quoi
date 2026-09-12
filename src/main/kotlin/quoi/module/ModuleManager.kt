@@ -67,7 +67,7 @@ object ModuleManager : EventListener {
             Test,
             CatMode,
             ChocolateFactory,
-//            CustomTriggers,
+            CustomTriggers,
             MirrorverseSolvers,
             AutoCarnival,
             Slayers,

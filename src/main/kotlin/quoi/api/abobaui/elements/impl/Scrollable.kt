@@ -31,6 +31,11 @@ class Scrollable(
 
     private var offsetY: Float = 0f
 
+    /**
+     * Current scroll position, for restoring a rebuilt list.
+     */
+    val scrollOffset: Float get() = offsetY
+
     private var fromY = 0f
     private var toY = 0f
 

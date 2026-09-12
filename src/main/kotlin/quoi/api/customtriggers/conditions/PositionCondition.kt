@@ -9,13 +9,16 @@ import quoi.config.TypeName
 import quoi.utils.ThemeManager.theme
 import net.minecraft.core.BlockPos
 import net.minecraft.world.phys.AABB
-import quoi.utils.player
+import quoi.api.customtriggers.numberField
+import quoi.api.customtriggers.fieldRow
 
 @TypeName("player_position")
 class PositionCondition(var aabb: AABB = AABB(BlockPos(0, 0, 0))) : TriggerCondition {
 
+    override fun validationError() = if (listOf(aabb.minX, aabb.minY, aabb.minZ, aabb.maxX, aabb.maxY, aabb.maxZ).any { !it.isFinite() } || aabb.xsize <= 0 || aabb.ysize <= 0 || aabb.zsize <= 0) "Position bounds need positive size on each axis." else null
+
     override fun matches(ctx: TriggerContext): Boolean {
-        return aabb.intersects(player.boundingBox)
+        return mc.player?.let { aabb.intersects(it.boundingBox) } == true
     }
 
     override fun displayString(): String {
@@ -26,11 +29,19 @@ class PositionCondition(var aabb: AABB = AABB(BlockPos(0, 0, 0))) : TriggerCondi
         return "Player at $x,$y,$z [$size]"
     }
 
-    override fun ElementScope<*>.draw() = column(size(w = Copying)) {
-        text(
-            string = "Position",
-            size = theme.textSize,
-            colour = theme.onSurfaceVariant,
-        )
+    override fun ElementScope<*>.draw() = column(size(w = Copying), gap = 8.px) {
+        val values = doubleArrayOf(aabb.minX, aabb.minY, aabb.minZ, aabb.maxX, aabb.maxY, aabb.maxZ)
+        listOf("Min", "Max").forEachIndexed { row, prefix ->
+            fieldRow(*listOf("X", "Y", "Z").mapIndexed { axis, label ->
+                val index = row * 3 + axis
+                val field: ElementScope<*>.() -> Unit = {
+                    numberField("$prefix $label", { values[index] }) {
+                        values[index] = it
+                        aabb = AABB(values[0], values[1], values[2], values[3], values[4], values[5])
+                    }
+                }
+                field
+            }.toTypedArray())
+        }
     }
 }

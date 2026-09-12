@@ -1,5 +1,6 @@
 package quoi.config
 
+import quoi.api.customtriggers.triggers.Trigger
 import quoi.api.customtriggers.actions.TriggerAction
 import quoi.api.customtriggers.conditions.TriggerCondition
 import com.google.gson.*
@@ -31,6 +32,7 @@ object ConfigSystem {
         .registerTypeHierarchyAdapter(BlockPos::class.java, BlockPosAdapter())
         .registerTypeAdapterFactory(typeAdapter<TriggerAction>())
         .registerTypeAdapterFactory(typeAdapter<TriggerCondition>())
+        .registerTypeAdapterFactory(typeAdapter<Trigger>())
         .registerTypeAdapterFactory(routeNodeAdapter<RouteNode>(RouteRegistry._nodeTypes))
         .registerTypeAdapterFactory(routeNodeAdapter<RouteAwait>(RouteRegistry.awaitTypes))
         .setPrettyPrinting()
