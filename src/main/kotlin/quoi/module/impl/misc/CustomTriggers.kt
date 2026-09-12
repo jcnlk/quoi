@@ -7,7 +7,7 @@ import quoi.utils.ui.screens.UIScreen.Companion.open
 
 object CustomTriggers : Module(
     "Custom Triggers",
-    desc = "Run configurable actions when events and conditions match.",
+    desc = "Run configurable actions in SkyBlock when events and conditions match.",
     tag = Tag.BETA
 ) {
     @Suppress("unused")

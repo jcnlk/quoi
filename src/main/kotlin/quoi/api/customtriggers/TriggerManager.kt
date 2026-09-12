@@ -7,6 +7,7 @@ import quoi.QuoiMod.mc
 import quoi.api.customtriggers.actions.TriggerAction
 import quoi.api.customtriggers.conditions.TriggerCondition
 import quoi.api.customtriggers.triggers.Trigger
+import quoi.api.skyblock.location.Location
 import quoi.api.events.*
 import quoi.api.events.core.EventListener
 import quoi.api.events.core.on
@@ -42,7 +43,7 @@ object TriggerManager : EventListener {
     private var previewTrigger: TriggerRule? = null
     private val previewEngine = TriggerEngine(
         triggers = { listOfNotNull(previewTrigger) },
-        isActive = { editing && CustomTriggers.enabled && mc.player != null && mc.level != null },
+        isActive = { editing && canRunInWorld },
         onError = { _, error ->
             logger.error("Custom trigger preview failed", error)
             modMessage("&cTrigger preview failed: ${error.message}")
@@ -56,7 +57,8 @@ object TriggerManager : EventListener {
             reset()
         }
 
-    private val canRun get() = CustomTriggers.enabled && !editing && mc.player != null && mc.level != null
+    private val canRunInWorld get() = CustomTriggers.enabled && Location.inSkyblock && mc.player != null && mc.level != null
+    private val canRun get() = canRunInWorld && !editing
 
     fun init() {
         if (initialized) return
@@ -126,6 +128,7 @@ object TriggerManager : EventListener {
     fun test(trigger: TriggerRule): String? {
         if (!CustomTriggers.enabled) return "Enable Custom Triggers before testing actions."
         if (!editing || mc.player == null || mc.level == null) return "Open the editor in a world to test actions."
+        if (!Location.inSkyblock) return "Custom Triggers only run in SkyBlock."
         trigger.validationError()?.let { return it }
         if (trigger.actions.any { it.requiredEvent != null }) return "Hide/replace actions need a real incoming event and cannot be previewed."
         val snapshot = ConfigSystem.gson.fromJson(ConfigSystem.gson.toJson(trigger), TriggerRule::class.java)
