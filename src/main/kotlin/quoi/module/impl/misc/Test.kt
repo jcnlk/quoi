@@ -55,7 +55,6 @@ import quoi.utils.skyblock.player.RotationUtils.resetRotation
 import quoi.utils.skyblock.player.RotationUtils.rotateSilently
 import quoi.utils.skyblock.player.interact.AuraAction
 import quoi.utils.skyblock.player.interact.AuraManager
-import quoi.utils.skyblock.player.container.task.any
 import quoi.utils.skyblock.player.container.task.containerTask
 import quoi.utils.skyblock.player.container.task.menu
 import quoi.utils.ui.textPair

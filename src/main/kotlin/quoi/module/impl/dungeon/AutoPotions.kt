@@ -8,11 +8,10 @@ import quoi.api.skyblock.dungeon.enums.Floor
 import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.location.invoke
 import quoi.module.Module
-import quoi.utils.ChatUtils
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.Scheduler
 import quoi.utils.skyblock.item.ItemUtils.extraAttributes
-import quoi.utils.skyblock.player.container.ContainerUtils
+import quoi.utils.skyblock.player.container.menuSettings
 import quoi.utils.skyblock.player.container.task.ContainerTask
 import quoi.utils.skyblock.player.container.task.ContainerTaskResult
 import quoi.utils.skyblock.player.container.task.containerTask
@@ -53,10 +52,9 @@ object AutoPotions : Module(
     init {
         on<DungeonEvent.Enter> {
             Scheduler.scheduleTask(triggerDelay) {
-                if (!active || floor !in floors) return@scheduleTask modMessage("no floor match")
-                if (task?.let { it.result == null } == true) return@scheduleTask modMessage("result shit")
+                if (!active || floor !in floors || task != null) return@scheduleTask
 
-                val inventory = mc.player?.inventory?.nonEquipmentItems?.take(36) ?: return@scheduleTask modMessage("inv shit")
+                val inventory = mc.player?.inventory?.nonEquipmentItems?.take(36) ?: return@scheduleTask
                 val existingTier = inventory.mapNotNull { it.dungeonPotionTier() }.maxByOrNull(PotionTier::level)
 
                 if (existingTier != null && existingTier.level >= minimumPotionTier.selected.level) {
@@ -73,28 +71,17 @@ object AutoPotions : Module(
 
                 val newTask = containerTask(
                     name = "Getting potion",
-                    force = true,
-                    preventMovement = preventMoving,
-                    blockInput = blockInputs,
-                    fastMode = fastMode
+                    settings = menuSettings(preventMovement = preventMoving, blockInput = blockInputs, fastMode = fastMode),
                 ) {
-                    action { ChatUtils.command("potionbag") }
-                    awaitContainer("Potion Bag", waitForItems = true)
+                    openContainer("potionbag", "Potion Bag")
                     check("No potion left in slot 1 of your Potion Bag") {
                         player.containerMenu.items.getOrNull(0)?.isEmpty == false
                     }
                     if (grabDelay > 0) wait(grabDelay)
                     pickup(0.menu)
-                    action { mc.player?.closeContainer() }
+                    closeContainer()
 
                     onFinished { result ->
-                        if (result != ContainerTaskResult.Success &&
-                            result != ContainerTaskResult.Busy &&
-                            ContainerUtils.containerId != 0
-                        ) {
-                            mc.player?.closeContainer()
-                        }
-
                         when (result) {
                             ContainerTaskResult.Success,
                             ContainerTaskResult.Cancelled -> Unit
@@ -113,6 +100,7 @@ object AutoPotions : Module(
         }
 
         on<ChatEvent.Packet> {
+            if (task == null) return@on
             if (unformatted != "You need the Cookie Buff active to use this feature!") return@on
             modMessage("No cookie active, canceling grab potion action.")
             reset()

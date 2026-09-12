@@ -6,17 +6,17 @@ import quoi.annotations.Init
 import quoi.api.commands.QuoiCommand
 import quoi.api.commands.internal.GreedyString
 import quoi.api.events.PetEvent
+import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
 import quoi.api.events.core.EventListener
 import quoi.api.events.core.on
 import quoi.api.skyblock.Pet
-import quoi.utils.ChatUtils
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.skyblock.item.ItemUtils.lore
 import quoi.utils.skyblock.item.ItemUtils.loreString
 import quoi.utils.skyblock.player.PetUtils.pet
-import quoi.utils.skyblock.player.container.ContainerUtils
+import quoi.utils.skyblock.player.container.menuSettings
 import quoi.utils.skyblock.player.container.task.ContainerTask
 import quoi.utils.skyblock.player.container.task.ContainerTaskResult
 import quoi.utils.skyblock.player.container.task.containerTask
@@ -24,13 +24,14 @@ import quoi.utils.skyblock.player.container.task.item
 
 @Init
 object PetSwitcher : EventListener {
-    private val menuTitle = Regex("""^(?:\(\d+/\d+\) )?Pets$""")
+    private val menuTitle = Regex("""^(?:\(\d+/\d+\) )?Pets(?: \(\d+/\d+\))?$""", RegexOption.IGNORE_CASE)
 
     @Volatile
     private var task: ContainerTask? = null
 
     @Volatile
     private var pendingSwitch: PendingSwitch? = null
+    private var confirmationTicks = 0
 
     init {
         QuoiCommand.command.sub("pet") { name: GreedyString ->
@@ -51,6 +52,13 @@ object PetSwitcher : EventListener {
         on<WorldEvent.Change> {
             pendingSwitch = null
         }
+
+        on<TickEvent.End> {
+            if (pendingSwitch != null && ++confirmationTicks >= 100) {
+                pendingSwitch = null
+                modMessage("&cPet summon was not confirmed.")
+            }
+        }
     }
 
     @JvmOverloads
@@ -70,29 +78,20 @@ object PetSwitcher : EventListener {
 
         val newTask = containerTask(
             name = "Pet: $cleanedName",
-            force = fastMode,
-            preventMovement = true,
-            blockInput = blockInput,
-            fastMode = fastMode,
+            settings = menuSettings(blockInput = blockInput, fastMode = fastMode),
         ) {
-            action { ChatUtils.command("petsmenu") }
-            awaitContainer(menuTitle, waitForItems = true)
+            openContainer("petsmenu", menuTitle)
             pickup(target, failureMessage = "Couldn't find $label").unless { stack ->
                 val summonable = stack.loreString?.contains("Left-click to summon!") == true
+                confirmationTicks = 0
                 pendingSwitch = stack.pet
                     ?.takeIf { summonable }
                     ?.let { PendingSwitch(it, label) }
                 !summonable
             }
-            action { mc.player?.closeContainer() }
+            closeContainer()
 
             onFinished { result ->
-                if (result != ContainerTaskResult.Success &&
-                    result != ContainerTaskResult.Busy &&
-                    ContainerUtils.containerId != 0
-                ) {
-                    mc.player?.closeContainer()
-                }
                 if (result != ContainerTaskResult.Success) pendingSwitch = null
 
                 task = null

@@ -4,18 +4,16 @@ import net.minecraft.world.item.ItemStack
 import quoi.QuoiMod.mc
 import quoi.annotations.Init
 import quoi.api.commands.QuoiCommand
-import quoi.utils.ChatUtils
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.StringUtils.noControlCodes
-import quoi.utils.skyblock.player.container.ContainerUtils
-import quoi.utils.skyblock.player.container.task.ContainerTask
+import quoi.utils.skyblock.player.container.menuSettings
+import quoi.utils.skyblock.player.container.task.ContainerManager
 import quoi.utils.skyblock.player.container.task.ContainerTaskResult
-import quoi.utils.skyblock.player.container.task.IndexSlot
+import quoi.utils.skyblock.player.container.task.menu
 import quoi.utils.skyblock.player.container.task.containerTask
 
 @Init
 object WardrobeUtils {
-    private var task: ContainerTask? = null
 
     init {
         QuoiCommand.command.sub("wardrobe") { slot: Int ->
@@ -35,20 +33,16 @@ object WardrobeUtils {
             modMessage("&cInvalid wardrobe slot. Use &e/quoi wardrobe <1-9>&c.")
             return false
         }
-        if (task != null) return false
+        if (ContainerManager.active) return false
 
         val targetSlot = slot + 35
         var state = WardrobeState.UNKNOWN
 
         val newTask = containerTask(
             name = "Wardrobe $slot",
-            force = fastMode,
-            preventMovement = preventMove,
-            blockInput = blockInput,
-            fastMode = fastMode,
+            settings = menuSettings(preventMovement = preventMove, blockInput = blockInput, fastMode = fastMode),
         ) {
-            action { ChatUtils.command("wardrobe") }
-            awaitContainer("(1/3) Armor Sets", waitForItems = true)
+            openContainer("wardrobe", "(1/3) Armor Sets")
 
             action {
                 state = mc.player?.containerMenu?.items?.getOrNull(targetSlot)?.wardrobeState() ?: WardrobeState.EMPTY
@@ -57,19 +51,11 @@ object WardrobeUtils {
             check("Wardrobe slot $slot is locked") { state != WardrobeState.LOCKED }
             check("Wardrobe slot $slot is not ready") { state != WardrobeState.UNKNOWN }
 
-            pickup(IndexSlot(targetSlot, true)).unless { disableUnequip && it.wardrobeState() == WardrobeState.EQUIPPED }
-            afterClick { mc.player?.closeContainer() }
+            pickup(targetSlot.menu).unless { disableUnequip && it.wardrobeState() == WardrobeState.EQUIPPED }
+            closeContainer()
             awaitContainer("(1/3) Armor Sets")
-            action { mc.player?.closeContainer() }
 
             onFinished { result ->
-                if (result != ContainerTaskResult.Success &&
-                    result != ContainerTaskResult.Busy &&
-                    ContainerUtils.containerId != 0
-                ) {
-                    mc.player?.closeContainer()
-                }
-
                 when (result) {
                     ContainerTaskResult.Success -> when {
                         disableUnequip && state == WardrobeState.EQUIPPED -> modMessage("&eWardrobe slot &f$slot &eis already equipped.")
@@ -80,13 +66,10 @@ object WardrobeUtils {
                     is ContainerTaskResult.Failure -> modMessage("&c${result.message}.")
                 }
 
-                task = null
             }
         }
 
-        task = newTask
-        newTask.run()
-        return newTask.result != ContainerTaskResult.Busy
+        return newTask.run().result == null
     }
 
     private fun ItemStack.wardrobeState(): WardrobeState {

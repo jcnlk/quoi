@@ -5,18 +5,16 @@ import quoi.QuoiMod.mc
 import quoi.annotations.Init
 import quoi.api.commands.QuoiCommand
 import quoi.api.commands.internal.GreedyString
-import quoi.utils.ChatUtils
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.StringUtils.noControlCodes
-import quoi.utils.skyblock.player.container.ContainerUtils
-import quoi.utils.skyblock.player.container.task.ContainerTask
+import quoi.utils.skyblock.player.container.menuSettings
+import quoi.utils.skyblock.player.container.task.ContainerManager
 import quoi.utils.skyblock.player.container.task.ContainerTaskResult
 import quoi.utils.skyblock.player.container.task.containerTask
 import quoi.utils.skyblock.player.container.task.item
 
 @Init
 object EquipmentSwapper {
-    private var task: ContainerTask? = null
 
     init {
         QuoiCommand.command.sub("equip") { name: GreedyString ->
@@ -29,8 +27,8 @@ object EquipmentSwapper {
         blockInput: Boolean = false,
         fastMode: Boolean = false,
     ): Boolean {
-        val player = mc.player ?: return false // should never happen but whatever
-        if (task != null) return false
+        val player = mc.player ?: return false
+        if (name.isBlank() || ContainerManager.active) return false
 
         val matches = { stack: ItemStack ->
             !stack.isEmpty && stack.displayName.string.noControlCodes.contains(name, ignoreCase = true)
@@ -40,30 +38,20 @@ object EquipmentSwapper {
 
         val newTask = containerTask(
             name = "Equipment",
-            force = fastMode,
-            preventMovement = true,
-            blockInput = blockInput,
-            fastMode = fastMode,
+            settings = menuSettings(blockInput = blockInput, fastMode = fastMode),
         ) {
-            action { ChatUtils.command("stats") }
-            awaitContainer("Stats & Equipment", waitForItems = true)
+            openContainer("stats", "Stats & Equipment")
 
             quickMove(item(matches).inv)
-            afterClick { mc.player?.closeContainer() }
+            closeContainer()
 
             awaitContainer("Stats & Equipment")
 
             onFinished { result ->
-                if (result != ContainerTaskResult.Busy && ContainerUtils.containerId != 0) {
-                    mc.player?.closeContainer()
-                }
-
-                task = null
+                if (result is ContainerTaskResult.Failure) modMessage("&c${result.message}.")
             }
         }
 
-        task = newTask
-        newTask.run()
-        return newTask.result != ContainerTaskResult.Busy
+        return newTask.run().result == null
     }
 }
