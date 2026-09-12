@@ -10,7 +10,7 @@ import quoi.utils.ThemeManager.theme
 import net.minecraft.core.BlockPos
 import net.minecraft.world.phys.AABB
 import quoi.api.customtriggers.numberField
-import quoi.api.customtriggers.fieldRow
+import quoi.api.customtriggers.settingRow
 
 @TypeName("player_position")
 class PositionCondition(var aabb: AABB = AABB(BlockPos(0, 0, 0))) : TriggerCondition {
@@ -32,7 +32,7 @@ class PositionCondition(var aabb: AABB = AABB(BlockPos(0, 0, 0))) : TriggerCondi
     override fun ElementScope<*>.draw() = column(size(w = Copying), gap = 8.px) {
         val values = doubleArrayOf(aabb.minX, aabb.minY, aabb.minZ, aabb.maxX, aabb.maxY, aabb.maxZ)
         listOf("Min", "Max").forEachIndexed { row, prefix ->
-            fieldRow(*listOf("X", "Y", "Z").mapIndexed { axis, label ->
+            settingRow(*listOf("X", "Y", "Z").mapIndexed { axis, label ->
                 val index = row * 3 + axis
                 val field: ElementScope<*>.() -> Unit = {
                     numberField("$prefix $label", { values[index] }) {

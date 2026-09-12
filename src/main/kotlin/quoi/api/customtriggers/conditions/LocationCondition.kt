@@ -13,9 +13,8 @@ class LocationCondition(var island: Island = Island.Hub, var subarea: String = "
     override fun matches(ctx: TriggerContext) = Location.currentArea == island &&
         (subarea.isBlank() || Location.subarea?.trim()?.equals(subarea.trim(), true) == true)
     override fun displayString() = "In ${island.displayName}${if (subarea.isBlank()) "" else ": $subarea"}"
-    override fun ElementScope<*>.draw() = fieldRow(
+    override fun ElementScope<*>.draw() = settingRow(
         { choiceField("Island", { island }, Island.entries, { it.displayName }) { island = it } },
-        { textField("Subarea (optional)", subarea) { subarea = it } },
-        weights = listOf(1f, 2f)
+        { textField("Subarea (optional)", subarea) { subarea = it } }
     )
 }

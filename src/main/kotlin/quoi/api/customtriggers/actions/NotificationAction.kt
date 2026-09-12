@@ -15,10 +15,9 @@ class NotificationAction(var text: String = "", var subtitle: String = "", var d
 
     override fun execute(ctx: TriggerContext) = PlayerUtils.setTitle(ctx.expand(text), ctx.expand(subtitle), stayAlive = duration)
     override fun displayString() = "Show title: $text"
-    override fun ElementScope<*>.draw() = fieldRow(
+    override fun ElementScope<*>.draw() = settingRow(
         { textField("Title", text) { text = it } },
         { textField("Subtitle", subtitle) { subtitle = it } },
-        { intField("Stay (ticks)", { duration }, 1, 1200) { duration = it } },
-        weights = listOf(2f, 2f, 1f)
+        { intField("Stay (ticks)", { duration }, 1, 1200) { duration = it } }
     )
 }

@@ -21,10 +21,9 @@ class PlaySoundAction(var sound: String = "minecraft:entity.experience_orb.picku
         SoundUtils.play(SoundEvent.createVariableRangeEvent(id), volume, pitch)
     }
     override fun displayString() = "Play $sound"
-    override fun ElementScope<*>.draw() = fieldRow(
+    override fun ElementScope<*>.draw() = settingRow(
         { textField("Sound", sound) { sound = it } },
         { sliderField("Volume", ::volume, 0f, 10f) },
-        { sliderField("Pitch", ::pitch, 0.5f, 2f) },
-        weights = listOf(3f, 1f, 1f)
+        { sliderField("Pitch", ::pitch, 0.5f, 2f) }
     )
 }

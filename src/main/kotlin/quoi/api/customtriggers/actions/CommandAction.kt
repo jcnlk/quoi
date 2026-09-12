@@ -19,9 +19,8 @@ class CommandAction(var command: String = "", var target: Target = Target.AUTO) 
         }
     }
     override fun displayString() = "Run /$command (${target.name.lowercase()})"
-    override fun ElementScope<*>.draw() = fieldRow(
+    override fun ElementScope<*>.draw() = settingRow(
         { textField("Command", command) { command = it } },
-        { choiceField("Target", { target }, Target.entries) { target = it } },
-        weights = listOf(3f, 1f)
+        { choiceField("Target", { target }, Target.entries) { target = it } }
     )
 }
