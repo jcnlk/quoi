@@ -1,18 +1,18 @@
 package quoi.module.impl.general
 
 import com.mojang.authlib.properties.Property
-import quoi.QuoiMod.mc
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
 import quoi.api.events.core.on
-import quoi.api.skyblock.location.Location
+import quoi.api.skyblock.location.Location.onHypixel
+import quoi.api.skyblock.location.Location.onZapto
 import quoi.module.Module
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.ChatUtils.prefix
 import quoi.utils.skyblock.player.PlayerUtils.NickResult
 import quoi.utils.skyblock.player.PlayerUtils.nickResult
 import quoi.utils.skyblock.player.PlayerUtils.textureProperty
-import java.util.UUID
+import java.util.*
 
 object AntiNick : Module(
     "AntiNick",
@@ -28,12 +28,9 @@ object AntiNick : Module(
         on<WorldEvent.Load.Start> { reset() }
 
         on<TickEvent.End> {
+            if (!onHypixel || onZapto) return@on
             if (++scanTicks < 20) return@on
             scanTicks = 0
-            if (!Location.onHypixel) {
-                if (profiles.isNotEmpty()) reset()
-                return@on
-            }
 
             val localPlayerId = mc.player?.uuid ?: return@on
             val onlinePlayers = mc.connection?.listedOnlinePlayers ?: return@on

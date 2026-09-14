@@ -78,8 +78,7 @@ enum class Island(val displayName: String, val command: String? = null) : Area {
     }
 
     fun isArea(vararg areas: Island): Boolean {
-        if (this == SinglePlayer) return true
-        return this in areas
+        return this == SinglePlayer || this in areas
     }
 }
 
