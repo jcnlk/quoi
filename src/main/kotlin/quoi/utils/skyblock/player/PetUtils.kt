@@ -15,6 +15,7 @@ import net.minecraft.network.protocol.game.ClientboundContainerSetContentPacket
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
 import net.minecraft.network.protocol.game.ServerboundContainerClickPacket
+import net.minecraft.util.StringDecomposer
 import net.minecraft.world.inventory.ContainerInput
 import net.minecraft.world.item.ItemStack
 import quoi.annotations.Init
@@ -36,7 +37,6 @@ import quoi.utils.ChatUtils.modMessage
 import quoi.utils.Shortcuts
 import quoi.utils.skyblock.item.ItemUtils.extraAttributes
 import quoi.utils.skyblock.item.ItemUtils.loreString
-import java.util.Optional
 
 @Init
 @OptIn(Internal::class)
@@ -269,23 +269,21 @@ object PetUtils : EventListener, Shortcuts {
     )
 
     private fun Component.petRarity(name: String): PetRarity {
-        val normalizedName = Pet.normalizeName(name)
-        var bestMatchLength = 0
+        val nameStart = StringDecomposer.getPlainText(this).indexOf(Pet.cleanName(name), ignoreCase = true)
+        if (nameStart < 0) return PetRarity.UNKNOWN
+
+        var position = 0
         var matchedRarity = PetRarity.UNKNOWN
 
-        visit<Unit>({ style, content ->
-            val normalizedContent = Pet.normalizeName(content)
-            val rarity = style.petRarity
-            if (rarity != PetRarity.UNKNOWN &&
-                normalizedContent.isNotEmpty() &&
-                normalizedName.contains(normalizedContent) &&
-                normalizedContent.length > bestMatchLength
-            ) {
-                bestMatchLength = normalizedContent.length
-                matchedRarity = rarity
+        StringDecomposer.iterateFormatted(this, Style.EMPTY) { _, style, codePoint ->
+            if (position == nameStart) {
+                matchedRarity = style.petRarity
+                false
+            } else {
+                position += Character.charCount(codePoint)
+                true
             }
-            Optional.empty()
-        }, Style.EMPTY)
+        }
 
         return matchedRarity
     }
