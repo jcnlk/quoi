@@ -1,5 +1,6 @@
 package quoi.ui
 
+import com.mojang.blaze3d.Blaze3D
 import com.mojang.blaze3d.platform.NativeImage
 import org.lwjgl.sdl.SDLMouse
 import net.minecraft.SharedConstants
@@ -20,7 +21,6 @@ import net.minecraft.client.renderer.RenderPipelines
 import net.minecraft.client.renderer.texture.DynamicTexture
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.Identifier
-import net.minecraft.util.Util
 import quoi.QuoiMod
 import quoi.api.colour.Colour
 import quoi.api.colour.withAlpha
@@ -82,12 +82,12 @@ class CustomMainMenuScreen(
 
         addRenderableWidget(
             CustomMenuButton(width - 206, height - buttonHeight - 10, 92, buttonHeight, "GitHub", ::menuColour) {
-                Util.getPlatform().openUri(URI(GITHUB_URL))
+                Blaze3D.openUri(URI(GITHUB_URL))
             }
         )
         addRenderableWidget(
             CustomMenuButton(width - 106, height - buttonHeight - 10, 92, buttonHeight, "Discord", ::menuColour) {
-                Util.getPlatform().openUri(URI(DISCORD_URL))
+                Blaze3D.openUri(URI(DISCORD_URL))
             }
         )
     }

@@ -1,5 +1,6 @@
 package quoi.module.impl.render
 
+import com.mojang.blaze3d.Blaze3D
 import quoi.api.events.core.on
 import net.fabricmc.fabric.api.client.screen.v1.Screens
 import net.minecraft.client.gui.components.AbstractWidget
@@ -14,7 +15,6 @@ import quoi.module.settings.impl.SelectorComponent
 import quoi.ui.CustomMainMenuScreen
 import quoi.utils.StringUtils.noControlCodes
 import java.io.File
-import net.minecraft.util.Util
 
 object CustomMainMenu : Module(
     "Custom Main Menu",
@@ -64,7 +64,7 @@ object CustomMainMenu : Module(
         desc = "Accent colour for custom main menu buttons and overlays."
     )
     private val openBackgroundsFolder by button("Open backgrounds folder") {
-        runCatching { Util.getPlatform().openPath(backgroundFolder.toPath()) }
+        runCatching { Blaze3D.openPath(backgroundFolder.toPath()) }
     }
     val dimAmount by slider("Background dim", 0.2f, 0f, 0.95f, 0.05f)
     val showHypixelButton by switch("Hypixel button", true, desc = "Shows a quick join button for Hypixel.")

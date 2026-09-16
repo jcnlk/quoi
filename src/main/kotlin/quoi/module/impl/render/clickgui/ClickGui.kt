@@ -1,6 +1,6 @@
 package quoi.module.impl.render.clickgui
 
-import net.minecraft.util.Util
+import com.mojang.blaze3d.Blaze3D
 import quoi.annotations.AlwaysActive
 import quoi.annotations.Internal
 import quoi.api.abobaui.AbobaUI
@@ -185,7 +185,7 @@ object ClickGui : Module(
             row(at(x = Centre), gap = 10.px) {
                 mapOf(
                     "Hud editor" to { open(HudManager.editor(fromMain = true)) },
-                    "Discord" to { Util.getPlatform().openUri(URI("https://discord.com/invite/QCWgrQ57pN")) }
+                    "Discord" to { Blaze3D.openUri(URI("https://discord.com/invite/QCWgrQ57pN")) }
                 ).forEach { (text, block) ->
                     block(
                         size(w = 105.px, h = 40.px),
