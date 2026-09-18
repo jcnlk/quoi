@@ -1,10 +1,11 @@
 package quoi.module.impl.general
 
-import quoi.api.events.core.on
+import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.client.gui.screens.inventory.ContainerScreen
 import net.minecraft.client.gui.screens.inventory.InventoryScreen
 import net.minecraft.world.entity.player.Inventory
+import net.minecraft.world.inventory.AbstractContainerMenu
 import net.minecraft.world.inventory.ContainerInput
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
@@ -12,6 +13,7 @@ import quoi.api.commands.internal.GreedyString
 import quoi.api.events.GuiEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
+import quoi.api.events.core.on
 import quoi.api.input.Keybinds
 import quoi.config.Config
 import quoi.mixins.accessors.AbstractContainerScreenAccessor
@@ -21,11 +23,6 @@ import quoi.utils.ChatUtils.modMessage
 import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.skyblock.item.ItemUtils.extraAttributes
 import quoi.utils.skyblock.item.ItemUtils.lore
-
-/**
- * TODO:
- *  fix some items not working
- */
 
 object AutoSell : Module(
     "Auto Sell",
@@ -43,32 +40,17 @@ object AutoSell : Module(
         Config.save()
     }
 
-    private var lastClick = -1L
-    private var nextDelay = 0L
-    private var inGui = false
+    private var nextClick = 0L
 
     init {
         val autoSellCommand = command.sub("autosell").description("Auto Sell module settings.")
 
         autoSellCommand.sub("add") { item: GreedyString? ->
-            val lowercase = item?.string?.let(::normalizeSellEntry) ?: heldItemName()
-                ?: return@sub modMessage("Either hold an item or write an item name to be added to autosell.")
-
-            if (sellList.containsSellEntry(lowercase)) return@sub modMessage("$lowercase is already in the Auto sell list.")
-
-            modMessage("Added \"$lowercase\" to the Auto sell list.")
-            sellList.add(lowercase)
-            Config.save()
+            setSellEntry(item?.string?.let(::normalizeSellEntry) ?: player.mainHandItem.sellListName(), add = true)
         }.description("Adds an item to the auto sell list.")
 
         autoSellCommand.sub("remove") { item: GreedyString? ->
-            val lowercase = item?.string?.let(::normalizeSellEntry) ?: heldItemName()
-                ?: return@sub modMessage("Either hold an item or write an item name to be removed from autosell.")
-
-            if (!sellList.removeSellEntry(lowercase)) return@sub modMessage("$lowercase isn't in the Auto sell list.")
-
-            modMessage("Removed \"$lowercase\" from the Auto sell list.")
-            Config.save()
+            setSellEntry(item?.string?.let(::normalizeSellEntry) ?: player.mainHandItem.sellListName(), add = false)
         }.description("Removes an item from the auto sell list.").suggests("item") { sellList.toList() }
 
         autoSellCommand.sub("clear") {
@@ -83,102 +65,82 @@ object AutoSell : Module(
             modMessage("Auto sell list:\n${chunkedList.joinToString("\n")}")
         }.description("Shows the current auto sell list.")
 
-        on<GuiEvent.Open.Post> {
-            inGui = screen.title.string in menuTitles
-        }
-
-        on<GuiEvent.Close> {
-            inGui = false
-        }
-
-        on<WorldEvent.Change> {
-            lastClick = -1L
-            nextDelay = 0L
-        }
+        on<WorldEvent.Change> { nextClick = 0L }
 
         on<GuiEvent.Key.Press> {
             if (inventoryToggleKey.key == Keybinds.KEY_NONE) return@on
             if (key != inventoryToggleKey.key) return@on
             if (!inventoryToggleKey.isModifierDown()) return@on
 
-            val stack = screen.cursorStack() ?: return@on
-            if (stack.isEmpty) return@on
-            val itemName = stack.sellListName() ?: return@on
-
-            if (sellList.removeSellEntry(itemName)) {
-                modMessage("Removed \"$itemName\" from the Auto sell list.")
-            } else {
-                sellList.add(itemName)
-                modMessage("Added \"$itemName\" to the Auto sell list.")
-            }
-
-            Config.save()
+            val name = screen.hoveredItemName() ?: return@on
+            setSellEntry(name, add = !sellList.containsSellEntry(name))
         }
 
         on<TickEvent.Start> {
-            if (sellList.isEmpty() || !inGui) return@on
-
-            val menu = (mc.screen as? AbstractContainerScreen<*>)?.menu ?: return@on
+            if (sellList.isEmpty()) return@on
+            val screen = mc.screen as? AbstractContainerScreen<*> ?: return@on
+            if (screen.title.string !in menuTitles) return@on
+            val menu = screen.menu
             if (!menu.isSellMenu()) return@on
 
             val now = System.currentTimeMillis()
-            if (lastClick != -1L && now - lastClick < nextDelay) return@on
+            if (now < nextClick) return@on
 
-            val slot = nextSellSlot(menu) ?: return@on
+            val slot = menu.slots.firstOrNull { it.container is Inventory && shouldSell(it.item) } ?: return@on
+            val action = when (clickType.index) {
+                0 -> ContainerInput.QUICK_MOVE
+                1 -> ContainerInput.CLONE
+                else -> ContainerInput.PICKUP
+            }
             gameMode.handleContainerInput(
                 menu.containerId,
                 slot.index,
-                clickButton(),
-                clickAction(),
+                if (clickType.index == 1) 2 else 0,
+                action,
                 player
             )
-            lastClick = now
-            scheduleNextDelay()
+            nextClick = now + (delay + (0..randomization).random()) * 50L
         }
     }
 
-    private fun scheduleNextDelay() {
-        nextDelay = ((delay + (0..randomization).random()) * 50L)
-    }
-
-    private fun nextSellSlot(menu: net.minecraft.world.inventory.AbstractContainerMenu): net.minecraft.world.inventory.Slot? =
-        menu.slots.firstOrNull { slot ->
-            slot.container is Inventory && shouldSell(slot.item)
-        }
-
-    private fun net.minecraft.world.inventory.AbstractContainerMenu.isSellMenu(): Boolean {
+    private fun AbstractContainerMenu.isSellMenu(): Boolean {
         val sellItem = slots.getOrNull(49)?.item ?: return false
         if (sellItem.item == Items.HOPPER && sellItem.hoverName.string.noControlCodes == "Sell Item") return true
 
-        val lore = sellItem.lore?.map { it.noControlCodes } ?: return false
-        return lore.firstOrNull() == "Click items in your inventory to sell" ||
-            lore.lastOrNull() == "Click to buyback!"
+        val lore = sellItem.lore ?: return false
+        return lore.firstOrNull().noControlCodes == "Click items in your inventory to sell" ||
+            lore.lastOrNull().noControlCodes == "Click to buyback!"
     }
 
     private fun shouldSell(stack: ItemStack): Boolean {
         val itemName = stack.sellListName() ?: return false
-        return !blacklist.contains(itemName) && sellList.containsSellEntry(itemName)
+        return blacklist.none { itemName.matchesSellEntry(it) } && sellList.any { itemName.matchesSellEntry(it) }
     }
 
-    private fun clickButton() = when (clickType.index) {
-        1 -> 2
-        else -> 0
+    private fun setSellEntry(name: String?, add: Boolean) {
+        if (name.isNullOrEmpty()) return modMessage("Either hold an item or write an item name for autosell.")
+        val changed = if (add) !sellList.containsSellEntry(name) && sellList.add(name) else sellList.removeSellEntry(name)
+        if (!changed) return modMessage("$name ${if (add) "is already" else "isn't"} in the Auto sell list.")
+
+        modMessage("${if (add) "Added" else "Removed"} \"$name\" ${if (add) "to" else "from"} the Auto sell list.")
+        Config.save()
     }
 
-    private fun clickAction() = when (clickType.index) {
-        0 -> ContainerInput.QUICK_MOVE
-        1 -> ContainerInput.CLONE
-        else -> ContainerInput.PICKUP
-    }
-
-    private fun normalizeSellEntry(name: String, reforge: String? = null): String =
-        (reforge?.let { name.replace(it, "", true) } ?: name)
-            .noControlCodes
+    private fun normalizeSellEntry(name: String, reforge: String? = null): String {
+        val normalized = name.noControlCodes
+            .replace(UPGRADE_REGEX, "")
+            .trim()
             .replace(STACK_SIZE_REGEX, "")
             .trim()
             .replace("'", "")
             .lowercase()
             .replace(WHITESPACE_REGEX, " ")
+        val prefix = reforge?.replace('_', ' ')?.lowercase()?.trim()?.takeIf { it.isNotEmpty() }
+        return if (prefix == null) normalized else normalized.removePrefix("$prefix ")
+    }
+
+    private fun String.matchesSellEntry(entry: String): Boolean =
+        normalizeSellEntry(entry).let { it.isNotEmpty() && contains(it) }
 
     private fun Collection<String>.containsSellEntry(name: String): Boolean =
         any { normalizeSellEntry(it) == name }
@@ -186,27 +148,26 @@ object AutoSell : Module(
     private fun MutableCollection<String>.removeSellEntry(name: String): Boolean =
         removeAll { normalizeSellEntry(it) == name }
 
-    private fun heldItemName(): String? = player.mainHandItem.takeIf { !it.isEmpty }?.sellListName()
-
-    private fun ItemStack.sellListName(): String? =
-        normalizeSellEntry(customName?.string ?: hoverName.string, extraAttributes?.getString("modifier")?.orElse(null))
+    private fun ItemStack.sellListName(): String? {
+        if (isEmpty) return null
+        return normalizeSellEntry(customName?.string ?: hoverName.string, extraAttributes?.getString("modifier")?.orElse(null))
             .takeIf(String::isNotEmpty)
+    }
 
-    private fun net.minecraft.client.gui.screens.Screen.cursorStack() = cursorSlot()?.item
-
-    private fun net.minecraft.client.gui.screens.Screen.cursorSlot(): net.minecraft.world.inventory.Slot? {
+    private fun Screen.hoveredItemName(): String? {
         if (this !is InventoryScreen && this !is ContainerScreen) return null
-
         val window = mc.window
         return (this as AbstractContainerScreenAccessor).`quoi$getSlotAtPos`(
             mc.mouseHandler.getScaledXPos(window),
             mc.mouseHandler.getScaledYPos(window)
-        )
+        )?.item?.sellListName()
     }
 
     private val menuTitles = listOf("Trades", "Booster Cookie", "Farm Merchant", "Ophelia")
+
     private val STACK_SIZE_REGEX = Regex("^(?:[1-9]|[1-5]\\d|6[0-4])(?:\\s*[xX×])?\\s+|\\s+(?:[xX×]\\s*(?:[1-9]|[1-5]\\d|6[0-4])|(?:[1-9]|[1-5]\\d|6[0-4])\\s*[xX×])$")
     private val WHITESPACE_REGEX = Regex("\\s+")
+    private val UPGRADE_REGEX = Regex("[✪➊➋➌➍➎⚚]")
 
     private val defaultItems = arrayOf(
         "enchanted ice", "superboom tnt", "rotten", "skeleton master", "skeleton grunt", "cutlass",
