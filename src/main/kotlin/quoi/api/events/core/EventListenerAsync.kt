@@ -111,13 +111,15 @@ suspend fun EventListener.wait(ticks: Int) {
 
 /**
  * Suspends until an event matches [predicate]
- * @param timeout client ticks to wait. negative waits indefinitely, 0 returns immediately
+ * @param timeout ticks to wait. negative waits indefinitely, 0 returns immediately
+ * @param serverTicks count server ticks instead of client ticks for the timeout
  * @return the matching event, or `null` on timeout
  */
 suspend inline fun <reified T : Event> EventListener.await(
     priority: Int = 0,
     acceptCancelled: Boolean = false,
     timeout: Int = -1,
+    serverTicks: Boolean = false,
     crossinline predicate: T.() -> Boolean = { true },
 ): T? {
     if (timeout == 0) return null
@@ -125,7 +127,7 @@ suspend inline fun <reified T : Event> EventListener.await(
     return suspendCancellableCoroutine { cont ->
         var ticks = 0
         val settled = AtomicBoolean()
-        var timeoutSub: Subscription<TickEvent.Start>? = null
+        var timeoutSub: Subscription<*>? = null
         lateinit var eventSub: Subscription<T>
         eventSub = on<T>(priority, acceptCancelled, register = false) {
             if (settled.get()) return@on
@@ -144,12 +146,17 @@ suspend inline fun <reified T : Event> EventListener.await(
             }
         }
         if (timeout > 0) {
-            timeoutSub = on<TickEvent.Start>(priority, register = false) {
+            val onTimeoutTick: () -> Unit = {
                 if (++ticks >= timeout && settled.compareAndSet(false, true)) {
                     eventSub.unregister()
                     timeoutSub?.unregister()
                     cont.resume(null)
                 }
+            }
+            timeoutSub = if (serverTicks) {
+                on<TickEvent.Server>(priority, register = false) { onTimeoutTick() }
+            } else {
+                on<TickEvent.Start>(priority, register = false) { onTimeoutTick() }
             }
         }
 
@@ -176,7 +183,8 @@ suspend inline fun <reified E, reified P : Packet<*>> EventListener.await(
     priority: Int = 0,
     acceptCancelled: Boolean = false,
     timeout: Int = -1,
+    serverTicks: Boolean = false,
     crossinline predicate: PacketScope<E, P>.() -> Boolean = { true },
-): P? where E : Event, E : PacketEvent = await<E>(priority, acceptCancelled, timeout) {
+): P? where E : Event, E : PacketEvent = await<E>(priority, acceptCancelled, timeout, serverTicks) {
     packet is P && predicate(PacketScope(this, packet as P))
 }?.packet as? P

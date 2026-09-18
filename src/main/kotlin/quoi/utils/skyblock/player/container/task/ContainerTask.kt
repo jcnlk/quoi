@@ -148,7 +148,7 @@ class ContainerTaskBuilder(val force: Boolean) {
      * Awaits for container to open before proceeding
      * @param name container name to wait for
      * @param waitForItems if `true`, waits for items to fill the container
-     * @param timeout time to wait for the container to open (client ticks)
+     * @param timeout time to wait for the container to open (server ticks)
      */
     fun awaitContainer(
         name: Regex,
