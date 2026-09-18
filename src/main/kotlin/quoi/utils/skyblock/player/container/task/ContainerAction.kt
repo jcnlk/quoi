@@ -42,7 +42,7 @@ interface ContainerAction {
             var slot = target.resolve(menu, player.inventory)
             // check immediately, then wait for the item if it hasn't arrived yet
             if (slot == null && target is ItemSlot) {
-                await<TickEvent.Start>(timeout = timeout) {
+                await<TickEvent.Start>(timeout = timeout, serverTicks = true) {
                     slot = target.resolve(menu, player.inventory)
                     player.containerMenu !== menu || slot != null
                 }
@@ -116,7 +116,7 @@ interface ContainerAction {
 
             // the container may have opened while another action was waiting
             val open = ContainerUtils.current?.takeIf { it.revision > task.containerRevision }
-                ?: await<ContainerEvent.Open>(timeout = timeout)?.container
+                ?: await<ContainerEvent.Open>(timeout = timeout, serverTicks = true)?.container
                 ?: return false
             task.containerRevision = open.revision
             if (!containerName.containsMatchIn(open.title)) {
@@ -129,7 +129,7 @@ interface ContainerAction {
             if (!waitForItems || open.itemsLoaded) return true
 
             failureReason = "Timed out waiting for items in ${open.title}"
-            return await<ContainerEvent.Items>(timeout = timeout) {
+            return await<ContainerEvent.Items>(timeout = timeout, serverTicks = true) {
                 container === open
             } != null && player.containerMenu === open.menu
         }
