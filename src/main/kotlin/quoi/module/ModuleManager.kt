@@ -115,8 +115,6 @@ object ModuleManager : EventListener {
             GlaciteTunnels,
             MineshaftESP,
             GrieferTracker,
-            NoBreakReset,
-            NoGemstoneDesync,
             GhostESP,
             AbilityAlert,
         )

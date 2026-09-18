@@ -39,7 +39,6 @@
     "ItemInHandRendererMixin",
     "ItemStackMixin",
     "ItemStackRenderStateMixin",
-    "NoGemstoneDesyncMixin",
     "KeyboardHandlerMixin",
     "KeyboardInputMixin",
     "LevelChunkMixin",
@@ -68,8 +67,6 @@
     "accessors.GuiGraphicsExtractorAccessor",
     "accessors.RenderSetupAccessor",
     "accessors.RenderTypeAccessor",
-    "accessors.MultiPlayerGameModeAccessor",
-    "accessors.ItemInHandRendererAccessor",
     "accessors.ItemStackLayerRenderStateAccessor"
   ]
 }
