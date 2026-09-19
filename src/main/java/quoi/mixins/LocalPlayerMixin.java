@@ -5,16 +5,12 @@ import com.mojang.authlib.GameProfile;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import quoi.api.events.EntityEvent;
 import quoi.api.world.Direction;
-import quoi.module.impl.render.ItemAnimations;
 import quoi.utils.skyblock.player.RotationUtils;
 
 import java.util.function.Predicate;
@@ -24,14 +20,6 @@ public class LocalPlayerMixin extends AbstractClientPlayer {
 
     public LocalPlayerMixin(ClientLevel world, GameProfile profile) {
         super(world, profile);
-    }
-
-    @Inject(
-            method = "swing",
-            at = @At("HEAD")
-    )
-    private void quoi$onSwing(InteractionHand hand, CallbackInfo ci) {
-        ItemAnimations.onSwing();
     }
 
     @ModifyExpressionValue(
