@@ -94,10 +94,10 @@ object TriggerManager : EventListener {
             if (context.cancelled) cancel()
         }
         on<KeyEvent.Press> {
-            if (canRun && mc.screen == null) engine.handle(TriggerContext.Key(key))
+            if (canRun && mc.gui.screen() == null) engine.handle(TriggerContext.Key(key))
         }
         on<MouseEvent.Click> {
-            if (canRun && mc.screen == null && state) engine.handle(TriggerContext.Key(button - 100))
+            if (canRun && mc.gui.screen() == null && state) engine.handle(TriggerContext.Key(button - 100))
         }
         on<PacketEvent.ReceivedPost> {
             if (!canRun) return@on
