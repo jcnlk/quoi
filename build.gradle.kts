@@ -8,11 +8,11 @@ plugins {
     kotlin("jvm")
 }
 
-val minecraftVersion = providers.gradleProperty("minecraft_version").get()
+val mcVersion = providers.gradleProperty("minecraft_version").get()
 val modVersion = providers.gradleProperty("mod_version").get()
 val archivesBaseName = providers.gradleProperty("archives_base_name").get()
 
-version = "$modVersion+$minecraftVersion"
+version = "$modVersion+$mcVersion"
 
 base {
     archivesName.set(archivesBaseName)
@@ -51,7 +51,7 @@ dependencies {
 loom {
     runConfigs.named("client") {
         isIdeConfigGenerated = true
-        runDir = "runs/$minecraftVersion"
+        runDir = "runs/$mcVersion"
         vmArgs.addAll(
             arrayOf(
                 "-Dmixin.debug.export=true",
