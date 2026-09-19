@@ -62,7 +62,7 @@ loom {
     runs {
         named("client") {
             generateRunConfig.set(true)
-            runDirectory.set(layout.projectDirectory.dir("runs/${project.property("minecraft_version")}"))
+            runDirectory.set(layout.projectDirectory.dir("runs/$minecraftVersion"))
             jvmArguments.addAll(
                 "-Dmixin.debug.export=true",
                 "-Ddevauth.enabled=true",
