@@ -39,6 +39,7 @@
     "ItemInHandRendererMixin",
     "ItemStackMixin",
     "ItemStackRenderStateMixin",
+    "NoGemstoneDesyncMixin",
     "KeyboardHandlerMixin",
     "KeyboardInputMixin",
     "LevelChunkMixin",
