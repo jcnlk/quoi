@@ -10,6 +10,7 @@ import org.lwjgl.nanovg.NVGPaint
 import org.lwjgl.nanovg.NanoSVG.*
 import org.lwjgl.nanovg.NanoVG.*
 import org.lwjgl.nanovg.NanoVGGL3.*
+import org.lwjgl.opengl.GL33C
 import org.lwjgl.stb.STBImage.stbi_load_from_memory
 import org.lwjgl.system.MemoryUtil.memAlloc
 import org.lwjgl.system.MemoryUtil.memFree
@@ -68,9 +69,13 @@ object NVGRenderer {
 
     fun endFrame() {
         if (!drawing) throw IllegalStateException("[NVGRenderer] Not drawing, but called endFrame")
-        nvgEndFrame(vg)
-
-        drawing = false
+        val previousProgram = GL33C.glGetInteger(GL33C.GL_CURRENT_PROGRAM)
+        try {
+            nvgEndFrame(vg)
+        } finally {
+            GL33C.glUseProgram(previousProgram)
+            drawing = false
+        }
     }
 
     fun push() = nvgSave(vg)
