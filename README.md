@@ -225,6 +225,8 @@ Use [actions tab](https://github.com/jcnlk/quoi/actions) to download (you need t
   - Navigation and utilities for the Glacite Tunnels.
 - **Mineshaft ESP**
   - Highlights corpses, fossils, and mobs in Glacite Mineshafts.
+- **No Gemstone Desync**
+  - Fixes adjacent gemstone blocks not updating correctly after mining.
 </details>
 
 ## Development
