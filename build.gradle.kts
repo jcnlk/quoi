@@ -8,11 +8,11 @@ plugins {
     kotlin("jvm")
 }
 
-val minecraftVersion = providers.gradleProperty("minecraft_version").get()
+val mcVersion = providers.gradleProperty("minecraft_version").get()
 val modVersion = providers.gradleProperty("mod_version").get()
 val archivesBaseName = providers.gradleProperty("archives_base_name").get()
 
-version = "$modVersion+$minecraftVersion"
+version = "$modVersion+$mcVersion"
 
 base {
     archivesName.set(archivesBaseName)
@@ -62,7 +62,7 @@ loom {
     runs {
         named("client") {
             generateRunConfig.set(true)
-            runDirectory.set(layout.projectDirectory.dir("runs/$minecraftVersion"))
+            runDirectory.set(layout.projectDirectory.dir("runs/$mcVersion"))
             jvmArguments.addAll(
                 "-Dmixin.debug.export=true",
                 "-Ddevauth.enabled=true",
