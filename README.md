@@ -7,6 +7,7 @@ Use [actions tab](https://github.com/jcnlk/quoi/actions) to download (you need t
 
 ## Commands
 - `/quoi` - opens the Click GUI
+- `/quoi help` - lists the available `/quoi` subcommands
 - `/quoi hud` - opens the HUD editor
 - `/quoi fps` - prints current FPS
 - `/quoi ping` - prints current and average ping
@@ -18,6 +19,7 @@ Use [actions tab](https://github.com/jcnlk/quoi/actions) to download (you need t
 - `/quoi leap <name|class>` - leaps to a dungeon teammate
 - `/quoi order [p1] [p2] [p3] [p4]` - shows or sets Leap Menu custom order
 - `/quoi clearaura` - clears Secret Aura state
+- `/quoi ct` - opens the Custom Triggers editor
 - `/quoi autocroesus <go|forcego|api|reset|copylog|loot|alwaysbuy|worthless> ...` - controls Auto Croesus
 - `/quoi autosell <add|remove|clear|list> [item]` - manages the Auto Sell item list
 - `/quoi autoclicker <add|remove|clear> <left|right>` - manages Auto Clicker item whitelists
@@ -71,8 +73,6 @@ Use [actions tab](https://github.com/jcnlk/quoi/actions) to download (you need t
   - Automatically collects secrets when looking at them.
 - **Secrets**
   - Highlights collected secrets.
-- **Shadow Assassin Alert**
-  - Sends an alert when SA jumps you.
 - **Splits**
   - Shows timers for various phases.
 - **Warp Cooldown**
@@ -147,6 +147,7 @@ Use [actions tab](https://github.com/jcnlk/quoi/actions) to download (you need t
 - **Player Display**
   - HUD elements for SkyBlock player stats.
 - **Titles**
+  - Shows configurable titles for AutoPet rules, invincibility procs, and Shadow Assassin alerts.
 - **Tweaks**
   - Various player tweaks.
 - **Wardrobe Keybinds**
@@ -163,6 +164,8 @@ Use [actions tab](https://github.com/jcnlk/quoi/actions) to download (you need t
   - MEOWMEOWMEOWMEOWMEOWMEOWMEOW.
 - **Chocolate Factory**
   - Automates the Chocolate Factory.
+- **Custom Triggers** (Beta)
+  - Runs configurable actions in SkyBlock when events and conditions match. Open the editor with `/quoi ct`.
 - **Dojo** (Beta)
   - Helpers for Dojo challenges.
 - **Mirrorverse Solvers**
@@ -229,13 +232,8 @@ Use [actions tab](https://github.com/jcnlk/quoi/actions) to download (you need t
   - Fixes adjacent gemstone blocks not updating correctly after mining.
 </details>
 
-## Development
-- Requires Java `21`
-- Build with `./gradlew build`
-- Run the client in a dev environment with `./gradlew runClient`
-
 ## Discord
-https://discord.gg/QCWgrQ57pN
+Join the [quoi! Discord](https://discord.gg/QCWgrQ57pN) or dm me (@jcnlk).
 
 ## Licence Note
 GPL-3.0, but I don't give a single fuck if you use the code without crediting. Do whatever.
