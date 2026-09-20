@@ -287,12 +287,13 @@ class McBackend : RendererBackend {
             UIGeometry.segmentsFor(br, w, h),
             UIGeometry.segmentsFor(bl, w, h),
         )
-        return UIGeometry.dedupeClosedOutline(
-            UIGeometry.roundedRectOutlineFixedSegments(
-                x - amount, y - amount, w + amount * 2f, h + amount * 2f,
-                tl + amount, bl + amount, br + amount, tr + amount,
-                segments,
-            )
+        val contourWidth = (w + amount * 2f).coerceAtLeast(0f)
+        val contourHeight = (h + amount * 2f).coerceAtLeast(0f)
+        return UIGeometry.roundedRectOutlineFixedSegments(
+            x + (w - contourWidth) * 0.5f, y + (h - contourHeight) * 0.5f,
+            contourWidth, contourHeight,
+            tl + amount, bl + amount, br + amount, tr + amount,
+            segments,
         )
     }
 
