@@ -40,6 +40,7 @@ dependencies {
     implementation("net.fabricmc.fabric-api:fabric-api:${property("fabric_api_version")}")
     runtimeOnly("me.djtheredstoner:DevAuth-fabric:${property("devauth_version")}")
     runtimeOnly("org.apache.httpcomponents:httpclient:${property("httpclient_version")}")
+    runtimeOnly("io.github.llamalad7:mixinextras-fabric:${property("mixinextras_version")}") // ViaFabricPlus uses redirect annotation arrays supported by MixinExtras 0.5.5+ TODO: remove when not using ViaFabricPlus
     compileOnly("com.terraformersmc:modmenu:${property("modmenu_version")}")
 
     property("classgraph_version").let {
