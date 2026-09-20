@@ -214,10 +214,6 @@ object ArrowAlign : Module(
         mc.connection?.send(
             ServerboundInteractPacket(frame.entity.id, InteractionHand.MAIN_HAND, Vec3(0.03125, 0.0, 0.0), player.isShiftKeyDown)
         )
-
-        mc.connection?.send(
-            ServerboundInteractPacket(frame.entity.id, InteractionHand.MAIN_HAND, Vec3.ZERO, player.isShiftKeyDown)
-        )
     }
 
     private fun getFrameIndex(pos: BlockPos): Int {
