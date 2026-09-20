@@ -28,7 +28,7 @@ public class LivingEntityMixin {
             require = 1
     )
     private void quoi$onSwing(InteractionHand hand, SwingAnimation animation, boolean sendToSwingingEntity, CallbackInfoReturnable<Boolean> cir) {
-        if ((Object) this == Minecraft.getInstance().player) ItemAnimations.onSwing();
+        if ((Object) this == Minecraft.getInstance().player) ItemAnimations.onSwing(hand, animation);
     }
 
     @Redirect(

@@ -7,12 +7,15 @@ import net.minecraft.core.component.DataComponents
 import net.minecraft.client.renderer.entity.state.FishingHookRenderState
 import net.minecraft.world.effect.MobEffectUtil
 import net.minecraft.world.effect.MobEffects
+import net.minecraft.world.InteractionHand
+import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.entity.projectile.FishingHook
 import net.minecraft.world.item.BlockItem
 import net.minecraft.world.item.FishingRodItem
 import net.minecraft.world.item.ItemDisplayContext
 import net.minecraft.world.item.ItemStack
+import net.minecraft.world.item.component.SwingAnimation
 import quoi.api.events.TickEvent
 import quoi.module.Module
 import quoi.module.settings.Setting.Companion.json
@@ -54,13 +57,19 @@ object ItemAnimations : Module(
     private var swingTimeTick = 0
     private var attackAnim = 0f
     private var prevAttackAnim = 0f
+    private var swingDescription: LivingEntity.SwingDescription? = null
     private val thirdPersonSwings = mutableMapOf<Int, ThirdPersonSwing>()
 
-    private data class ThirdPersonSwing(val startTime: Double, var previousVanilla: Float)
+    private data class ThirdPersonSwing(
+        val startTime: Double,
+        var previousVanilla: Float,
+        val description: LivingEntity.SwingDescription?
+    )
 
     override fun onDisable() {
         super.onDisable()
         swinging = false
+        swingDescription = null
         thirdPersonSwings.clear()
     }
 
@@ -191,7 +200,7 @@ object ItemAnimations : Module(
     }
 
     @JvmStatic
-    fun getThirdPersonSwingAnimation(current: Float, stack: ItemStack, playerId: Int): Float {
+    fun getThirdPersonSwingAnimation(current: Float, stack: ItemStack, playerId: Int, description: LivingEntity.SwingDescription?): Float {
         if (!shouldApplyThirdPerson(stack, playerId)) return current
         if (disableSwingRotation(stack)) return 0f
 
@@ -205,7 +214,7 @@ object ItemAnimations : Module(
 
         val vanillaStartedSwing = current > 0f && (existingSwing == null || existingSwing.previousVanilla <= 0f || current < existingSwing.previousVanilla)
         val swing = if (vanillaStartedSwing && (existingProgress == null || existingProgress >= 0.5f))
-            ThirdPersonSwing(currentTime, current).also { thirdPersonSwings[playerId] = it }
+            ThirdPersonSwing(currentTime, current, description).also { thirdPersonSwings[playerId] = it }
         else existingSwing ?: return current
 
         val progress = swing.progress(currentTime, speed)
@@ -219,6 +228,19 @@ object ItemAnimations : Module(
 
     private fun ThirdPersonSwing.progress(time: Double, speed: Double) =
         ((time - startTime) * speed / getCurrentSwingDuration()).toFloat()
+
+    @JvmStatic
+    fun getThirdPersonSwingDescription(current: LivingEntity.SwingDescription?, stack: ItemStack, playerId: Int): LivingEntity.SwingDescription? {
+        if (!shouldApplyThirdPerson(stack, playerId)) return current
+        return if (playerId == player.id) getSwingDescription(current, stack)
+        else thirdPersonSwings[playerId]?.description ?: current
+    }
+
+    @JvmStatic
+    fun getSwingDescription(current: LivingEntity.SwingDescription?, stack: ItemStack): LivingEntity.SwingDescription? {
+        if (!enabled || (stack.isEmpty && !affectHand()) || (stack.has(DataComponents.MAP_ID) && !affectMap())) return current
+        return if (swinging || prevAttackAnim > 0f) swingDescription ?: current else current
+    }
 
     private fun shouldApplyThirdPerson(stack: ItemStack, playerId: Int): Boolean {
         return enabled &&
@@ -237,11 +259,12 @@ object ItemAnimations : Module(
     }
 
     @JvmStatic
-    fun onSwing() {
+    fun onSwing(hand: InteractionHand, animation: SwingAnimation) {
         if (!enabled) return
         if (swinging && swingTimeTick >= 0 && (swingTimeTick * calcSwingSpeed()) < getCurrentSwingDuration() / 2) return
         swingTimeTick = -1
         swinging = true
+        swingDescription = LivingEntity.SwingDescription(hand, animation, getCurrentSwingDuration())
     }
 
     init {

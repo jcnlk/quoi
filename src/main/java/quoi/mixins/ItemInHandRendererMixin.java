@@ -12,7 +12,9 @@ import net.minecraft.client.renderer.entity.state.AvatarRenderState;
 import net.minecraft.client.renderer.state.level.FirstPersonHandsAndItemsRenderState;
 import net.minecraft.client.renderer.state.level.PlayerRenderState;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.HumanoidArm;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
@@ -40,6 +42,23 @@ public abstract class ItemInHandRendererMixin {
         }
 
         return ItemAnimations.getSwingAnimation(frameInterp);
+    }
+
+    @ModifyExpressionValue(
+            method = "submitHandsWithItems",
+            at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/state/level/FirstPersonHandsAndItemsRenderState;attackHand:Lnet/minecraft/world/InteractionHand;")
+    )
+    private InteractionHand quoi$itemAnimationsSwingHand(InteractionHand original, float frameInterp, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, PlayerRenderState playerState, FirstPersonHandsAndItemsRenderState state) {
+        LivingEntity.SwingDescription swing = ItemAnimations.getSwingDescription(null, state.mainHandItem);
+        return swing != null ? swing.hand() : original;
+    }
+
+    @ModifyExpressionValue(
+            method = "submitArmWithItem",
+            at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/entity/state/AvatarRenderState;currentSwing:Lnet/minecraft/world/entity/LivingEntity$SwingDescription;")
+    )
+    private LivingEntity.SwingDescription quoi$itemAnimationsSwingDescription(LivingEntity.SwingDescription original, PlayerRenderState playerState, FirstPersonHandsAndItemsRenderState state) {
+        return ItemAnimations.getSwingDescription(original, state.mainHandItem);
     }
 
     @Inject(

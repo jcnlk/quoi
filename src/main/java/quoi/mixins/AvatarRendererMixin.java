@@ -17,6 +17,7 @@ public class AvatarRendererMixin {
             at = @At("RETURN")
     )
     private void quoi$itemAnimationsThirdPersonSwing(Avatar avatar, AvatarRenderState avatarRenderState, float tickProgress, CallbackInfo ci) {
-        avatarRenderState.swingAnimation = ItemAnimations.getThirdPersonSwingAnimation(avatarRenderState.swingAnimation, avatarRenderState.getMainHandItemStack(), avatarRenderState.id);
+        avatarRenderState.swingAnimation = ItemAnimations.getThirdPersonSwingAnimation(avatarRenderState.swingAnimation, avatarRenderState.getMainHandItemStack(), avatarRenderState.id, avatarRenderState.currentSwing);
+        avatarRenderState.currentSwing = ItemAnimations.getThirdPersonSwingDescription(avatarRenderState.currentSwing, avatarRenderState.getMainHandItemStack(), avatarRenderState.id);
     }
 }
