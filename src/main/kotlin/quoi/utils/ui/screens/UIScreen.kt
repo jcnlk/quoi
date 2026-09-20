@@ -42,16 +42,17 @@ class UIScreen(val instance: AbobaUI.Instance, val background: Boolean = true ) 
     override fun keyPressed(keyEvent: KeyEvent): Boolean {
         val a = instance.eventManager.onKeyTyped(keyEvent.key)
 
-        val ctrlHotkeys = setOf(
-            Keybinds.KEY_V,
-            Keybinds.KEY_C,
-            Keybinds.KEY_W,
-            Keybinds.KEY_X,
-            Keybinds.KEY_A
+        val ctrlHotkeys = mapOf(
+            Keybinds.KEY_V to 'v',
+            Keybinds.KEY_C to 'c',
+            Keybinds.KEY_W to 'w',
+            Keybinds.KEY_X to 'x',
+            Keybinds.KEY_A to 'a'
         )
+        val shortcut = ctrlHotkeys[keyEvent.key]
         var b = false
-        if (isCtrlDown && keyEvent.key in ctrlHotkeys) {
-            b = instance.eventManager.onKeyTyped(keyEvent.key.toChar())
+        if (isCtrlDown && shortcut != null) {
+            b = instance.eventManager.onKeyTyped(shortcut)
         }
         return a || b || super.keyPressed(keyEvent)
     }

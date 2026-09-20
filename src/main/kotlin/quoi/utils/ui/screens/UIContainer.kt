@@ -61,15 +61,16 @@ class UIContainer(ui: AbobaUI.Instance, val cancelling: Boolean = true) : UIHand
         on<GuiEvent.Key.Press>(register = false) {
             keyTyped(key)
 
-            val ctrlHotkeys = setOf(
-                Keybinds.KEY_V,
-                Keybinds.KEY_C,
-                Keybinds.KEY_W,
-                Keybinds.KEY_X,
-                Keybinds.KEY_A
+            val ctrlHotkeys = mapOf(
+                Keybinds.KEY_V to 'v',
+                Keybinds.KEY_C to 'c',
+                Keybinds.KEY_W to 'w',
+                Keybinds.KEY_X to 'x',
+                Keybinds.KEY_A to 'a'
             )
-            if (isCtrlDown && key in ctrlHotkeys) {
-                charTyped(key.toChar())
+            val shortcut = ctrlHotkeys[key]
+            if (isCtrlDown && shortcut != null) {
+                charTyped(shortcut)
             }
 
             if (!key.equalsOneOf(Keybinds.KEY_E, Keybinds.KEY_ESCAPE) && cancelling) cancel()
