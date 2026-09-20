@@ -1,32 +1,31 @@
 package quoi.mixins;
 
 import quoi.module.impl.render.RenderOptimiser;
-import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.client.renderer.LightmapRenderStateExtractor;
+import net.minecraft.client.renderer.state.LightmapRenderState;
 import org.joml.Vector3f;
+import org.joml.Vector3fc;
+import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Slice;
 
 import static quoi.module.impl.render.RenderOptimiser.should;
 
 @Mixin(LightmapRenderStateExtractor.class)
 public class LightTextureMixin {
 
-    @ModifyExpressionValue(
+    @WrapOperation(
             method = "extract",
             at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/util/ARGB;vector3fFromRGB24(I)Lorg/joml/Vector3f;"
+                    value = "FIELD",
+                    target = "Lnet/minecraft/client/renderer/state/LightmapRenderState;ambientColor:Lorg/joml/Vector3fc;",
+                    opcode = Opcodes.PUTFIELD
             ),
-            slice = @Slice(
-                    from = @At(
-                            value = "FIELD",
-                            target = "Lnet/minecraft/world/attribute/EnvironmentAttributes;AMBIENT_LIGHT_COLOR:Lnet/minecraft/world/attribute/EnvironmentAttribute;"
-                    )
-            )
+            require = 1
     )
-    private Vector3f getAmbientLight(Vector3f original) {
-        return should(RenderOptimiser.getFullBright()) ? new Vector3f(15.0f) : original;
+    private void setAmbientLight(LightmapRenderState state, Vector3fc color, Operation<Void> original) {
+        original.call(state, should(RenderOptimiser.getFullBright()) ? new Vector3f(15.0f) : color);
     }
 }
