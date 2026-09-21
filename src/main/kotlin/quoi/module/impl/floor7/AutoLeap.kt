@@ -74,7 +74,7 @@ object AutoLeap : Module(
     private val pyHealerAuto by switch("Auto", desc="Leaps on after first Strom crush.").json("PY healer auto").childOf(::pyHealerLeap)
 
     private val stormDeathLeap by switch("Storm death leap", desc="Leaps on storm death.")
-    private val stormDeathAuto by switch("Auto", desc="Leaps on after first Strom crush.").json("PY healer auto").childOf(::stormDeathLeap)
+    private val stormDeathAuto by switch("Auto", desc="Leaps on after first Strom crush.").json("Storm death auto").childOf(::stormDeathLeap)
 
     private val i4Leap by switch("I4 leap", desc="Leaps on Pre4 dev.").json("Pre4 leap")
     private val i4Auto by switch("Auto", desc="Automatically leaps when Pre4 is done.").json("Pre4 leap auto").childOf(::i4Leap)
