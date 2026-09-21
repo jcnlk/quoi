@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext
 import net.minecraft.client.gui.Font
 import net.minecraft.network.chat.Component
+import net.minecraft.util.LightCoordsUtil
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import org.joml.Vector3fc
@@ -229,9 +230,9 @@ fun LevelRenderContext.drawText(
         text.visualOrderText,
         shadow,
         if (depth) Font.DisplayMode.NORMAL else Font.DisplayMode.SEE_THROUGH,
+        LightCoordsUtil.FULL_BRIGHT,
         -1,
         colour.rgb,
-        15728880,
         0
     )
     stack.popPose()
