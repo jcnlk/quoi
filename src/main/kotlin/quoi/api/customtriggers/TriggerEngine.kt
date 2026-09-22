@@ -60,12 +60,12 @@ class TriggerEngine(
 
     /**
      * Runs the actions of [trigger] without checking its trigger or conditions.
-     * Uses an empty [TriggerContext.Tick], so event captures are unavailable.
+     * Uses an empty [TriggerContext.Preview], so event captures are unavailable.
      */
     fun preview(trigger: TriggerRule) = guarded {
         safely(trigger) {
             if (trigger.enabled && trigger.validationError() == null)
-                resume(trigger, trigger.actions.toList(), 0, TriggerContext.Tick(), generation)
+                resume(trigger, trigger.actions.toList(), 0, TriggerContext.Preview(), generation)
         }
     }
 
