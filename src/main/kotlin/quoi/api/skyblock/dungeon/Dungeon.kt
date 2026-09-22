@@ -5,7 +5,9 @@ import kotlinx.coroutines.launch
 import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.common.ClientboundPingPacket
 import net.minecraft.network.protocol.game.*
+import net.minecraft.world.entity.decoration.ArmorStand
 import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.level.block.LeverBlock
 import net.minecraft.world.level.block.SkullBlock
 import net.minecraft.world.level.block.entity.SkullBlockEntity
 import net.minecraft.world.level.block.state.BlockState
@@ -30,10 +32,13 @@ import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.location.Location
 import quoi.module.impl.dungeon.LeapMenu
 import quoi.module.impl.render.clickgui.ClickGui
+import quoi.utils.EntityUtils.getEntities
 import quoi.utils.Shortcuts
 import quoi.utils.StringUtils.noControlCodes
+import quoi.utils.aabb
 import quoi.utils.equalsOneOf
 import quoi.utils.romanToInt
+import quoi.utils.vec3
 import quoi.utils.skyblock.PartyUtils
 import java.util.UUID
 import kotlin.math.ceil
@@ -409,6 +414,16 @@ object Dungeon : EventListener, Shortcuts {
         }
     }
 
+    fun isBossLever(pos: BlockPos, state: BlockState): Boolean {
+        if (state.block != Blocks.LEVER) return false
+        val p3Lever = pos in bossLevers && getEntities<ArmorStand>(pos.above().vec3.aabb(1.5)) { it.displayName.string == "Not Activated" }.isNotEmpty()
+        val deviceLever = pos in deviceLevers && state.hasProperty(LeverBlock.POWERED) && !state.getValue(LeverBlock.POWERED)
+        val extraDeviceLever = pos == EXTRA_DEVICE_LEVER && !deviceLever && getEntities<ArmorStand>(pos.vec3.aabb(2.0)) { it.displayName.string == "Inactive" }.isNotEmpty()
+        return p3Lever || deviceLever || extraDeviceLever
+    }
+
+    fun isBossLever(pos: BlockPos): Boolean = pos in bossLevers || pos in deviceLevers || pos == EXTRA_DEVICE_LEVER
+
     fun isProtectedBlock(pos: BlockPos): Boolean {
         if (level.getBlockEntity(pos) != null) return true
 
@@ -492,6 +507,28 @@ object Dungeon : EventListener, Shortcuts {
         "Decoy", "Inflatable Jerry", "Spirit Leap", "Trap", "Training Weights", "Defuse Kit", "Dungeon Chest Key", "Treasure Talisman", "Revive Stone", "Architect's First Draft",
         "Secret Dye", "Candycomb"
     )
+
+    private val bossLevers = setOf(
+        BlockPos(94, 124, 113),
+        BlockPos(106, 124, 113),
+        BlockPos(27, 124, 127),
+        BlockPos(23, 132, 138),
+        BlockPos(14, 122, 55),
+        BlockPos(2, 122, 55),
+        BlockPos(86, 128, 46),
+        BlockPos(84, 121, 34)
+    )
+
+    private val deviceLevers = setOf(
+        BlockPos(62, 136, 142),
+        BlockPos(62, 133, 142),
+        BlockPos(60, 134, 142),
+        BlockPos(60, 135, 142),
+        BlockPos(58, 133, 142),
+        BlockPos(58, 136, 142)
+    )
+
+    private val EXTRA_DEVICE_LEVER = BlockPos(59, 133, 142)
 
     val blacklistedDBBlocks = setOf(
         Blocks.BARRIER, Blocks.BEDROCK, Blocks.COMMAND_BLOCK, Blocks.CHAIN_COMMAND_BLOCK,

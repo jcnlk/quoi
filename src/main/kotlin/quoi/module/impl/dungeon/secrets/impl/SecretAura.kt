@@ -14,7 +14,6 @@ import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.decoration.ArmorStand
 import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
-import net.minecraft.world.level.block.LeverBlock
 import net.minecraft.world.level.block.SkullBlock
 import net.minecraft.world.level.block.entity.ChestBlockEntity
 import net.minecraft.world.level.block.entity.SkullBlockEntity
@@ -69,30 +68,6 @@ object SecretAura : ToggleableGroup(
     val blocksDone = LongOpenHashSet()
     private var previousSlot = -1
     var lastClickedPos: BlockPos? = null
-
-    private val levers = listOf(
-        BlockPos(94, 124, 113),
-        BlockPos(106, 124, 113),
-        BlockPos(27, 124, 127),
-        BlockPos(23, 132, 138),
-        BlockPos(14, 122, 55),
-        BlockPos(2, 122, 55),
-        BlockPos(86, 128, 46),
-        BlockPos(84, 121, 34)
-    )
-
-    private val deviceLevers = listOf(
-        BlockPos(62, 136, 142),
-        BlockPos(62, 133, 142),
-
-        BlockPos(60, 134, 142),
-        BlockPos(60, 135, 142),
-
-        BlockPos(58, 133, 142),
-        BlockPos(58, 136, 142)
-    )
-
-    private val extraDevLever = BlockPos(59, 133, 142)
 
     override fun onDisable() {
         clear()
@@ -164,7 +139,7 @@ object SecretAura : ToggleableGroup(
                 val state = pos.state
                 val block = state.block
 
-                if (Dungeon.inBoss && !pos.isBossBlock(state)) continue
+                if (Dungeon.inBoss && !Dungeon.isBossLever(pos, state)) continue
 
                 if (!isValidBlock(block, pos)) continue
 
@@ -279,8 +254,7 @@ object SecretAura : ToggleableGroup(
         val currentBlock = state.block
 
         if (currentBlock === Blocks.LEVER) {
-            val bossLev = pos in levers || pos in deviceLevers || pos == extraDevLever
-            if (!bossLev) {
+            if (!Dungeon.isBossLever(pos)) {
                 blocksDone.add(pos.asLong())
             }
             return
@@ -297,14 +271,6 @@ object SecretAura : ToggleableGroup(
         if (currentBlock === Blocks.REDSTONE_BLOCK) {
             blocksDone.add(pos.asLong())
         }
-    }
-
-    private fun BlockPos.isBossBlock(state: BlockState): Boolean {
-        if (state.block != Blocks.LEVER) return false
-        val p3Lever = this in levers && getEntities<ArmorStand>(above().vec3.aabb(1.5)) { it.displayName?.string == "Not Activated" }.isNotEmpty()
-        val devLever = this in deviceLevers && state.hasProperty(LeverBlock.POWERED) && !state.getValue(LeverBlock.POWERED)
-        val extraDevLever = this == extraDevLever && !devLever && getEntities<ArmorStand>(vec3.aabb(2.0)) { it.displayName?.string == "Inactive" }.isNotEmpty() // untested
-        return p3Lever || devLever || extraDevLever
     }
 
     fun clear() {
