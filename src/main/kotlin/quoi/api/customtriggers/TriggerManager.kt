@@ -108,6 +108,30 @@ object TriggerManager : EventListener {
             }
             engine.handle(context)
         }
+        on<AreaEvent.Main> {
+            if (canRun) engine.handle(TriggerContext.Area(area, Location.subarea))
+        }
+        on<AreaEvent.Sub> {
+            if (canRun) engine.handle(TriggerContext.Area(Location.currentArea, subarea))
+        }
+        on<DungeonEvent.Enter> {
+            if (canRun) engine.handle(TriggerContext.Dungeon(TriggerContext.Dungeon.Event.ENTER, floor = floor))
+        }
+        on<DungeonEvent.Start> {
+            if (canRun) engine.handle(TriggerContext.Dungeon(TriggerContext.Dungeon.Event.START, floor = quoi.api.skyblock.dungeon.Dungeon.floor))
+        }
+        on<DungeonEvent.PhaseComplete> {
+            if (canRun) engine.handle(TriggerContext.Dungeon(TriggerContext.Dungeon.Event.PHASE_COMPLETE, phase = phase))
+        }
+        on<DungeonEvent.StageComplete> {
+            if (canRun) engine.handle(TriggerContext.Dungeon(TriggerContext.Dungeon.Event.STAGE_COMPLETE, stage = stage))
+        }
+        on<PartyEvent.Message> {
+            if (canRun) engine.handle(TriggerContext.PartyMessage(sender, content))
+        }
+        on<ContainerEvent.Open> {
+            if (canRun) engine.handle(TriggerContext.Container(container.title))
+        }
         on<WorldEvent.Change> { reset() }
         on<ServerEvent.Disconnect> { reset() }
     }
