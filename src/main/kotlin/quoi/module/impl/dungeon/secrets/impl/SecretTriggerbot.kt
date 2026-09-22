@@ -9,6 +9,7 @@ import quoi.api.events.WorldEvent
 import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.Dungeon.inBoss
+import quoi.api.skyblock.location.Island
 import quoi.module.impl.dungeon.secrets.Secrets
 import quoi.module.settings.group.ToggleableGroup
 import quoi.utils.Ticker
@@ -21,7 +22,8 @@ import quoi.utils.ticker
 object SecretTriggerbot : ToggleableGroup(
     Secrets,
     "Triggerbot",
-    desc = "Automatically collects secrets when looking at them."
+    desc = "Automatically collects secrets when looking at them.",
+    area = Island.Dungeon
 ) {
     private val swapSlot by slider("Swap slot", 1, 1, 9, 1, desc = "Hotbar slot to swap to (1-9).")
     private val swapBack by switch("Swap back", desc = "Swaps back to original slot after clicking.")
@@ -40,7 +42,7 @@ object SecretTriggerbot : ToggleableGroup(
         }
 
         on<TickEvent.End> {
-            if (mc.screen != null || inBoss) return@on
+            if (mc.screen != null) return@on
             if (Dungeon.currentRoom?.name == "Water Board") {
                 tBotTicker = null
                 return@on
@@ -56,8 +58,13 @@ object SecretTriggerbot : ToggleableGroup(
 
             val pos = result.blockPos
             val state = level.getBlockState(pos)
+            val isTriggerable = if (inBoss) {
+                Dungeon.isBossLever(pos, state)
+            } else {
+                Dungeon.isSecret(state, pos)
+            }
 
-            if (Dungeon.isSecret(state, pos) && !clickedBlocks.contains(pos)) {
+            if (isTriggerable &&!clickedBlocks.contains(pos)) {
                 tBotTicker = triggerBotTicker(pos)
             }
 
@@ -67,7 +74,6 @@ object SecretTriggerbot : ToggleableGroup(
     private var tBotTicker: Ticker? = null
 
     fun triggerBotTicker(pos: BlockPos) = ticker {
-
         val desiredSlot = swapSlot - 1
         val originalSlot = player.inventory.selectedSlot
         delay(reactionDelay)
