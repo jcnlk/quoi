@@ -5,12 +5,12 @@ import com.mojang.renderpearl.api.pipeline.ColorTargetState
 import com.mojang.renderpearl.api.pipeline.CompareOp
 import com.mojang.renderpearl.api.pipeline.DepthStencilState
 import com.mojang.renderpearl.api.pipeline.PrimitiveTopology
-import com.mojang.renderpearl.api.pipeline.RenderPipeline
+import com.mojang.blaze3d.pipeline.RenderPipeline
 import com.mojang.blaze3d.vertex.DefaultVertexFormat
 import net.minecraft.client.renderer.RenderPipelines
 
 object CustomRenderPipelines {
-    val LINE_LIST: RenderPipeline = RenderPipelines.register(
+    val LINE_LIST: RenderPipeline =
         RenderPipeline.builder(RenderPipelines.LINES_SNIPPET)
             .withLocation("quoi/pipeline/lines")
             .withVertexBinding(0, DefaultVertexFormat.POSITION_COLOR_NORMAL)
@@ -19,9 +19,8 @@ object CustomRenderPipelines {
             .withColorTargetState(ColorTargetState(BlendFunction.TRANSLUCENT))
             .withDepthStencilState(DepthStencilState(CompareOp.LESS_THAN_OR_EQUAL, false))
             .build()
-    )
 
-    val LINE_LIST_ESP: RenderPipeline = RenderPipelines.register(
+    val LINE_LIST_ESP: RenderPipeline =
         RenderPipeline.builder(RenderPipelines.LINES_SNIPPET)
             .withLocation("quoi/pipeline/lines_esp")
             .withVertexBinding(0, DefaultVertexFormat.POSITION_COLOR_NORMAL)
@@ -30,9 +29,8 @@ object CustomRenderPipelines {
             .withColorTargetState(ColorTargetState(BlendFunction.TRANSLUCENT))
             .withDepthStencilState(DepthStencilState(CompareOp.ALWAYS_PASS, false))
             .build()
-    )
 
-    val TRIANGLE_STRIP: RenderPipeline = RenderPipelines.register(
+    val TRIANGLE_STRIP: RenderPipeline =
         RenderPipeline.builder(RenderPipelines.DEBUG_FILLED_SNIPPET)
             .withLocation("quoi/pipeline/debug_filled_box")
             .withCull(false)
@@ -41,9 +39,8 @@ object CustomRenderPipelines {
             .withDepthStencilState(DepthStencilState(CompareOp.LESS_THAN_OR_EQUAL, false))
             .withColorTargetState(ColorTargetState(BlendFunction.TRANSLUCENT))
             .build()
-    )
 
-    val TRIANGLE_STRIP_ESP: RenderPipeline = RenderPipelines.register(
+    val TRIANGLE_STRIP_ESP: RenderPipeline =
         RenderPipeline.builder(RenderPipelines.DEBUG_FILLED_SNIPPET)
             .withLocation("quoi/pipeline/debug_filled_box_esp")
             .withCull(false)
@@ -52,5 +49,4 @@ object CustomRenderPipelines {
             .withDepthStencilState(DepthStencilState(CompareOp.ALWAYS_PASS, false))
             .withColorTargetState(ColorTargetState(BlendFunction.TRANSLUCENT))
             .build()
-    )
 }
