@@ -13,10 +13,11 @@ import quoi.api.colour.withAlpha
 import quoi.api.events.*
 import quoi.api.events.core.on
 import quoi.api.input.Keybinds
-import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.dungeon.Dungeon.floor
 import quoi.api.skyblock.dungeon.Dungeon.inBoss
 import quoi.api.skyblock.dungeon.Dungeon.isProtectedBlock
+import quoi.api.skyblock.dungeon.Dungeon.isSecret
+import quoi.api.skyblock.location.Island
 import quoi.config.configList
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf
@@ -61,6 +62,7 @@ object DungeonBreaker : Module(
     private val zeroPingDungeonBreaker by switch("Zero ping", desc = "Insta-mine blocks.")
     private val onlyWhenFatigue by switch("Fatigue only", desc = "Only insta-mine blocks when mining fatigue is applied.").childOf(::zeroPingDungeonBreaker)
     private val disableInInventory by switch("Disable in inventory", desc = "Prevents dungeon breaker from working while inside of an inventory.")
+    private val preventMineSecrets by switch("Prevent mine secrets", desc = "Prevents Dungeon Breaker from mining secrets.")
 
     private val triggerBot by switch("Triggerbot", desc = "Mines preset blocks when looking at them.")
     private val triggerBotDelay by slider("Delay", 0, 0, 10, 1, desc = "Delay before mining the looked-at block.", unit = " ticks").childOf(::triggerBot)
@@ -102,12 +104,17 @@ object DungeonBreaker : Module(
 
     init {
         on<PacketEvent.Sent, ServerboundPlayerActionPacket> {
-            if (!zeroPingDungeonBreaker) return@on
-            if (disableInGUI()) return@on
-            if (onlyWhenFatigue && !player.hasEffect(MobEffects.MINING_FATIGUE)) return@on
             if (packet.action != ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK) return@on
 
             val packetPos = packet.pos
+            if (preventMineSecrets && getBreakerCharges(player.mainHandItem) > 0 && isSecret(packetPos.state, packetPos)) {
+                cancel()
+                return@on
+            }
+
+            if (!zeroPingDungeonBreaker) return@on
+            if (disableInGUI()) return@on
+            if (onlyWhenFatigue && !player.hasEffect(MobEffects.MINING_FATIGUE)) return@on
 
             mc.execute {
                 val heldItem = player.mainHandItem
