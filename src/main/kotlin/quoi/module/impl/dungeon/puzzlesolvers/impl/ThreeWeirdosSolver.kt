@@ -54,16 +54,19 @@ object ThreeWeirdosSolver : SettingGroup(PuzzleSolvers, "Three weirdos") {
                 val wrong = wrong.any { it.matches(msg) }
                 if (!solution && !wrong) return@on
 
-                val room = Dungeon.currentRoom ?: return@on
+                mc.execute {
+                    val room = Dungeon.currentRoom?.takeIf { it.name == "Three Weirdos" } ?: return@execute
+                    if (!module.active || (!solver && !auto)) return@execute
 
-                val correctNPC = getEntities<ArmorStand>().find { it.name.string == npc } ?: return@on
-                val relativePos = room.getRelativeCoords(BlockPos(correctNPC.x.toInt() - 1, 69, correctNPC.z.toInt() - 1))
-                val pos = room.getRealCoords(relativePos.offset(1, 0, 0))
+                    val correctNPC = getEntities<ArmorStand>().find { it.name.string == npc } ?: return@execute
+                    val relativePos = room.getRelativeCoords(BlockPos(correctNPC.x.toInt() - 1, 69, correctNPC.z.toInt() - 1))
+                    val pos = room.getRealCoords(relativePos.offset(1, 0, 0))
 
-                if (solution) {
-                    correctPos = pos
-                    SoundUtils.play(SoundEvents.FIREWORK_ROCKET_LARGE_BLAST, 2f, 1f)
-                } else wrongPositions.add(pos)
+                    if (solution) {
+                        correctPos = pos
+                        SoundUtils.play(SoundEvents.FIREWORK_ROCKET_LARGE_BLAST, 2f, 1f)
+                    } else wrongPositions.add(pos)
+                }
             }
         }
 
