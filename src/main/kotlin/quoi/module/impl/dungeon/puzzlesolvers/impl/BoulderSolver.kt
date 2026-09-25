@@ -4,14 +4,15 @@ import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext
 import net.minecraft.core.BlockPos
-import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket
+import net.minecraft.world.InteractionHand
+import net.minecraft.world.InteractionResult
 import net.minecraft.world.phys.AABB
 import quoi.QuoiMod.logger
 import quoi.api.colour.Colour
 import quoi.api.colour.withAlpha
 import quoi.api.events.DungeonEvent
-import quoi.api.events.PacketEvent
 import quoi.api.events.RenderEvent
+import quoi.api.events.UseItemOnPostEvent
 import quoi.api.events.WorldEvent
 import quoi.api.events.core.Event
 import quoi.api.events.core.on
@@ -61,8 +62,8 @@ object BoulderSolver : SettingGroup(PuzzleSolvers, "Boulder") {
             if (solver) onRenderWorld(ctx, showAll, style.selected, colour)
         }
 
-        on<PacketEvent.Sent, ServerboundUseItemOnPacket> {
-            if (solver) onInteract(packet)
+        on<UseItemOnPostEvent> {
+            if (solver && hand == InteractionHand.MAIN_HAND && interactionResult == InteractionResult.SUCCESS) onInteract(hitResult.blockPos)
         }
 
         on<WorldEvent.Change> {
@@ -103,8 +104,8 @@ object BoulderSolver : SettingGroup(PuzzleSolvers, "Boulder") {
         }
     }
 
-    fun onInteract(packet: ServerboundUseItemOnPacket) {
-        currentPositions.remove(currentPositions.firstOrNull { it.click == packet.hitResult.blockPos })
+    fun onInteract(pos: BlockPos) {
+        currentPositions.remove(currentPositions.firstOrNull { it.click == pos })
     }
 
     fun reset() {

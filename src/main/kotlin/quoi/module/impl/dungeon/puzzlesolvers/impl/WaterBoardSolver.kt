@@ -3,8 +3,8 @@ package quoi.module.impl.dungeon.puzzlesolvers.impl
 import com.google.gson.JsonObject
 import net.minecraft.client.player.LocalPlayer
 import net.minecraft.core.BlockPos
-import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket
 import net.minecraft.world.InteractionHand
+import net.minecraft.world.InteractionResult
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.HitResult
@@ -89,18 +89,18 @@ object WaterBoardSolver : SettingGroup(PuzzleSolvers, "Water board"), Reposition
             }
         }
 
-        on<PacketEvent.Sent, ServerboundUseItemOnPacket> {
+        on<UseItemOnPostEvent> {
             if (!solver && !auto && !triggerbot) return@on
-            if (packet.hand == InteractionHand.OFF_HAND) return@on
+            if (hand == InteractionHand.OFF_HAND || interactionResult != InteractionResult.SUCCESS) return@on
             if (solutions.isEmpty()) return@on
-            LeverBlock.entries.find { it.leverPos == packet.hitResult.blockPos }?.let {
+            LeverBlock.entries.find { it.leverPos == hitResult.blockPos }?.let {
                 if (it == LeverBlock.WATER && openedWaterTicks == -1) openedWaterTicks = tickCounter
                 it.i++
             }
         }
 
         on<TickEvent.Server> {
-            if (solver || auto || triggerbot) tickCounter++
+            if (solver || auto || triggerbot) mc.execute { tickCounter++ }
         }
 
         on<TickEvent.End> {
