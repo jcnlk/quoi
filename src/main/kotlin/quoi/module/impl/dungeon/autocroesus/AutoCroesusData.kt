@@ -72,7 +72,7 @@ internal data class LootFilters(
     val limit: Int? = null,
 )
 
-internal data class LootSummaryItem(val id: String, val amount: Int, val unitValue: Double) {
+internal data class LootSummaryItem(val id: String, val amount: Long, val unitValue: Double) {
     val totalValue: Double get() = amount * unitValue
 }
 
