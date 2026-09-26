@@ -50,7 +50,7 @@ import quoi.utils.ChatUtils.modMessage
 import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.skyblock.item.ItemUtils.lore
 import quoi.utils.skyblock.player.container.ContainerUtils.clickSlot
-import kotlin.math.roundToInt
+import kotlin.math.roundToLong
 
 /**
  * TODO:
@@ -295,11 +295,11 @@ object AutoCroesus : Module(
             return
         }
 
-        val loot = mutableMapOf<String, Int>()
-        var totalChestCost = 0
+        val loot = mutableMapOf<String, Long>()
+        var totalChestCost = 0L
         filtered.forEach { run ->
             totalChestCost += run.chestCost
-            run.items.forEach { (id, amount) -> loot[id] = (loot[id] ?: 0) + amount }
+            run.items.forEach { (id, amount) -> loot[id] = (loot[id] ?: 0L) + amount }
         }
 
         var totalSellPrice = 0.0
@@ -311,15 +311,18 @@ object AutoCroesus : Module(
 
         val totalProfit = totalSellPrice - totalChestCost
         val floorText = filters.floor ?: "All Floors"
-        modMessage("&aLoot from &e${filtered.size} &aruns on &b$floorText&a:")
-        itemInfo.take(10).forEach {
-            modMessage("&b${it.amount}x &a${displayNameFromId(it.id)} &7(${formatCoins(it.unitValue.roundToInt())} each) = &6${formatCoins(it.totalValue.roundToInt())}")
+        val lines = buildList {
+            add("&aLoot from &e${filtered.size} &aruns on &b$floorText&a:")
+            itemInfo.take(10).forEach {
+                add("&b${it.amount}x &a${displayNameFromId(it.id)} &7(${formatCoins(it.unitValue.roundToLong())} each) = &6${formatCoins(it.totalValue.roundToLong())}")
+            }
+            if (itemInfo.size > 10) add("&7... and ${itemInfo.size - 10} more item types.")
+            add("&cTotal Chest Cost: &6${formatCoins(totalChestCost)}")
+            add("&cTotal Sell Price: &6${formatCoins(totalSellPrice.roundToLong())}")
+            add("&eTotal Profit: &6${formatCoins(totalProfit.roundToLong())}")
+            add("&bProfit/Run: &6${formatCoins((totalProfit / filtered.size).roundToLong())}")
         }
-        if (itemInfo.size > 10) modMessage("&7... and ${itemInfo.size - 10} more item types.")
-        modMessage("&cTotal Chest Cost: &6${formatCoins(totalChestCost)}")
-        modMessage("&cTotal Sell Price: &6${formatCoins(totalSellPrice.roundToInt())}")
-        modMessage("&eTotal Profit: &6${formatCoins(totalProfit.roundToInt())}")
-        modMessage("&bProfit/Run: &6${formatCoins((totalProfit / filtered.size).roundToInt())}")
+        modMessage(lines.joinToString("\n"))
     }
 
     private fun onClickTick() {
