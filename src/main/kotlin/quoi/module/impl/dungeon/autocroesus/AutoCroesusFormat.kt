@@ -41,8 +41,10 @@ internal fun Double.coinsFromMillions(): Int = (this * 1_000_000).roundToInt()
 internal fun displayNameFromId(id: String): String =
     id.split("_", ";").joinToString(" ") { it.lowercase().replaceFirstChar(Char::uppercaseChar) }
 
-internal fun formatCoins(value: Int): String {
-    val abs = kotlin.math.abs(value)
+internal fun formatCoins(value: Int): String = formatCoins(value.toLong())
+
+internal fun formatCoins(value: Long): String {
+    val abs = kotlin.math.abs(value.toDouble())
     val sign = if (value < 0) "-" else ""
     return if (abs >= 1_000_000) "$sign${(abs / 1_000_000.0).toFixed(2)}M" else "$sign${(abs / 1_000.0).toFixed(1)}K"
 }
