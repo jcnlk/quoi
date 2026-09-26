@@ -70,22 +70,26 @@ object RenderOptimiser : Module(
         on<RenderEvent.Entity> {
             if (!inDungeons) return@on
             val armorStand = entity as? ArmorStand ?: return@on
-            val headTexture = armorStand.getItemBySlot(EquipmentSlot.HEAD).texture
+            if (!hideHealerOrbs && !hideFairy && !hideWeaver) return@on
 
             if (hideHealerOrbs) {
                 val name = armorStand.name.string.noControlCodes
-                if (HEALER_ORB_NAMES.any { name.startsWith(it) } || headTexture in HEALER_ORB_TEXTURES) {
+                if (HEALER_ORB_NAMES.any { name.startsWith(it) }) {
+                    cancel()
+                    return@on
+                }
+            }
+
+            if (hideHealerOrbs || hideWeaver) {
+                val headTexture = armorStand.getItemBySlot(EquipmentSlot.HEAD).texture
+                if ((hideHealerOrbs && headTexture in HEALER_ORB_TEXTURES) ||
+                    (hideWeaver && headTexture == SOUL_WEAVER_TEXTURE)) {
                     cancel()
                     return@on
                 }
             }
 
             if (hideFairy && armorStand.getItemBySlot(EquipmentSlot.MAINHAND).texture == HEALER_FAIRY_TEXTURE) {
-                cancel()
-                return@on
-            }
-
-            if (hideWeaver && headTexture == SOUL_WEAVER_TEXTURE) {
                 cancel()
             }
         }

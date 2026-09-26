@@ -25,6 +25,7 @@ class NVGSpecialRenderer(vertexConsumers: MultiBufferSource.BufferSource)
     private var stencilRenderBuffer = 0
     private var stencilWidth = 0
     private var stencilHeight = 0
+    private var validatedTexture = -1
 
     override fun renderToTexture(state: NVGRenderState, poseStack: PoseStack) {
         val colorView = RenderSystem.outputColorTextureOverride ?: return
@@ -60,9 +61,15 @@ class NVGSpecialRenderer(vertexConsumers: MultiBufferSource.BufferSource)
             GL33C.glDeleteRenderbuffers(stencilRenderBuffer)
             stencilRenderBuffer = 0
         }
+
+        stencilWidth = 0
+        stencilHeight = 0
+        validatedTexture = -1
     }
 
     private fun bindFrameBuffer(texture: Int, width: Int, height: Int) {
+        val needsValidation = texture != validatedTexture || width != stencilWidth || height != stencilHeight
+
         if (frameBuffer == 0) {
             frameBuffer = GlStateManager.glGenFramebuffers()
         }
@@ -95,9 +102,12 @@ class NVGSpecialRenderer(vertexConsumers: MultiBufferSource.BufferSource)
         )
         GL33C.glBindRenderbuffer(GL33C.GL_RENDERBUFFER, 0)
 
-        val status = GL33C.glCheckFramebufferStatus(GlConst.GL_FRAMEBUFFER)
-        check(status == GlConst.GL_FRAMEBUFFER_COMPLETE) {
-            "Quoi NanoVG framebuffer is incomplete: 0x${status.toString(16)}"
+        if (needsValidation) {
+            val status = GL33C.glCheckFramebufferStatus(GlConst.GL_FRAMEBUFFER)
+            check(status == GlConst.GL_FRAMEBUFFER_COMPLETE) {
+                "Quoi NanoVG framebuffer is incomplete: 0x${status.toString(16)}"
+            }
+            validatedTexture = texture
         }
 
         GlStateManager._viewport(0, 0, width, height)
