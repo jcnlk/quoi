@@ -260,7 +260,7 @@ object ClickGui : Module(
                 val img = when (module.tag) {
                     Tag.LEGACY -> theme.refreshImage
                     Tag.BETA   -> theme.bugImage
-                    else -> theme.chevronImage
+                    Tag.NONE -> theme.chevronImage
                 }
 
                 image(

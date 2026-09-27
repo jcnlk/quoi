@@ -4,7 +4,6 @@ import quoi.QuoiMod.mc
 import quoi.api.abobaui.constraints.Constraint
 import quoi.api.abobaui.constraints.Positions
 import quoi.api.abobaui.dsl.registerEventUnit
-import quoi.api.abobaui.elements.AbobaDSL
 import quoi.api.abobaui.elements.ElementScope
 import quoi.api.abobaui.events.AbobaEvent
 import quoi.api.abobaui.events.Focus
@@ -478,7 +477,6 @@ class TextInput(
          * The event gets called when the text is changed inside a [TextInput] element.
          * This event is cancellable.
          */
-        @AbobaDSL
         inline fun ElementScope<TextInput>.onTextChanged(crossinline block: (TextChanged) -> Unit) {
             element.registerEvent(TextChanged()) {
                 block(it); false
@@ -490,13 +488,11 @@ class TextInput(
          *
          * When the text surpasses that width, it will start scrolling to show the part of the text the caret is over.
          */
-        @AbobaDSL
         fun ElementScope<TextInput>.maxWidth(size: Constraint.Size) {
             element.constraints.width = size
         }
 
-        @AbobaDSL
-        var <E : TextInput> ElementScope<E>.censors
+        var ElementScope<TextInput>.censors
             get() = element.censors
             set(value) { element.censors = value }
     }

@@ -56,11 +56,11 @@ class CustomMainMenuScreen(
             y += buttonHeight + BUTTON_GAP
         }
 
-        addButton("Singleplayer") { minecraft?.gui?.setScreen(SelectWorldScreen(this)) }
-        addButton("Multiplayer") { minecraft?.gui?.setScreen(JoinMultiplayerScreen(this)) }
+        addButton("Singleplayer") { minecraft.gui.setScreen(SelectWorldScreen(this)) }
+        addButton("Multiplayer") { minecraft.gui.setScreen(JoinMultiplayerScreen(this)) }
         if (CustomMainMenu.showHypixelButton) addButton("Join Hypixel") { joinServer("Hypixel", HYPIXEL_ADDRESS) }
         if (CustomMainMenu.showP3SimButton) addButton("Join P3Sim") { joinServer("P3Sim", p3SimAddress()) }
-        addButton("Options") { minecraft?.gui?.setScreen(OptionsScreen(this, requireNotNull(minecraft).options, false)) }
+        addButton("Options") { minecraft.gui.setScreen(OptionsScreen(this, minecraft.options, false)) }
         externalTitleButtons.forEach { button ->
             addRenderableWidget(CustomMenuButton(x, y, buttonWidth, buttonHeight, button.message.string.noControlCodes.trim(), ::menuColour) {
                 button.mouseClicked(
@@ -76,7 +76,7 @@ class CustomMainMenuScreen(
         }
 
         addRenderableWidget(
-            CustomMenuButton(x, height - buttonHeight - 10, buttonWidth, buttonHeight, "Quit", ::menuColour) { minecraft?.stop() }
+            CustomMenuButton(x, height - buttonHeight - 10, buttonWidth, buttonHeight, "Quit", ::menuColour) { minecraft.stop() }
         )
 
         addRenderableWidget(
@@ -106,7 +106,7 @@ class CustomMainMenuScreen(
     override fun extractBackground(guiGraphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, deltaTicks: Float) {
         val background = background()
         if (background != null) drawCover(guiGraphics, background)
-        else minecraft?.gameRenderer?.panorama()?.extractRenderState(guiGraphics, width, height)
+        else minecraft.gameRenderer.panorama().extractRenderState(guiGraphics, width, height)
 
         val dim = (CustomMainMenu.dimAmount.coerceIn(0f, 1f) * 255).toInt() shl 24
         guiGraphics.fill(0, 0, width, height, dim)

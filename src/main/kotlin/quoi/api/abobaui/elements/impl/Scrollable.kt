@@ -4,7 +4,6 @@ import quoi.api.abobaui.constraints.Constraints
 import quoi.api.abobaui.constraints.impl.size.Bounding
 import quoi.api.abobaui.dsl.px
 import quoi.api.abobaui.dsl.seconds
-import quoi.api.abobaui.elements.AbobaDSL
 import quoi.api.abobaui.elements.BlankElement
 import quoi.api.abobaui.elements.Element
 import quoi.api.abobaui.elements.ElementScope
@@ -96,7 +95,6 @@ class Scrollable(
          *
          * Also tells the element to [redraw].
          */
-        @AbobaDSL
         fun ElementScope<Scrollable>.scroll(
             amount: Float,
             duration: Float = 0.15.seconds,
