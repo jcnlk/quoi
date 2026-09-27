@@ -83,6 +83,7 @@ object HudManager : EventListener {
         }
     }
 
+    @Suppress("SENSELESS_COMPARISON") // Minecraft can leave font unset during startup.
     fun init() {
         stupid = true
         if (mc.font == null) {

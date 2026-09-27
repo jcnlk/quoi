@@ -278,10 +278,10 @@ object ScanUtils : EventListener, Shortcuts {
         room.rotation = Rotations.entries.dropLast(1).find { rotation ->
             room.tiles.any { component ->
                 BlockPos(component.x + rotation.x, roomHeight, component.z + rotation.z).let { blockPos ->
-                    level.getBlockState(blockPos)?.block == Blocks.DYED_TERRACOTTA.blue() && (room.tiles.size == 1 || horizontals.all { facing ->
+                    level.getBlockState(blockPos).block == Blocks.DYED_TERRACOTTA.blue() && (room.tiles.size == 1 || horizontals.all { facing ->
                         level.getBlockState(
                             blockPos.offset((if (facing.axis == Direction.Axis.X) facing.stepX else 0), 0, (if (facing.axis == Direction.Axis.Z) facing.stepZ else 0))
-                        )?.block?.equalsOneOf(Blocks.AIR, Blocks.DYED_TERRACOTTA.blue()) == true
+                        ).block.equalsOneOf(Blocks.AIR, Blocks.DYED_TERRACOTTA.blue())
                     }).also { isCorrectClay -> if (isCorrectClay) room.clayPos = blockPos }
                 }
             }
