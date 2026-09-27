@@ -2,7 +2,6 @@ package quoi.api.abobaui.elements.impl
 
 import quoi.api.abobaui.constraints.Constraint
 import quoi.api.abobaui.constraints.Constraints
-import quoi.api.abobaui.elements.AbobaDSL
 import quoi.api.abobaui.elements.Element
 import quoi.api.abobaui.elements.ElementScope
 import quoi.api.colour.Colour
@@ -34,7 +33,6 @@ open class Block(
         @JvmField
         val EMPTY_RADIUS = Radii(0f, 0f, 0f, 0f)
 
-        @AbobaDSL
         fun ElementScope<Block>.outline(colour: Colour, thickness: Constraint.Measurement): ElementScope<Block> {
             element.outline = colour
             element.thickness = thickness

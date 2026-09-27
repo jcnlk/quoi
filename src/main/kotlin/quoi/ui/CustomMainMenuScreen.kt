@@ -56,11 +56,11 @@ class CustomMainMenuScreen(
             y += buttonHeight + BUTTON_GAP
         }
 
-        addButton("Singleplayer") { minecraft?.setScreen(SelectWorldScreen(this)) }
-        addButton("Multiplayer") { minecraft?.setScreen(JoinMultiplayerScreen(this)) }
+        addButton("Singleplayer") { minecraft.setScreen(SelectWorldScreen(this)) }
+        addButton("Multiplayer") { minecraft.setScreen(JoinMultiplayerScreen(this)) }
         if (CustomMainMenu.showHypixelButton) addButton("Join Hypixel") { joinServer("Hypixel", HYPIXEL_ADDRESS) }
         if (CustomMainMenu.showP3SimButton) addButton("Join P3Sim") { joinServer("P3Sim", p3SimAddress()) }
-        addButton("Options") { minecraft?.setScreen(OptionsScreen(this, requireNotNull(minecraft).options, false)) }
+        addButton("Options") { minecraft.setScreen(OptionsScreen(this, minecraft.options, false)) }
         externalTitleButtons.forEach { button ->
             addRenderableWidget(CustomMenuButton(x, y, buttonWidth, buttonHeight, button.message.string.noControlCodes.trim(), ::menuColour) {
                 button.mouseClicked(
@@ -76,7 +76,7 @@ class CustomMainMenuScreen(
         }
 
         addRenderableWidget(
-            CustomMenuButton(x, height - buttonHeight - 10, buttonWidth, buttonHeight, "Quit", ::menuColour) { minecraft?.stop() }
+            CustomMenuButton(x, height - buttonHeight - 10, buttonWidth, buttonHeight, "Quit", ::menuColour) { minecraft.stop() }
         )
 
         addRenderableWidget(

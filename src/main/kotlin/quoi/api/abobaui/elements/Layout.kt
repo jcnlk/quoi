@@ -36,7 +36,6 @@ abstract class Layout(
 
     companion object {
         // Creates a divider, with a specified size, inside a layout.
-        @AbobaDSL
         fun <E : Layout> ElementScope<E>.divider(size: Constraint.Size) {
             val divider = when (element) {
                 is Column -> Divider(height = size)
@@ -48,7 +47,6 @@ abstract class Layout(
 
         // Creates a section, with a specified size, inside a layout.
         // This is intended to hold elements or contain functionality unlike [divider].
-        @AbobaDSL
         fun <E : Layout> ElementScope<E>.section(
             size: Constraint.Size,
             block: ElementScope<Group>.() -> Unit = {}

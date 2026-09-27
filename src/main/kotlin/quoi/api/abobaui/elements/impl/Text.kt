@@ -7,7 +7,6 @@ import quoi.api.abobaui.dsl.at
 import quoi.api.abobaui.dsl.percent
 import quoi.api.abobaui.dsl.px
 import quoi.api.abobaui.dsl.withScale
-import quoi.api.abobaui.elements.AbobaDSL
 import quoi.api.abobaui.elements.Element
 import quoi.api.abobaui.elements.ElementScope
 import quoi.api.colour.Colour
@@ -100,12 +99,10 @@ open class Text(
         if (font.name == "Minecraft") text.width(height / mc.font.lineHeight) else NVGRenderer.textWidth(string.noControlCodes, height, font)
 
     companion object {
-        @AbobaDSL
         var <E : Text> ElementScope<E>.string
             get() = element.text
             set(value) { element.text = value }
 
-        @AbobaDSL
         var <E : Text> ElementScope<E>.shadow
             get() = element.shadow
             set(value) { element.shadow = value }
@@ -115,7 +112,6 @@ open class Text(
          *
          * NOTE: It should only be used if text changes really often.
          */
-        @AbobaDSL
         inline fun ElementScope<*>.textSupplied(
             crossinline supplier: () -> Any?,
             font: Font = NVGRenderer.defaultFont,
@@ -129,7 +125,6 @@ open class Text(
             }
         }.scope { /* no-op */ }
 
-        @AbobaDSL
         fun ElementScope<Text>.maxWidth(size: Constraint.Size) {
             element.maxWidth = size
         }

@@ -48,7 +48,7 @@ private fun lineHalfWidth(cameraPos: Vec3, point: Vec3, thickness: Float): Doubl
     val camera = camera()
     val depth = point.subtract(cameraPos).dot(camera.forwardVector().toVec3()).coerceAtLeast(0.05)
     val fovDegrees = (mc.options.fov().get() as Number).toDouble()
-    val halfFovRadians = Math.toRadians(fovDegrees.toDouble()) / 2.0
+    val halfFovRadians = Math.toRadians(fovDegrees) / 2.0
     return ((thickness / 2.0) * (2.0 * depth * tan(halfFovRadians)) / mc.window.height.toDouble()).coerceAtLeast(0.0015)
 }
 
@@ -206,6 +206,7 @@ fun LevelRenderContext.drawStyledBox(style: String, box: AABB, colour: Colour, f
     }
 }
 
+@Suppress("UNNECESSARY_SAFE_CALL") // Minecraft can leave font unset during startup.
 fun LevelRenderContext.drawText(text: Component, pos: Vec3, colour: Colour = Colour.TRANSPARENT, shadow: Boolean = true, scale: Float = 0.5f, depth: Boolean = false) {
     val stack = poseStack()
 

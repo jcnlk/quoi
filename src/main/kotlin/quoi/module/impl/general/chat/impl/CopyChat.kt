@@ -48,7 +48,7 @@ object CopyChat : ToggleableGroup(Chat, "Copy chat", desc = "Copies chat on mous
     }
 
     private fun ChatComponent.getFullText(idx: Int): Component? {
-        val visible = trimmedMessages ?: return null
+        val visible = trimmedMessages
         if (idx !in visible.indices) return null
 
         var fullIndex = -1

@@ -246,7 +246,7 @@ object ChocolateFactory : Module(
                 }
             }
 
-            val coachRabbitItem = menu.getSlot(42)?.item
+            val coachRabbitItem = menu.getSlot(42).item
             val coachRabbitCost = parseUpgradeCost(coachRabbitItem)
             if (coachRabbitCost != null) {
                 val newAverageChocolate = averageChocolatePerSecond(
