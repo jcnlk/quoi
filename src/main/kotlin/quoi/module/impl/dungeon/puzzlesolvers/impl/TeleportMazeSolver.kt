@@ -104,7 +104,7 @@ object TeleportMazeSolver : SettingGroup(PuzzleSolvers, "Teleport maze") { // to
 
         on<TickEvent.End> {
             if (!auto || ClearExecutor.active || visited.isEmpty()) return@on
-            if (mc.gui.screen() != null) return@on stop()
+            if (PuzzleSolvers.screenBlocksAuto) return@on stop()
 
             if (nextMove) {
                 val targetPos = getPad(player.position())

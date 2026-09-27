@@ -175,7 +175,7 @@ object IcePathSolver : SettingGroup(PuzzleSolvers, "Ice path"), Repositionable {
     }
 
     private fun auto(player: LocalPlayer, silverfish: Silverfish, shootCd: Long, missCd: Long) {
-        if (mc.gui.screen() != null || silverfishPath.size < 2) return
+        if (PuzzleSolvers.screenBlocksAuto || silverfishPath.size < 2) return
 
         repositionTicker?.let {
             if (it.tick()) scheduleTask { repositionTicker = null }
