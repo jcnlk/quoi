@@ -3,7 +3,7 @@ name: Build
 on:
   push:
     branches:
-      - 26.3
+      - 26.4
     paths: &build-paths
       - ".github/workflows/build.yml"
       - "gradle/**"
