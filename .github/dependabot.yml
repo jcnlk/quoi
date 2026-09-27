@@ -33,6 +33,17 @@ updates:
         patterns:
           - "*"
 
+  - package-ecosystem: "gradle"
+    directory: "/"
+    target-branch: "26.4"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      gradle-26-4:
+        patterns:
+          - "*"
+
   - package-ecosystem: "github-actions"
     directory: "/"
     target-branch: "26.1.x"
@@ -63,5 +74,16 @@ updates:
     open-pull-requests-limit: 5
     groups:
       actions-26-3:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    target-branch: "26.4"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      actions-26-4:
         patterns:
           - "*"
