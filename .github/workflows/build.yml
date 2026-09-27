@@ -58,9 +58,7 @@ jobs:
         uses: actions/upload-artifact@v7.0.1
         with:
           name: quoi-build-artifacts
-          path: |
-            build/libs/quoi-*.jar
-            !build/libs/quoi-*-sources.jar
+          path: build/libs/quoi-*.jar
           archive: false
           if-no-files-found: warn
           compression-level: 0

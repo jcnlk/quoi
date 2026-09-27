@@ -58,9 +58,7 @@ jobs:
         uses: forgejo/upload-artifact@v4 # v7 is not usable since forgejo only offers up to v4
         with:
           name: quoi-build-artifacts
-          path: |
-            build/libs/quoi-*.jar
-            !build/libs/quoi-*-sources.jar
+          path: build/libs/quoi-*.jar
           if-no-files-found: warn
           compression-level: 0
           retention-days: 14
