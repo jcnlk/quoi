@@ -141,7 +141,7 @@ object Trajectories : Module(
             )
 
             if (hit.type == HitResult.Type.BLOCK) {
-                val blockHit = hit as BlockHitResult
+                val blockHit = hit
                 points += blockHit.location
 
                 if (boxes) {

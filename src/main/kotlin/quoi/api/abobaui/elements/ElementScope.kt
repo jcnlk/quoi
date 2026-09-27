@@ -42,7 +42,6 @@ open class ElementScope<E : Element>(val element: E) {
         element.redraw()
     }
 
-    @AbobaDSL
     inline fun block(
         constraints: Constraints,
         colour: Colour,
@@ -50,7 +49,6 @@ open class ElementScope<E : Element>(val element: E) {
         block: ElementScope<Block>.() -> Unit = {}
     ) = Block(constraints, colour, radius).scope(block)
 
-    @AbobaDSL
     inline fun block(
         constraints: Constraints,
         colours: Pair<Colour, Colour>,
@@ -59,7 +57,6 @@ open class ElementScope<E : Element>(val element: E) {
         block: ElementScope<Block.Gradient>.() -> Unit = {}
     ) = Block.Gradient(constraints, colours.first, colours.second, gradient, radius).scope(block)
 
-    @AbobaDSL
     inline fun text(
         string: String,
         font: Font = UIRenderer.defaultFont,
@@ -69,40 +66,34 @@ open class ElementScope<E : Element>(val element: E) {
         block: ElementScope<Text>.() -> Unit = {}
     ) = Text(string, font, colour, pos, size).scope(block)
 
-    @AbobaDSL
     inline fun column(
         constraints: Constraints = size(Bounding, Bounding),
         gap: Constraint.Size? = null,
         block: ElementScope<Column>.() -> Unit = {}
     ) = Column(constraints, gap).scope(block)
 
-    @AbobaDSL
     inline fun row(
         constraints: Constraints = size(Bounding, Bounding),
         gap: Constraint.Size? = null,
         block: ElementScope<Row>.() -> Unit = {}
     ) = Row(constraints, gap).scope(block)
 
-    @AbobaDSL
     inline fun grid(
         constraints: Constraints = size(Bounding, Bounding),
         padding: Constraint.Size? = null,
         block: ElementScope<Grid>.() -> Unit = {}
     ) = Grid(constraints, padding).scope(block)
 
-    @AbobaDSL
     inline fun group(
         constraints: Constraints = size(Bounding, Bounding),
         block: ElementScope<Group>.() -> Unit = {}
     ) = Group(constraints).scope(block)
 
-    @AbobaDSL
     inline fun scrollable(
         constraints: Constraints = size(Bounding, Bounding),
         block: ElementScope<Scrollable>.() -> Unit
     ) = Scrollable(constraints).scope(block)
 
-    @AbobaDSL
     inline fun textInput(
         string: String = "",
         placeholder: String = "",
@@ -115,7 +106,6 @@ open class ElementScope<E : Element>(val element: E) {
         block: ElementScope<TextInput>.() -> Unit
     ) = TextInput(string, placeholder, font, colour, placeHolderColour, caretColour, pos, size).scope(block)
 
-    @AbobaDSL
     inline fun dropShadow(
         constraints: Constraints = copies(),
         colour: Colour = Colour.BLACK,
@@ -130,7 +120,6 @@ open class ElementScope<E : Element>(val element: E) {
         element.init()
     }
 
-    @AbobaDSL
     inline fun image(
         image: Image,
         constraints: Constraints,
