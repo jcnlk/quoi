@@ -112,7 +112,3 @@ tasks {
 kotlin {
     jvmToolchain(25)
 }
-
-java {
-    withSourcesJar()
-}
