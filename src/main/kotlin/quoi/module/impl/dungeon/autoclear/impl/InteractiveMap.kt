@@ -86,7 +86,7 @@ object InteractiveMap : Module(
 //    private val showNames by switch("Show names").childOf(::icons)
 //    private val nameScale by slider("Name scale", 0.8f, 0.1f, 3.0f, 0.1f).childOf(::showNames)
 
-    private val mapOpen: Boolean
+    val mapOpen: Boolean
         get() = mc.screen?.title?.string == "quoi clear map"
 
     init {

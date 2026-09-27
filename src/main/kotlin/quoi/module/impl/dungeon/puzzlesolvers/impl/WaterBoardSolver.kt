@@ -108,7 +108,7 @@ object WaterBoardSolver : SettingGroup(PuzzleSolvers, "Water board"), Reposition
             if (ClearExecutor.active) return@on
             val room = Dungeon.currentRoom ?: return@on
             if (patternIdentifier == -1 || solutions.isEmpty()) return@on
-            if (player.y != 59.0 || mc.screen != null || atChest) return@on
+            if (player.y != 59.0 || PuzzleSolvers.screenBlocksAuto || atChest) return@on
 
             repositionTicker?.let {
                 if (it.tick()) Scheduler.scheduleTask {

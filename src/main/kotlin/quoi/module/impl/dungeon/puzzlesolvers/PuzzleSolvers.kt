@@ -6,6 +6,7 @@ import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.location.invoke
 import quoi.config.ConfigSystem.gson
 import quoi.module.Module
+import quoi.module.impl.dungeon.autoclear.impl.InteractiveMap
 import quoi.module.impl.dungeon.puzzlesolvers.impl.BoulderSolver
 import quoi.module.impl.dungeon.puzzlesolvers.impl.CreeperBeamsSolver
 import quoi.module.impl.dungeon.puzzlesolvers.impl.BlazeSolver
@@ -43,6 +44,9 @@ object PuzzleSolvers : Module(
     private val bowDropdown by text("Bow settings").visibleIf { CreeperBeamsSolver.auto || BlazeSolver.auto || IcePathSolver.auto }
     val shootCd by slider("Shoot cooldown", 500L, 250L, 1000L, 50L, unit = "ms").childOf(::bowDropdown)
     val missCd by slider("Miss cooldown", 550L, 300L, 1050L, 50L, unit = "ms").childOf(::bowDropdown)
+
+    val screenBlocksAuto: Boolean
+        get() = mc.screen != null && !InteractiveMap.mapOpen
 
     inline fun <reified T> loadSolution(file: String, fallback: T): T {
         val path = "/assets/quoi/puzzles/$file"
