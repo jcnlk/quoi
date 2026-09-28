@@ -101,7 +101,7 @@ object BoulderSolver : SettingGroup(PuzzleSolvers, "Boulder") {
         }?.toMutableList() ?: mutableListOf()
 
         if (auto && !walking && data.state != RoomState.GREEN) {
-            runTo(this, 26.0) { runTo(this, 0.0) }
+            runTo(this, 27.5) { runTo(this, 0.0) }
         }
     }
 
