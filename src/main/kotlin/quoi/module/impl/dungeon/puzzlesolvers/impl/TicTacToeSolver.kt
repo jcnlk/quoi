@@ -4,6 +4,7 @@ import net.minecraft.core.BlockPos
 import net.minecraft.core.component.DataComponents
 import net.minecraft.world.entity.decoration.ItemFrame
 import net.minecraft.world.item.MapItem
+import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import quoi.api.colour.Colour
@@ -18,10 +19,13 @@ import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.odonscanning.tiles.OdonRoom
 import quoi.module.impl.dungeon.autoclear.executor.ClearExecutor
 import quoi.module.impl.dungeon.puzzlesolvers.PuzzleSolvers
+import quoi.module.impl.dungeon.puzzlesolvers.Repositionable
+import quoi.module.impl.dungeon.secrets.impl.SecretAura
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.module.settings.group.SettingGroup
 import quoi.utils.*
 import quoi.utils.render.drawWireFrameBox
+import quoi.utils.skyblock.player.PlayerUtils.at
 import quoi.utils.skyblock.player.interact.AuraManager
 
 /**
@@ -30,23 +34,26 @@ import quoi.utils.skyblock.player.interact.AuraManager
  *          https://github.com/SkyblockerMod/Skyblocker/blob/master/src/main/java/de/hysky/skyblocker/skyblock/dungeon/puzzle/TicTacToe.java
  *          https://github.com/SkyblockerMod/Skyblocker/blob/master/src/main/java/de/hysky/skyblocker/utils/tictactoe/TicTacToeUtils.java
  */
-object TicTacToeSolver : SettingGroup(PuzzleSolvers, "Tic tac toe") {
-
+object TicTacToeSolver : SettingGroup(PuzzleSolvers, "Tic tac toe"), Repositionable {
     private val solver by switch("Solver", desc = "Shows the solution for the Tic tac toe puzzle.")
     private val colour by colourPicker("Colour", Colour.MINECRAFT_GREEN.withAlpha(0.7f), true, desc = "Colour for the tic tac toe solver").childOf(::solver)
     private val prediction by switch("Prediction", desc = "try and see").childOf(::solver)
     private val pColour by colourPicker("Prediction colour", Colour.MINECRAFT_YELLOW.withAlpha(0.7f), true).childOf(::prediction)
     private val auto by switch("Auto").asParent()
+    private val autoReposition by switch("Auto reposition", desc = "Moves to the chest after the last player move, then moves on once Secret Aura opens it.").childOf(::auto)
 
     private var lastBoardHash = 0
     private var bestMove: BlockPos? = null
     private var predictedMove: BlockPos? = null
 
     private var lastClick = 0L
+    private var shouldReposition = false
+    private var repositionStep = 0
+    override var repositionTicker: Ticker? = null
 
     init {
         on<DungeonEvent.Room.Enter> {
-            if (room?.name == "Tic Tac Toe") reset()
+            if (room?.name != "Tic Tac Toe") reset()
         }
 
         on<RenderEvent.World> {
@@ -59,15 +66,61 @@ object TicTacToeSolver : SettingGroup(PuzzleSolvers, "Tic tac toe") {
             }
         }
 
+        on<RenderEvent.World> {
+            if (!auto || !autoReposition) return@on
+            val room = Dungeon.currentRoom ?: return@on
+            val spots = repositionSpots(room) ?: return@on
+            spots.forEachIndexed { index, spot ->
+                val colour = if (index == 0) Colour.CYAN else Colour.MINECRAFT_YELLOW
+                ctx.drawWireFrameBox(room.getRealCoords(spot).aabb, colour, depth = true)
+            }
+        }
+
         on<TickEvent.End> {
             if (!solver && !auto) return@on
             if (ClearExecutor.active) return@on
             val room = Dungeon.currentRoom ?: return@on
 
-            if (auto) bestMove?.let {
-                if (player.eyePosition.distanceToSqr(it.vec3) > 30 || System.currentTimeMillis() - lastClick < 500L) return@let
-                AuraManager.interactBlock(it)
-                lastClick = System.currentTimeMillis()
+            if (shouldReposition) {
+                val spots = repositionSpots(room) ?: return@on
+                repositionTicker?.let { if (it.tick()) repositionTicker = null }
+                if (repositionTicker != null) return@on
+
+                when (repositionStep) {
+                    0 -> {
+                        val spot = room.getRealCoords(spots[0])
+                        if (player.at(spot)) repositionStep = 2
+                        else {
+                            reposition(spot, bow = false)
+                            if (repositionTicker != null) repositionStep = 1
+                        }
+                    }
+
+                    1 -> repositionStep = if (player.at(room.getRealCoords(spots[0]))) 2 else 0
+
+                    2 -> if (chestOpened(room)) {
+                        val spot = room.getRealCoords(spots[1])
+                        if (player.at(spot)) repositionStep = 4
+                        else {
+                            reposition(spot, bow = false)
+                            if (repositionTicker != null) repositionStep = 3
+                        }
+                    }
+
+                    3 -> repositionStep = if (player.at(room.getRealCoords(spots[1]))) 4 else 2
+
+                    4 -> if (spots.size > 2) {
+                        val spot = room.getRealCoords(spots[2])
+                        if (player.at(spot)) repositionStep = 6
+                        else {
+                            reposition(spot, bow = false)
+                            if (repositionTicker != null) repositionStep = 5
+                        }
+                    }
+
+                    5 -> repositionStep = if (player.at(room.getRealCoords(spots[2]))) 6 else 4
+                }
+                return@on
             }
 
             val searchBox = AABB.ofSize(Vec3.atCenterOf(room.getRealCoords(BlockPos(8, 71, 16))), 12.0, 12.0, 12.0)
@@ -95,7 +148,18 @@ object TicTacToeSolver : SettingGroup(PuzzleSolvers, "Tic tac toe") {
                 }
             }
 
-            if (getScore(board) != 0 || validFrames == 9) return@on reset()
+            if (getScore(board) != 0 || validFrames >= 8) {
+                bestMove = null
+                predictedMove = null
+                if (auto && autoReposition && validFrames > 0 && repositionSpots(room) != null) shouldReposition = true
+                return@on
+            }
+
+            if (auto) bestMove?.let {
+                if (player.eyePosition.distanceToSqr(it.vec3) > 30 || System.currentTimeMillis() - lastClick < 500L) return@let
+                AuraManager.interactBlock(it)
+                lastClick = System.currentTimeMillis()
+            }
 
             val boardHash = board.contentHashCode()
             if (boardHash == lastBoardHash) return@on
@@ -109,6 +173,7 @@ object TicTacToeSolver : SettingGroup(PuzzleSolvers, "Tic tac toe") {
                 getBestMove(board, false)?.let { i ->
                     board[i] = 'X'
                     predictedMove = if (getScore(board) == 0) getBestMove(board, true)?.let { indexToPos(it, room) } else null
+                    board[i] = EMPTY
                 } ?: run { predictedMove = null }
             } else {
                 bestMove = null
@@ -196,6 +261,9 @@ object TicTacToeSolver : SettingGroup(PuzzleSolvers, "Tic tac toe") {
         bestMove = null
         predictedMove = null
         lastClick = 0L
+        repositionTicker = null
+        shouldReposition = false
+        repositionStep = 0
     }
 
     private val MOVE_ORDER = intArrayOf(4, 0, 2, 6, 8, 1, 3, 5, 7) // centre -> cornesr -> edges
@@ -205,4 +273,19 @@ object TicTacToeSolver : SettingGroup(PuzzleSolvers, "Tic tac toe") {
         0, 4, 8,  2, 4, 6 // diag
     )
     private const val EMPTY = '\u0000'
+
+    private val REPOSITION_SPOTS_NEW = listOf(BlockPos(16, 68, 25), BlockPos(8, 68, 16))
+    private val REPOSITION_SPOTS_OLD = listOf(BlockPos(12, 69, 21), BlockPos(16, 68, 18), BlockPos(9, 68, 16))
+
+    private fun repositionSpots(room: OdonRoom) = when (room.tiles.firstOrNull()?.core) {
+        29612250 -> REPOSITION_SPOTS_NEW
+        -738945309 -> REPOSITION_SPOTS_OLD
+        else -> null
+    }
+
+    private fun chestOpened(room: OdonRoom) = SecretAura.blocksDone.any { packedPos ->
+        val pos = BlockPos.of(packedPos)
+        val relative = room.getRelativeCoords(pos)
+        relative.x in 0..31 && relative.z in 0..31 && level.getBlockState(pos).block.let { it == Blocks.CHEST || it == Blocks.TRAPPED_CHEST }
+    }
 }
