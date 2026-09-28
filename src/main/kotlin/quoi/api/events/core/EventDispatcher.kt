@@ -88,6 +88,7 @@ object EventDispatcher {
         }
 
         ClientPlayConnectionEvents.DISCONNECT.register { handler, _ ->
+            WorldEvent.Change().post()
             ServerEvent.Disconnect(handler.serverData?.ip ?: "SinglePlayer").post()
         }
 
