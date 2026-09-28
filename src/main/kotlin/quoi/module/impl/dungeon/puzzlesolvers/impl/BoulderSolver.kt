@@ -7,6 +7,7 @@ import net.minecraft.core.BlockPos
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.InteractionResult
 import net.minecraft.world.phys.AABB
+import net.minecraft.world.phys.Vec3
 import quoi.QuoiMod.logger
 import quoi.api.colour.Colour
 import quoi.api.colour.withAlpha
@@ -18,11 +19,15 @@ import quoi.api.events.core.Event
 import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.odonscanning.tiles.OdonRoom
+import quoi.api.skyblock.dungeon.odonscanning.tiles.RoomState
 import quoi.module.impl.dungeon.puzzlesolvers.PuzzleSolvers
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.module.settings.group.SettingGroup
 import quoi.utils.WorldUtils.state
 import quoi.utils.render.drawStyledBox
+import quoi.utils.skyblock.player.MovementUtils.cancelMovementTask
+import quoi.utils.skyblock.player.MovementUtils.moveTo
+import quoi.utils.skyblock.player.MovementUtils.resetInput
 import java.io.InputStreamReader
 import java.nio.charset.StandardCharsets
 
@@ -36,6 +41,7 @@ object BoulderSolver : SettingGroup(PuzzleSolvers, "Boulder") {
     private val showAll by switch("Show all clicks", desc = "Shows all clicks instead of only the next click.").childOf(::solver)
     private val style by selector("Style", "Box", arrayListOf("Box", "Filled box", "Filled"), desc = "Render style to be used.").childOf(::solver)
     private val colour by colourPicker("Colour", Colour.MINECRAFT_GREEN.withAlpha(0.5f), true, desc = "Colour for the boulder solver.").childOf(::solver)
+    private val auto by switch("Auto", desc = "Runs to the Boulder chest and back.").asParent()
 
     private data class BoxPosition(val render: AABB, val click: BlockPos)
 
@@ -43,6 +49,7 @@ object BoulderSolver : SettingGroup(PuzzleSolvers, "Boulder") {
     private val isr = this::class.java.getResourceAsStream("/assets/quoi/puzzles/boulderSolutions.json")?.let { InputStreamReader(it, StandardCharsets.UTF_8) }
     private var solutions: Map<String, List<List<Int>>>
     private var currentPositions = mutableListOf<BoxPosition>()
+    private var walking = false
 
     init {
         try {
@@ -92,6 +99,10 @@ object BoulderSolver : SettingGroup(PuzzleSolvers, "Boulder") {
             val click = getRealCoords(BlockPos(solution[2], 65, solution[3]))
             BoxPosition(AABB(render), click)
         }?.toMutableList() ?: mutableListOf()
+
+        if (auto && !walking && data.state != RoomState.GREEN) {
+            runTo(this, 26.0) { runTo(this, 0.0) }
+        }
     }
 
     fun onRenderWorld(ctx: LevelRenderContext, showAllClicks: Boolean, style: String, colour: Colour) {
@@ -109,6 +120,19 @@ object BoulderSolver : SettingGroup(PuzzleSolvers, "Boulder") {
     }
 
     fun reset() {
+        if (walking) {
+            cancelMovementTask()
+            mc.player?.resetInput()
+            walking = false
+        }
         currentPositions = mutableListOf()
+    }
+
+    private fun runTo(room: OdonRoom, z: Double, onArrival: () -> Unit = {}) {
+        walking = true
+        player.moveTo(room.getRealCoords(Vec3(15.0, player.y, z))) {
+            walking = false
+            if (auto && Dungeon.currentRoom === room) onArrival()
+        }
     }
 }
