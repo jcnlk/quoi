@@ -163,7 +163,7 @@ object SecretAura : ToggleableGroup(
             }
             currentRoom?.let { room ->
                 when (room.name) {
-                    "Water Board", "Tic Tac Toe" -> if (blockCandidate.block == Blocks.LEVER) return@on
+                    "Water Board" -> if (blockCandidate.block == Blocks.LEVER) return@on
                     "Lower Blaze" -> {
                         val chest = room.getRealCoords(BlockPos(15, 20, 15))
                         if (chest.x == blockCandidate.pos.x && chest.state.block != Blocks.CHEST) return@on
