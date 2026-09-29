@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "id": "${mod_id}",
+  "version": "${mod_version}",
+  "name": "${mod_name}",
+  "description": "\uD83D\uDC38",
+  "authors": [
+    "frogs",
+    "jcnlk"
+  ],
+  "contact": {
+    "homepage": "https://github.com/jcnlk/quoi",
+    "issues": "https://github.com/jcnlk/quoi/issues"
+  },
+  "license": "GPL-3.0-only",
+  "icon": "assets/quoi/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "modmenu": [
+      "quoi.compat.ModMenuIntegration"
+    ],
+    "client": [
+      {
+        "adapter": "kotlin",
+        "value": "quoi.QuoiMod"
+      }
+    ]
+  },
+  "mixins": [
+    "mixins.quoi.json"
+  ],
+  "accessWidener": "quoi.accesswidener",
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric-api": ">=${fabric_api_version}",
+    "minecraft": "${minecraft_dependency}",
+    "fabric-language-kotlin": ">=${fabric_kotlin_version}"
+  }
+}

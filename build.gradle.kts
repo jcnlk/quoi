@@ -8,7 +8,7 @@ plugins {
     kotlin("jvm")
 }
 
-val mcVersion = providers.gradleProperty("minecraft_version").get()
+val mcVersion = sc.current.version
 val modVersion = providers.gradleProperty("mod_version").get()
 val archivesBaseName = providers.gradleProperty("archives_base_name").get()
 
@@ -33,13 +33,16 @@ repositories {
 }
 
 dependencies {
-    minecraft("com.mojang:minecraft:${property("minecraft_version")}")
+    minecraft("com.mojang:minecraft:$mcVersion")
 
     implementation("net.fabricmc:fabric-loader:${property("loader_version")}")
     implementation("net.fabricmc:fabric-language-kotlin:${property("fabric_kotlin_version")}")
     implementation("net.fabricmc.fabric-api:fabric-api:${property("fabric_api_version")}")
     runtimeOnly("me.djtheredstoner:DevAuth-fabric:${property("devauth_version")}")
     runtimeOnly("org.apache.httpcomponents:httpclient:${property("httpclient_version")}")
+    findProperty("mixinextras_version")?.let {
+        runtimeOnly("io.github.llamalad7:mixinextras-fabric:$it")
+    }
     compileOnly("com.terraformersmc:modmenu:${property("modmenu_version")}")
 
     property("classgraph_version").let {
@@ -47,7 +50,7 @@ dependencies {
         include("io.github.classgraph:classgraph:$it")
     }
 
-    property("minecraft_lwjgl_version").let {
+    findProperty("minecraft_lwjgl_version")?.let {
         implementation("org.lwjgl:lwjgl-nanovg:$it")
         include("org.lwjgl:lwjgl-nanovg:$it")
 
@@ -62,7 +65,7 @@ loom {
     runs {
         named("client") {
             generateRunConfig.set(true)
-            runDirectory.set(layout.projectDirectory.dir("runs/$mcVersion"))
+            runDirectory.set(rootProject.layout.projectDirectory.dir("runs/$mcVersion"))
             jvmArguments.addAll(
                 "-Dmixin.debug.export=true",
                 "-Ddevauth.enabled=true",
@@ -77,7 +80,7 @@ loom {
         }
     }
 
-    accessWidenerPath.set(file("src/main/resources/quoi.accesswidener"))
+    accessWidenerPath.set(rootProject.file("src/main/resources/quoi.accesswidener"))
 }
 
 tasks {
@@ -90,7 +93,7 @@ tasks {
             "fabric_api_version",
             "minecraft_dependency",
             "fabric_kotlin_version",
-        ).associateWith { providers.gradleProperty(it).get() }
+        ).associateWith { project.property(it).toString() }
 
         inputs.properties(properties)
 
@@ -113,7 +116,7 @@ tasks {
     }
 
     named<Jar>("jar") {
-        from("LICENSE") {
+        from(rootProject.file("LICENSE")) {
             rename("LICENSE", "LICENSE_$archivesBaseName")
         }
     }

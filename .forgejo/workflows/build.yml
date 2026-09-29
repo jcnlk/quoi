@@ -8,13 +8,15 @@ on:
       - ".forgejo/workflows/build.yml"
       - "gradle/**"
       - "src/**"
+      - "versions/**"
       - "build.gradle.kts"
       - "gradle.properties"
       - "gradlew"
       - "LICENSE"
       - "settings.gradle.kts"
+      - "stonecutter.gradle.kts"
   pull_request:
-    paths-ignore: *build-paths
+    paths: *build-paths
 
 permissions:
   contents: read
@@ -58,7 +60,7 @@ jobs:
         uses: forgejo/upload-artifact@v4 # v7 is not usable since forgejo only offers up to v4
         with:
           name: quoi-build-artifacts
-          path: build/libs/quoi-*.jar
+          path: versions/*/build/libs/quoi-*.jar
           if-no-files-found: warn
           compression-level: 0
           retention-days: 14

@@ -8,11 +8,13 @@ on:
       - ".github/workflows/build.yml"
       - "gradle/**"
       - "src/**"
+      - "versions/**"
       - "build.gradle.kts"
       - "gradle.properties"
       - "gradlew"
       - "LICENSE"
       - "settings.gradle.kts"
+      - "stonecutter.gradle.kts"
   pull_request:
     paths: *build-paths
 
@@ -58,8 +60,7 @@ jobs:
         uses: actions/upload-artifact@v7.0.1
         with:
           name: quoi-build-artifacts
-          path: build/libs/quoi-*.jar
-          archive: false
+          path: versions/*/build/libs/quoi-*.jar
           if-no-files-found: warn
           compression-level: 0
           retention-days: 90

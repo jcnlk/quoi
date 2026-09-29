@@ -1,0 +1,38 @@
+package quoi.utils.ui.screens
+
+import quoi.api.abobaui.AbobaUI
+import quoi.api.events.core.on
+import quoi.api.events.GuiEvent
+import quoi.api.events.RenderEvent
+import quoi.api.input.CatMouse.mx
+import quoi.api.input.CatMouse.my
+import quoi.utils.height
+import quoi.utils.ui.rendering.UIRenderer
+import quoi.utils.width
+
+class UIOverlay(ui: AbobaUI.Instance) : UIHandler(ui) {
+
+    constructor(ui: AbobaUI) : this(AbobaUI.Instance(ui))
+
+    override val events = listOf(
+
+        on<RenderEvent.Overlay>(register = false) {
+            resize(width, height)
+            ui.ctx = ctx
+            mouseMove(mx, my)
+            UIRenderer.frame(ctx) {
+                ui.render(true)
+            }
+
+            ui.render(false)
+        },
+
+        on<GuiEvent.Click>(register = false) {
+            if (state) mouseClick(button) else mouseRelease(button)
+        },
+
+        on<GuiEvent.Key.Press>(register = false) {
+            keyTyped(key)
+        }
+    )
+}
