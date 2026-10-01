@@ -1,0 +1,267 @@
+package quoi.module.impl.mining
+
+import java.util.*
+import net.minecraft.client.gui.GuiGraphicsExtractor
+import net.minecraft.resources.Identifier
+import quoi.QuoiMod.MOD_ID
+import quoi.api.abobaui.dsl.px
+import quoi.api.abobaui.dsl.size
+import quoi.api.colour.Colour
+import quoi.api.colour.withAlpha
+import quoi.api.events.RenderEvent
+import quoi.api.events.TickEvent
+import quoi.api.events.WorldEvent
+import quoi.api.events.core.on
+import quoi.api.skyblock.location.Island
+import quoi.module.Module
+import quoi.module.impl.mining.CrystalHollowsScanner.enabled as chScanner
+import quoi.module.impl.mining.CrystalHollowsScanner.foundRouteBlocks
+import quoi.module.impl.mining.CrystalHollowsScanner.foundStructures
+import quoi.module.impl.mining.CrystalHollowsScanner.routeScanner
+import quoi.module.impl.mining.CrystalHollowsScanner.scannedChunks
+import quoi.module.impl.mining.CrystalHollowsScanner.structureScanner
+import quoi.module.settings.UIComponent.Companion.childOf
+import quoi.module.settings.UIComponent.Companion.visibleIf
+import quoi.utils.EntityUtils.playerEntities
+import quoi.utils.StringUtils.width
+import quoi.utils.WorldUtils
+import quoi.utils.WorldUtils.worldToMap
+import quoi.utils.rad
+import quoi.utils.render.DrawContextUtils.drawImage
+import quoi.utils.render.DrawContextUtils.drawPlayerHead
+import quoi.utils.render.DrawContextUtils.drawText
+import quoi.utils.render.DrawContextUtils.rect
+import quoi.utils.render.DrawContextUtils.withMatrix
+import quoi.utils.ui.rendering.NVGRenderer.createImage
+import quoi.utils.ui.rendering.NVGRenderer.image
+
+object CrystalHollowsMap : Module(
+    "Crystal Hollows Map",
+    area = Island.CrystalHollows
+) {
+    private val iconScale by slider("Icon scale", 2.0f, 0.1f, 5.0f, 0.1f)
+    private val drawPlayers by switch("Draw players")
+    private val onlyGriefed by switch("Only griefed").visibleIf { drawPlayers && GrieferTracker.enabled }
+    private val drawOutOfRange by switch("Draw out of range").visibleIf { drawPlayers }
+    private val drawNames by switch("Draw names").visibleIf { drawPlayers }
+    private val textScale by slider("Text scale", 2.0f, 0.1f, 5.0f, 0.1f).visibleIf { drawPlayers && drawNames }
+
+    private val other by text("Other").visibleIf { chScanner }
+    private val drawChunks by switch("Draw loaded chunks").childOf(::other) // fixme
+    private val chunksCol by colourPicker("Loaded chunks colour", Colour.PURPLE.withAlpha(0.33f), allowAlpha = true).childOf(::other) { drawChunks }
+    private val drawRouteBlocks by switch("Draw route blocks").childOf(::other) { routeScanner }
+    private val drawStructures by switch("Draw structures").childOf(::other) { structureScanner }
+
+    private val hollowsMap by hud("Hollows map", toggleable = false) { // todo add more stuff
+        if (preview) image(
+            "crystalhollowsmap.png".image(),
+            size(MAP_SIZE.px, MAP_SIZE.px)
+        )
+    }.withSettings(
+        ::iconScale, ::drawPlayers, ::onlyGriefed, ::drawOutOfRange, ::drawNames, ::textScale,
+        ::other, ::drawChunks, ::chunksCol, ::drawRouteBlocks, ::drawStructures
+    ).setting()
+
+    const val X_MIN = 202
+    const val X_MAX = 823
+    const val Z_MIN = 202
+    const val Z_MAX = 823
+    const val MAP_SIZE = 621
+
+    private val GREEN_MARKER = Identifier.fromNamespaceAndPath(MOD_ID, "green_marker.png")
+    private val WHITE_MARKER = Identifier.fromNamespaceAndPath(MOD_ID, "white_marker.png")
+    private val MAP_IMAGE = Identifier.fromNamespaceAndPath(MOD_ID, "ui/images/crystalhollowsmap.png")
+
+    private val Number.mapX get() = worldToMap(this, X_MIN, X_MAX, 0, MAP_SIZE).toFloat()
+    private val Number.mapZ get() = worldToMap(this, Z_MIN, Z_MAX, 0, MAP_SIZE).toFloat()
+
+    private var meshedChunks = listOf<MeshedChunk>()
+
+    var isDirty = false
+
+    private const val GRID_SIZE = 64
+    private const val CHUNK_OFFSET = X_MIN shr 4
+    data class MeshedChunk(val x: Int, val z: Int, val width: Int, val height: Int)
+
+    private val mapPlayers = mutableMapOf<String, MapPlayer>()
+
+    init {
+        on<WorldEvent.Change> {
+            mapPlayers.clear()
+        }
+
+        on<TickEvent.End> {
+            if (!drawPlayers) return@on
+
+            mapPlayers.keys.retainAll(WorldUtils.players.map { it.profile.name }.toSet())
+
+            val griefedPlayers = GrieferTracker.getPlayers().map { it.name }
+            playerEntities.forEach {
+                val name = it.name.string
+                if (onlyGriefed && name !in griefedPlayers && it.uuid != player.uuid) return@forEach
+                mapPlayers[name] = MapPlayer(it.uuid, name, it.x, it.z, it.yHeadRot)
+            }
+
+            val now = System.currentTimeMillis()
+            mapPlayers.entries.removeIf {
+                it.value.uuid != player.uuid &&
+                (now - it.value.lastSeen > 60_000 || (onlyGriefed && it.value.name !in griefedPlayers))
+            }
+        }
+
+        on<RenderEvent.Overlay> {
+            hollowsMap.withTransform(ctx) {
+                ctx.renderMap()
+            }
+        }
+    }
+
+    private fun GuiGraphicsExtractor.renderMap() {
+        drawImage(MAP_IMAGE, 0, 0, MAP_SIZE, MAP_SIZE)
+
+        if (drawChunks) {
+            if (isDirty) rebuildMeshedChunks()
+
+            val col = chunksCol.rgb
+
+            meshedChunks.forEach { chunk ->
+                rect(
+                    x = (chunk.z shl 4).mapZ,
+                    y = (chunk.x shl 4).mapX,
+                    width = chunk.height,
+                    height = chunk.width,
+                    colour = col
+                )
+            }
+        }
+
+        if (drawRouteBlocks) {
+            foundRouteBlocks.forEach { pos ->
+                rect(
+                    x = pos.x.mapX,
+                    y = pos.z.mapZ,
+                    width = 5,
+                    height = 5,
+                    colour = CrystalHollowsScanner.colour.withAlpha(1.0f).rgb
+                )
+            }
+        }
+        if (drawStructures) drawStructures()
+        if (drawPlayers) drawPlayers()
+    }
+
+    private fun GuiGraphicsExtractor.drawStructures() {
+        foundStructures.forEach { (structure, positions) ->
+            positions.forEach { pos ->
+                rect(
+                    x = pos.x.mapX - 3,
+                    y = pos.z.mapZ - 3,
+                    width = 6,
+                    height = 6,
+                    colour = structure.colour.rgb
+                )
+                withMatrix(pos.x.mapX, pos.z.mapZ, textScale) {
+                    pose().translate(0f, 5f)
+                    drawText(structure.displayName, -structure.displayName.width() / 2f, 0, structure.colour.rgb)
+                }
+            }
+        }
+    }
+
+    private fun GuiGraphicsExtractor.drawPlayers() {
+        val l = playerEntities.map { it.uuid }
+        mapPlayers.values.sortedBy { it.name == player.name.string }.forEach { p ->
+            val inRange = l.contains(p.uuid)
+            if (p.uuid != player.uuid && (drawOutOfRange || inRange)) drawName(p.name, p.x, p.z)
+
+            withMatrix(p.x.mapX, p.z.mapZ) {
+                pose().rotate((p.yHeadRot - 180f).rad)
+                pose().scale(iconScale, iconScale)
+
+                if (p.uuid == player.uuid) {
+                    drawImage(GREEN_MARKER, -4, -5, 7, 10)
+                } else if (inRange) {
+                    rect(-6, -6, 12, 12, Colour.BLACK.rgb)
+                    pose().scale(1f - 2f, 1f - 2f)
+                    drawPlayerHead(p.uuid, -6, -6, 12)
+                } else if (drawOutOfRange) {
+                    drawImage(WHITE_MARKER, -4, -5, 7, 10)
+                }
+            }
+        }
+    }
+
+    private fun GuiGraphicsExtractor.drawName(name: String, x: Double, z: Double) {
+        if (!drawNames) return
+        withMatrix(x.mapX, z.mapZ, textScale) {
+            pose().translate(0f, 10f)
+
+            drawText(name, -name.width() / 2f, 0)
+        }
+    }
+
+    /**
+     * I'm so pro
+     * MESHED: 20
+     * SCANNED: 565
+     *
+     * https://0fps.net/2012/06/30/meshing-in-a-minecraft-game/ + some ai
+     */
+    private fun rebuildMeshedChunks() {
+        val grid = Array(GRID_SIZE) { BooleanArray(GRID_SIZE) }
+
+        synchronized(scannedChunks) {
+            scannedChunks.forEach { chunkKey ->
+                val cx = (chunkKey shr 32).toInt() - CHUNK_OFFSET
+                val cz = chunkKey.toInt() - CHUNK_OFFSET
+                if (cx in 0 until GRID_SIZE && cz in 0 until GRID_SIZE) {
+                    grid[cx][cz] = true
+                }
+            }
+        }
+
+        val chunks = mutableListOf<MeshedChunk>()
+
+        for (x in 0 until GRID_SIZE) {
+            for (z in 0 until GRID_SIZE) {
+                if (grid[x][z]) {
+                    var width = 1
+                    while (x + width < GRID_SIZE && grid[x + width][z]) {
+                        width++
+                    }
+
+                    var height = 1
+                    var canExpand = true
+                    while (canExpand && z + height < GRID_SIZE) {
+                        for (k in 0 until width) {
+                            if (!grid[x + k][z + height]) {
+                                canExpand = false
+                                break
+                            }
+                        }
+                        if (canExpand) height++
+                    }
+
+                    chunks.add(MeshedChunk(x + CHUNK_OFFSET, z + CHUNK_OFFSET, width shl 4, height shl 4))
+
+                    for (dX in 0 until width) {
+                        for (dZ in 0 until height) {
+                            grid[x + dX][z + dZ] = false
+                        }
+                    }
+                }
+            }
+        }
+        meshedChunks = chunks
+        isDirty = false
+    }
+
+    private data class MapPlayer(
+        val uuid: UUID,
+        val name: String,
+        var x: Double,
+        var z: Double,
+        var yHeadRot: Float,
+        var lastSeen: Long = System.currentTimeMillis()
+    )
+}

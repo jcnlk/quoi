@@ -1,0 +1,315 @@
+package quoi.api.commands
+
+import kotlinx.coroutines.launch
+import net.minecraft.core.registries.BuiltInRegistries
+import net.minecraft.network.protocol.game.ClientboundSystemChatPacket
+import net.minecraft.world.phys.BlockHitResult
+import net.minecraft.world.phys.Vec3
+import quoi.QuoiMod.mc
+import quoi.QuoiMod.scope
+import quoi.api.commands.internal.BaseCommand
+import quoi.api.commands.internal.GreedyString
+import quoi.api.events.TickEvent
+import quoi.api.events.WorldEvent
+import quoi.api.events.core.EventDispatcher
+import quoi.api.events.core.EventListener
+import quoi.api.events.core.on
+import quoi.api.events.core.until
+import quoi.api.skyblock.SkyblockPlayer
+import quoi.api.skyblock.SkyblockPlayer.InvincibilityType
+import quoi.api.skyblock.SkyblockPlayer.Mask
+import quoi.api.skyblock.dungeon.Dungeon
+import quoi.api.skyblock.dungeon.Dungeon.currentRoom
+import quoi.api.skyblock.location.Island
+import quoi.api.skyblock.location.Location.currentArea
+import quoi.api.skyblock.location.Location.currentServer
+import quoi.api.skyblock.location.Location.inSkyblock
+import quoi.api.skyblock.location.Location.subarea
+import quoi.module.impl.general.chat.impl.CompactChat
+import quoi.module.impl.render.clickgui.ClickGui.clickGui
+import quoi.utils.ChatUtils.command
+import quoi.utils.ChatUtils.literal
+import quoi.utils.ChatUtils.modMessage
+import quoi.utils.LegacyIdMapper
+import quoi.utils.Scheduler.scheduleLoop
+import quoi.utils.Scheduler.wait
+import quoi.utils.WorldUtils
+import quoi.utils.WorldUtils.day
+import quoi.utils.addVec
+import quoi.utils.skyblock.PartyUtils
+import quoi.utils.skyblock.player.MovementUtils.hold
+import quoi.utils.skyblock.player.MovementUtils.isMoving
+import quoi.utils.skyblock.player.PetUtils
+import quoi.utils.skyblock.player.RotationUtils.rotate
+import quoi.utils.ticker
+import quoi.utils.ui.hud.HudManager
+import quoi.utils.ui.screens.UIScreen.Companion.open
+//$ block_center_import {
+// Empty.
+//$}
+
+object QuoiCommand : EventListener {
+    val command = BaseCommand("quoi", "requise") { // https://imgur.com/a/tpz09C5
+        open(clickGui)
+    }
+
+    val devCommand = BaseCommand("quoidev")
+
+    private var worldChangeId = 0L
+    private var transferCooldownEnd = Long.MIN_VALUE
+
+    private fun antiAfkTicker(delay: Int) = ticker {
+        action { mc.options.keyLeft.hold(1) }
+        action(delay) { mc.options.keyRight.hold(1) }
+        delay(delay)
+    }
+
+    init {
+        on<WorldEvent.Change> {
+            worldChangeId++
+            transferCooldownEnd = System.currentTimeMillis() + 3_000L
+        }
+
+        with(devCommand) {
+            "simulate" { message: GreedyString ->
+                EventDispatcher.onPacketReceived(ClientboundSystemChatPacket(literal(message.string), false))
+                modMessage("simulated: ${message.string}")
+            }
+
+            "resetinvincibility" {
+                InvincibilityType.entries.forEach { it.reset() }
+                modMessage("&aReset all invincibility cooldowns.")
+            }.description("Resets every invincibility cooldown.")
+
+            "deathticks" { count: Int ->
+                if (count <= 0) return@invoke modMessage("&cProvide a positive number of death ticks.")
+
+                modMessage("&eStarting $count death ticks.")
+                scope.launch {
+                    repeat(count) {
+                        wait(60)
+
+                        val proccingTypes = buildList {
+                            when (SkyblockPlayer.currentMask) {
+                                Mask.BONZO -> add(InvincibilityType.BONZO)
+                                Mask.SPIRIT -> add(InvincibilityType.SPIRIT)
+                                Mask.NONE -> Unit
+                            }
+                            if (PetUtils.currentPet?.matches("Phoenix") == true) {
+                                add(InvincibilityType.PHOENIX)
+                            }
+                        }.filter { it.currentCooldown <= 0 }
+
+                        if (proccingTypes.isEmpty()) {
+                            modMessage("&cYou died!")
+                            return@launch
+                        }
+
+                        proccingTypes.forEach { type ->
+                            val message = when (type) {
+                                InvincibilityType.BONZO -> "Your Bonzo's Mask saved your life!"
+                                InvincibilityType.SPIRIT -> "Second Wind Activated! Your Spirit Mask saved your life!"
+                                InvincibilityType.PHOENIX -> "Your Phoenix Pet saved you from certain death!"
+                            }
+                            EventDispatcher.onPacketReceived(ClientboundSystemChatPacket(literal(message), false))
+                        }
+                    }
+                }
+            }.description("Simulates death ticks.")
+
+            "currentroom" {
+                currentRoom?.let { room ->
+                    val player = mc.player!!
+                    val currentComp = room.tiles.minByOrNull { comp ->
+                        val dx = player.x - comp.x
+                        val dz = player.z - comp.z
+                        dx * dx + dz * dz
+                    }
+
+                    val componentsString = room.tiles.mapIndexed { index, comp ->
+                        val curr = if (comp == currentComp) "&a->&f" else "   "
+                        "$curr &7$index: ${comp.vec2} &7| &f${comp.core}"
+                    }.joinToString("\n")
+
+                    val msg = listOf(
+                        "&e${room.data.name} &7(${room.data.type})",
+                        "&7|&fState: &7${room.data.state}",
+                        "&7|&fCorner: &7${room.clayPos.x}, ${room.clayPos.y}, ${room.clayPos.z}",
+                        "&7|&fRotation: &7${room.rotation} (${room.rotation.deg})",
+                        "&7|&fComponents:",
+                        componentsString
+                    ).joinToString("\n")
+
+                    modMessage(msg, prefix = "")
+                }
+            }
+
+            "relative" {
+                mc.hitResult?.let {
+                    if (it !is BlockHitResult) return@let
+                    currentRoom?.getRelativeCoords(it.blockPos)?.let { vec2 ->
+                        modMessage("Relative coords: ${vec2.x}, ${vec2.z}")
+                    }
+                    currentRoom?.getRelativeCoords(Vec3(it.blockPos))?.let { vec2 ->
+                        modMessage("Relative coords: ${vec2.x}, ${vec2.z}")
+                    }
+                }
+            }
+
+            "area" {
+                modMessage("Area: $currentArea, Sub: $subarea, Server: $currentServer, Floor: ${Dungeon.floor?.name}")
+            }
+
+            "centre" {
+                with(mc.player) {
+                    this?.setPos(this.blockPosition().center.addVec(y = -0.5))
+                }
+            }
+
+            "rotate" { yaw: Float, pitch: Float ->
+                mc.player?.rotate(yaw, pitch)
+            }
+
+            "id" {
+                val hit = mc.hitResult as? BlockHitResult
+                    ?: return@invoke modMessage("&cYou are not looking at a block.")
+                val state = mc.level?.getBlockState(hit.blockPos)
+                    ?: return@invoke modMessage("&cNo world is loaded.")
+
+                modMessage(LegacyIdMapper.getId(state), prefix = "")
+            }
+
+            "blockinfo" {
+                val hit = mc.hitResult as? BlockHitResult
+                    ?: return@invoke modMessage("&cYou are not looking at a block.")
+                val state = mc.level?.getBlockState(hit.blockPos)
+                    ?: return@invoke modMessage("&cNo world is loaded.")
+                val name = BuiltInRegistries.BLOCK.getKey(state.block)
+                val stateInfo = state.toString().substringAfter('[', "").let {
+                    if (it.isEmpty()) "" else " [${it.removeSuffix("]")}]"
+                }
+
+                modMessage("$name (${LegacyIdMapper.getId(state)})$stateInfo", prefix = "")
+            }
+        }
+
+        with(command) {
+            "hud" { open(HudManager.editor()) }.description("Opens Hud editor.")
+        }
+
+        command.sub("findlobby") { area: String, criteria: String, value: String ->
+            val island = Island.entries
+                .firstOrNull { it.command != null && it.displayName.equals(area.replace("_", " "), true) }
+                ?: return@sub modMessage("&cIncorrect area!")
+
+            if (criteria !in setOf("day", "server", "player")) return@sub modMessage("&cInvalid criteria!")
+
+            val intValue = if (criteria == "day") value.toIntOrNull()
+                ?: return@sub modMessage("&cInvalid day number!") else null
+
+            fun isMet(): Boolean = when (criteria) {
+                "day" -> mc.level!!.day <= intValue!!
+                "server" -> currentServer.equals(value, true)
+                "player" -> WorldUtils.players.any { it.profile.name.equals(value, true) }
+                else -> false
+            }
+
+            val targetWarp = island.command!!
+            var warpToTarget = true
+            var attemptedInWorld: Long? = null
+            var retryAt = Long.MIN_VALUE
+
+            modMessage("Starting to look for $criteria $value")
+
+            scheduleLoop {
+                if (mc.player!!.isMoving) {
+                    modMessage("Cancelling, you moved!")
+                    it.cancel()
+                    return@scheduleLoop
+                }
+
+                if (isMet() && currentArea.isArea(island)) {
+                    modMessage("Found")
+                    it.cancel()
+                    return@scheduleLoop
+                }
+
+                val now = System.currentTimeMillis()
+                attemptedInWorld?.let { attemptWorld ->
+                    if (worldChangeId != attemptWorld) {
+                        warpToTarget = !warpToTarget
+                        attemptedInWorld = null
+                    } else if (now < retryAt) {
+                        return@scheduleLoop
+                    }
+                }
+
+                if (now < transferCooldownEnd) return@scheduleLoop
+
+                command("warp ${if (warpToTarget) targetWarp else "hub"}")
+                attemptedInWorld = worldChangeId
+                retryAt = now + 5_000L
+            }
+        }.description("Finds lobby with specified criteria.")
+        .requires("&cYou are not in skyblock!") { inSkyblock }
+        .suggests("area") { Island.entries.filter { it.command != null }.map { it.displayName.replace(" ", "_") } }
+        .suggests("criteria", "day", "server", "player")
+
+        command.sub("antiafk") { delay: Int ->
+            if (delay < 20) return@sub modMessage("&cThe delay is too low!")
+            val headRot = mc.player!!.yHeadRot
+            modMessage("Starting. Move your camera to cancel")
+
+            var ticker = antiAfkTicker(delay)
+            until<TickEvent.End> {
+                if (mc.player!!.yHeadRot != headRot) {
+                    modMessage("Cancelling, you moved your camera!")
+                    true
+                } else {
+                    if (ticker.tick()) ticker = antiAfkTicker(delay)
+                    false
+                }
+            }
+        }.description("Prevents afk kick.").suggests("delay", "40")
+    }
+
+    fun init() {
+        RefillCommands.addTo(command)
+        command.register()
+        devCommand.register()
+
+        BaseCommand("clearchat") {
+            mc.gui.chat.clearMessages(false)
+            CompactChat.chatList.clear()
+            modMessage("Cleared chat.")
+        }.register()
+
+        BaseCommand("ptr") {
+            val target = PartyUtils.membersNoSelf.randomOrNull()
+                ?: return@BaseCommand modMessage("&cParty empty!")
+            command("p transfer $target")
+        }.register()
+
+        Floors.entries.forEach { floor ->
+            BaseCommand(floor.name.lowercase()) {
+                command("joininstance ${floor.instance()}")
+            }.requires("&cYou are not in skyblock!") { inSkyblock }.register()
+        }
+    }
+
+    private enum class Floors {
+        F0,
+        F1, F2, F3, F4, F5, F6, F7,
+        M1, M2, M3, M4, M5, M6, M7;
+
+        private val floors = listOf("one", "two", "three", "four", "five", "six", "seven")
+
+        fun instance(): String {
+            if (this == F0) return "catacombs_entrance"
+
+            val adj = ordinal - 1
+
+            return "${if (adj > 6) "master_" else ""}catacombs_floor_${floors[adj % 7]}"
+        }
+    }
+}

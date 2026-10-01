@@ -1,0 +1,76 @@
+package quoi.mixins;
+
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.multiplayer.MultiPlayerGameMode;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.component.SwingAnimation;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import quoi.api.events.EntityEvent;
+import quoi.utils.skyblock.player.container.task.ContainerManager;
+
+@Mixin(Minecraft.class)
+public class MinecraftMixin {
+
+    @Unique
+    private static boolean cancelSwing = false;
+
+    @Redirect(
+            method = "startAttack()Z",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/multiplayer/MultiPlayerGameMode;attack(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/entity/Entity;)V"
+            )
+    )
+    private void redirectAttack(MultiPlayerGameMode gameMode, Player player, Entity entity) {
+        if (new EntityEvent.Attack(entity).post()) {
+            cancelSwing = true;
+        } else {
+            gameMode.attack(player, entity);
+        }
+    }
+
+    @Redirect(
+            method = "startAttack()Z",
+            at = @At(
+                    value = "INVOKE",
+                    //$ attack_swing_target {
+                    target = "Lnet/minecraft/client/player/LocalPlayer;swing(Lnet/minecraft/world/InteractionHand;)V"
+                    //$}
+            )
+    )
+    //$ attack_swing_handler {
+    private void redirectSwing(LocalPlayer instance, InteractionHand hand) {
+    //$}
+        if (cancelSwing) {
+            cancelSwing = false;
+            //$ cancel_attack_swing {
+            // Empty.
+            //$}
+        } else {
+            //$ send_attack_swing {
+            instance.swing(hand);
+            //$}
+        }
+    }
+    //$ minecraft_screen_hook {
+
+    @Inject(
+            method = "setScreen",
+            at = @At("HEAD"),
+            cancellable = true
+    )
+    private void quoi$onSetScreen(Screen screen, CallbackInfo ci) {
+        if (ContainerManager.onSetScreen(screen)) ci.cancel();
+
+    }
+    //$}
+}

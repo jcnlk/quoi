@@ -11,6 +11,53 @@ plugins {
 val mcVersion = sc.current.version
 val modVersion = providers.gradleProperty("mod_version").get()
 val archivesBaseName = providers.gradleProperty("archives_base_name").get()
+val usesSharedSources = sc.current.isActive
+
+// Keep the complete NanoVG and vanilla GUI implementations in shared sources.
+// Select their files here so source condition blocks aren't needed.
+val rendererSources = when {
+    sc.current.parsed < "26.2" -> listOf(
+        "quoi/utils/ui/rendering/McBackend.kt",
+        "quoi/utils/ui/rendering/McFonts.kt",
+        "quoi/utils/ui/rendering/McImages.kt",
+        "quoi/utils/ui/rendering/RendererBackend.kt",
+        "quoi/utils/ui/rendering/ShelfPacker.kt",
+        "quoi/utils/ui/rendering/TextEngine.kt",
+        "quoi/utils/ui/rendering/UIGeometry.kt",
+        "quoi/utils/ui/rendering/UIRenderer.kt",
+        "quoi/utils/ui/rendering/Image.kt",
+        "quoi/utils/render/WorldRenderContextUtils.kt",
+        "quoi/module/impl/render/RenderOptimiser.kt",
+    )
+    else -> listOf(
+        "quoi/utils/ui/rendering/NVGRenderer.kt",
+        "quoi/utils/ui/rendering/NVGSpecialRenderer.kt",
+        "quoi/utils/ui/rendering/LegacyImage.kt",
+        "quoi/utils/render/LegacyWorldRenderContextUtils.kt",
+        "quoi/module/impl/render/LegacyRenderOptimiser.kt",
+    )
+}
+kotlin.sourceSets.named("main") {
+    kotlin.exclude(rendererSources)
+}
+sourceSets.named("main") {
+    java.exclude(when {
+        sc.current.parsed < "26.2" -> listOf(
+            "quoi/mixins/GuiMixin.java",
+            "quoi/mixins/ItemInHandRendererMixin.java",
+            "quoi/mixins/GuiGraphicsMixin.java",
+            "quoi/mixins/HudMixin.java",
+            "quoi/mixins/accessors/GuiGraphicsExtractorAccessor.java",
+            "quoi/mixins/FirstPersonHandsAndItemsMixin.java",
+        )
+        sc.current.parsed < "26.3" -> listOf(
+            "quoi/mixins/LegacyGuiMixin.java",
+            "quoi/mixins/FirstPersonHandsAndItemsMixin.java",
+            "quoi/mixins/ItemInHandRendererMixin.java",
+        )
+        else -> listOf("quoi/mixins/LegacyGuiMixin.java", "quoi/mixins/LegacyItemInHandRendererMixin.java")
+    })
+}
 
 version = "$modVersion+$mcVersion"
 
@@ -100,9 +147,38 @@ tasks {
         filesMatching("fabric.mod.json") {
             expand(properties)
         }
+
+        val additionalMixins = when {
+            sc.current.parsed < "26.2" -> emptyList()
+            sc.current.parsed < "26.3" -> listOf("GuiGraphicsMixin", "HudMixin", "accessors.GuiGraphicsExtractorAccessor")
+            else -> listOf("GuiGraphicsMixin", "HudMixin", "accessors.GuiGraphicsExtractorAccessor", "FirstPersonHandsAndItemsMixin")
+        }.joinToString(",\n") { "    \"$it\"" }.let {
+            when {
+                it.isEmpty() -> ""
+                else -> ",\n$it"
+            }
+        }
+        val mixinProperties = mapOf(
+            "additional_mixins" to additionalMixins,
+            "gui_mixin" to when {
+                sc.current.parsed < "26.2" -> "LegacyGuiMixin"
+                else -> "GuiMixin"
+            },
+            "hand_mixin" to when {
+                sc.current.parsed < "26.3" -> "LegacyItemInHandRendererMixin"
+                else -> "ItemInHandRendererMixin"
+            },
+        )
+        inputs.properties(mixinProperties)
+        filesMatching("mixins.quoi.json") {
+            expand(mixinProperties)
+        }
     }
 
     withType<KotlinCompile>().configureEach {
+        // Kotlin's incremental cache stores source paths. Switching Stonecutter's
+        // source directory must invalidate it even when relative paths are equal.
+        inputs.property("stonecutterUsesSharedSources", usesSharedSources)
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_25)
             freeCompilerArgs.add("-Xlambdas=class")
