@@ -20,6 +20,7 @@ import quoi.module.settings.impl.SliderComponent
 import quoi.utils.inGame
 import quoi.utils.ui.inHudEditor
 import quoi.utils.ui.settingFromK0
+import quoi.utils.ui.watch
 import kotlin.math.roundToInt
 import kotlin.reflect.KProperty0
 
@@ -204,6 +205,12 @@ open class Hud(
     }
 
     open class Scope(element: Element, val preview: Boolean) : ElementScope<Element>(element) {
+
+        init {
+            watch({ element.enabled }) {
+                element.redraw()
+            }
+        }
 
         inline fun ElementScope<*>.visibleIf(crossinline block: () -> Boolean) {
             if (!preview) {
