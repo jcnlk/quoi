@@ -11,6 +11,7 @@ import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.Dungeon.inBoss
 import quoi.api.skyblock.location.Island
 import quoi.module.impl.dungeon.secrets.Secrets
+import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.module.settings.group.ToggleableGroup
 import quoi.utils.Ticker
 import quoi.utils.equalsOneOf
@@ -25,8 +26,9 @@ object SecretTriggerbot : ToggleableGroup(
     desc = "Automatically collects secrets when looking at them.",
     area = Island.Dungeon
 ) {
-    private val swapSlot by slider("Swap slot", 1, 1, 9, 1, desc = "Hotbar slot to swap to (1-9).")
-    private val swapBack by switch("Swap back", desc = "Swaps back to original slot after clicking.")
+    private val itemSwapping by switch("Item swapping", desc = "Swaps to the configured hotbar slot before clicking.")
+    private val swapSlot by slider("Swap slot", 1, 1, 9, 1, desc = "Hotbar slot to swap to (1-9).").childOf(::itemSwapping)
+    private val swapBack by switch("Swap back", desc = "Swaps back to original slot after clicking.").childOf(::itemSwapping)
     private val reactionDelay by slider("Interact delay", 0, 0, 5, 1, desc = "Ticks to wait before triggering.")
 
     private val clickedBlocks = HashSet<BlockPos>()
@@ -77,10 +79,12 @@ object SecretTriggerbot : ToggleableGroup(
         val desiredSlot = swapSlot - 1
         val originalSlot = player.inventory.selectedSlot
         delay(reactionDelay)
-        await {
-            if (player.inventory.selectedSlot == desiredSlot) return@await true
-            val result = SwapManager.swapToSlot(desiredSlot)
-            result.equalsOneOf(SwapResult.ALREADY_SELECTED, SwapResult.SUCCESS)
+        if (itemSwapping) {
+            await {
+                if (player.inventory.selectedSlot == desiredSlot) return@await true
+                val result = SwapManager.swapToSlot(desiredSlot)
+                result.equalsOneOf(SwapResult.ALREADY_SELECTED, SwapResult.SUCCESS)
+            }
         }
         action {
             val result = mc.hitResult
@@ -91,7 +95,7 @@ object SecretTriggerbot : ToggleableGroup(
             }
         }
 
-        if (swapBack) {
+        if (itemSwapping && swapBack) {
             await {
                 if (originalSlot == -1 || originalSlot !in 0..8) return@await true
                 if (player.inventory.selectedSlot == originalSlot) return@await true
