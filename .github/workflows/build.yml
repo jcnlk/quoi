@@ -3,7 +3,7 @@ name: Build
 on:
   push:
     branches:
-      - 26.1.x
+      - multiversion
     paths: &build-paths
       - ".github/workflows/build.yml"
       - "gradle/**"

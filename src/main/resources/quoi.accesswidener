@@ -5,6 +5,8 @@ accessible field net/minecraft/client/KeyMapping clickCount I
 
 accessible class net/minecraft/client/gui/Font$PreparedTextBuilder
 
+# Mod Menu 22 accesses this directly but 26.4 snapshot 2 makes it protected :(
+accessible field net/minecraft/client/gui/components/AbstractWidget visible Z
 accessible field net/minecraft/client/gui/components/ImageButton sprites Lnet/minecraft/client/gui/components/WidgetSprites;
 accessible field net/minecraft/client/gui/components/ChatComponent allMessages Ljava/util/List;
 accessible field net/minecraft/client/gui/components/ChatComponent trimmedMessages Ljava/util/List;
