@@ -55,12 +55,38 @@ jobs:
       - name: Build Mod
         run: ./gradlew build --build-cache --configuration-cache --stacktrace
 
-      - name: Upload Build Artifacts
+      - name: Upload Minecraft 26.1 JAR
         if: ${{ !cancelled() && (github.event_name != 'pull_request' || failure()) }}
         uses: actions/upload-artifact@v7.0.1
         with:
-          name: quoi-build-artifacts
-          path: versions/*/build/libs/quoi-*.jar
-          if-no-files-found: warn
-          compression-level: 0
+          path: versions/26.1.x/build/libs/quoi-*.jar
+          if-no-files-found: error
+          archive: false
+          retention-days: 90
+
+      - name: Upload Minecraft 26.2 JAR
+        if: ${{ !cancelled() && (github.event_name != 'pull_request' || failure()) }}
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          path: versions/26.2/build/libs/quoi-*.jar
+          if-no-files-found: error
+          archive: false
+          retention-days: 90
+
+      - name: Upload Minecraft 26.3 JAR
+        if: ${{ !cancelled() && (github.event_name != 'pull_request' || failure()) }}
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          path: versions/26.3/build/libs/quoi-*.jar
+          if-no-files-found: error
+          archive: false
+          retention-days: 90
+
+      - name: Upload Minecraft 26.4 JAR
+        if: ${{ !cancelled() && (github.event_name != 'pull_request' || failure()) }}
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          path: versions/26.4/build/libs/quoi-*.jar
+          if-no-files-found: error
+          archive: false
           retention-days: 90
