@@ -1,7 +1,7 @@
 package quoi.api.skyblock.dungeon.odonscanning.tiles
 
 import net.minecraft.core.BlockPos
-import net.minecraft.world.level.block.AirBlock
+import net.minecraft.world.level.block.Blocks
 import quoi.api.colour.Colour
 import quoi.api.colour.multiply
 import quoi.module.impl.dungeon.DungeonMap
@@ -11,12 +11,14 @@ import quoi.utils.equalsOneOf
 
 data class OdonDoor(val pos: Vec2i, var type: DoorType) {
 
+    val blockPos = BlockPos(pos.x, 69, pos.z)
     var state: RoomState = RoomState.UNDISCOVERED
     var mapLocked = type.equalsOneOf(DoorType.WITHER, DoorType.BLOOD)
 
     val locked: Boolean get() {
-        if (!type.equalsOneOf(DoorType.WITHER, DoorType.BLOOD)) return false
-        return BlockPos(pos.x, 69, pos.z).state.block !is AirBlock
+        if (type != DoorType.WITHER && type != DoorType.BLOOD) return false
+        val blockState = blockPos.state
+        return !blockState.isAir && !blockState.`is`(Blocks.BARRIER)
     }
 
     val size: Vec2i get() {
