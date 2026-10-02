@@ -5,7 +5,6 @@ import com.google.gson.reflect.TypeToken
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext
 import net.minecraft.core.BlockPos
 import net.minecraft.world.InteractionHand
-import net.minecraft.world.InteractionResult
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import quoi.QuoiMod.logger
@@ -13,6 +12,7 @@ import quoi.api.colour.Colour
 import quoi.api.colour.withAlpha
 import quoi.api.events.DungeonEvent
 import quoi.api.events.RenderEvent
+import quoi.api.events.TickEvent
 import quoi.api.events.UseItemOnPostEvent
 import quoi.api.events.WorldEvent
 import quoi.api.events.core.Event
@@ -42,6 +42,7 @@ object BoulderSolver : SettingGroup(PuzzleSolvers, "Boulder") {
     private val style by selector("Style", "Box", arrayListOf("Box", "Filled box", "Filled"), desc = "Render style to be used.").childOf(::solver)
     private val colour by colourPicker("Colour", Colour.MINECRAFT_GREEN.withAlpha(0.5f), true, desc = "Colour for the boulder solver.").childOf(::solver)
     private val auto by switch("Auto", desc = "Runs to the Boulder chest and back.").asParent()
+    private val triggerbot by switch("Triggerbot", desc = "Clicks the next button in the solution when you look at it.").asParent()
 
     private data class BoxPosition(val render: AABB, val click: BlockPos)
 
@@ -50,6 +51,7 @@ object BoulderSolver : SettingGroup(PuzzleSolvers, "Boulder") {
     private var solutions: Map<String, List<List<Int>>>
     private var currentPositions = mutableListOf<BoxPosition>()
     private var walking = false
+    private var lastClick = 0L
 
     init {
         try {
@@ -70,7 +72,13 @@ object BoulderSolver : SettingGroup(PuzzleSolvers, "Boulder") {
         }
 
         on<UseItemOnPostEvent> {
-            if (solver && hand == InteractionHand.MAIN_HAND && interactionResult == InteractionResult.SUCCESS) onInteract(hitResult.blockPos)
+            if ((solver || triggerbot) && hand == InteractionHand.MAIN_HAND && interactionResult.consumesAction()) onInteract(hitResult.blockPos)
+        }
+
+        on<TickEvent.End> {
+            if (!triggerbot || System.currentTimeMillis() - lastClick < 200L) return@on
+            val pos = currentPositions.firstOrNull()?.click ?: return@on
+            if (PuzzleSolvers.triggerBlock(pos)) lastClick = System.currentTimeMillis()
         }
 
         on<WorldEvent.Change> {
@@ -126,6 +134,7 @@ object BoulderSolver : SettingGroup(PuzzleSolvers, "Boulder") {
             walking = false
         }
         currentPositions = mutableListOf()
+        lastClick = 0L
     }
 
     private fun runTo(room: OdonRoom, z: Double, onArrival: () -> Unit = {}) {

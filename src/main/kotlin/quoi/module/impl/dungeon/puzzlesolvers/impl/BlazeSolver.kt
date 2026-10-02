@@ -3,7 +3,9 @@ package quoi.module.impl.dungeon.puzzlesolvers.impl
 import net.minecraft.client.player.LocalPlayer
 import net.minecraft.core.BlockPos
 import net.minecraft.world.entity.decoration.ArmorStand
+import net.minecraft.world.level.ClipContext
 import net.minecraft.world.phys.AABB
+import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
 import quoi.api.colour.Colour
 import quoi.api.colour.withAlpha
@@ -33,6 +35,7 @@ import quoi.utils.render.drawLine
 import quoi.utils.render.drawStyledBox
 import quoi.utils.skyblock.item.ItemUtils.hasTerminator
 import quoi.utils.skyblock.item.ItemUtils.isShortbow
+import quoi.utils.skyblock.item.ItemUtils.skyblockId
 import quoi.utils.skyblock.item.TeleportUtils.getEtherwarpDirection
 import quoi.utils.skyblock.player.PlayerUtils.useItem
 import kotlin.math.cos
@@ -57,6 +60,7 @@ object BlazeSolver : SettingGroup(PuzzleSolvers, "Blaze"), Repositionable { // t
     private val announce by switch("Announce completion", desc = "Sends complete message.").asParent()
     val auto by switch("Auto")
     private val reposition by switch("Auto reposition").childOf(::auto)
+    val triggerbot by switch("Triggerbot", desc = "Fires when your aim will hit the next blaze without hitting a wrong blaze.").asParent()
 
     private var blazes = mutableListOf<ArmorStand>()
     private var lastBlazeCount = 10
@@ -70,7 +74,7 @@ object BlazeSolver : SettingGroup(PuzzleSolvers, "Blaze"), Repositionable { // t
     init {
         scheduleLoop(10) {
             if (!module.active) return@scheduleLoop
-            if (solver || auto) getBlaze()
+            if (solver || auto || triggerbot) getBlaze()
         }
 
         on<DungeonEvent.Room.Enter> {
@@ -116,15 +120,17 @@ object BlazeSolver : SettingGroup(PuzzleSolvers, "Blaze"), Repositionable { // t
         }
 
         on<TickEvent.End> {
-            if (!auto || ClearExecutor.active || blazes.isEmpty() || PuzzleSolvers.screenBlocksAuto) return@on
+            if ((!auto && !triggerbot) || ClearExecutor.active || blazes.isEmpty() || PuzzleSolvers.screenBlocksAuto || Dungeon.isDead) return@on
+            if (!auto && mc.screen != null) return@on
+            blazes.removeAll { it.isRemoved || getEntity(it.id) == null }
             val room = Dungeon.currentRoom ?: return@on
 
-            repositionTicker?.let {
+            if (auto) repositionTicker?.let {
                 if (it.tick()) Scheduler.scheduleTask { repositionTicker = null }
             }
-            if (repositionTicker != null) return@on
+            if (auto && repositionTicker != null) return@on
 
-            if (room.name == "Higher Blaze" && player.y <= 75) {
+            if (auto && room.name == "Higher Blaze" && player.y <= 75) {
                 if (reposition) cyclePosition(player, room)
                 return@on
             }
@@ -146,20 +152,24 @@ object BlazeSolver : SettingGroup(PuzzleSolvers, "Blaze"), Repositionable { // t
             }
 
             val blaze = blazes.firstOrNull() ?: return@on
+            if (!player.mainHandItem.isShortbow || currentTime - lastShotTime < PuzzleSolvers.shootCd) return@on
             val hitboxes = blazes.map { BlazeHitbox(getAABB(it, it == blaze), it == blaze) }
+            val isTerminator = player.mainHandItem.skyblockId == "TERMINATOR"
 
-            val hitDir = canHit(player.eyePosition, hitboxes, player.hasTerminator)
+            val hitDir = if (auto) canHit(player.eyePosition, hitboxes, isTerminator) else {
+                val dir = Direction(player.yRot, player.xRot)
+                val origin = getArrowOrigin(player.eyePosition, dir.yaw, isTerminator)
+                if (!isSafe(origin, dir.yaw, dir.pitch, hitboxes, false)) return@on
+                if (isTerminator && (!isSafe(origin, dir.yaw + 5f, dir.pitch, hitboxes, true) || !isSafe(origin, dir.yaw - 5f, dir.pitch, hitboxes, true))) return@on
+                dir
+            }
 
             if (hitDir == null) {
-                if (reposition) cyclePosition(player, room)
+                if (auto && reposition) cyclePosition(player, room)
                 return@on
             }
 
-            if (!player.mainHandItem.isShortbow || currentTime - lastShotTime < PuzzleSolvers.shootCd) return@on
-
-            val finalTarget = player.eyePosition.add(hitDir.look().scale(10.0))
-            val dir = getDirection(player.eyePosition, finalTarget)
-            player.useItem(dir)
+            player.useItem(hitDir)
 
             lastShotTime = currentTime
             waitingForUpdate = true
@@ -174,7 +184,7 @@ object BlazeSolver : SettingGroup(PuzzleSolvers, "Blaze"), Repositionable { // t
     override fun shouldHandle(event: Event): Boolean {
         if (!super.shouldHandle(event)) return false
 
-        if (event is DungeonEvent.Room.Enter) return true
+        if (event is DungeonEvent.Room.Enter || event is WorldEvent.Change) return true
 
         return Dungeon.currentRoom?.name?.equalsOneOf("Lower Blaze", "Higher Blaze") == true
     }
@@ -242,7 +252,8 @@ object BlazeSolver : SettingGroup(PuzzleSolvers, "Blaze"), Repositionable { // t
         val target = hitboxes.firstOrNull { it.isTarget } ?: return sideArrow
         val center = target.aabb.center
 
-        val dist = (center.x - from.x).sq + (center.z - from.z).sq
+        val dist = if (sideArrow) hitboxes.maxOf { (it.aabb.center.x - from.x).sq + (it.aabb.center.z - from.z).sq }
+            else (center.x - from.x).sq + (center.z - from.z).sq
 
         var (px, py, pz) = from
         val yawRad = yaw.rad
@@ -259,10 +270,20 @@ object BlazeSolver : SettingGroup(PuzzleSolvers, "Blaze"), Repositionable { // t
             val nextPos = Vec3(nextX, nextY, nextZ)
             val currPos = Vec3(px, py, pz)
 
-            if (!isPathClear(currPos, nextPos)) return sideArrow
-
-            val box = hitboxes.firstOrNull { it.aabb.clip(currPos, nextPos).isPresent }
-            if (box != null) return box.isTarget
+            var nearest: BlazeHitbox? = null
+            var nearestDistance = Double.POSITIVE_INFINITY
+            for (box in hitboxes) {
+                val hit = box.aabb.clip(currPos, nextPos)
+                if (hit.isEmpty) continue
+                val distance = currPos.distanceToSqr(hit.get())
+                if (distance < nearestDistance) {
+                    nearest = box
+                    nearestDistance = distance
+                }
+            }
+            val blockHit = level.clip(ClipContext(currPos, nextPos, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, player))
+            if (blockHit.type == HitResult.Type.BLOCK && currPos.distanceToSqr(blockHit.location) <= nearestDistance) return sideArrow
+            if (nearest != null) return nearest.isTarget
 
             px = nextX
             py = nextY

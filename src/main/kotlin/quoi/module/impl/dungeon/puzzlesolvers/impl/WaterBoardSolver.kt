@@ -6,8 +6,6 @@ import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.level.block.Blocks
-import net.minecraft.world.phys.BlockHitResult
-import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
 import quoi.api.colour.Colour
 import quoi.api.events.*
@@ -145,13 +143,10 @@ object WaterBoardSolver : SettingGroup(PuzzleSolvers, "Water board"), Reposition
         }
 
         on<TickEvent.End> {
-            if (!triggerbot || mc.screen != null) return@on
+            if (!triggerbot || auto) return@on
             if (patternIdentifier == -1 || solutions.isEmpty()) return@on
 
             val (lever, time) = solutionList.firstOrNull() ?: return@on
-            val hitResult = mc.hitResult as? BlockHitResult ?: return@on
-            if (hitResult.type != HitResult.Type.BLOCK || hitResult.blockPos != lever.leverPos) return@on
-
             val remaining = openedWaterTicks - tickCounter + time * 20
             val water = lever == LeverBlock.WATER
             if (!(water && (openedWaterTicks == -1 || remaining <= 0)) && !(!water && remaining <= 0)) return@on
@@ -159,11 +154,7 @@ object WaterBoardSolver : SettingGroup(PuzzleSolvers, "Water board"), Reposition
             val now = System.currentTimeMillis()
             if (now - lastClick < triggerbotDelay) return@on
 
-            val result = mc.gameMode?.useItemOn(player, InteractionHand.MAIN_HAND, hitResult) ?: return@on
-            if (!result.consumesAction()) return@on
-
-            player.swing(InteractionHand.MAIN_HAND)
-            lastClick = now
+            if (PuzzleSolvers.triggerBlock(lever.leverPos)) lastClick = now
         }
 
         on<WorldEvent.Change> {
@@ -174,7 +165,7 @@ object WaterBoardSolver : SettingGroup(PuzzleSolvers, "Water board"), Reposition
     override fun shouldHandle(event: Event): Boolean {
         if (!super.shouldHandle(event)) return false
 
-        if (event is DungeonEvent.Room.Enter) return true
+        if (event is DungeonEvent.Room.Enter || event is WorldEvent.Change) return true
 
         return Dungeon.currentRoom?.name == "Water Board"
     }

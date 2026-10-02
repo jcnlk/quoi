@@ -41,6 +41,7 @@ object TicTacToeSolver : SettingGroup(PuzzleSolvers, "Tic tac toe"), Repositiona
     private val pColour by colourPicker("Prediction colour", Colour.MINECRAFT_YELLOW.withAlpha(0.7f), true).childOf(::prediction)
     private val auto by switch("Auto").asParent()
     private val autoReposition by switch("Auto reposition", desc = "Moves to the chest after the last player move, then moves on once Secret Aura opens it.").childOf(::auto)
+    private val triggerbot by switch("Triggerbot", desc = "Clicks the best move when you look at its button.").asParent()
 
     private var lastBoardHash = 0
     private var bestMove: BlockPos? = null
@@ -77,11 +78,11 @@ object TicTacToeSolver : SettingGroup(PuzzleSolvers, "Tic tac toe"), Repositiona
         }
 
         on<TickEvent.End> {
-            if (!solver && !auto) return@on
+            if (!solver && !auto && !triggerbot) return@on
             if (ClearExecutor.active) return@on
             val room = Dungeon.currentRoom ?: return@on
 
-            if (shouldReposition) {
+            if (auto && autoReposition && shouldReposition) {
                 val spots = repositionSpots(room) ?: return@on
                 repositionTicker?.let { if (it.tick()) repositionTicker = null }
                 if (repositionTicker != null) return@on
@@ -155,29 +156,33 @@ object TicTacToeSolver : SettingGroup(PuzzleSolvers, "Tic tac toe"), Repositiona
                 return@on
             }
 
-            if (auto) bestMove?.let {
-                if (player.eyePosition.distanceToSqr(it.vec3) > 30 || System.currentTimeMillis() - lastClick < 500L) return@let
-                AuraManager.interactBlock(it)
-                lastClick = System.currentTimeMillis()
+            val boardHash = board.contentHashCode()
+            if (boardHash != lastBoardHash) {
+                lastBoardHash = boardHash
+
+                if (validFrames % 2 != 0) {
+                    predictedMove = null
+                    bestMove = getBestMove(board, true)?.let { indexToPos(it, room) }
+                } else if (prediction) {
+                    bestMove = null
+                    getBestMove(board, false)?.let { i ->
+                        board[i] = 'X'
+                        predictedMove = if (getScore(board) == 0) getBestMove(board, true)?.let { indexToPos(it, room) } else null
+                        board[i] = EMPTY
+                    } ?: run { predictedMove = null }
+                } else {
+                    bestMove = null
+                    predictedMove = null
+                }
             }
 
-            val boardHash = board.contentHashCode()
-            if (boardHash == lastBoardHash) return@on
-            lastBoardHash = boardHash
-
-            if (validFrames % 2 != 0) {
-                predictedMove = null
-                bestMove = getBestMove(board, true)?.let { indexToPos(it, room) }
-            } else if (prediction) {
-                bestMove = null
-                getBestMove(board, false)?.let { i ->
-                    board[i] = 'X'
-                    predictedMove = if (getScore(board) == 0) getBestMove(board, true)?.let { indexToPos(it, room) } else null
-                    board[i] = EMPTY
-                } ?: run { predictedMove = null }
-            } else {
-                bestMove = null
-                predictedMove = null
+            bestMove?.let {
+                if (PuzzleSolvers.screenBlocksAuto || System.currentTimeMillis() - lastClick < 500L) return@let
+                if (auto) {
+                    if (player.eyePosition.distanceToSqr(it.vec3) > 30) return@let
+                    AuraManager.interactBlock(it)
+                    lastClick = System.currentTimeMillis()
+                } else if (triggerbot && PuzzleSolvers.triggerBlock(it)) lastClick = System.currentTimeMillis()
             }
         }
 
@@ -189,7 +194,7 @@ object TicTacToeSolver : SettingGroup(PuzzleSolvers, "Tic tac toe"), Repositiona
     override fun shouldHandle(event: Event): Boolean {
         if (!super.shouldHandle(event)) return false
 
-        if (event is DungeonEvent.Room.Enter) return true
+        if (event is DungeonEvent.Room.Enter || event is WorldEvent.Change) return true
 
         return Dungeon.currentRoom?.name == "Tic Tac Toe"
     }

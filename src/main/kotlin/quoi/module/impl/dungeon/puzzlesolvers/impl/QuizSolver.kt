@@ -2,6 +2,9 @@ package quoi.module.impl.dungeon.puzzlesolvers.impl
 
 import net.minecraft.core.BlockPos
 import net.minecraft.world.entity.decoration.ArmorStand
+import net.minecraft.world.level.block.ButtonBlock
+import net.minecraft.world.level.block.state.properties.AttachFace
+import net.minecraft.world.phys.BlockHitResult
 import quoi.api.abobaui.elements.impl.Text.Companion.shadow
 import quoi.api.abobaui.elements.impl.Text.Companion.textSupplied
 import quoi.api.colour.Colour
@@ -36,6 +39,7 @@ object QuizSolver : SettingGroup(PuzzleSolvers, "Quiz") {
     private val colour by colourPicker("Colour", Colour.MINECRAFT_GREEN.withAlpha(0.75f), true, desc = "Color for the quiz solver.").childOf(::solver)
     private val depth by switch("Depth", desc = "Depth check for the trivia puzzle.").childOf(::solver)
     private val auto by switch("Auto").asParent()
+    private val triggerbot by switch("Triggerbot", desc = "Clicks the correct answer block or an attached button when you look at it.").asParent()
     @Suppress("unused")
     private val timerHud by textHud("Quiz timer") {
         visibleIf { solver && (preview || timerTicks > 0) }
@@ -70,9 +74,9 @@ object QuizSolver : SettingGroup(PuzzleSolvers, "Quiz") {
     init {
 
         on<ChatEvent.Packet> {
-            if (!solver && !auto) return@on
+            if (!solver && !auto && !triggerbot) return@on
             val msg = unformatted.trim()
-            mc.execute { if (module.active && (solver || auto)) handleMessage(msg) }
+            mc.execute { if (module.active && (solver || auto || triggerbot)) handleMessage(msg) }
         }
 
         on<DungeonEvent.Room.Enter> {
@@ -93,11 +97,27 @@ object QuizSolver : SettingGroup(PuzzleSolvers, "Quiz") {
         }
 
         on<TickEvent.End> {
-            if (!auto || ClearExecutor.active) return@on
+            if ((!auto && !triggerbot) || ClearExecutor.active || PuzzleSolvers.screenBlocksAuto) return@on
             if (System.currentTimeMillis() - lastClick < 500L) return@on
             if (getEntities<ArmorStand>(20.0) { it.name.string.contains("ⓒ") }.isEmpty()) return@on
 
             val answerPos = triviaOptions.firstOrNull { it.correct }?.pos ?: return@on
+            if (!auto) {
+                val hitPos = (mc.hitResult as? BlockHitResult)?.blockPos ?: return@on
+                val answerBlock = answerPos.below()
+                if (hitPos != answerPos && hitPos != answerBlock) {
+                    val state = level.getBlockState(hitPos)
+                    if (state.block !is ButtonBlock) return@on
+                    val attachedTo = when (state.getValue(ButtonBlock.FACE)) {
+                        AttachFace.FLOOR -> hitPos.below()
+                        AttachFace.CEILING -> hitPos.above()
+                        AttachFace.WALL -> hitPos.relative(state.getValue(ButtonBlock.FACING).opposite)
+                    }
+                    if (attachedTo != answerBlock && attachedTo != answerPos) return@on
+                }
+                if (PuzzleSolvers.triggerBlock(hitPos)) lastClick = System.currentTimeMillis()
+                return@on
+            }
             if (player.eyePosition.distanceToSqr(answerPos.vec3) > 36) return@on
 
             AuraManager.interactBlock(answerPos)
@@ -116,9 +136,9 @@ object QuizSolver : SettingGroup(PuzzleSolvers, "Quiz") {
     override fun shouldHandle(event: Event): Boolean {
         if (!super.shouldHandle(event)) return false
 
-        if (event is DungeonEvent.Room.Enter || event is RenderEvent.World) return true
+        if (event is DungeonEvent.Room.Enter || event is WorldEvent.Change) return true
 
-        return true //Dungeon.currentRoom?.name == "Quiz"
+        return Dungeon.currentRoom?.name == "Quiz"
     }
 
     private fun reset() {

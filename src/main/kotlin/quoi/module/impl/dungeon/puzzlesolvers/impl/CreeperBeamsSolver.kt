@@ -3,7 +3,9 @@ package quoi.module.impl.dungeon.puzzlesolvers.impl
 import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ClientboundSoundPacket
 import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.level.ClipContext
 import net.minecraft.world.phys.AABB
+import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
 import quoi.api.colour.Colour
 import quoi.api.colour.withAlpha
@@ -23,6 +25,7 @@ import quoi.utils.WorldUtils.state
 import quoi.utils.render.drawLine
 import quoi.utils.render.drawStyledBox
 import quoi.utils.skyblock.item.ItemUtils.isShortbow
+import quoi.utils.skyblock.item.ItemUtils.skyblockId
 import quoi.utils.skyblock.item.TeleportUtils.getEtherwarpDirection
 import quoi.utils.skyblock.player.PlayerUtils.useItem
 import java.util.concurrent.ConcurrentHashMap
@@ -42,6 +45,7 @@ object CreeperBeamsSolver : SettingGroup(PuzzleSolvers, "Creeper beams"), Reposi
     private val alpha by slider("Colour alpha", 0.7f, 0f, 1f, 0.05f).childOf(::solver)
     private val announce by switch("Announce completion", desc = "Sends complete message.").asParent()
     val auto by switch("Auto").asParent()
+    val triggerbot by switch("Triggerbot", desc = "Fires at a valid lantern you aim at, then at its matching lantern.").asParent()
 
     private var lanternPairs: List<List<Int>> = PuzzleSolvers.loadSolution("creeperBeamsSolutions.json", emptyList())
 
@@ -78,7 +82,7 @@ object CreeperBeamsSolver : SettingGroup(PuzzleSolvers, "Creeper beams"), Reposi
         }
 
         on<BlockEvent.Update> {
-            if (!solver && !auto) return@on
+            if (!solver && !auto && !triggerbot) return@on
             if (
                 old.block.equalsOneOf(Blocks.PRISMARINE, Blocks.SEA_LANTERN) &&
                 updated.block.equalsOneOf(Blocks.PRISMARINE, Blocks.SEA_LANTERN)
@@ -100,7 +104,7 @@ object CreeperBeamsSolver : SettingGroup(PuzzleSolvers, "Creeper beams"), Reposi
         }
 
         on<PacketEvent.Received, ClientboundSoundPacket> {
-            if (!auto) return@on
+            if (!auto && !triggerbot) return@on
             val pair = activePair ?: return@on
             if (packet.sound.registeredName != "minecraft:entity.elder_guardian.hurt") return@on
 
@@ -113,9 +117,38 @@ object CreeperBeamsSolver : SettingGroup(PuzzleSolvers, "Creeper beams"), Reposi
             } else if (pair.stage == 1 && packet.pitch == 2.0f) {
                 pair.stage = 2
                 waitingForUpdate = false
-                currentLanternPairs.remove(pair.first)
+                currentLanternPairs.remove(pair.key)
                 activePair = null
             }
+        }
+
+        on<TickEvent.End> {
+            if (!triggerbot || auto || ClearExecutor.active || mc.screen != null || Dungeon.isDead || solvedPairs >= 4 || currentLanternPairs.isEmpty()) return@on
+            if (!player.mainHandItem.isShortbow) return@on
+            val now = System.currentTimeMillis()
+            if (now - lastShotTime < PuzzleSolvers.shootCd) return@on
+            if (waitingForUpdate && now - lastShotTime <= PuzzleSolvers.missCd) return@on
+
+            val lantern = getArrowHit(player.yRot, player.xRot) ?: return@on
+            val pair = activePair ?: run {
+                val entry = currentLanternPairs.entries.firstOrNull { it.key == lantern || it.value.first == lantern } ?: return@on
+                val other = if (entry.key == lantern) entry.value.first else entry.key
+                LanternPair(lantern, other, key = entry.key)
+            }
+            if (lantern != if (pair.stage == 0) pair.first else pair.second) return@on
+            val room = Dungeon.currentRoom ?: return@on
+            if (isPathBlocked(player.eyePosition, lantern.center, room.getRealCoords(BlockPos(15, 74, 15)))) return@on
+            if (player.mainHandItem.skyblockId == "TERMINATOR") {
+                for (yaw in floatArrayOf(player.yRot - 5f, player.yRot + 5f)) {
+                    val sideHit = getArrowHit(yaw, player.xRot) ?: continue
+                    if (sideHit != lantern && sideHit.state.`is`(Blocks.SEA_LANTERN)) return@on
+                }
+            }
+
+            activePair = pair
+            player.useItem(player.yRot, player.xRot)
+            lastShotTime = now
+            waitingForUpdate = true
         }
 
         on<TickEvent.End> {
@@ -176,7 +209,7 @@ object CreeperBeamsSolver : SettingGroup(PuzzleSolvers, "Creeper beams"), Reposi
     override fun shouldHandle(event: Event): Boolean {
         if (!super.shouldHandle(event)) return false
 
-        if (event is DungeonEvent.Room.Enter) return true
+        if (event is DungeonEvent.Room.Enter || event is WorldEvent.Change) return true
 
         return Dungeon.currentRoom?.name == "Creeper Beams"
     }
@@ -193,7 +226,7 @@ object CreeperBeamsSolver : SettingGroup(PuzzleSolvers, "Creeper beams"), Reposi
         }
 
         val active = activePair ?: return
-        if (!currentLanternPairs.containsKey(active.first)) {
+        if (!currentLanternPairs.containsKey(active.key)) {
             activePair = null
             waitingForUpdate = false
         }
@@ -206,6 +239,19 @@ object CreeperBeamsSolver : SettingGroup(PuzzleSolvers, "Creeper beams"), Reposi
         lastShotTime = -1
         repositionTicker = null
         solvedPairs = 0
+    }
+
+    private fun getArrowHit(yaw: Float, pitch: Float): BlockPos? {
+        var pos = getArrowOrigin(player.eyePosition, player.yRot, player.mainHandItem.skyblockId == "TERMINATOR")
+        var motion = getLook(yaw, pitch).scale(3.0)
+        repeat(60) {
+            val next = pos.add(motion)
+            val hit = level.clip(ClipContext(pos, next, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, player))
+            if (hit.type == HitResult.Type.BLOCK) return hit.blockPos
+            pos = next
+            motion = motion.multiply(0.99, 0.99, 0.99).add(0.0, -0.05, 0.0)
+        }
+        return null
     }
 
     private fun isPathBlocked(from: Vec3, lantern: Vec3, creeper: BlockPos): Boolean {
@@ -250,6 +296,7 @@ object CreeperBeamsSolver : SettingGroup(PuzzleSolvers, "Creeper beams"), Reposi
     private data class LanternPair(
         val first: BlockPos,
         val second: BlockPos,
-        var stage: Int = 0 // 0 = not hit, 1 = first hit, 2 = both hit
+        var stage: Int = 0, // 0 = not hit, 1 = first hit, 2 = both hit
+        val key: BlockPos = first
     )
 }

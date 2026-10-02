@@ -2,8 +2,10 @@ package quoi.module.impl.dungeon.puzzlesolvers.impl
 
 import net.minecraft.core.BlockPos
 import net.minecraft.sounds.SoundEvents
+import net.minecraft.world.InteractionHand
 import net.minecraft.world.entity.decoration.ArmorStand
 import net.minecraft.world.phys.AABB
+import net.minecraft.world.phys.EntityHitResult
 import quoi.api.colour.Colour
 import quoi.api.colour.withAlpha
 import quoi.api.events.*
@@ -21,6 +23,7 @@ import quoi.utils.skyblock.player.interact.AuraAction
 import quoi.utils.skyblock.player.interact.AuraManager
 import quoi.utils.vec3
 import java.util.concurrent.CopyOnWriteArraySet
+import kotlin.math.abs
 
 /**
  * modified OdinFabric (BSD 3-Clause)
@@ -33,6 +36,7 @@ object ThreeWeirdosSolver : SettingGroup(PuzzleSolvers, "Three weirdos") {
     private val wrongColour by colourPicker("Wrong colour", Colour.MINECRAFT_RED.withAlpha(0.7f), true,  desc = "Colour for the incorrect Weirdos.").childOf(::solver)
     private val style by selector("Style", "Box", arrayListOf("Box", "Filled box"), desc = "Whether or not the box should be filled.").childOf(::solver)
     private val auto by switch("Auto").asParent()
+    private val triggerbot by switch("Triggerbot", desc = "Talks to each NPC and opens the correct chest when you look at them.").asParent()
 
     private var correctPos: BlockPos? = null
     private var wrongPositions = CopyOnWriteArraySet<BlockPos>()
@@ -47,7 +51,7 @@ object ThreeWeirdosSolver : SettingGroup(PuzzleSolvers, "Three weirdos") {
         }
 
         on<ChatEvent.Packet> {
-            if (!solver && !auto) return@on
+            if (!solver && !auto && !triggerbot) return@on
 
             weirdosRegex.find(unformatted)?.destructured?.let { (npc, msg) ->
                 val solution = solutions.any { it.matches(msg) }
@@ -56,7 +60,7 @@ object ThreeWeirdosSolver : SettingGroup(PuzzleSolvers, "Three weirdos") {
 
                 mc.execute {
                     val room = Dungeon.currentRoom?.takeIf { it.name == "Three Weirdos" } ?: return@execute
-                    if (!module.active || (!solver && !auto)) return@execute
+                    if (!module.active || (!solver && !auto && !triggerbot)) return@execute
 
                     val correctNPC = getEntities<ArmorStand>().find { it.name.string == npc } ?: return@execute
                     val relativePos = room.getRelativeCoords(BlockPos(correctNPC.x.toInt() - 1, 69, correctNPC.z.toInt() - 1))
@@ -79,9 +83,34 @@ object ThreeWeirdosSolver : SettingGroup(PuzzleSolvers, "Three weirdos") {
         }
 
         on<TickEvent.End> {
-            if (!auto || clickedChest || ClearExecutor.active) return@on
+            if ((!auto && !triggerbot) || clickedChest || ClearExecutor.active || PuzzleSolvers.screenBlocksAuto) return@on
+            if (!auto && (mc.screen != null || Dungeon.isDead)) return@on
 
             val currentTime = System.currentTimeMillis()
+
+            if (!auto) {
+                if (currentTime - lastClick < 200L) return@on
+                val hit = mc.hitResult as? EntityHitResult
+                val entity = hit?.entity
+                val clickStand = entity?.let { target ->
+                    getEntities<ArmorStand>().firstOrNull {
+                        "CLICK" in it.name.string && abs(it.x - target.x) < 0.1 &&
+                            abs(it.y - target.y) < 0.5 && abs(it.z - target.z) < 0.1
+                    }
+                }
+                if (entity != null && clickStand != null && clickStand.id !in clickedNPCs) {
+                    val range = player.entityInteractionRange()
+                    if (player.eyePosition.distanceToSqr(hit.location) > range * range) return@on
+                    gameMode.interact(player, entity, hit, InteractionHand.MAIN_HAND)
+                    player.swing(InteractionHand.MAIN_HAND)
+                    clickedNPCs.add(clickStand.id)
+                    lastClick = currentTime
+                } else if (wrongPositions.size == 2 && correctPos?.let(PuzzleSolvers::triggerBlock) == true) {
+                    clickedChest = true
+                    lastClick = currentTime
+                }
+                return@on
+            }
 
             if (clickedNPCs.size < 3) {
                 getEntities<ArmorStand>(10.0).any { entity ->
@@ -112,7 +141,7 @@ object ThreeWeirdosSolver : SettingGroup(PuzzleSolvers, "Three weirdos") {
     override fun shouldHandle(event: Event): Boolean {
         if (!super.shouldHandle(event)) return false
 
-        if (event is DungeonEvent.Room.Enter) return true
+        if (event is DungeonEvent.Room.Enter || event is WorldEvent.Change) return true
 
         return Dungeon.currentRoom?.name == "Three Weirdos"
     }
