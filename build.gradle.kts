@@ -112,7 +112,7 @@ loom {
     runs {
         named("client") {
             generateRunConfig.set(true)
-            runDirectory.set(rootProject.layout.projectDirectory.dir("runs/$mcVersion"))
+            runDirectory.set(layout.projectDirectory.dir("run"))
             jvmArguments.addAll(
                 "-Dmixin.debug.export=true",
                 "-Ddevauth.enabled=true",

@@ -2,5 +2,5 @@
 .gradle/
 .kotlin/
 build/
-/runs/
+run/
 /.kotlin

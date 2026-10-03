@@ -1,12 +1,12 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="quoi [current version] runClient alt" type="GradleRunConfiguration" factoryName="Gradle">
+  <configuration default="false" name="quoi [26.1.x] runClient alt" type="GradleRunConfiguration" factoryName="Gradle">
     <ExternalSystemSettings>
       <option name="externalProjectPath" value="$PROJECT_DIR$" />
       <option name="externalSystemIdString" value="GRADLE" />
       <option name="scriptParameters" value="-Pdevauth_account=alt" />
       <option name="taskNames">
         <list>
-          <option value="runClient" />
+          <option value=":26.1.x:runClient" />
         </list>
       </option>
     </ExternalSystemSettings>
