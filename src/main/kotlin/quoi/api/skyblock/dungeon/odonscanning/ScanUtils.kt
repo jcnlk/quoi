@@ -6,11 +6,9 @@ import kotlin.math.round
 import net.minecraft.core.BlockPos
 import net.minecraft.core.Direction
 import net.minecraft.network.protocol.game.ClientboundMapItemDataPacket
-import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.chunk.LevelChunk
 import quoi.QuoiMod.logger
-import quoi.api.events.BlockEvent
 import quoi.api.events.DungeonEvent
 import quoi.api.events.PacketEvent
 import quoi.api.events.TickEvent
@@ -50,7 +48,6 @@ object ScanUtils : EventListener, Shortcuts {
 
     val grid = Array<Any?>(121) { null }
     private val uniqueRooms = mutableMapOf<String, OdonRoom>()
-    private val originalDoorBlocks = arrayOfNulls<Block>(121)
 
     var currentRoom: OdonRoom? = null
         private set
@@ -77,18 +74,6 @@ object ScanUtils : EventListener, Shortcuts {
     }
 
     fun init() {
-        on<BlockEvent.Update> {
-            if (pos.y != 69 || (pos.x - START) % 16 != 0 || (pos.z - START) % 16 != 0) return@on
-            val col = (pos.x - START) / 16
-            val row = (pos.z - START) / 16
-            if (col !in 0..10 || row !in 0..10 || col % 2 == row % 2) return@on
-            val block = old.block
-            if (block != Blocks.COAL_BLOCK && block != Blocks.RED_TERRACOTTA && block != Blocks.INFESTED_CHISELED_STONE_BRICKS) return@on
-
-            // I Hate Doors replaces these blocks with glass before we may have scanned them.
-            originalDoorBlocks[row * 11 + col] = block
-        }
-
         on<TickEvent.End> {
             if ((!Dungeon.inDungeons && !Location.currentArea.isArea(Island.SinglePlayer)) || Dungeon.inBoss) {
                 currentRoom?.let { DungeonEvent.Room.Enter(null).post() }
@@ -143,7 +128,6 @@ object ScanUtils : EventListener, Shortcuts {
             scannedRooms.clear()
             scannedDoors.clear()
             uniqueRooms.clear()
-            originalDoorBlocks.fill(null)
             grid.fill(null)
             currentRoom = null
             mimicRoom = null
@@ -198,7 +182,7 @@ object ScanUtils : EventListener, Shortcuts {
             }
 
             height in intArrayOf(73, 74, 81, 82) -> { // dors
-                val block = originalDoorBlocks[row * 11 + col] ?: chunk.getBlockState(mutableBlockPos.set(x, 69, z)).block
+                val block = chunk.level.getBlockState(mutableBlockPos.set(x, 69, z)).block
                 val type = when (block) {
                     Blocks.COAL_BLOCK -> DoorType.WITHER
                     Blocks.RED_TERRACOTTA -> DoorType.BLOOD

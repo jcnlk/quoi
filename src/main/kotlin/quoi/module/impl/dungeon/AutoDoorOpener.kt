@@ -3,6 +3,7 @@ package quoi.module.impl.dungeon
 import kotlin.math.abs
 import net.minecraft.core.BlockPos
 import net.minecraft.world.InteractionHand
+import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
@@ -10,11 +11,13 @@ import quoi.api.events.TickEvent
 import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.odonscanning.ScanUtils
+import quoi.api.skyblock.dungeon.odonscanning.tiles.DoorType
 import quoi.api.skyblock.dungeon.odonscanning.tiles.OdonDoor
 import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.location.invoke
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.visibleIf
+import quoi.utils.WorldUtils.state
 import quoi.utils.skyblock.player.interact.AuraManager
 
 object AutoDoorOpener : Module(
@@ -55,7 +58,7 @@ object AutoDoorOpener : Module(
         val rangeSq = auraRange * auraRange
 
         return doors.asSequence()
-            .map { it.blockPos }
+            .map { BlockPos(it.pos.x, 69, it.pos.z) }
             .filter { eyePosition.distanceToSqr(Vec3.atCenterOf(it)) <= rangeSq }
             .minByOrNull { eyePosition.distanceToSqr(Vec3.atCenterOf(it)) }
     }
@@ -67,11 +70,17 @@ object AutoDoorOpener : Module(
 
         val hitPos = hitResult.blockPos
 
-        if (hitPos.y !in 69..72) return null
+        if (hitPos.y !in 69..73) return null
 
         return hitPos.takeIf {
             doors.any { door ->
-                abs(hitPos.x - door.pos.x) <= 1 && abs(hitPos.z - door.pos.z) <= 1
+                abs(hitPos.x - door.pos.x) <= 2 &&
+                    abs(hitPos.z - door.pos.z) <= 2 &&
+                    when (door.type) {
+                        DoorType.WITHER -> hitPos.state.block == Blocks.COAL_BLOCK
+                        DoorType.BLOOD -> hitPos.state.block == Blocks.RED_TERRACOTTA
+                        else -> false
+                    }
             }
         }
     }
