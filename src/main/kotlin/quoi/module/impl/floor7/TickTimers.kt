@@ -6,7 +6,6 @@ import quoi.api.events.DungeonEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
 import quoi.api.events.core.on
-import quoi.api.skyblock.dungeon.Dungeon.deathTick
 import quoi.api.skyblock.dungeon.Dungeon.inBoss
 import quoi.api.skyblock.dungeon.enums.Phase
 import quoi.api.skyblock.dungeon.enums.Stage
@@ -46,17 +45,6 @@ object TickTimers : Module(
     }.setting()
 
     private val startTimer by switch("Goldor start timer").visibleIf { goldorHud.enabled }
-
-    @Suppress("unused")
-    private val deathTickHud by textHud("Death tick") { // maybe make an option to show it before dung start only
-        visibleIf { deathTick >= 0 }
-        textSupplied(
-            supplier = { formatTime(if (preview) 15 else deathTick, 40) },
-            size = theme.textSize,
-            font = font,
-            colour = colour
-        ).shadow = shadow
-    }.setting()
 
     private var goldorTick = -1
     private var goldorStart = -1

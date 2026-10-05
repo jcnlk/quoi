@@ -140,7 +140,7 @@ object Dungeon : EventListener, Shortcuts {
     inline val princeKilled: Boolean
         get() = dungeonStats.princeKilled
 
-    inline val batKilled: Boolean
+    inline val batKilled: Boolean // TODO: add support for bat score per player
         get() = dungeonStats.batKilled
 
     inline val currentRoom: OdonRoom?
@@ -202,10 +202,6 @@ object Dungeon : EventListener, Shortcuts {
     var dungeonStats = DungeonStats()
         private set
 
-    // ticks till death tick
-    var deathTick = -1
-        private set
-
     private var expectingBloodUpdate = false
 
     init {
@@ -223,7 +219,6 @@ object Dungeon : EventListener, Shortcuts {
             else if (Location.onZapto) Floor.F7
             else null
             isPaul = false
-            deathTick = -1
         }
 
         on<PacketEvent.Received> {
@@ -316,19 +311,6 @@ object Dungeon : EventListener, Shortcuts {
 
                     is ClientboundOpenScreenPacket -> inTerminal = terminalTitles.any { title.string.contains(it) }
                     is ClientboundContainerClosePacket -> inTerminal = false
-
-                    is ClientboundPingPacket -> {
-                        if (id >= 0) return@on
-                        if (!inClear) return@on
-                        if (deathTick == 0) deathTick = 40
-                        if (deathTick >= 0) deathTick--
-                    }
-
-                    is ClientboundSetTimePacket -> {
-                        if (!inClear) return@on
-                        val gameTime = level.gameTime
-                        deathTick = 40 - (gameTime % 40).toInt()
-                    }
                 }
             }
         }
