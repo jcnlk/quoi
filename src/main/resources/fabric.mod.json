@@ -36,7 +36,7 @@
     "minecraft": "${minecraft_dependency}",
     "fabric-language-kotlin": ">=${fabric_kotlin_version}"
   },
-  "conflicts": {
-    "quoi": "*"
+  "suggests": {
+    "modmenu": "*"
   }
 }
