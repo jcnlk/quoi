@@ -47,7 +47,6 @@ object ModuleManager : EventListener {
             BloodCamp,
             WarpCooldown,
             AutoCroesus,
-            AutoPotions,
 
             // FLOOR 7
             ArrowAlign,
