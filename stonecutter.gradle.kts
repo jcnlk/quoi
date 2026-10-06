@@ -568,6 +568,7 @@ stonecutter parameters {
             ChatFormatting.DARK_PURPLE.color -> PetRarity.EPIC
             ChatFormatting.GOLD.color -> PetRarity.LEGENDARY
             ChatFormatting.LIGHT_PURPLE.color -> PetRarity.MYTHIC
+            ChatFormatting.RED.color -> PetRarity.SPECIAL
         """.trimIndent()
         else -> """
             TextColor.fromLegacyFormat(ChatFormatting.WHITE)?.getValue() -> PetRarity.COMMON
@@ -576,6 +577,7 @@ stonecutter parameters {
             TextColor.fromLegacyFormat(ChatFormatting.DARK_PURPLE)?.getValue() -> PetRarity.EPIC
             TextColor.fromLegacyFormat(ChatFormatting.GOLD)?.getValue() -> PetRarity.LEGENDARY
             TextColor.fromLegacyFormat(ChatFormatting.LIGHT_PURPLE)?.getValue() -> PetRarity.MYTHIC
+            TextColor.fromLegacyFormat(ChatFormatting.RED)?.getValue() -> PetRarity.SPECIAL
         """.trimIndent()
     }
     swaps["interact_entity_packet"] = when {

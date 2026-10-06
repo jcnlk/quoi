@@ -297,6 +297,7 @@ object PetUtils : EventListener, Shortcuts {
             ChatFormatting.DARK_PURPLE.color -> PetRarity.EPIC
             ChatFormatting.GOLD.color -> PetRarity.LEGENDARY
             ChatFormatting.LIGHT_PURPLE.color -> PetRarity.MYTHIC
+            ChatFormatting.RED.color -> PetRarity.SPECIAL
             //$}
             else -> PetRarity.UNKNOWN
         }

@@ -41,6 +41,7 @@ enum class PetRarity(val colorCode: String) {
     EPIC("§5"),
     LEGENDARY("§6"),
     MYTHIC("§d"),
+    SPECIAL("§c"),
     UNKNOWN("");
 
     companion object {
