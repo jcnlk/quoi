@@ -43,7 +43,8 @@ object Floor7 : EventListener, Shortcuts {
                 "The Core entrance is opening!" -> {
                     updateState(newStage = Stage.S5)
                 }
-                "[BOSS] Necron: All this, for nothing..." -> {
+                "[BOSS] The Wither King: Ohh?", // first comp message
+                "[BOSS] The Wither King: You... again?" -> {
                     updateState(newPhase = Phase.P5)
                 }
             }
