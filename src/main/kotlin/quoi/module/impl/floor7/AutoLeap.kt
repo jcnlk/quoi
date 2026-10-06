@@ -205,9 +205,10 @@ object AutoLeap : Module(
                 leapToConfigured(predevName, predevClass.selected)
             }
 
-            if (unformatted == "[BOSS] Necron: ARGH!" && p4Leap && p4Auto) {
-                if (++arghCount == 2 && isInP4()) leapToConfigured(p4Name, p4Class.selected)
-            }
+            // TODO: fixme
+//            if (unformatted == "[BOSS] Necron: ARGH!" && p4Leap && p4Auto) {
+//                if (++arghCount == 2 && isInP4()) leapToConfigured(p4Name, p4Class.selected)
+//            }
 
             if (unformatted == "[BOSS] Necron: That's a very impressive trick. I guess I'll have to handle this myself." &&
                 middleLeap && middleAuto && isOutsideMiddle()

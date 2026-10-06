@@ -2,11 +2,13 @@ package quoi.api.skyblock.dungeon
 
 import net.minecraft.client.player.AbstractClientPlayer
 import quoi.annotations.Init
+import quoi.api.events.BossBarEvent
 import quoi.api.events.ChatEvent
 import quoi.api.events.DungeonEvent
 import quoi.api.events.WorldEvent
 import quoi.api.events.core.EventListener
 import quoi.api.events.core.on
+import quoi.api.skyblock.dungeon.enums.Floor
 import quoi.api.skyblock.dungeon.enums.Phase
 import quoi.api.skyblock.dungeon.enums.Stage
 import quoi.utils.Shortcuts
@@ -43,10 +45,6 @@ object Floor7 : EventListener, Shortcuts {
                 "The Core entrance is opening!" -> {
                     updateState(newStage = Stage.S5)
                 }
-                "[BOSS] The Wither King: Ohh?", // first comp message
-                "[BOSS] The Wither King: You... again?" -> {
-                    updateState(newPhase = Phase.P5)
-                }
             }
 
             if (phase == Phase.P3 && stage.number in 1..4) {
@@ -55,6 +53,15 @@ object Floor7 : EventListener, Shortcuts {
                 if (nextStage != stage) {
                     updateState(newStage = nextStage)
                 }
+            }
+        }
+
+        // based on: https://github.com/Noamm9/NoammAddons/blob/3db81ee12ecca7c5beb84ed2824e1dd64a153018/src/main/kotlin/com/github/noamm9/features/impl/floor7/M7Relics.kt#L66-L72
+        on<BossBarEvent.Update> {
+            if (Dungeon.floor != Floor.M7 || !Dungeon.inBoss || phase == Phase.P5) return@on
+
+            if (unformatted.contains("wither king", ignoreCase = true)) {
+                updateState(newPhase = Phase.P5)
             }
         }
 
