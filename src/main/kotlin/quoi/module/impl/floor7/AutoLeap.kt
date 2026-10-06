@@ -5,6 +5,7 @@ import net.minecraft.network.protocol.game.ClientboundAddEntityPacket
 import net.minecraft.network.protocol.game.ClientboundEntityPositionSyncPacket
 import net.minecraft.network.protocol.game.ClientboundMoveEntityPacket
 import net.minecraft.network.protocol.game.ClientboundTeleportEntityPacket
+import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket
 import net.minecraft.world.phys.AABB
 import net.minecraft.world.phys.Vec3
 import quoi.api.events.*
@@ -88,7 +89,7 @@ object AutoLeap : Module(
     private val middleAuto by switch("Auto", desc = "Automatically leaps when instamid would send you to middle.").json("Middle leap auto").childOf(::middleLeap)
 
     private val p4Leap by switch("P4 leap", desc = "Leaps at P5 start.").json("P5 leap")
-    private val p4Auto by switch("Auto", desc = "Automatically leaps after Necron died.").json("P5 leap auto").childOf(::p4Leap)
+//    private val p4Auto by switch("Auto", desc = "Automatically leaps after Necron died.").json("P5 leap auto").childOf(::p4Leap) // TODO: fixme
 
     private val relicLeap by switch("Relic leap", desc = "Leaps in relic.")
     private val relicAuto by switch("Auto", desc = "Automatically leaps after picking up a relic.").json("Relic leap auto").childOf(::relicLeap)
@@ -145,6 +146,7 @@ object AutoLeap : Module(
     private val melodyPlayerRegex = Regex("""([A-Za-z0-9_]{3,16}):""")
     private val deviceDoneRegex = Regex("""^(\w+) completed a device! \((.*?)\)$""")
     private val stormCrushMessages = setOf("[BOSS] Storm: Oof", "[BOSS] Storm: Ouch, that hurt!")
+    private val relicIds = setOf("GREEN_KING_RELIC", "PURPLE_KING_RELIC", "BLUE_KING_RELIC", "ORANGE_KING_RELIC", "RED_KING_RELIC")
 
     override fun onDisable() {
         reset()
@@ -228,12 +230,10 @@ object AutoLeap : Module(
             leapToPre4Target()
         }
 
-        // based on https://github.com/Noamm9/NoammAddons/blob/1.1.9/src/main/kotlin/com/github/noamm9/features/impl/floor7/M7Relics.kt#L96-L104
-        on<TickEvent.End> {
+        on<PacketEvent.ReceivedPost, ClientboundContainerSetSlotPacket> {
             if (!relicLeap || !relicAuto || pickedUpRelic || !isInRelic()) return@on
+            if (packet.containerId != 0 || packet.slot != 44 || packet.item.skyblockId !in relicIds) return@on
 
-            val relic = player.inventory.getItem(8)
-            if (!relic.displayName.string.contains("Relic")) return@on
             pickedUpRelic = true
 
             leapToConfigured(relicName, relicClass.selected)
