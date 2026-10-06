@@ -44,8 +44,6 @@ Use [actions tab](https://github.com/jcnlk/quoi/actions) to download (you need t
   - Automatically claims profitable Croesus dungeon chests.
 - **Auto Door Opener**
   - Automatically opens nearby Wither and Blood doors.
-- **Auto Potions**
-  - Automatically gets a potion from your potion bag.
 - **Auto Routes** (Beta)
   - Route editor/runtime support via `/route`.
 - **Blood Camp**

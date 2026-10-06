@@ -3,7 +3,6 @@ package quoi.api.skyblock.dungeon
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import net.minecraft.core.BlockPos
-import net.minecraft.network.protocol.common.ClientboundPingPacket
 import net.minecraft.network.protocol.game.*
 import net.minecraft.world.entity.decoration.ArmorStand
 import net.minecraft.world.level.block.Blocks
@@ -20,27 +19,18 @@ import quoi.api.events.PacketEvent
 import quoi.api.events.WorldEvent
 import quoi.api.events.core.EventListener
 import quoi.api.events.core.on
-import quoi.api.skyblock.dungeon.enums.Blessing
-import quoi.api.skyblock.dungeon.enums.DungeonClass
-import quoi.api.skyblock.dungeon.enums.DungeonPlayer
-import quoi.api.skyblock.dungeon.enums.Floor
-import quoi.api.skyblock.dungeon.enums.Puzzle
-import quoi.api.skyblock.dungeon.enums.PuzzleStatus
+import quoi.api.skyblock.dungeon.enums.*
 import quoi.api.skyblock.dungeon.odonscanning.ScanUtils
 import quoi.api.skyblock.dungeon.odonscanning.tiles.OdonRoom
 import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.location.Location
 import quoi.module.impl.dungeon.LeapMenu
 import quoi.module.impl.render.clickgui.ClickGui
+import quoi.utils.*
 import quoi.utils.EntityUtils.getEntities
-import quoi.utils.Shortcuts
 import quoi.utils.StringUtils.noControlCodes
-import quoi.utils.aabb
-import quoi.utils.equalsOneOf
-import quoi.utils.romanToInt
-import quoi.utils.vec3
 import quoi.utils.skyblock.PartyUtils
-import java.util.UUID
+import java.util.*
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.roundToLong
@@ -140,7 +130,7 @@ object Dungeon : EventListener, Shortcuts {
     inline val princeKilled: Boolean
         get() = dungeonStats.princeKilled
 
-    inline val batKilled: Boolean
+    inline val batKilled: Boolean // TODO: add support for bat score per player
         get() = dungeonStats.batKilled
 
     inline val currentRoom: OdonRoom?
@@ -202,10 +192,6 @@ object Dungeon : EventListener, Shortcuts {
     var dungeonStats = DungeonStats()
         private set
 
-    // ticks till death tick
-    var deathTick = -1
-        private set
-
     private var expectingBloodUpdate = false
 
     init {
@@ -223,7 +209,6 @@ object Dungeon : EventListener, Shortcuts {
             else if (Location.onZapto) Floor.F7
             else null
             isPaul = false
-            deathTick = -1
         }
 
         on<PacketEvent.Received> {
@@ -316,19 +301,6 @@ object Dungeon : EventListener, Shortcuts {
 
                     is ClientboundOpenScreenPacket -> inTerminal = terminalTitles.any { title.string.contains(it) }
                     is ClientboundContainerClosePacket -> inTerminal = false
-
-                    is ClientboundPingPacket -> {
-                        if (id >= 0) return@on
-                        if (!inClear) return@on
-                        if (deathTick == 0) deathTick = 40
-                        if (deathTick >= 0) deathTick--
-                    }
-
-                    is ClientboundSetTimePacket -> {
-                        if (!inClear) return@on
-                        val gameTime = level.gameTime
-                        deathTick = 40 - (gameTime % 40).toInt()
-                    }
                 }
             }
         }
