@@ -18,7 +18,7 @@ import quoi.api.events.GuiEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
 import quoi.api.events.core.on
-import quoi.api.input.CatKeyboard
+import quoi.api.input.Keyboard
 import quoi.api.input.Keybinds
 import quoi.api.skyblock.SkyblockPrices
 import quoi.api.skyblock.SkyblockPrices.BazaarPriceType
@@ -138,7 +138,7 @@ object AutoCroesus : Module(
         registerCommands()
 
         on<TickEvent.Start> {
-            if (claiming && killSwitch.key != Keybinds.KEY_NONE && CatKeyboard.isKeyDown(killSwitch.key)) {
+            if (claiming && killSwitch.key != Keybinds.KEY_NONE && Keyboard.isKeyDown(killSwitch.key)) {
                 reset()
                 modMessage("&cAuto Croesus stopped.")
                 return@on

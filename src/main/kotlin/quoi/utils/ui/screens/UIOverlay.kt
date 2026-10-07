@@ -5,8 +5,8 @@ import quoi.api.abobaui.AbobaUI
 import quoi.api.events.GuiEvent
 import quoi.api.events.RenderEvent
 import quoi.api.events.core.on
-import quoi.api.input.CatMouse.mx
-import quoi.api.input.CatMouse.my
+import quoi.api.input.Mouse.mx
+import quoi.api.input.Mouse.my
 import quoi.utils.height
 import quoi.utils.width
 import quoi.utils.ui.rendering.NVGSpecialRenderer

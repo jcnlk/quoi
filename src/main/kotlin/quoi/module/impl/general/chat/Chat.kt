@@ -13,11 +13,10 @@ object Chat : Module(
         ChatPeek
         CompactChat
         CopyChat
-        InfiniteChatLimit
+        NoChatLimit
         KeepChatHistory
-        DisableAutoScroll
+        NoAutoScroll
         AutoDialogue
-        ChatEmojis
         ChatReplacements
     }
 }

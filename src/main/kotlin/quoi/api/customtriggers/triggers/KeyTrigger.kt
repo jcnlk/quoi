@@ -5,10 +5,10 @@ import quoi.api.abobaui.dsl.*
 import quoi.api.abobaui.elements.ElementScope
 import quoi.api.customtriggers.TriggerContext
 import quoi.api.abobaui.elements.impl.Text.Companion.textSupplied
-import quoi.api.input.CatMouse
+import quoi.api.input.Mouse
 import quoi.api.input.CursorShape
 import quoi.utils.ui.cursor
-import quoi.api.input.CatKeyboard
+import quoi.api.input.Keyboard
 import quoi.api.input.Keybinds
 import quoi.config.TypeName
 import quoi.utils.ThemeManager.theme
@@ -25,8 +25,8 @@ class KeyTrigger(var key: Int = Keybinds.KEY_NONE) : Trigger {
 
     private fun keyName() = when {
         key == Keybinds.KEY_NONE -> "None"
-        key < -1 -> CatMouse.getButtonName(key + 100)
-        else -> CatKeyboard.getKeyName(key) ?: "Unknown"
+        key < -1 -> Mouse.getButtonName(key + 100)
+        else -> Keyboard.getKeyName(key) ?: "Unknown"
     }
 
     override fun displayString() = "Key [${keyName()}] pressed"

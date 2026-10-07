@@ -27,8 +27,8 @@ import quoi.mixininterfaces.IChatComponent;
 import quoi.mixininterfaces.IGuiMessage;
 import quoi.mixininterfaces.ISearchMode;
 import quoi.module.impl.general.chat.impl.ChatPeek;
-import quoi.module.impl.general.chat.impl.DisableAutoScroll;
-import quoi.module.impl.general.chat.impl.InfiniteChatLimit;
+import quoi.module.impl.general.chat.impl.NoAutoScroll;
+import quoi.module.impl.general.chat.impl.NoChatLimit;
 import quoi.module.impl.general.chat.impl.KeepChatHistory;
 
 @Mixin(ChatComponent.class)
@@ -151,7 +151,7 @@ public abstract class ChatComponentMixin implements IChatComponent {
             )
     )
     private void disableAutoScroll(ChatComponent instance, int amount, Operation<Void> original) {
-        if (DisableAutoScroll.disablesAutoScroll()) return;
+        if (NoAutoScroll.disablesAutoScroll()) return;
         original.call(instance, amount);
     }
 
@@ -172,7 +172,7 @@ public abstract class ChatComponentMixin implements IChatComponent {
             expect = 2
     )
     private int applyInfiniteChatLimit(int size) {
-        return InfiniteChatLimit.keepsAllChatMessages() ? 0 : size;
+        return NoChatLimit.keepChat() ? 0 : size;
     }
 
     @Inject(
@@ -181,7 +181,7 @@ public abstract class ChatComponentMixin implements IChatComponent {
             cancellable = true
     )
     private void keepChatHistory(boolean clearRecentChat, CallbackInfo ci) {
-        if (clearRecentChat && KeepChatHistory.keepsChatHistory()) {
+        if (clearRecentChat && KeepChatHistory.keepChat()) {
             ci.cancel();
         }
     }

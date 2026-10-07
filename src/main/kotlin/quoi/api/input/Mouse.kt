@@ -5,7 +5,7 @@ import quoi.QuoiMod.mc
 import org.lwjgl.glfw.GLFW
 //$}
 
-object CatMouse {
+object Mouse {
     //$ sdl_mouse_buttons {
     // Empty.
     //$}

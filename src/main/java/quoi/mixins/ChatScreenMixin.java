@@ -22,7 +22,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import quoi.api.input.CatKeyboard;
+import quoi.api.input.Keyboard;
 import quoi.api.input.Keybinds;
 import quoi.mixininterfaces.ISearchMode;
 
@@ -52,7 +52,7 @@ public class ChatScreenMixin extends Screen implements ISearchMode {
             cancellable = true
     )
     private void onKeyPressed(KeyEvent input, CallbackInfoReturnable<Boolean> cir) {
-        if (CatKeyboard.Modifier.INSTANCE.isCtrlDown() && input.input() == Keybinds.KEY_F) {
+        if (Keyboard.Modifier.INSTANCE.isCtrlDown() && input.input() == Keybinds.KEY_F) {
             toggleSearch(!isSearchActive);
             cir.setReturnValue(true);
             return;

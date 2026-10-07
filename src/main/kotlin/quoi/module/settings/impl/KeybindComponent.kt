@@ -13,9 +13,9 @@ import quoi.api.abobaui.elements.impl.Block.Companion.outline
 import quoi.api.abobaui.elements.impl.Text.Companion.string
 import quoi.api.animations.Animation
 import quoi.api.colour.Colour
-import quoi.api.input.CatKeyboard
-import quoi.api.input.CatKeyboard.modifierCodes
-import quoi.api.input.CatMouse
+import quoi.api.input.Keyboard
+import quoi.api.input.Keyboard.modifierCodes
+import quoi.api.input.Mouse
 import quoi.api.input.CursorShape
 import quoi.api.input.Keybinds
 import quoi.module.settings.Saving
@@ -82,13 +82,13 @@ class KeybindComponent(
         val sb = StringBuilder()
 
         value.modifiers.forEach { mod ->
-            val name = CatKeyboard.getKeyName(mod) ?: "Err" // should never err
+            val name = Keyboard.getKeyName(mod) ?: "Err" // should never err
             sb.append("$name + ")
         }
 
         val mainKey = when (val key = value.key) {
-            in 1..Int.MAX_VALUE -> CatKeyboard.getKeyName(key) ?: "Err"
-            else -> CatMouse.getButtonName(key + 100)
+            in 1..Int.MAX_VALUE -> Keyboard.getKeyName(key) ?: "Err"
+            else -> Mouse.getButtonName(key + 100)
         }
         sb.append(mainKey.replaceFirstChar { it.uppercaseChar() })
 
@@ -115,7 +115,7 @@ class KeybindComponent(
         if (mainKey in modifierCodes) return
 
         modifierCodes.forEach { mod ->
-            if (CatKeyboard.isKeyDown(mod)) value.modifiers.add(mod)
+            if (Keyboard.isKeyDown(mod)) value.modifiers.add(mod)
         }
     }
 
@@ -205,13 +205,13 @@ class Keybinding(var key: Int, val modifiers: MutableSet<Int> = mutableSetOf()) 
      */
     fun isDown(): Boolean {
         if (key == Keybinds.KEY_NONE) return false
-        val mainKeyDown = if (key < 0) CatMouse.isButtonDown(key + 100) else CatKeyboard.isKeyDown(key)
+        val mainKeyDown = if (key < 0) Mouse.isButtonDown(key + 100) else Keyboard.isKeyDown(key)
         if (!mainKeyDown) return false
 
         return isModifierDown()
     }
 
-    fun isModifierDown() = modifiers.all { CatKeyboard.isKeyDown(it) }
+    fun isModifierDown() = modifiers.all { Keyboard.isKeyDown(it) }
 
     fun clear() {
         key = Keybinds.KEY_NONE

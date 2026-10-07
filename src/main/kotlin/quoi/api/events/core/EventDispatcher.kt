@@ -34,7 +34,7 @@ import quoi.api.events.RenderEvent
 import quoi.api.events.ServerEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
-import quoi.api.input.CatMouse
+import quoi.api.input.Mouse
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.Dungeon.dungeonItemDrops
 import quoi.utils.StringUtils.containsOneOf

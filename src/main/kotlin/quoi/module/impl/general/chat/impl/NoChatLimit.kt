@@ -3,9 +3,10 @@ package quoi.module.impl.general.chat.impl
 import quoi.module.impl.general.chat.Chat
 import quoi.module.settings.group.ToggleableGroup
 
-object KeepChatHistory : ToggleableGroup(
-    Chat, "Keep history",
-    desc = "Keeps chat history when vanilla tries to clear it on disconnect."
+object NoChatLimit : ToggleableGroup(
+    Chat,
+    "Infinite chat limit",
+    desc = "Keeps all chat messages instead of trimming chat history at 100 messages."
 ) {
     @JvmStatic
     fun keepChat(): Boolean = running

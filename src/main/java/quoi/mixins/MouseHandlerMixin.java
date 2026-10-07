@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import quoi.api.events.MouseEvent;
-import quoi.api.input.CatMouse;
+import quoi.api.input.Mouse;
 import quoi.module.impl.general.Tweaks;
 import quoi.module.impl.general.chat.impl.ChatPeek;
 

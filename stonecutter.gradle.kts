@@ -87,9 +87,9 @@ stonecutter parameters {
         replace("level.addBreakingBlockEffect(pos, direction)", "level.addBreakingBlockEffects(pos, direction, false)")
         replace("packet.values.position", "packet.position.endPosition()")
         replace("player.drop(false)", "gameMode.dropItem(player, false)")
-        replace("click.button()", "CatMouse.normalizeButton(click.button())")
-        replace("mouseButtonEvent.button()", "CatMouse.normalizeButton(mouseButtonEvent.button())")
-        replace("input.button()", "CatMouse.normalizeButton(input.button())")
+        replace("click.button()", "Mouse.normalizeButton(click.button())")
+        replace("mouseButtonEvent.button()", "Mouse.normalizeButton(mouseButtonEvent.button())")
+        replace("input.button()", "Mouse.normalizeButton(input.button())")
     }
     replacements.regex(sdl, "enderman_type") {
         replace("\\bEnderMan\\b", "Enderman", "\\bEnderman\\b", "EnderMan")
@@ -570,13 +570,13 @@ stonecutter parameters {
     }
     swaps["use_key_state"] = when {
         !sdl -> """
-            InputConstants.Type.MOUSE -> CatMouse.isButtonDown(useKey.value)
-            InputConstants.Type.KEYSYM -> CatKeyboard.isKeyDown(useKey.value)
+            InputConstants.Type.MOUSE -> Mouse.isButtonDown(useKey.value)
+            InputConstants.Type.KEYSYM -> Keyboard.isKeyDown(useKey.value)
             InputConstants.Type.SCANCODE -> false
         """.trimIndent()
         else -> """
-            InputConstants.Type.MOUSE -> CatMouse.isSDLButtonDown(useKey.value)
-            InputConstants.Type.KEYBOARD -> CatKeyboard.isKeyDown(useKey.value)
+            InputConstants.Type.MOUSE -> Mouse.isSDLButtonDown(useKey.value)
+            InputConstants.Type.KEYBOARD -> Keyboard.isKeyDown(useKey.value)
         """.trimIndent()
     }
     swaps["pet_rarity_colors"] = when {

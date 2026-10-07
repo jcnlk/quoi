@@ -6,7 +6,7 @@ import quoi.QuoiMod.mc
 import org.lwjgl.glfw.GLFW
 //$}
 
-object CatKeyboard {
+object Keyboard {
     val modifierCodes = intArrayOf(
         Keybinds.KEY_LEFT_CONTROL, Keybinds.KEY_RIGHT_CONTROL,
         Keybinds.KEY_LEFT_SHIFT, Keybinds.KEY_RIGHT_SHIFT,

@@ -67,9 +67,9 @@ object ChatReplacements : ToggleableGroup(
     }
 
     private fun resolveDungeonMessage(message: String): ReceivedMessageAction? {
-        for (replacement in dungeonMessageReplacements) {
-            val match = replacement.pattern.find(message) ?: continue
-            val replacedMessage = match.value.replace(replacement.pattern, replacement.replacement)
+        for ((pattern, replacement) in dungeonMessageReplacements) {
+            val match = pattern.find(message) ?: continue
+            val replacedMessage = match.value.replace(pattern, replacement)
             return ReplaceMessage(replacedMessage, "§dDungeon§f >")
         }
 

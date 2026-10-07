@@ -12,7 +12,7 @@ import quoi.api.abobaui.elements.impl.Text.Companion.shadow
 import quoi.api.abobaui.elements.impl.Text.Companion.textSupplied
 import quoi.api.abobaui.elements.impl.TextInput
 import quoi.api.colour.Colour
-import quoi.api.input.CatMouse
+import quoi.api.input.Mouse
 import quoi.api.input.CursorShape
 import quoi.module.settings.UIComponent
 import quoi.utils.ui.rendering.Font
@@ -35,15 +35,15 @@ inline fun ElementScope<*>.onHover(duration: Float, crossinline block: () -> Uni
 
 fun ElementScope<*>.cursor(shape: Long) {
     onMouseEnter {
-        CatMouse.setCursor(shape)
+        Mouse.setCursor(shape)
     }
 
     onMouseExit {
-        CatMouse.setCursor(CursorShape.NORMAL)
+        Mouse.setCursor(CursorShape.NORMAL)
     }
 
     onRemove {
-        CatMouse.setCursor(CursorShape.NORMAL)
+        Mouse.setCursor(CursorShape.NORMAL)
     }
 }
 

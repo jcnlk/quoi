@@ -9,8 +9,8 @@ import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.network.chat.Component
 import quoi.QuoiMod.mc
 import quoi.api.abobaui.AbobaUI
-import quoi.api.input.CatKeyboard.Modifier.isCtrlDown
-import quoi.api.input.CatMouse
+import quoi.api.input.Keyboard.Modifier.isCtrlDown
+import quoi.api.input.Mouse
 import quoi.api.input.Keybinds
 import quoi.utils.Scheduler.scheduleTask
 import quoi.utils.sf

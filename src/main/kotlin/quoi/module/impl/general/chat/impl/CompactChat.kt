@@ -10,7 +10,11 @@ import quoi.utils.ChatUtils.add
 import quoi.utils.ChatUtils.literal
 import quoi.utils.Scheduler
 
-object CompactChat : ToggleableGroup(Chat, "Compact chat", desc = "Compacts message duplicates.") {
+object CompactChat : ToggleableGroup(
+    Chat,
+    "Compact chat",
+    desc = "Compacts message duplicates."
+) {
     private val compactTime by slider("Compact time", 60, 5, 120, desc = "Time until compact chat no longer compacts the same message.", unit = "s")
 
     val chatList = mutableMapOf<String, Pair<Int, Long>>()
