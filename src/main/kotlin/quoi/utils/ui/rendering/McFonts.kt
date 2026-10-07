@@ -1,6 +1,7 @@
 package quoi.utils.ui.rendering
 
 import com.mojang.blaze3d.platform.NativeImage
+import com.mojang.blaze3d.systems.RenderSystem
 import java.nio.ByteBuffer
 import kotlin.math.floor
 import kotlin.math.max
@@ -14,7 +15,7 @@ import org.lwjgl.system.MemoryStack
  *
  * Uses STB TrueType (already a vanilla dependency, and the same rasterizer family NanoVG
  * used) so glyph shapes and metrics match the previous renderer. Glyph bitmaps are packed
- * into [DynamicTexture] atlas pages; all GPU access goes through Minecraft's abstractions,
+ * into Minecraft GPU texture atlas pages; all GPU access goes through Minecraft's abstractions,
  * so this works on every RenderDevice backend (OpenGL and Vulkan).
  *
  * Metrics model replicates fontstash/NanoVG:
@@ -147,7 +148,9 @@ class McFonts {
     fun flushUploads() {
         pages.forEach { page ->
             if (page.dirty) {
+                //$ atlas_upload {
                 page.texture.upload()
+                //$}
                 page.dirty = false
             }
         }

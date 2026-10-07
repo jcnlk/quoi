@@ -6,7 +6,7 @@ import net.minecraft.client.renderer.texture.DynamicTexture
 
 /**
  * Image storage for the Minecraft-native UI backend: decodes PNG/JPEG bytes through
- * [NativeImage] (stb-based, backend-neutral) into [DynamicTexture]s with reference counting.
+ * [NativeImage] (stb-based, backend-neutral) into Minecraft GPU textures with reference counting.
  *
  * SVG assets are not rasterized at runtime any more (NanoSVG left together with NanoVG);
  * every bundled `*.svg` ships a pre-rasterized `*.svg.png` sibling which is loaded instead.

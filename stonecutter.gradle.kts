@@ -33,6 +33,17 @@ stonecutter parameters {
         replace("NVGSpecialRenderer.draw(ctx, 0, 0, ctx.guiWidth(), ctx.guiHeight())", "UIRenderer.frame(ctx)")
     }
 
+    replacements.string(current.parsed >= "26.4-snapshot-3") {
+        replace(
+            "import net.minecraft.client.renderer.texture.DynamicTexture",
+            "import net.minecraft.client.renderer.texture.TextureResources",
+        )
+        replace("DynamicTexture({", "TextureResources.from2dImage({")
+        replace("DynamicTexture?", "TextureResources?")
+        replace("DynamicTexture,", "TextureResources,")
+        replace("it.textureView", "it.textureView()")
+    }
+
     // Registry families replace the individual colored and weathered constants.
     replacements.string(gui) {
         val colors = mapOf(
@@ -90,6 +101,14 @@ stonecutter parameters {
     swaps["system_cursor"] = when {
         !sdl -> "val \$1 by lazy { GLFW.glfwCreateStandardCursor(GLFW.GLFW_\$2_CURSOR) }"
         else -> "val \$1 by lazy { SDLMouse.SDL_CreateSystemCursor(SDLMouse.SDL_SYSTEM_CURSOR_\$3) }"
+    }
+    swaps["atlas_upload"] = when {
+        current.parsed >= "26.4-snapshot-3" -> """
+            val encoder = RenderSystem.getDevice().createCommandEncoder()
+            page.image.writeToGpuTexture(encoder, page.texture.texture)
+            encoder.submit()
+        """.trimIndent()
+        else -> "page.texture.upload()"
     }
     swaps["pipeline_start"] = when {
         current.parsed < "26.4-snapshot-1" -> "val \$1: RenderPipeline = RenderPipelines.register("
