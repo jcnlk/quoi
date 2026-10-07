@@ -79,7 +79,7 @@ object FireFreeze : Module(
         on<ChatEvent.Packet> {
             if (unformatted != "[BOSS] The Professor: Oh? You found my Guardians' one weakness?") return@on
 
-            startedAt = 110
+            startedAt = 100
             remainingTicks = startedAt
             autoTriggered = false
 

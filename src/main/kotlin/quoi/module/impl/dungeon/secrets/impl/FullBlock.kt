@@ -38,15 +38,10 @@ object FullBlock : ToggleableGroup(
         }
 
     private enum class ButtonHitbox {
-        Expanded,
-        FullBlock,
+        Expanded, FullBlock
     }
 
     enum class BlockType {
-        Buttons,
-        Chests,
-        Levers,
-        Mushrooms,
-        Skulls,
+        Buttons, Chests, Levers, Mushrooms, Skulls
     }
 }

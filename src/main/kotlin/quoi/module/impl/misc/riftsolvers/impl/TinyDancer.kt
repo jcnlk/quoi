@@ -55,8 +55,7 @@ object TinyDancer : ToggleableGroup(MirrorverseSolvers, "Tiny dancer") {
             if (packet.sound == SoundEvents.NOTE_BLOCK_BASS && packet.volume == 1.0f) {
                 when (packet.pitch.toDouble()) {
                     in validPitches -> {
-                        beats++
-                        if (beats % 2 == 1) {
+                        if (++beats % 2 == 1) {
                             setDirection(segments[currentSegment].key())
                         }
                     }

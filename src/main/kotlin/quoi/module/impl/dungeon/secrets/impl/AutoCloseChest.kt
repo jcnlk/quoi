@@ -30,6 +30,7 @@ object AutoCloseChest : ToggleableGroup(
         on<PacketEvent.Received, ClientboundOpenScreenPacket> {
             if (packet.type !in chestMenuTypes || packet.title.string.trim() !in secretChestTitles) return@on
 
+            // TODO: make this properly
             SecretAura.lastClickedPos?.let { pos ->
                 SecretAura.blocksDone.add(pos.asLong())
                 SecretAura.lastClickedPos = null

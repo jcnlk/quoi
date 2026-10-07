@@ -11,19 +11,15 @@ import quoi.api.events.*
 import quoi.api.events.core.on
 import quoi.module.impl.misc.riftsolvers.MirrorverseSolvers
 import quoi.module.settings.group.ToggleableGroup
-import quoi.utils.BlockPos
+import quoi.utils.*
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.WorldUtils.state
-import quoi.utils.aabb
-import quoi.utils.blockPos
-import quoi.utils.getDirection
 import quoi.utils.render.drawFilledBox
 import quoi.utils.skyblock.item.TeleportUtils
 import quoi.utils.skyblock.player.MovementUtils.stop
 import quoi.utils.skyblock.player.PlayerUtils.at
 import quoi.utils.skyblock.player.RotationUtils.rotate
 import quoi.utils.skyblock.player.interact.AuraManager
-import quoi.utils.vec3
 
 object RedGreen : ToggleableGroup(MirrorverseSolvers, "Red green") {
     private val actionsDelay by slider("Action delay", 3, 2, 5, 1, unit = "t")
@@ -41,10 +37,9 @@ object RedGreen : ToggleableGroup(MirrorverseSolvers, "Red green") {
         on<TickEvent.End> {
             if (!active) {
                 rooms.forEach {
-                    if (player.at(it.start)) {
-                        if (++waitingTicks >= 5) start(it)
-                        return@on
-                    }
+                    if (!player.at(it.start)) return@forEach
+                    if (++waitingTicks >= 5) start(it)
+                    return@on
                 }
                 waitingTicks = 0
                 return@on
@@ -88,7 +83,6 @@ object RedGreen : ToggleableGroup(MirrorverseSolvers, "Red green") {
                         interactStage = 1
                         waitingTicks = interactDelay
                     } else {
-//                    player.rightClick()
                         if (player.distanceToSqr(action.pos.vec3) < 25) {
                             AuraManager.interactBlock(action.pos)
                         }
@@ -126,7 +120,7 @@ object RedGreen : ToggleableGroup(MirrorverseSolvers, "Red green") {
 
             val action = currentRoom?.actions?.getOrNull(currentStep) ?: return@on
             when (action) {
-                is Action.Move ->     ctx.drawFilledBox(action.pos.blockPos.aabb, Colour.GREEN, depth = true)
+                is Action.Move -> ctx.drawFilledBox(action.pos.blockPos.aabb, Colour.GREEN, depth = true)
                 is Action.Interact -> ctx.drawFilledBox(action.pos.aabb, Colour.YELLOW, depth = true)
                 else -> {}
             }
@@ -249,7 +243,7 @@ object RedGreen : ToggleableGroup(MirrorverseSolvers, "Red green") {
 
                 move(-253, 42, -109), // go up
                 awaitSound(),
-                wait(5),
+                wait(),
                 move(-253, 46, -108),
 
                 interact(-253, 48, -108), // lever
@@ -259,7 +253,7 @@ object RedGreen : ToggleableGroup(MirrorverseSolvers, "Red green") {
                 interact(-258, 42, -105),
 
                 awaitSound(), // go up
-                wait(5),
+                wait(),
                 move(-255, 46, -105.2),
 
                 move(-255, 46, -107), // plate
@@ -272,7 +266,7 @@ object RedGreen : ToggleableGroup(MirrorverseSolvers, "Red green") {
 
                 move(-252, 42, -109), // go up
                 awaitSound(),
-                wait(5),
+                wait(),
                 move(-252, 46, -108),
 
                 interact(-252, 47, -107), // button 4
@@ -282,7 +276,7 @@ object RedGreen : ToggleableGroup(MirrorverseSolvers, "Red green") {
 
                 move(-252.5, 42, -105), // go up
                 awaitSound(),
-                wait(5),
+                wait(),
                 move(-252, 46, -105),
 
                 move(-253, 45, -105), // go down
@@ -299,21 +293,20 @@ object RedGreen : ToggleableGroup(MirrorverseSolvers, "Red green") {
         class Move(val pos: Vec3) : Action()
 
         class Swap(val side: Side? = null) : Action() {
-            val target: Vec3? get() {
-                val player = QuoiMod.mc.player ?: return null
-
-                val z = when (side) {
-                    Side.LEFT -> -104.0
-                    Side.RIGHT -> -110.0
-                    null -> {
-                        val is104 = BlockPos(player.x, player.y, -104.0).state.block == Blocks.RED_STAINED_GLASS
-                        if (is104) -104.0 else -110.0
+            val target: Vec3?
+                get() {
+                    val z = when (side) {
+                        Side.LEFT -> -104.0
+                        Side.RIGHT -> -110.0
+                        null -> {
+                            val is104 = BlockPos(player.x, player.y, -104.0).state.block == Blocks.RED_STAINED_GLASS
+                            if (is104) -104.0 else -110.0
+                        }
                     }
-                }
 
-                val pos = BlockPos(player.x, player.y, z)
-                return if (pos.state.block == Blocks.RED_STAINED_GLASS) Vec3.atCenterOf(pos) else null
-            }
+                    val pos = BlockPos(player.x, player.y, z)
+                    return if (pos.state.block == Blocks.RED_STAINED_GLASS) Vec3.atCenterOf(pos) else null
+                }
         }
 
         class Interact(val pos: BlockPos) : Action()
@@ -323,15 +316,14 @@ object RedGreen : ToggleableGroup(MirrorverseSolvers, "Red green") {
 
     private fun move(x: Number, y: Number, z: Number): Action.Move {
         val pos =
-            if (x is Int && z is Int)
-                Vec3.atCenterOf(BlockPos(x, y, z))
-            else
-                Vec3(x.toDouble(), y.toDouble(), z.toDouble())
+            if (x is Int && z is Int) Vec3.atCenterOf(BlockPos(x, y, z))
+            else Vec3(x.toDouble(), y.toDouble(), z.toDouble())
 
         return Action.Move(pos)
     }
+
     private fun swap(side: Side? = null) = Action.Swap(side)
     private fun interact(x: Int, y: Int, z: Int) = Action.Interact(BlockPos(x, y, z))
-    private fun wait(ticks: Int) = Action.Wait(ticks)
+    private fun wait() = Action.Wait(5)
     private fun awaitSound() = Action.AwaitSound()
 }

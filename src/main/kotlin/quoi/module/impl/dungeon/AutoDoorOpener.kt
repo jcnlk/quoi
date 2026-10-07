@@ -1,6 +1,5 @@
 package quoi.module.impl.dungeon
 
-import kotlin.math.abs
 import net.minecraft.core.BlockPos
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.level.block.Blocks
@@ -19,6 +18,7 @@ import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.visibleIf
 import quoi.utils.WorldUtils.state
 import quoi.utils.skyblock.player.interact.AuraManager
+import kotlin.math.abs
 
 object AutoDoorOpener : Module(
     "Auto Door Opener",
@@ -75,12 +75,12 @@ object AutoDoorOpener : Module(
         return hitPos.takeIf {
             doors.any { door ->
                 abs(hitPos.x - door.pos.x) <= 2 &&
-                    abs(hitPos.z - door.pos.z) <= 2 &&
-                    when (door.type) {
-                        DoorType.WITHER -> hitPos.state.block == Blocks.COAL_BLOCK
-                        DoorType.BLOOD -> hitPos.state.block == Blocks.RED_TERRACOTTA
-                        else -> false
-                    }
+                        abs(hitPos.z - door.pos.z) <= 2 &&
+                        when (door.type) {
+                            DoorType.WITHER -> hitPos.state.block == Blocks.COAL_BLOCK
+                            DoorType.BLOOD -> hitPos.state.block == Blocks.RED_TERRACOTTA
+                            else -> false
+                        }
             }
         }
     }

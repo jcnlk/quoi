@@ -218,13 +218,12 @@ object SecretAura : ToggleableGroup(
                     val entity = level.getEntity(packet.entity) as? ArmorStand ?: return@on
 
                     packet.slots.forEach { pair ->
-                        if (pair.first == EquipmentSlot.HEAD) {
-                            val itemStack = pair.second
-                            val profile = itemStack.get(DataComponents.PROFILE)
+                        if (pair.first != EquipmentSlot.HEAD) return@forEach
+                        val itemStack = pair.second
+                        val profile = itemStack.get(DataComponents.PROFILE)
 
-                            if (Dungeon.isWitherEssence(profile?.partialProfile()?.id)) {
-                                blocksDone.add(entity.blockPosition().offset(0, 2, 0).immutable().asLong())
-                            }
+                        if (Dungeon.isWitherEssence(profile?.partialProfile()?.id)) {
+                            blocksDone.add(entity.blockPosition().offset(0, 2, 0).immutable().asLong())
                         }
                     }
                 }
@@ -280,5 +279,6 @@ object SecretAura : ToggleableGroup(
         redstoneKey = false
         previousSlot = -1
     }
+
     private data class BlockDistance(val block: Block, val pos: BlockPos, val distanceSq: Double)
 }

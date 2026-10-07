@@ -167,9 +167,6 @@ object DungeonESP : Module(
 
     private fun getColour(entity: Entity) = when (entity) {
         is Bat if (entity.maxHealth.equalsOneOf(100f, 200f, 400f, 800f)) -> colourBat to colourBatFill
-//        is EnderMan if (entity.name.string == "Dinnerbone") -> {
-//            colourStar to colourStarFill
-//        }
         is EnderMan if (entity.name.string == "Dinnerbone") -> {
             val stand = getEntity(entity.id + 1) as? ArmorStand
 
@@ -182,8 +179,7 @@ object DungeonESP : Module(
             null
         }
         is Player -> with(entity.name.string) {
-//            if (!contains("✯")) null
-            /*else*/ if (contains("Shadow Assassin")) colourSA to colourSAFill
+            if (contains("Shadow Assassin")) colourSA to colourSAFill
             else if (equalsOneOf("Diamond Guy", "Lost Adventurer")) colourStar to colourStarFill
             else null
         }
@@ -214,14 +210,15 @@ object DungeonESP : Module(
         return Dungeon.dungeonTeammates.find { it.name == entity.name.string }?.clazz?.colour
     }
 
-    val OdonRoom.starredMobs: List<LivingEntity> get() {
-        if (this.data.state == RoomState.GREEN) return emptyList()
-        val res = ArrayList<LivingEntity>()
-        for (mob in currentEntities.values) {
-            if (mob.room == this && mob.entity !is Bat) res.add(mob.entity)
+    val OdonRoom.starredMobs: List<LivingEntity>
+        get() {
+            if (this.data.state == RoomState.GREEN) return emptyList()
+            val res = ArrayList<LivingEntity>()
+            for ((entity, _, _, room) in currentEntities.values) {
+                if (room == this && entity !is Bat) res.add(entity)
+            }
+            return res
         }
-        return res
-    }
 
     data class EspMob(val entity: LivingEntity, val colour: Colour, val fillColour: Colour, val room: OdonRoom?)
 
