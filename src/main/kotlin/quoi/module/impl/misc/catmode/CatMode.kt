@@ -9,7 +9,8 @@ import net.minecraft.util.FormattedCharSequence
 import quoi.api.events.PacketEvent
 import quoi.api.events.core.on
 import quoi.module.Module
-import quoi.module.impl.misc.catmode.impl.*
+import quoi.module.impl.misc.catmode.impl.CatModel
+import quoi.module.impl.misc.catmode.impl.FallingCats
 import quoi.utils.StringUtils.FORMATTING_CODE_PATTERN
 
 /**
@@ -25,9 +26,7 @@ object CatMode : Module(
     private val meowText by switch("Meow meow?", desc = "Meow everywhere")
 
     @Suppress("unused")
-    private val feat = listOf(
-        FallingCats, //CatModel
-    )
+    private val feat = listOf(FallingCats, CatModel)
 
     init {
         on<PacketEvent.Received, ClientboundSoundPacket> {
@@ -84,14 +83,9 @@ object CatMode : Module(
         if (text.isBlank()) return text
 
         return MEOWIFY_PATTERN.replace(text) { res ->
-            if (res.groupValues[1].isNotEmpty()) {
-                res.value
-            } else {
-                "meow"
-            }
+            if (res.groupValues[1].isNotEmpty()) res.value else "meow"
         }
     }
 
     private val MEOWIFY_PATTERN = Regex("(${FORMATTING_CODE_PATTERN.pattern})|(\\p{L}+)", RegexOption.IGNORE_CASE)
-
 }

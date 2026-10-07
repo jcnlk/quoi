@@ -221,14 +221,12 @@ object PlayerDisplay : Module(
     }
 
     enum class HudType {
-        HEALTH, ABSORPTION, MOUNT_HEALTH, REGEN_BOUNCE,
-        ARMOUR, FOOD,
+        HEALTH, ABSORPTION, MOUNT_HEALTH, REGEN_BOUNCE, ARMOUR, FOOD
     }
 
     @JvmStatic
     fun shouldCancelHud(type: HudType): Boolean {
-        if (!this.enabled || !inSkyblock) return false
-        return when(type) {
+        return enabled && inSkyblock && when (type) {
             HudType.HEALTH -> hideHealth
             HudType.ABSORPTION -> hideAbsorption
             HudType.MOUNT_HEALTH -> hideMountHealth
@@ -237,33 +235,6 @@ object PlayerDisplay : Module(
             HudType.FOOD -> hideHunger
         }
     }
-
-    /*private fun GuiGraphicsExtractor.drawBar(width: Int, colour: Colour) {
-        val bW = BAR_WIDTH * 2
-        val bH = BAR_HEIGHT * 2
-        fill(0, 0, bW, bH, Colour.RGB(35, 35, 35).rgb)
-        fill(0, 0, width * 2, bH, colour.rgb)
-        hollowRect(0, 0, bW, bH, 1, Colour.RGB(208, 208, 208).rgb)
-    }
-
-    fun bar(
-        name: String,
-        colour: () -> Colour,
-        current: () -> Int,
-        max: () -> Int
-    ) = HudSetting(name) {
-        size(BAR_WIDTH, BAR_HEIGHT)
-        width { BAR_WIDTH * 2 }
-        height { BAR_HEIGHT * 2 }
-        visibleIf { inSkyblock }
-        render {
-            val fillWidth = (current().toFloat() / max().toFloat() * width).toInt()
-            drawBar(fillWidth, colour.invoke())
-        }
-        preview {
-            drawBar(50, colour.invoke())
-        }
-    }*/
 
     fun bar(
       name: String,
@@ -292,20 +263,6 @@ object PlayerDisplay : Module(
             5.radius()
         )
     }.setting()
-
-    /*fun text(
-        name: String,
-        colour: () -> Colour = { Colour.WHITE },
-        text: () -> String,
-        previewText: () -> String,
-        visibility: () -> Boolean = { true }
-    ) = HudSetting(name) {
-//        size(previewText())
-        width { previewText().width() }
-        visibleIf { inSkyblock && visibility() }
-        render { text(text(), 0, 0, colour.invoke().rgb) }
-        preview { text(previewText(), 0, 0, colour.invoke().rgb) }
-    }*/
 
     fun text(
         name: String,

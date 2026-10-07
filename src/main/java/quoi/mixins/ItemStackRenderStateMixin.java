@@ -21,13 +21,12 @@ public class ItemStackRenderStateMixin {
 
     @Inject(method = "submit", at = @At("HEAD"))
     private void quoi$legacySkullSize(PoseStack poseStack, SubmitNodeCollector submitNodeCollector,
-                                      int light, int overlay, int seed, CallbackInfo ci) {
+                                      int lightCoords, int overlayCoords, int outlineColor, CallbackInfo ci) {
         for (int i = 0; i < activeLayerCount; i++) {
-            var renderer = ((ItemStackLayerRenderStateAccessor) (Object) layers[i]).quoi$getSpecialRenderer();
-            if (renderer instanceof PlayerHeadSpecialRenderer) {
-                Tweaks.applyLegacySkullSize(poseStack, displayContext);
-                return;
-            }
+            var renderer = ((ItemStackLayerRenderStateAccessor) layers[i]).quoi$getSpecialRenderer();
+            if (!(renderer instanceof PlayerHeadSpecialRenderer)) continue;
+            Tweaks.applyLegacySkullSize(poseStack, displayContext);
+            return;
         }
     }
 }

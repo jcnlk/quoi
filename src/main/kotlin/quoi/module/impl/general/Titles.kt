@@ -30,15 +30,11 @@ object Titles : Module("Titles") {
             if (dungeonsOnly && !Dungeon.inDungeons) return@on
             if (bossOnly && !Dungeon.inBoss) return@on
 
-            if (invincibilityProc) {
-                when (unformatted) {
-                    "Second Wind Activated! Your Spirit Mask saved your life!" ->
-                        stupid("§fSpirit")
-                    "Your ⚚ Bonzo's Mask saved your life!", "Your Bonzo's Mask saved your life!" ->
-                        stupid("§cBonzo")
-                    "Your Phoenix Pet saved you from certain death!" ->
-                        stupid("§6Phoenix")
-                }
+            if (!invincibilityProc) return@on
+            when (unformatted) {
+                "Second Wind Activated! Your Spirit Mask saved your life!" -> showTitle("§fSpirit")
+                "Your ⚚ Bonzo's Mask saved your life!", "Your Bonzo's Mask saved your life!" -> showTitle("§cBonzo")
+                "Your Phoenix Pet saved you from certain death!" -> showTitle("§6Phoenix")
             }
         }
 
@@ -46,7 +42,7 @@ object Titles : Module("Titles") {
             if (!autoPet || cause != PetEvent.Cause.AUTOPET) return@on
             if (dungeonsOnly && !Dungeon.inDungeons) return@on
             if (bossOnly && !Dungeon.inBoss) return@on
-            pet?.let { stupid("${it.rarity.colorCode}${it.name}") }
+            pet?.let { showTitle("${it.rarity.colorCode}${it.name}") }
         }
 
         on<PacketEvent.Received, ClientboundInitializeBorderPacket> {
@@ -56,7 +52,7 @@ object Titles : Module("Titles") {
         }
     }
 
-    private fun stupid(text: String) {
+    private fun showTitle(text: String) {
         val (sound, volume, pitch) = soundSettings()
 
         PlayerUtils.setTitle(

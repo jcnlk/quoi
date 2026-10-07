@@ -60,12 +60,10 @@ object Tweaks : Module(
     fun should(condition: Boolean): Boolean = this.enabled && condition // idkman
 
     @JvmStatic
-    fun shouldUseLegacySkullSize(): Boolean = legacySkullSize
-
-    @JvmStatic
     fun applyLegacySkullSize(pose: PoseStack, context: ItemDisplayContext) {
-        if (legacySkullSize && (context == ItemDisplayContext.FIRST_PERSON_LEFT_HAND ||
-                context == ItemDisplayContext.FIRST_PERSON_RIGHT_HAND)) {
+        val firstPerson = context == ItemDisplayContext.FIRST_PERSON_LEFT_HAND ||
+            context == ItemDisplayContext.FIRST_PERSON_RIGHT_HAND
+        if (should(legacySkullSize) && firstPerson) {
             pose.scale(0.55f, 0.55f, 0.55f)
         }
     }
@@ -77,6 +75,5 @@ object Tweaks : Module(
     fun shouldFixCrimsonIsleFog(): Boolean = should(fixCrimsonIsleFog) && inSkyblock && currentArea.isArea(Island.CrimsonIsle)
 
     @JvmStatic
-    fun shouldHookMouse(): Boolean =
-        System.currentTimeMillis() - time < 150 && shouldSb(noCursorReset)
+    fun shouldHookMouse(): Boolean = System.currentTimeMillis() - time < 150 && shouldSb(noCursorReset)
 }

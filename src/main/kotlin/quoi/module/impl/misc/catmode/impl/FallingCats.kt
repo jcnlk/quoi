@@ -30,11 +30,7 @@ object FallingCats : ToggleableGroup(CatMode, "Falling cats", desc = "THEY'RE EV
 
     @Suppress("unused")
     private enum class CatImage {
-        Trans,
-        Flushed,
-        Bread,
-        Cut,
-        Toast;
+        Trans, Flushed, Bread, Cut, Toast;
 
         val path = Identifier.parse("quoi:ui/fallingkittens/${name.lowercase()}.png")
     }
