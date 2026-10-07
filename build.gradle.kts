@@ -148,31 +148,6 @@ tasks {
             expand(properties)
         }
 
-        val additionalMixins = when {
-            sc.current.parsed < "26.2" -> emptyList()
-            sc.current.parsed < "26.3" -> listOf("GuiGraphicsMixin", "HudMixin", "accessors.GuiGraphicsExtractorAccessor")
-            else -> listOf("GuiGraphicsMixin", "HudMixin", "accessors.GuiGraphicsExtractorAccessor", "FirstPersonHandsAndItemsMixin")
-        }.joinToString(",\n") { "    \"$it\"" }.let {
-            when {
-                it.isEmpty() -> ""
-                else -> ",\n$it"
-            }
-        }
-        val mixinProperties = mapOf(
-            "additional_mixins" to additionalMixins,
-            "gui_mixin" to when {
-                sc.current.parsed < "26.2" -> "LegacyGuiMixin"
-                else -> "GuiMixin"
-            },
-            "hand_mixin" to when {
-                sc.current.parsed < "26.3" -> "LegacyItemInHandRendererMixin"
-                else -> "ItemInHandRendererMixin"
-            },
-        )
-        inputs.properties(mixinProperties)
-        filesMatching("mixins.quoi.json") {
-            expand(mixinProperties)
-        }
     }
 
     withType<KotlinCompile>().configureEach {
