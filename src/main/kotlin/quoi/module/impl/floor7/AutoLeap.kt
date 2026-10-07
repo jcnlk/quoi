@@ -30,6 +30,7 @@ import quoi.utils.skyblock.player.LeapManager
 /**
  * TODO:
  *  - redo auto middle leap
+ *  - redo auto p4 leap
  */
 
 object AutoLeap : Module(
@@ -40,7 +41,6 @@ object AutoLeap : Module(
     private val presets by configMap<String, JsonObject>("auto_leap_presets.json")
 
     private val leapMode by selector("Leap mode", LeapMode.Name, "Leap mode for the module.").open()
-    private val fastLeapClickDelay by slider("Fast leap click delay", 250L, 100L, 500L, 50L)
     private val blockInputs by switch("Block inputs", desc = "Blocks keyboard and mouse input while leaping.")
     private val fastMode by switch("Fast mode", desc = "Blocks movement and input only from the leap menu opening until the target click.")
     private val swapBack by switch("Swap back", desc = "Switches back to the previously held item after leaping.")
@@ -86,7 +86,7 @@ object AutoLeap : Module(
     private val whenBlown by switch("Only when gate blown", desc = "Only leaps when gate is blown").childOf(::p3Auto)
 
     private val middleLeap by switch("Middle leap", desc = "Leaps in middle.")
-    private val middleAuto by switch("Auto", desc = "Automatically leaps when instamid would send you to middle.").json("Middle leap auto").childOf(::middleLeap)
+//    private val middleAuto by switch("Auto", desc = "Automatically leaps when instamid would send you to middle.").json("Middle leap auto").childOf(::middleLeap)
 
     private val p4Leap by switch("P4 leap", desc = "Leaps at P5 start.").json("P5 leap")
 //    private val p4Auto by switch("Auto", desc = "Automatically leaps after Necron died.").json("P5 leap auto").childOf(::p4Leap) // TODO: fixme
@@ -207,16 +207,15 @@ object AutoLeap : Module(
                 leapToConfigured(predevName, predevClass.selected)
             }
 
-            // TODO: fixme
 //            if (unformatted == "[BOSS] Necron: ARGH!" && p4Leap && p4Auto) {
 //                if (++arghCount == 2 && isInP4()) leapToConfigured(p4Name, p4Class.selected)
 //            }
 
-            if (unformatted == "[BOSS] Necron: That's a very impressive trick. I guess I'll have to handle this myself." &&
-                middleLeap && middleAuto && isOutsideMiddle()
-            ) {
-                leapToConfigured(middleName, middleClass.selected)
-            }
+//            if (unformatted == "[BOSS] Necron: That's a very impressive trick. I guess I'll have to handle this myself." &&
+//                middleLeap && middleAuto && isOutsideMiddle()
+//            ) {
+//                leapToConfigured(middleName, middleClass.selected)
+//            }
 
             if (unformatted == "[BOSS] Storm: I should have known that I stood no chance." && stormDeathLeap && stormDeathAuto) {
                 leapToConfigured(stormLeapName, stormDeathClass.selected)
@@ -274,7 +273,7 @@ object AutoLeap : Module(
             cancel()
 
             val currentTime = System.currentTimeMillis()
-            if (currentTime - lastClick < fastLeapClickDelay) return@on
+            if (currentTime - lastClick < 250) return@on
 
             if (!attemptFastLeap()) {
                 if (!p3Leap || !Floor7.inF7Boss) return@on
@@ -392,7 +391,7 @@ object AutoLeap : Module(
 
     private fun isInP1() = Floor7.inPhaseAt(Phase.P1)
     private fun isInPredev() = Floor7.inPhaseAt(Phase.P3) && Floor7.inPhase(Phase.P1, Phase.P2)
-    private fun isInP4() = Floor7.inPhaseAt(Phase.P4)
+//    private fun isInP4() = Floor7.inPhaseAt(Phase.P4)
     private fun isInRelic() = Floor7.inPhaseAt(Phase.P5)
     private fun isInGreenPad() = isIn(greenPadBox)
     private fun isInYellowPad() = isIn(yellowPadBox)
