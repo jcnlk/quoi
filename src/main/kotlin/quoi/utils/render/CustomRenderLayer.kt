@@ -4,27 +4,20 @@ import com.mojang.blaze3d.pipeline.RenderPipeline
 import net.minecraft.client.renderer.rendertype.LayeringTransform
 import net.minecraft.client.renderer.rendertype.RenderSetup
 import net.minecraft.client.renderer.rendertype.RenderType
-import quoi.mixins.accessors.RenderSetupAccessor
-import quoi.mixins.accessors.RenderTypeAccessor
 
-/**
- * 1.21.11 hides the RenderType factory, so use mixin invokers to keep custom
- * no-depth pipelines working instead of falling back to vanilla depth-tested
- * layers like linesTranslucent/debugQuads.
- */
 object CustomRenderLayer {
     private fun create(
         name: String,
         pipeline: RenderPipeline,
         configure: RenderSetup.RenderSetupBuilder.() -> Unit = {}
     ): RenderType {
-        val setup = RenderSetupAccessor.invokeBuilder(pipeline)
+        val setup = RenderSetup.builder(pipeline)
             //$ render_buffer_size {
             .bufferSize(RenderType.TRANSIENT_BUFFER_SIZE)
             //$}
             .apply(configure)
             .createRenderSetup()
-        return RenderTypeAccessor.invokeCreate(name, setup)
+        return RenderType.create(name, setup)
     }
 
     val LINE_LIST: RenderType = create("quoi_lines", CustomRenderPipelines.LINE_LIST) {

@@ -8,8 +8,5 @@
   "injectors": {
     "maxShiftBy": 5
   },
-  "mixins": [
-    "ConnectionMixin",
-    "PacketProcessorListenerMixin"
-  ]
+  "mixins": []
 }

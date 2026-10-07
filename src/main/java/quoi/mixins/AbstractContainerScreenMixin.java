@@ -14,24 +14,6 @@ import quoi.api.events.GuiEvent;
 @Mixin(AbstractContainerScreen.class)
 public class AbstractContainerScreenMixin {
 
-//    @Inject(
-//            method = "render",
-//            at = @At("HEAD"),
-//            cancellable = true
-//    )
-//    protected void quoi$onRender(GuiGraphicsExtractor context, int mouseX, int mouseY, float deltaTicks, CallbackInfo ci) {
-//        if (new GuiEvent.Draw((Screen) (Object) this, context, mouseX, mouseY).post()) ci.cancel();
-//    }
-
-//    @Inject(
-//            method = "renderBackground",
-//            at = @At("HEAD"),
-//            cancellable = true
-//    )
-//    protected void quoi$onRenderBackground(GuiGraphicsExtractor context, int mouseX, int mouseY, float deltaTicks, CallbackInfo ci) {
-//        if (new GuiEvent.DrawBackground((Screen) (Object) this, context, mouseX, mouseY).post()) ci.cancel();
-//    }
-
     @Inject(
             method = "extractSlot",
             at = @At("HEAD"),
@@ -54,35 +36,6 @@ public class AbstractContainerScreenMixin {
         if (slot == null) return;
         if (new GuiEvent.Slot.Click((Screen) (Object) this, slot, slotId, button, actionType).post()) ci.cancel();
     }
-
-//    @Inject(
-//            method = "mouseClicked",
-//            at = @At("HEAD"),
-//            cancellable = true
-//    )
-//    public void quoi$onMouseClicked(double mouseX, double mouseY, int button, CallbackInfoReturnable<Boolean> cir) {
-//        if (EventBus.INSTANCE.post(new GuiEvent.Click((Screen) (Object) this, (int) mouseX, (int) mouseY, button, false)))
-//            cir.cancel();
-//    }
-//
-//    @Inject(
-//            method = "mouseReleased",
-//            at = @At("HEAD"),
-//            cancellable = true
-//    )
-//    public void quoi$onMouseRelease(double mouseX, double mouseY, int button, CallbackInfoReturnable<Boolean> cir) {
-//        if (EventBus.INSTANCE.post(new GuiEvent.Click((Screen) (Object) this, (int) mouseX, (int) mouseY, button, true)))
-//            cir.cancel();
-//    }
-
-//    @Inject(
-//            method = "keyPressed",
-//            at = @At("HEAD"),
-//            cancellable = true
-//    )
-//    public void quoi$onKeyPressed(KeyEvent input, CallbackInfoReturnable<Boolean> cir) {
-//        if (new GuiEvent.Key((Screen) (Object) this, input.input()).post()) cir.cancel();
-//    }
 
     @Inject(
             method = "renderTooltip",

@@ -67,10 +67,6 @@ public class EntityMixin implements IEntityGlow {
     )
     public void onGetTeamColor(CallbackInfoReturnable<Integer> cir) {
         if (forceGlow) cir.setReturnValue(glowColour);
-//        Entity self = (Entity)(Object)this;
-//
-//        Integer color = DungeonESP.getTeammateColour(self);
-//        if (color != null) cir.setReturnValue(color);
     }
 
     @ModifyExpressionValue(

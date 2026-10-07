@@ -46,15 +46,6 @@ public class ChatScreenMixin extends Screen implements ISearchMode {
     @NotNull
     private final Minecraft mc = Minecraft.getInstance();
 
-//    @Inject(
-//            method = "sendMessage",
-//            at = @At("HEAD"),
-//            cancellable = true
-//    )
-//    private void onSendMessage(String message, boolean addToHistory, CallbackInfo ci) {
-//        if (EventBus.INSTANCE.post(new ChatEvent.Sent(message))) ci.cancel();
-//    }
-
     @Inject(
             method = "keyPressed",
             at = @At("HEAD"),
