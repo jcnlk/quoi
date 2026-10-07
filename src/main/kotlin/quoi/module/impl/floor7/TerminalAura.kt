@@ -55,7 +55,7 @@ object TerminalAura : Module(
 
                 if (!name.contains("Inactive Terminal")) continue
                 if (entity.isRemoved || !entity.isAlive) continue
-                if (player.y < eyePos.y) continue
+                if (eyePos.y < entity.y) continue
 
                 val entityCenter = entity.position().add(0.0, entity.bbHeight / 2.0, 0.0)
 
