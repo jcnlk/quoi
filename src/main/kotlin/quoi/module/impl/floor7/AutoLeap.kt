@@ -142,6 +142,7 @@ object AutoLeap : Module(
     private val deviceDoneRegex = Regex("""^(\w+) completed a device! \((.*?)\)$""")
     private val stormCrushMessages = setOf("[BOSS] Storm: Oof", "[BOSS] Storm: Ouch, that hurt!")
     private val relicIds = setOf("GREEN_KING_RELIC", "PURPLE_KING_RELIC", "BLUE_KING_RELIC", "ORANGE_KING_RELIC", "RED_KING_RELIC")
+    private val spiritLeapIds = setOf("INFINITE_SPIRIT_LEAP", "SPIRIT_LEAP")
 
     override fun onDisable() {
         reset()
@@ -184,13 +185,13 @@ object AutoLeap : Module(
             }
 
             if (unformatted in stormCrushMessages) {
-                oofCount++
-                if (oofCount == 1) {
-                    if (purpleLeap && purpleAuto && isInPurplePad()) leapToConfigured(purpleName, purpleClass.selected)
-                    if (greenLeap && greenAuto && isInGreenPad()) leapToConfigured(greenName, greenClass.selected)
-                }
-                if (oofCount == 2 && yellowLeap && yellowAuto && isInYellowPad()) {
-                    leapToConfigured(yellowName, yellowClass.selected)
+                when (++oofCount) {
+                    1 -> {
+                        if (purpleLeap && purpleAuto && isInPurplePad()) leapToConfigured(purpleName, purpleClass.selected)
+                        if (greenLeap && greenAuto && isInGreenPad()) leapToConfigured(greenName, greenClass.selected)
+                    }
+
+                    2 -> if (yellowLeap && yellowAuto && isInYellowPad()) leapToConfigured(yellowName, yellowClass.selected)
                 }
             }
 
@@ -238,18 +239,16 @@ object AutoLeap : Module(
 
         // based on https://github.com/Noamm9/NoammAddons/blob/b8e865539d7f45096d2603dacf80967821087cdc/src/main/kotlin/com/github/noamm9/features/impl/floor7/LeapCounter.kt#L45-L79
         on<PacketEvent.ReceivedPost> {
-            if (!Floor7.inF7Boss || !Floor7.inPhase(Phase.P2)) return@on
+            if (!Floor7.inF7Boss) return@on
             if (!pyHealerLeap || !pyHealerAuto || oofCount != 1 || leapedHealerPy || !isInHealerPy()) return@on
-            if (packet !is ClientboundTeleportEntityPacket && packet !is ClientboundAddEntityPacket
-                && packet !is ClientboundMoveEntityPacket && packet !is ClientboundEntityPositionSyncPacket) return@on
 
             val movedEntityId = when (packet) {
                 is ClientboundTeleportEntityPacket -> packet.id
                 is ClientboundAddEntityPacket -> packet.id
                 is ClientboundMoveEntityPacket -> (packet as ClientboundMoveEntityPacketAccessor).entityId
                 is ClientboundEntityPositionSyncPacket -> packet.id
-                else -> null
-            } ?: return@on
+                else -> return@on
+            }
             if (dungeonTeammatesNoSelf.none { it.entity?.id == movedEntityId }) return@on
 
             val movedPosition = when (packet) {
@@ -257,7 +256,7 @@ object AutoLeap : Module(
                 is ClientboundAddEntityPacket -> Vec3(packet.x, packet.y, packet.z)
                 is ClientboundMoveEntityPacket -> level.getEntity(movedEntityId)?.positionCodec?.base
                 is ClientboundEntityPositionSyncPacket -> packet.values.position
-                else -> null
+                else -> return@on
             } ?: return@on
             if (!healerPyBox.contains(movedPosition)) return@on
 
@@ -267,7 +266,7 @@ object AutoLeap : Module(
 
         on<MouseEvent.Click> {
             if (button != 0 || !state) return@on
-            if (player.mainHandItem.skyblockId !in setOf("INFINITE_SPIRIT_LEAP", "SPIRIT_LEAP")) return@on
+            if (player.mainHandItem.skyblockId !in spiritLeapIds) return@on
             cancel()
 
             val currentTime = System.currentTimeMillis()
@@ -349,13 +348,12 @@ object AutoLeap : Module(
             return
         }
 
-        val presetKey = presets.keys.firstOrNull { it.equals(name, ignoreCase = true) }
-        val preset = presetKey?.let(presets::get)
-        if (presetKey == null || preset == null) {
+        val presetKey = presets.keys.firstOrNull { it.equals(name, ignoreCase = true) } ?: run {
             modMessage("&cAuto Leap preset &e$name &cdoesn't exist.")
             return
         }
 
+        val preset = presets[presetKey] ?: return
         preset.entrySet().forEach { (settingName, value) -> (getSettingByName(settingName) as? Saving)?.read(value) }
         presetName = presetKey
         modMessage("&aLoaded Auto Leap preset &e$presetKey&a.")
