@@ -28,12 +28,6 @@ import quoi.utils.ChatUtils.modMessage
 import quoi.utils.skyblock.item.ItemUtils.skyblockId
 import quoi.utils.skyblock.player.LeapManager
 
-/**
- * TODO:
- *  - redo auto middle leap
- *  - redo auto p4 leap
- */
-
 object AutoLeap : Module(
     "Auto Leap",
     desc = "Automatically leaps to predefined targets.",
@@ -87,7 +81,7 @@ object AutoLeap : Module(
     private val whenBlown by switch("Only when gate blown", desc = "Only leaps when gate is blown").childOf(::p3Auto)
 
     private val middleLeap by switch("Middle leap", desc = "Leaps in middle.")
-//    private val middleAuto by switch("Auto", desc = "Automatically leaps when instamid would send you to middle.").json("Middle leap auto").childOf(::middleLeap)
+    private val middleAuto by switch("Auto", desc = "Automatically leaps when instamid would trigger.").json("Middle leap auto").childOf(::middleLeap)
 
     private val p4Leap by switch("P4 leap", desc = "Leaps at P5 start.").json("P5 leap")
     private val p4Auto by switch("Auto", desc = "Automatically leaps when Necron reaches less than 5%.").json("P5 leap auto").childOf(::p4Leap)
@@ -208,11 +202,11 @@ object AutoLeap : Module(
                 leapToConfigured(predevName, predevClass.selected)
             }
 
-//            if (unformatted == "[BOSS] Necron: That's a very impressive trick. I guess I'll have to handle this myself." &&
-//                middleLeap && middleAuto && isOutsideMiddle()
-//            ) {
-//                leapToConfigured(middleName, middleClass.selected)
-//            }
+            if (unformatted == "[BOSS] Necron: Goodbye." &&
+                middleLeap && middleAuto && isOutsideMiddle()
+            ) {
+                leapToConfigured(middleName, middleClass.selected)
+            }
 
             if (unformatted == "[BOSS] Storm: I should have known that I stood no chance." && stormDeathLeap && stormDeathAuto) {
                 leapToConfigured(stormLeapName, stormDeathClass.selected)
@@ -297,23 +291,8 @@ object AutoLeap : Module(
 
     private fun leapToConfigured(name: String, clazz: DungeonClass): Boolean {
         return when (leapMode.selected) {
-            LeapMode.Name -> {
-                if (name.isBlank()) {
-                    false
-                } else {
-                    leap(name)
-                    true
-                }
-            }
-
-            LeapMode.Class -> {
-                if (clazz == DungeonClass.Unknown) {
-                    false
-                } else {
-                    leap(clazz)
-                    true
-                }
-            }
+            LeapMode.Name -> name.isNotBlank().also { if (it) leap(name) }
+            LeapMode.Class -> (clazz != DungeonClass.Unknown).also { if (it) leap(clazz) }
         }
     }
 
