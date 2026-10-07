@@ -14,6 +14,7 @@ import quoi.api.skyblock.dungeon.*
 import quoi.api.skyblock.dungeon.Dungeon.allTeammatesNoSelf
 import quoi.api.skyblock.dungeon.Dungeon.dungeonTeammatesNoSelf
 import quoi.api.skyblock.dungeon.enums.DungeonClass
+import quoi.api.skyblock.dungeon.enums.Floor
 import quoi.api.skyblock.dungeon.enums.Phase
 import quoi.api.skyblock.dungeon.enums.Stage
 import quoi.api.skyblock.location.Island
@@ -89,7 +90,7 @@ object AutoLeap : Module(
 //    private val middleAuto by switch("Auto", desc = "Automatically leaps when instamid would send you to middle.").json("Middle leap auto").childOf(::middleLeap)
 
     private val p4Leap by switch("P4 leap", desc = "Leaps at P5 start.").json("P5 leap")
-//    private val p4Auto by switch("Auto", desc = "Automatically leaps after Necron died.").json("P5 leap auto").childOf(::p4Leap) // TODO: fixme
+    private val p4Auto by switch("Auto", desc = "Automatically leaps when Necron reaches less than 5%.").json("P5 leap auto").childOf(::p4Leap)
 
     private val relicLeap by switch("Relic leap", desc = "Leaps in relic.")
     private val relicAuto by switch("Auto", desc = "Automatically leaps after picking up a relic.").json("Relic leap auto").childOf(::relicLeap)
@@ -127,12 +128,12 @@ object AutoLeap : Module(
     private val relicClass by selector("Target", DungeonClass.Unknown).json("Relic leap class").childOf(::relicLeap) { relicLeap && leapMode.selected == LeapMode.Class }
 
     private var lastClick = 0L
-    private var arghCount = 0
     private var crystalCount = 0
     private var oofCount = 0
     private var melodyTarget: String? = null
     private var pickedUpRelic = false
     private var leapedHealerPy = false
+    private var p4Leapt = false
 
     private val melodyProgress = setOf("1/4", "2/4", "3/4", "25%", "50%", "75%")
 
@@ -207,10 +208,6 @@ object AutoLeap : Module(
                 leapToConfigured(predevName, predevClass.selected)
             }
 
-//            if (unformatted == "[BOSS] Necron: ARGH!" && p4Leap && p4Auto) {
-//                if (++arghCount == 2 && isInP4()) leapToConfigured(p4Name, p4Class.selected)
-//            }
-
 //            if (unformatted == "[BOSS] Necron: That's a very impressive trick. I guess I'll have to handle this myself." &&
 //                middleLeap && middleAuto && isOutsideMiddle()
 //            ) {
@@ -229,12 +226,19 @@ object AutoLeap : Module(
             leapToPre4Target()
         }
 
+        on<BossBarEvent.Update> {
+            if (Dungeon.floor != Floor.M7 || !Dungeon.inBoss) return@on
+            if (progress > 5.0 || p4Leapt || !unformatted.contains("necron", ignoreCase = true) || !Floor7.inPhaseAt(Phase.P4)) return@on
+
+            p4Leapt = true
+            leapToConfigured(p4Name, p4Class.selected)
+        }
+
         on<PacketEvent.ReceivedPost, ClientboundContainerSetSlotPacket> {
             if (!relicLeap || !relicAuto || pickedUpRelic || !isInRelic()) return@on
             if (packet.containerId != 0 || packet.slot != 44 || packet.item.skyblockId !in relicIds) return@on
 
             pickedUpRelic = true
-
             leapToConfigured(relicName, relicClass.selected)
         }
 
@@ -380,18 +384,17 @@ object AutoLeap : Module(
 
     private fun reset() {
         melodyTarget = null
-        arghCount = 0
         crystalCount = 0
         oofCount = 0
         pickedUpRelic = false
         leapedHealerPy = false
+        p4Leapt = false
     }
 
     private fun isIn(box: AABB): Boolean = box.contains(player.position())
 
     private fun isInP1() = Floor7.inPhaseAt(Phase.P1)
     private fun isInPredev() = Floor7.inPhaseAt(Phase.P3) && Floor7.inPhase(Phase.P1, Phase.P2)
-//    private fun isInP4() = Floor7.inPhaseAt(Phase.P4)
     private fun isInRelic() = Floor7.inPhaseAt(Phase.P5)
     private fun isInGreenPad() = isIn(greenPadBox)
     private fun isInYellowPad() = isIn(yellowPadBox)
