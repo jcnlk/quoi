@@ -1,80 +1,90 @@
 [![discord badge](https://img.shields.io/discord/1371490329508839455?label=discord&color=9089DA&logo=discord&style=for-the-badge)](https://discord.gg/QCWgrQ57pN)
 ![minecraft-version](https://img.shields.io/badge/Minecraft-26.1.x%20%7C%2026.2%20%7C%2026.3%20%7C%2026.4%20snapshot-6BAA57?style=for-the-badge&logoColor=white)
 
-Use [actions tab](https://github.com/jcnlk/quoi/actions) to download (you need to be logged in your github account).
+Use [actions tab](https://github.com/jcnlk/quoi/actions) to download (you need to be logged in your GitHub account).
 
 # quoi!
 
 ## Commands
-- `/quoi` - opens the Click GUI
-- `/quoi help` - lists the available `/quoi` subcommands
-- `/quoi hud` - opens the HUD editor
-- `/quoi fps` - prints current FPS
-- `/quoi ping` - prints current and average ping
-- `/quoi tps` - prints current and average TPS
-- `/quoi pet <name>` - switches to a pet by name
-- `/quoi loadout <1-12>` - equips a SkyBlock loadout slot
-- `/quoi wardrobe <1-9>` - equips a wardrobe slot
-- `/quoi equip <item>` - equips one or more items from your inventory
-- `/quoi leap <name|class>` - leaps to a dungeon teammate
-- `/quoi order [p1] [p2] [p3] [p4]` - shows or sets Leap Menu custom order
-- `/quoi clearaura` - clears Secret Aura state
-- `/quoi ct` - opens the Custom Triggers editor
-- `/quoi autocroesus <go|forcego|api|reset|copylog|loot|alwaysbuy|worthless> ...` - controls Auto Croesus
-- `/quoi autosell <add|remove|clear|list> [item]` - manages the Auto Sell item list
-- `/quoi autoclicker <add|remove|clear> <left|right>` - manages Auto Clicker item whitelists
-- `/quoi hotbar <save|load|list|delete|setmsg|setfloor|setclass> ...` - manages Auto Hotbar presets
-- `/quoi petkeybinds <add|get|list|remove|clear|addfromuuidname|removefromuuidname> ...` - manages pet keybind entries
-- `/quoi antiafk <delay>` - runs the anti-AFK helper
-- `/quoi findlobby <area> <day|server|player> <value>` - searches for matching lobbies
-- `/route <em|add|rm|restore|clear|edit|editdb|chain|convert|reload> ...` - Auto Routes editor/runtime command set
-- `/grieferpro` or `/gp <add|update|remove|get|list|donotgrief> ...` - manages the Griefer Tracker player list
-- `/clearchat` - clears the in-game chat
-- `/ptr` - transfers the party to a random member
-- `/quoi <ep|ij|sl|sb|dd|tap|twap> [amount]` - refills common dungeon items from sacks
-- `/f0` to `/f7`, `/m1` to `/m7` - quick dungeon floor instance commands
+
+- `/quoi` - Opens the Click GUI.
+- `/quoi help` - Lists the available `/quoi` subcommands.
+- `/quoi hud` - Opens the HUD editor.
+- `/quoi fps` - Prints current FPS.
+- `/quoi ping` - Prints current and average ping.
+- `/quoi tps` - Prints current and average TPS.
+- `/quoi pet <name>` - Equips a pet by name.
+- `/quoi loadout <1-12>` - Equips a SkyBlock loadout slot.
+- `/quoi wardrobe <1-9>` - Equips a wardrobe slot.
+- `/quoi equip <item>` - Equips items from your inventory.
+- `/quoi leap <name|class>` - Leaps to a dungeon teammate.
+- `/quoi order [p1] [p2] [p3] [p4]` - Shows or sets the Leap Menu order.
+- `/quoi clearaura` - Clears Secret Aura state.
+- `/quoi ct` - Opens the Custom Triggers editor.
+- `/quoi autocroesus <go|forcego|api|reset|copylog|loot|alwaysbuy|worthless> ...` - Controls Auto Croesus.
+- `/quoi autosell <add|remove|clear|list> [item]` - Manages the Auto Sell list.
+- `/quoi autoclicker <add|remove|clear> <left|right>` - Manages Auto Clicker whitelists.
+- `/quoi hotbar <save|load|list|delete|setmsg|setfloor|setclass> ...` - Manages Auto Hotbar presets.
+- `/quoi petkeybinds <add|get|list|remove|clear|addfromuuidname|removefromuuidname> ...` - Manages pet keybind entries.
+- `/quoi antiafk <delay>` - Runs the anti-AFK helper.
+- `/quoi findlobby <area> <day|server|player> <value>` - Searches for matching lobbies.
+- `/route <em|add|rm|restore|clear|edit|editdb|chain|convert|reload> ...` - Edits and runs Auto Routes.
+- `/grieferpro` or `/gp <add|update|remove|get|list|donotgrief> ...` - Manages the Griefer Tracker list.
+- `/clearchat` - Clears the in-game chat.
+- `/ptr` - Transfers the party to a random member.
+- `/quoi <ep|ij|sl|sb|dd|tap|twap> [amount]` - Refills dungeon items from sacks.
+- `/f0` to `/f7`, `/m1` to `/m7` - Joins a dungeon floor instance.
 
 ## Features
+
 <details>
 <summary><b>Dungeon</b></summary>
 
-- **Auto Close Chest**
-  - Automatically closes secret chests.
 - **Auto Croesus**
-  - Automatically claims profitable Croesus dungeon chests.
+  - Claims profitable Croesus chests, with profit estimates, chest keys, and optional Kismet rerolls.
 - **Auto Door Opener**
-  - Automatically opens nearby Wither and Blood doors.
+  - Opens nearby Wither and Blood doors with Aura or Triggerbot mode.
 - **Auto Routes** (Beta)
-  - Route editor/runtime support via `/route`.
+  - Edits and runs dungeon routes for teleporting, item use, and block breaking through `/route`.
 - **Blood Camp**
-  - Predicts blood mob spawn positions and timings.
+  - Predicts Blood Room spawn positions and timings.
 - **Dungeon Abilities**
-  - Automatically uses abilities.
+  - Uses class ultimate abilities at specific boss dialogue and enrage messages.
 - **Dungeon Breaker**
+  - Tracks charges and mines saved blocks automatically or with a triggerbot, with optional zero ping.
 - **Dungeon ESP**
-  - Highlights various dungeon entities.
-- **Dungeon Map**
-  - In-dungeon map HUD.
+  - Highlights teammates, starred mobs, and Wither bosses.
+- **Dungeon Map** (Beta)
+  - Shows rooms and doors in a HUD map.
 - **Fire Freeze**
-  - Shows the F3/M3 Fire Freeze timer and can automate the use.
-- **Full Block Hitboxes**
-  - Expands the hitboxes of buttons, chests, levers, mushrooms, and skulls.
+  - Shows the F3/M3 Fire Freeze timer and can automate its use.
 - **Interactive Map** (Beta)
-  - Automatically teleports to a specified target.
+  - Teleports to rooms and locked doors selected on the map.
 - **Leap Menu**
-  - Adds a custom leap menu.
+  - Adds sorting, custom order, keybinds, and class-only display to the Spirit Leap menu.
 - **Puzzle Solvers**
-  - Displays solutions and automatically completes dungeon puzzles: Ice Fill, Teleport Maze, Quiz, Three Weirdos, Tic Tac Toe, Water Board, Creeper Beams, Blaze, Ice Path, and Boulder.
-- **Secret Aura**
-  - Automatically collects secrets.
-- **Secret TriggerBot**
-  - Automatically collects secrets when looking at them.
+  - Shows dungeon puzzle solutions, with optional automation.
+  - **Ice Fill** - Draws the path and can walk it automatically.
+  - **Teleport Maze** - Marks possible exit pads and can navigate the maze.
+  - **Quiz** - Highlights correct answers, with auto answers or a triggerbot.
+  - **Three Weirdos** - Finds the correct chest, with auto interactions or a triggerbot.
+  - **Tic Tac Toe** - Shows the best move, with auto play or a triggerbot.
+  - **Water Board** - Shows the lever sequence, with auto clicks or a triggerbot.
+  - **Creeper Beams** - Marks matching lanterns, with auto shots or a triggerbot.
+  - **Blaze** - Shows the shooting order, with auto shots or a triggerbot.
+  - **Ice Path** - Draws the silverfish path and can complete it automatically.
+  - **Boulder** - Shows the button sequence, with auto completion or a triggerbot.
 - **Secrets**
-  - Highlights collected secrets.
+  - Highlights and automatically collects dungeon secrets.
+  - **Highlights** - Marks clicked secrets, locked chests, and dropped items, with optional sounds.
+  - **Aura** - Clicks nearby secret chests, levers, and skulls.
+  - **Triggerbot** - Clicks secrets you aim at.
+  - **Auto close chest** - Closes secret chest menus.
+  - **Full block** - Expands button, chest, lever, mushroom, and skull hitboxes.
 - **Splits**
-  - Shows timers for various phases.
+  - Shows dungeon and boss phase times, including Goldor sections and optional tick times.
 - **Warp Cooldown**
-  - Dungeon warp cooldown display.
+  - Shows the dungeon warp cooldown and can block `/joininstance` while it is active.
 
 </details>
 
@@ -82,29 +92,29 @@ Use [actions tab](https://github.com/jcnlk/quoi/actions) to download (you need t
 <summary><b>Floor 7</b></summary>
 
 - **Arrow Align**
-  - Shows the solution and can automatically complete the Arrow Align device.
+  - Shows the solution and can complete the device automatically.
 - **Auto Invincibility**
-  - Automatically swaps to invincibility items.
+  - Swaps to an available invincibility mask or Phoenix Pet after a proc.
 - **Auto Leap**
-  - Automatically leaps to predefined targets.
+  - Leaps to configured teammates at clear, boss, device, and relic triggers.
 - **Barrier Boom**
-  - Automatically blows up Goldor fight gates.
+  - Uses Superboom when you aim at Goldor's gates.
 - **Fuck Diorite**
   - Replaces Storm's pillars with glass.
 - **Invincibility Timer**
-  - Gives visual information about your invincibility times.
+  - Shows mask and Phoenix cooldowns and can announce procs in party chat.
 - **Lights Device**
-  - Adds triggerbot and hides useless levers for the Lights device.
+  - Adds a triggerbot and hides useless levers.
 - **P4 Platform Highlight**
-  - Highlights the 3x3 area to mine after Goldor dies.
+  - Marks the 3x3 area to mine after Goldor dies.
 - **Simon Says**
-  - Automatically completes the Simon Says device.
+  - Shows the sequence and can complete the device automatically.
 - **Terminal Aura**
-  - Automatically opens terminals.
+  - Opens nearby terminals in P3, with optional ground and leap-delay checks.
 - **Tick Timers**
-  - Displays tick timers for the Floor 7 boss fight.
+  - Shows Storm pad and Goldor timers in seconds or server ticks.
 - **Wither Cloak**
-  - Tracks Creeper Veil and optionally hides nearby cloak creepers.
+  - Tracks Creeper Veil, hides cloak creepers, and can activate cloak during the boss countdown.
 
 </details>
 
@@ -114,42 +124,56 @@ Use [actions tab](https://github.com/jcnlk/quoi/actions) to download (you need t
 - **AntiNick**
   - Detects nicked players.
 - **Auto Book Combine**
-  - Automatically combines matching enchanted books in the Hypixel Anvil.
+  - Combines matching enchanted books in the Hypixel Anvil.
 - **Auto Clicker**
-  - A simple auto clicker for both left and right click. Activates when the corresponding key is being held down.
+  - Repeats left or right clicks while a keybind is held, with optional item whitelists.
 - **Auto GFS**
-  - Automatically refills certain items from your sacks.
+  - Refills selected items from sacks by amount or timer.
 - **Auto Hotbar**
-  - Saves and equips hotbar presets, with optional chat trigger, dungeon floor and class requirements.
+  - Saves and restores hotbar presets, with chat triggers and dungeon floor or class requirements.
 - **Auto Join SkyBlock**
-  - Automatically joins SkyBlock after connecting to Hypixel.
+  - Joins SkyBlock after connecting to Hypixel.
 - **Auto Kick**
-  - Automatically kicks selected party members.
+  - Kicks party members by dungeon class or detected Skyblocker messages.
 - **Auto Loadout**
-  - Automatically equips loadout.
+  - Equips one of 12 loadout slots through keybinds or `/quoi loadout`.
 - **Auto Sell**
-  - Automatically sells items in trades and cookie menus.
+  - Sells items from a configurable list in trade and cookie menus.
 - **Auto Wardrobe**
-  - Automatically equips wardrobe slots.
+  - Equips wardrobe slots through keybinds or `/quoi wardrobe`.
 - **Auto Sprint**
-  - Automatically sprints.
+  - Keeps sprint enabled.
 - **Chat**
-  - Various chat related tweaks.
-- **Chat Replacements**
+  - Customises chat display, messages, and history.
+  - **Chat bypass** - Replaces outgoing characters to bypass chat filters.
+  - **Chat peek** - Shows chat while a keybind is held.
+  - **Compact chat** - Combines duplicate messages.
+  - **Copy chat** - Copies clicked messages, optionally including formatting codes.
+  - **Infinite chat limit** - Removes the vanilla 100-message limit.
+  - **Keep history** - Preserves chat across disconnects.
+  - **Disable auto scroll** - Keeps your scroll position when messages arrive.
+  - **Auto dialogue** - Continues NPC dialogues automatically.
+  - **Chat replacements** - Cleans up dungeon and Party Finder messages and hides unwanted messages.
 - **Escrow Fix**
-  - Automatically reopens the Auction House or Bazaar after escrow closes it.
+  - Reopens the Auction House or Bazaar after escrow errors.
 - **Inventory**
-  - Inventory search/HUD helpers and other GUI QoL
+  - Adds inventory search and a HUD.
+  - **Search bar** - Finds items by name or lore and evaluates arithmetic.
+  - **Inventory HUD** - Shows inventory slots, with an optional player model.
 - **Pet Keybinds**
-  - Keybinds for the pets menu.
+  - Adds Pets menu keybinds and saved pet commands.
 - **Player Display**
-  - HUD elements for SkyBlock player stats.
+  - Adds SkyBlock stat HUDs and can hide vanilla status bars.
+  - **Health** - Shows health, a health bar, and effective health.
+  - **Mana** - Shows mana, overflow mana, and ability usage.
+  - **Other stats** - Shows vitality, defence, speed, Crimson stacks, and Salvation.
+  - **Secrets** - Shows the current room's secret count, with an optional SBA-style layout.
 - **Titles**
-  - Shows configurable titles for AutoPet rules, invincibility procs, and Shadow Assassin alerts.
+  - Shows configurable titles or subtitles for AutoPet rules, invincibility procs, and Shadow Assassin alerts.
 - **Tweaks**
-  - Various player tweaks.
+  - Adjusts sneaking and sounds, and fixes SkyBlock cooldowns, interactions, fog, and cursor resets.
 - **Wardrobe Keybinds**
-  - Keybinds for wardrobe.
+  - Adds Wardrobe slot, page, and unequip keybinds.
 
 </details>
 
@@ -157,21 +181,38 @@ Use [actions tab](https://github.com/jcnlk/quoi/actions) to download (you need t
 <summary><b>Misc</b></summary>
 
 - **Auto Carnival**
-  - Automates Carnival tasks.
+  - Shoots the Dart Tube automatically in Carnival's Zombie Shootout.
 - **Cat Mode**
-  - MEOWMEOWMEOWMEOWMEOWMEOWMEOW.
+  - Adds meows and cat visuals.
+  - **Meow sound and text** - Replaces sounds with meows and words with "meow".
+  - **Falling cats** - Draws falling cats in menus.
+  - **Cat models** - Renders yourself or other players as cats.
 - **Chocolate Factory**
-  - Automates the Chocolate Factory.
+  - Automates clicks, upgrades, Time Tower, and stray rabbits, with Chocolate Hunt egg ESP.
 - **Custom Triggers** (Beta)
-  - Runs configurable actions in SkyBlock when events and conditions match. Open the editor with `/quoi ct`.
+  - Runs actions on configurable chat, keybind, and game events. Open the editor with `/quoi ct`.
 - **Dojo** (Beta)
-  - Helpers for Dojo challenges.
+  - Adds challenge-specific overlays and automation.
+  - **Force** - Highlights negative-point mobs and can block attacks on them.
+  - **Mastery** - Shows target tracers and can aim and shoot automatically.
+  - **Discipline** - Highlights valid mobs, blocks wrong attacks, and can swap swords.
+  - **Swiftness** - Moves between green wool targets automatically.
+  - **Control** - Predicts the skeleton's position, with auto aim and centring.
+  - **Tenacity** - Shows fireball trajectories and impact areas.
 - **Mirrorverse Solvers**
-  - Automatically completes Mirrorverse puzzles: Lava Maze, Lava Parkour, Craft Room, Red Green, Tiny Dancer, and Tubulator.
+  - Adds overlays and automation for the Rift's Mirrorverse.
+  - **Lava Maze** - Walks the maze route automatically.
+  - **Lava Parkour** - Moves and jumps through the parkour.
+  - **Craft Room** - Shows mirrored mobs and crafting recipes.
+  - **Red Green** - Automates movement and interactions.
+  - **Tiny Dancer** - Performs movement, jumps, sneaks, and punches to the beats.
+  - **Tubulator** - Climbs the parkour route automatically.
 - **Slayers**
-  - Slayer boss alerts and ESP helpers.
+  - Adds boss ESP, spawn alerts, and spawn and kill time messages.
+  - **Enderman** - Highlights the Yang Glyph beacon and draws a tracer.
+  - **Blaze** - Adds dagger attunement, damage dodging, and a Gummy Polar Bear timer.
 - **Test**
-  - Dev module for testing.
+  - Provides developer debugging tools.
 
 </details>
 
@@ -179,29 +220,29 @@ Use [actions tab](https://github.com/jcnlk/quoi/actions) to download (you need t
 <summary><b>Render</b></summary>
 
 - **Click GUI**
-  - Includes direct access to the HUD editor
+  - Configures modules, themes, keybinds, and HUDs.
 - **Custom Main Menu**
-  - Replaces the vanilla main menu with a Quoi-styled one.
+  - Replaces the vanilla menu with server shortcuts.
 - **Etherwarp Overlay**
-  - Renders a box at the location where the etherwarp is going to be at.
+  - Shows the predicted Etherwarp destination.
 - **Hide Players**
-  - Hides players in the world.
+  - Hides players by distance or context, with optional click-through.
 - **Info HUD**
-  - Shows useful information on the screen.
+  - Shows FPS, TPS, ping, Minecraft day, and a clock.
 - **Item Animations**
-  - Changes how the held item looks on screen.
+  - Customises held item position, scale, rotation, swings, and other animations.
 - **Name Tags**
-  - Customisable nametags for entities.
+  - Adds custom tags with distance, colour, background, and shadow settings.
 - **Nick Hider**
-  - Visually hides player name.
+  - Replaces your displayed name with a configured name and colour.
 - **Player ESP**
   - Highlights players through walls.
 - **Render Optimiser**
-  - Various render optimisation features.
+  - Controls text shadows, fog, entity visibility, particles, overlays, and full bright.
 - **Revert Master Stars**
-  - Reverts Master Stars to the old red star display.
+  - Restores the old red Master Star display.
 - **Trajectories**
-  - Shows the trajectories of bows and ender pearls.
+  - Shows bow and Ender Pearl paths, with optional impact boxes and planes.
 - **Waypoints**
   - Creates temporary waypoints from coordinates in chat.
 
@@ -211,23 +252,24 @@ Use [actions tab](https://github.com/jcnlk/quoi/actions) to download (you need t
 <summary><b>Mining</b></summary>
 
 - **Ability Alert**
-  - Shows an alert when your mining ability is available again.
-- **Commision Display**
-  - Displays your commissions without you having to open the tab menu.
+  - Alerts when your mining ability is ready.
+- **Commission Display**
+  - Shows commissions in a HUD with completion titles and highlights.
 - **Crystal Hollows Map**
-  - Crystal Hollows map HUD.
+  - Shows players, structures, and route blocks on a map.
 - **Crystal Hollows Scanner**
-  - Scans Crystal Hollows structures and routes.
+  - Finds structures and mining route blocks in loaded chunks.
 - **Griefer Tracker**
-  - Tracks griefers in Crystal Hollows.
+  - Tracks saved players and encounter details in Crystal Hollows through `/grieferpro` or `/gp`.
 - **Ghost ESP**
-  - Highlights ghosts in the Dwarven Mines.
+  - Highlights or hides Ghosts in the Mist.
 - **Glacite Tunnels**
-  - Navigation and utilities for the Glacite Tunnels.
+  - Routes collector commissions and adds a base warp keybind.
 - **Mineshaft ESP**
-  - Highlights corpses, fossils, and mobs in Glacite Mineshafts.
+  - Highlights corpses, fossils, and Glacite mobs, with an option to hide looted corpses.
 - **No Gemstone Desync**
-  - Fixes adjacent gemstone blocks not updating correctly after mining.
+  - Refreshes adjacent gemstone blocks after mining.
+
 </details>
 
 ## Discord
@@ -237,6 +279,7 @@ Join the [quoi! Discord](https://discord.gg/QCWgrQ57pN) or dm me (@jcnlk).
 GPL-3.0, but I don't give a single fuck if you use the code without crediting. Do whatever.
 
 ## Credits
+
 - [Odin](https://github.com/odtheking/OdinFabric) - NanoVG implementation, world renderer, and module config system
 - [Zen](https://github.com/StellariumMC/zen) - Event manager inspiration
 - [devonian](https://github.com/Synnerz/devonian) - commands API inspiration
