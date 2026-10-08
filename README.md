@@ -99,6 +99,8 @@ Use [actions tab](https://github.com/jcnlk/quoi/actions) to download (you need t
   - Leaps to configured teammates at clear, boss, device, and relic triggers.
 - **Barrier Boom**
   - Uses Superboom when you aim at Goldor's gates.
+- **Crystal Aura**
+  - Automatically picks up active Energy Crystals in F7 P1.
 - **Fuck Diorite**
   - Replaces Storm's pillars with glass.
 - **Invincibility Timer**

@@ -57,6 +57,7 @@ object ModuleManager : EventListener {
             P4PlatformHighlight,
             SimonSays,
             TerminalAura,
+            CrystalAura,
             TickTimers,
             AutoInvincibility,
             InvincibilityTimer,
