@@ -181,10 +181,7 @@ object AutoLeap : Module(
 
         on<PartyEvent.Message> {
             if (content.endsWith(')') || !melodyProgress.any { it in content }) return@on
-            melodyTarget = content
-                .substringBeforeLast(':', "")
-                .takeLastWhile { it.isLetterOrDigit() || it == '_' }
-                .takeIf { it.length in 3..16 }
+            melodyTarget = sender
         }
 
         on<ChatEvent.Packet> {

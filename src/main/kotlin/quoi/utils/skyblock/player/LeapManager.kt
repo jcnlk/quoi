@@ -22,6 +22,7 @@ import quoi.utils.skyblock.player.container.ContainerUtils
 import quoi.utils.skyblock.player.container.menuSettings
 import quoi.utils.skyblock.player.container.task.*
 
+// TODO: redo?
 @Init
 object LeapManager : EventListener {
     private data class LeapRequest(
@@ -68,19 +69,20 @@ object LeapManager : EventListener {
             if (useInputSuppressed) suppressUseInput()
         }
 
+        on<TickEvent.Start>(Priority.LOWEST) {
+            val pending = pendingLeap ?: return@on
+            if (mc.screen != null || ContainerUtils.containerId != 0 || ContainerManager.activeTask != null) return@on
+
+            when (doLeap(pending)) {
+                LeapStartResult.Started,
+                LeapStartResult.Rejected -> if (pendingLeap === pending) pendingLeap = null
+                LeapStartResult.Retry -> Unit
+            }
+        }
+
         on<TickEvent.Server> {
             onClientThread {
                 if (leapCD > 0) leapCD -= 1
-
-                val pending = pendingLeap
-                if (pending != null &&
-                    mc.screen == null &&
-                    ContainerUtils.containerId == 0 &&
-                    ContainerManager.activeTask == null
-                ) {
-                    pendingLeap = null
-                    doLeap(pending)
-                }
             }
         }
     }
@@ -138,21 +140,31 @@ object LeapManager : EventListener {
             pendingLeap = request
             modMessage("&eQueued leap to ${formatName(teammate)}")
         } else {
-            doLeap(request)
+            if (doLeap(request) == LeapStartResult.Retry) {
+                pendingLeap = request
+                modMessage("&eQueued leap to ${formatName(teammate)}")
+            }
         }
     }
 
-    private fun doLeap(leap: LeapRequest, preOpened: Boolean = false) {
-        if (inProgress) return
+    private fun doLeap(leap: LeapRequest, preOpened: Boolean = false): LeapStartResult {
+        if (inProgress) return LeapStartResult.Retry
         if (leapCD > 0) {
             modMessage("&cFailed to leap! On cooldown: ${"%.1f".format(leapCD / 20.0)}s")
-            return
+            return LeapStartResult.Rejected
         }
 
         val previousSlot = if (!preOpened) {
-            val selectedSlot = mc.player?.inventory?.selectedSlot ?: return
+            val selectedSlot = mc.player?.inventory?.selectedSlot ?: run {
+                modMessage("&cFailed to leap: player unavailable")
+                return LeapStartResult.Rejected
+            }
             val swap = SwapManager.swapById("INFINITE_SPIRIT_LEAP", "SPIRIT_LEAP")
-            if (!swap.success) return
+            if (swap == SwapResult.TOO_FAST) return LeapStartResult.Retry
+            if (!swap.success) {
+                if (swap != SwapResult.NOT_FOUND) modMessage("&cFailed swapping to leap: ${swap.name}")
+                return LeapStartResult.Rejected
+            }
             suppressUseInput()
             selectedSlot.takeIf { leap.swapBack && !swap.already }
         } else null
@@ -177,6 +189,7 @@ object LeapManager : EventListener {
         task = newTask
         if (preOpened) newTask.beginFastBlock()
         newTask.run()
+        return LeapStartResult.Started
     }
 
     private fun finishLeap(leap: LeapRequest, result: ContainerTaskResult, previousSlot: Int?) {
@@ -233,5 +246,9 @@ object LeapManager : EventListener {
             InputConstants.Type.SCANCODE -> false
             //$}
         }
+    }
+
+    private enum class LeapStartResult {
+        Started, Retry, Rejected
     }
 }
