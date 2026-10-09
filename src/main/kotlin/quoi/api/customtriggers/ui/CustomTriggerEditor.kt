@@ -142,7 +142,7 @@ class CustomTriggerEditor {
                                                     }
                                                     orderButton("+", true) {
                                                         ui.unfocus()
-                                                        val trigger = TriggerRule("New trigger").apply { enabled = false }
+                                                        val trigger = TriggerRule("New trigger")
                                                         TriggerManager.addTrigger(groupName, trigger)
                                                         selectedGroup = groupName
                                                         selectedId = trigger.id
