@@ -132,7 +132,7 @@ object AutoLeap : Module(
     private var leapedHealerPy = false
     private var p4Leapt = false
 
-    private val melodyProgress = setOf("1/4", "2/4", "3/4", "25%", "50%", "75%", "1/3", "2/3", "33%", "66%", "67%") // TODO: remove 4 row melody support some day
+    private val melodyProgress = setOf("1/3", "2/3", "33%", "66%", "67%")
 
     private val leftCrystalBox = AABB(78.0, 233.0, 46.0, 87.0, 243.0, 55.0)
     private val rightCrystalBox = AABB(60.0, 233.0, 46.0, 69.0, 243.0, 55.0)
@@ -143,8 +143,6 @@ object AutoLeap : Module(
     private val middleBox = AABB(47.0, 64.0, 69.0, 62.0, 75.0, 84.0)
     private val pre4Box = AABB(62.0, 127.0, 34.0, 65.0, 130.0, 37.0)
 
-    private val melodyPlayerRegex = Regex("""([A-Za-z0-9_]{3,16}):""")
-    private val deviceDoneRegex = Regex("""^(\w+) completed a device! \((.*?)\)$""") // TODO: make this regexless
     private val stormCrushMessages = setOf("[BOSS] Storm: Oof", "[BOSS] Storm: Ouch, that hurt!")
     private val relicIds = setOf("GREEN_KING_RELIC", "PURPLE_KING_RELIC", "BLUE_KING_RELIC", "ORANGE_KING_RELIC", "RED_KING_RELIC")
     private val spiritLeapIds = setOf("INFINITE_SPIRIT_LEAP", "SPIRIT_LEAP")
@@ -186,7 +184,10 @@ object AutoLeap : Module(
             if (!Floor7.inF7Boss) return@on
 
             if (i4Leap && i4LeapMelody && "Party" in unformatted && melodyProgress.any { it in unformatted }) {
-                melodyTarget = melodyPlayerRegex.findAll(unformatted).lastOrNull()?.groupValues?.get(1)
+                melodyTarget = unformatted
+                    .substringBeforeLast(':', "")
+                    .takeLastWhile { it.isLetterOrDigit() || it == '_' }
+                    .takeIf { it.length in 3..16 }
             }
 
             if (unformatted in stormCrushMessages) {
@@ -223,9 +224,7 @@ object AutoLeap : Module(
             }
 
             if (!i4Leap || !i4Auto || !isAtPre4()) return@on
-
-            val (playerName) = deviceDoneRegex.matchEntire(unformatted)?.destructured ?: return@on
-            if (playerName != player.name.string) return@on
+            if (!unformatted.startsWith("${player.name.string} completed a device!")) return@on
 
             leapToPre4Target()
         }
