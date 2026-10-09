@@ -2,7 +2,9 @@ package quoi.module.impl.floor7
 
 import net.minecraft.core.BlockPos
 import net.minecraft.world.level.block.Blocks
+import quoi.api.events.BlockEvent
 import quoi.api.events.TickEvent
+import quoi.api.events.WorldEvent
 import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.Floor7
 import quoi.api.skyblock.dungeon.enums.Phase
@@ -77,30 +79,56 @@ object FuckDiorite : Module(
     )
     private val pillarColors = intArrayOf(5, 4, 10, 14)
 
-    private val coordinates: Array<Set<BlockPos>> = Array(4) { pillarIndex ->
-        val pillar = pillars[pillarIndex]
-        buildSet {
-            for (dx in (pillar.x - 3)..(pillar.x + 3))
-                for (dy in pillar.y..(pillar.y + 37))
-                    for (dz in (pillar.z - 3)..(pillar.z + 3))
-                        add(BlockPos(dx, dy, dz))
-        }
-    }
+    private val dirtyPillars = BooleanArray(4) { true }
+    private var wasP2 = false
 
     init {
         on<TickEvent.End> {
-            if (Floor7.inPhaseAt(Phase.P2)) replaceDiorite()
+            val inP2 = Floor7.inPhaseAt(Phase.P2)
+            if (inP2) {
+                if (!wasP2) dirtyPillars.fill(true)
+                replaceDiorite()
+            }
+            wasP2 = inP2
+        }
+
+        on<BlockEvent.Update> {
+            if (updated.block != Blocks.DIORITE && updated.block != Blocks.POLISHED_DIORITE) return@on
+            pillars.forEachIndexed { index, pillar ->
+                if (pos.x in pillar.x - 3..pillar.x + 3 && pos.y in pillar.y..pillar.y + 37 && pos.z in pillar.z - 3..pillar.z + 3) {
+                    dirtyPillars[index] = true
+                }
+            }
+        }
+
+        on<WorldEvent.Chunk.Load> {
+            pillars.forEachIndexed { index, pillar ->
+                if (chunk.pos.x in ((pillar.x - 3) shr 4)..((pillar.x + 3) shr 4) &&
+                    chunk.pos.z in ((pillar.z - 3) shr 4)..((pillar.z + 3) shr 4)) {
+                    dirtyPillars[index] = true
+                }
+            }
+        }
+
+        on<WorldEvent.Change> {
+            wasP2 = false
         }
     }
 
     private fun replaceDiorite() {
-        for ((index, coordinateSet) in coordinates.withIndex()) {
-            for (pos in coordinateSet) {
+        for ((index, pillar) in pillars.withIndex()) {
+            if (!dirtyPillars[index]) continue
+            dirtyPillars[index] = false
+            for (pos in BlockPos.betweenClosed(pillar.x - 3, pillar.y, pillar.z - 3, pillar.x + 3, pillar.y + 37, pillar.z + 3)) {
                 if (pos.state.block.equalsOneOf(Blocks.DIORITE, Blocks.POLISHED_DIORITE)) {
-                    setGlass(pos, index)
+                    setGlass(pos.immutable(), index)
                 }
             }
         }
+    }
+
+    override fun onDisable() {
+        wasP2 = false
     }
 
     private fun setGlass(pos: BlockPos, pillarIndex: Int) {

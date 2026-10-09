@@ -45,6 +45,7 @@ object InventorySearch : SettingGroup(Inventory, HudComponent("Search Bar", Hud(
     private val loreColour by colourPicker("Lore colour", Colour.MAGENTA.withAlpha(200), allowAlpha = true)
 
     private var searchText = ""
+    private var queries: List<String> = emptyList()
     private var focused = false
     private val highlightSlots = mutableMapOf<Int, Colour>()
 
@@ -75,6 +76,7 @@ object InventorySearch : SettingGroup(Inventory, HudComponent("Search Bar", Hud(
 
                 onTextChanged { (string) ->
                     searchText = string
+                    queries = string.lowercase().split(",").map { it.trim() }
 
                     calculate(string)?.let { result ->
                         val str = result.toFixed(4).trimEnd('0').trimEnd('.')
@@ -115,7 +117,6 @@ object InventorySearch : SettingGroup(Inventory, HudComponent("Search Bar", Hud(
 
             highlightSlots.clear()
 
-            val queries = searchText.lowercase().split(",").map { it.trim() }
             player.containerMenu.items.forEachIndexed { i, stack ->
                 val name = stack.customName?.string?.lowercase()?.trim().orEmpty()
                 val lore = stack.loreString?.lowercase()?.trim().orEmpty()

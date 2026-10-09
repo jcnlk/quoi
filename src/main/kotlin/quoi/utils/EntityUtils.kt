@@ -101,23 +101,25 @@ object EntityUtils {
 
     // https://github.com/MeteorDevelopment/meteor-client/blob/6409c29693a8df6428aa8044212fe02f47e3a02f/src/main/java/meteordevelopment/meteorclient/utils/entity/EntityUtils.java#L186
     val Entity.colourFromDistance: Colour
-        get() {
-            val percent = this.distanceToCamera / 60.0
+        get() = colourFromDistance(distanceToCamera)
 
-            if (percent !in 0.0..1.0) {
-                return Colour.RGB(255, 0, 0)
-            }
+    fun colourFromDistance(distanceToCamera: Double): Colour {
+        val percent = distanceToCamera / 60.0
 
-            val (r, g) = if (percent < 0.5) {
-                val r = (255 - (255 * (percent - 0.5) / 0.5)).toInt()
-                r to 255
-            } else {
-                val g = (255 * percent / 0.5).toInt()
-                255 to g
-            }
-
-            return Colour.RGB(r, g, 0)
+        if (percent !in 0.0..1.0) {
+            return Colour.RGB(255, 0, 0)
         }
+
+        val (r, g) = if (percent < 0.5) {
+            val r = (255 - (255 * (percent - 0.5) / 0.5)).toInt()
+            r to 255
+        } else {
+            val g = (255 * percent / 0.5).toInt()
+            255 to g
+        }
+
+        return Colour.RGB(r, g, 0)
+    }
 
     @JvmName("getAllEntities")
     fun getEntities() =

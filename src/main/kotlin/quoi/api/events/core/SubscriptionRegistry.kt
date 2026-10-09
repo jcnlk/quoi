@@ -8,6 +8,9 @@ import java.util.concurrent.CopyOnWriteArrayList
  */
 class SubscriptionRegistry<T : Event> {
     val subscriptions = CopyOnWriteArrayList<Subscription<T>>()
+    @Volatile
+    var dispatchSnapshot: Array<Subscription<T>> = emptyArray()
+        private set
 
     @Synchronized
     fun add(subscription: Subscription<T>) {
@@ -19,10 +22,13 @@ class SubscriptionRegistry<T : Event> {
             }
         }
         subscriptions.add(index, subscription)
+        dispatchSnapshot = subscriptions.toTypedArray()
     }
 
     @Synchronized
     fun remove(subscription: Subscription<T>) {
-        subscriptions.remove(subscription)
+        if (subscriptions.remove(subscription)) {
+            dispatchSnapshot = subscriptions.toTypedArray()
+        }
     }
 }

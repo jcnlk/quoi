@@ -1,5 +1,6 @@
 package quoi.module.impl.render
 
+import net.minecraft.world.entity.player.Player
 import quoi.api.events.EntityEvent
 import quoi.api.events.RenderEvent
 import quoi.api.events.core.on
@@ -43,14 +44,16 @@ object PlayerESP : Module(
         on<RenderEvent.World> {
             playerEntitiesNoSelf.forEach { entity ->
                 if (!matchesFilters(entity.name?.string, entity.displayName?.string)) return@forEach
-                highlight.draw(ctx, entity.interpolatedBox, entity.colourFromDistance, entity.colourFromDistance)
-                tracer.draw(ctx, entity, entity.colourFromDistance)
+                val colour = entity.colourFromDistance
+                highlight.draw(ctx, entity.interpolatedBox, colour, colour)
+                tracer.draw(ctx, entity, colour)
             }
         }
 
         on<EntityEvent.ForceGlow> {
             if (highlight.style != "Glow") return@on
-            if (entity !in playerEntitiesNoSelf) return@on
+            if (entity !is Player || entity == mc.player || entity.uuid.version() != 4) return@on
+            if (mc.level?.players()?.contains(entity) != true) return@on
             if (!matchesFilters(entity.name?.string, entity.displayName?.string)) return@on
             highlight.draw(this, entity.colourFromDistance)
         }

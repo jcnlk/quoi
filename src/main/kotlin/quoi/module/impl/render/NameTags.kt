@@ -2,6 +2,7 @@ package quoi.module.impl.render
 
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.MutableComponent
+import net.minecraft.world.phys.Vec3
 import quoi.api.colour.Colour
 import quoi.api.events.RenderEvent
 import quoi.api.events.core.on
@@ -20,7 +21,7 @@ import quoi.utils.EntityUtils.renderY
 import quoi.utils.EntityUtils.renderZ
 import quoi.utils.StringUtils.toFixed
 import quoi.utils.render.drawText
-import kotlin.math.pow
+import kotlin.math.sqrt
 
 @Suppress("UNNECESSARY_SAFE_CALL")
 object NameTags : Module(
@@ -42,36 +43,43 @@ object NameTags : Module(
     @JvmStatic val bgColour by colourPicker("Background colour", Colour.RGB(0, 0, 0, 0.33f), allowAlpha = true).childOf(::customBg)
     @JvmStatic val shadow by switch("Shadow").childOf(::vanillaTagDropDown)
 
+    private val SIMPLE_TAG_REGEX = Regex("\\[\\d+]\\s+(\\S+)")
+
     init {
         on<RenderEvent.World> {
             if (!shouldCancelTag) return@on
             val pos = player.renderPos
+            val inDungeon = inDungeons
             playerEntitiesNoSelf.forEach { entity ->
                 val name = entity.displayName?.let { displayName ->
                     when {
-                        inDungeons -> dungeonTeammatesNoSelf.firstOrNull { it.name == entity.name.string }
+                        inDungeon -> dungeonTeammatesNoSelf.firstOrNull { it.name == entity.name.string }
                             ?.let { literal("&${it.clazz.colourCode}${it.name}") }
                             ?: if (simpleTag) displayName.simple else displayName
                         simpleTag -> displayName.simple
                         else -> displayName
                     }
                 } ?: return@forEach
-                val dist = pos.distanceToSqr(entity.renderX, entity.renderY, entity.renderZ)
+                val renderX = entity.renderX
+                val renderY = entity.renderY
+                val renderZ = entity.renderZ
+                val dist = pos.distanceToSqr(renderX, renderY, renderZ)
                 if (distanceText) { // fixme
+                    val distance = entity.distanceToCamera
                     (name as MutableComponent)
-                        .append(literal(" ${entity.distanceToCamera.toFixed(1)}")
-                            .withColor((if (customCol) distanceColour else entity.colourFromDistance).rgb)
+                        .append(literal(" ${distance.toFixed(1)}")
+                            .withColor((if (customCol) distanceColour else colourFromDistance(distance)).rgb)
                     )
                 }
-                val scale = (0.5 + dist.pow(0.5) / 10.0).toFloat()
+                val scale = (0.5 + sqrt(dist) / 10.0).toFloat()
 
-                ctx.drawText(name, entity.renderPos.add(0.0, 2.2 + heightOffset, 0.0), customTagBgColour, customTagShadow, scale, false)
+                ctx.drawText(name, Vec3(renderX, renderY + (2.2 + heightOffset), renderZ), customTagBgColour, customTagShadow, scale, false)
             }
         }
     }
 
     private val Component.simple: Component // fixme
-        get() = Regex("\\[\\d+]\\s+(\\S+)").find(string)?.groupValues?.get(1)?.let { name -> // "[145] aboba ♲" "[67] aloba"
+        get() = SIMPLE_TAG_REGEX.find(string)?.groupValues?.get(1)?.let { name -> // "[145] aboba ♲" "[67] aloba"
         literal(name)
             .withStyle { it.withColor(style.color) }
             .append(if (string.contains("♲")) literal(" &7♲") else Component.empty())

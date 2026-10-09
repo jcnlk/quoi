@@ -29,7 +29,7 @@ object EventManager {
 
         event.completed = false
 
-        for (sub in registry.subscriptions) {
+        for (sub in registry.dispatchSnapshot) {
             if (event is CancellableEvent && event.cancelled && !sub.acceptCancelled) continue
             if (!sub.listener.running) continue
             if (!sub.listener.shouldHandle(event)) continue
