@@ -232,7 +232,7 @@ object AutoLeap : Module(
 
         on<BossBarEvent.Update> {
             if (Dungeon.floor != Floor.M7 || !Dungeon.inBoss) return@on
-            if (progress in 0.1..5.0 || p4Leapt || !p4Auto || !unformatted.contains("necron", ignoreCase = true) || !Floor7.inPhaseAt(Phase.P4)) return@on
+            if (progress !in 0.1..5.0 || p4Leapt || !p4Auto || !unformatted.contains("necron", ignoreCase = true) || !Floor7.inPhaseAt(Phase.P4)) return@on
 
             p4Leapt = true
             leapToConfigured(p4Name, p4Class.selected)
