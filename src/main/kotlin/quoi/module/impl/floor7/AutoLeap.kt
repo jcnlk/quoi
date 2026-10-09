@@ -179,15 +179,16 @@ object AutoLeap : Module(
             handleP3Leap(completedStage = stage)
         }
 
+        on<PartyEvent.Message> {
+            if (content.endsWith(')') || !melodyProgress.any { it in content }) return@on
+            melodyTarget = content
+                .substringBeforeLast(':', "")
+                .takeLastWhile { it.isLetterOrDigit() || it == '_' }
+                .takeIf { it.length in 3..16 }
+        }
+
         on<ChatEvent.Packet> {
             if (!Floor7.inF7Boss) return@on
-
-            if (i4Leap && i4LeapMelody && "Party" in unformatted && melodyProgress.any { it in unformatted }) {
-                melodyTarget = unformatted
-                    .substringBeforeLast(':', "")
-                    .takeLastWhile { it.isLetterOrDigit() || it == '_' }
-                    .takeIf { it.length in 3..16 }
-            }
 
             if (unformatted in stormCrushMessages) {
                 when (++oofCount) {
