@@ -1,20 +1,15 @@
 package quoi.module.impl.render
 
-import java.util.Optional
 import net.minecraft.core.particles.ParticleTypes
-import net.minecraft.network.chat.Component
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket
 import net.minecraft.network.protocol.game.ClientboundLevelParticlesPacket
-import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
-import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket
 import net.minecraft.network.protocol.game.ClientboundUpdateMobEffectPacket
-import net.minecraft.network.syncher.EntityDataSerializers
 import net.minecraft.world.effect.MobEffects
-import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.EntityType
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.decoration.ArmorStand
 import quoi.api.events.PacketEvent
+import quoi.api.events.RenderEvent
 import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.Dungeon.inDungeons
 import quoi.api.skyblock.dungeon.Floor7
@@ -22,7 +17,7 @@ import quoi.api.skyblock.dungeon.enums.Phase
 import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.location.Location.currentArea
 import quoi.module.Module
-import quoi.utils.skyblock.item.ItemUtils.skyblockId
+import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.skyblock.item.ItemUtils.texture
 import net.minecraft.world.entity.EntityType.getKey
 
@@ -46,11 +41,10 @@ object RenderOptimiser : Module(
 
     private const val HEALER_FAIRY_TEXTURE = "ewogICJ0aW1lc3RhbXAiIDogMTcxOTQ2MzA5MTA0NywKICAicHJvZmlsZUlkIiA6ICIyNjRkYzBlYjVlZGI0ZmI3OTgxNWIyZGY1NGY0OTgyNCIsCiAgInByb2ZpbGVOYW1lIiA6ICJxdWludHVwbGV0IiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzJlZWRjZmZjNmExMWEzODM0YTI4ODQ5Y2MzMTZhZjdhMjc1MmEzNzZkNTM2Y2Y4NDAzOWNmNzkxMDhiMTY3YWUiCiAgICB9CiAgfQp9"
     private const val SOUL_WEAVER_TEXTURE = "eyJ0aW1lc3RhbXAiOjE1NTk1ODAzNjI1NTMsInByb2ZpbGVJZCI6ImU3NmYwZDlhZjc4MjQyYzM5NDY2ZDY3MjE3MzBmNDUzIiwicHJvZmlsZU5hbWUiOiJLbGxscmFoIiwic2lnbmF0dXJlUmVxdWlyZWQiOnRydWUsInRleHR1cmVzIjp7IlNLSU4iOnsidXJsIjoiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS8yZjI0ZWQ2ODc1MzA0ZmE0YTFmMGM3ODViMmNiNmE2YTcyNTYzZTlmM2UyNGVhNTVlMTgxNzg0NTIxMTlhYTY2In19fQ=="
-    private val HEALER_ORB_IDS = setOf(
-        "DUNGEON_BLUE_SUPPORT_ORB",
-        "DUNGEON_RED_SUPPORT_ORB",
-        "DUNGEON_GREEN_SUPPORT_ORB",
-    )
+    private const val ABILITY_ORB_TEXTURE = "ewogICJ0aW1lc3RhbXAiIDogMTYzODUyNDAzODE5OCwKICAicHJvZmlsZUlkIiA6ICIzOWEzOTMzZWE4MjU0OGU3ODQwNzQ1YzBjNGY3MjU2ZCIsCiAgInByb2ZpbGVOYW1lIiA6ICJkZW1pbmVjcmFmdGVybG9sIiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzVlZTRiYjQ4MjFkMGY1ZWQ4NjVjMjEwOTBhODBiNWVlN2Q1MjI2ODQ3NmVlMjVkMzg5NzEwZjdjYzlmMTEwZDYiCiAgICB9CiAgfQp9"
+    private const val SUPPORT_ORB_TEXTURE = "ewogICJ0aW1lc3RhbXAiIDogMTYwNTM1NjUyNzQzOSwKICAicHJvZmlsZUlkIiA6ICJhYTZhNDA5NjU4YTk0MDIwYmU3OGQwN2JkMzVlNTg5MyIsCiAgInByb2ZpbGVOYW1lIiA6ICJiejE0IiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzE1NzhiNGFmM2ZkZDkxNTFiODUwYjEzYzY3YzQ1ODAyMjRjN2Y2MDA1MjcxM2YyZDE1MWY3YzE1ZGMwZDdiMzQiCiAgICB9CiAgfQp9"
+    private const val DAMAGE_ORB_TEXTURE = "ewogICJ0aW1lc3RhbXAiIDogMTYwNDY4NDIxNTAyMCwKICAicHJvZmlsZUlkIiA6ICI3NzI3ZDM1NjY5Zjk0MTUxODAyM2Q2MmM2ODE3NTkxOCIsCiAgInByb2ZpbGVOYW1lIiA6ICJsaWJyYXJ5ZnJlYWsiLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYWI4NmRhMmUyNDNjMDVkYzA4OThiMGNjNWQzZTY0ODc3MTczMTc3ZTBhMjM5NDQyNWNlYzEwMDI1OWNiNDUyNiIKICAgIH0KICB9Cn0="
+    private val HEALER_ORB_TEXTURES = setOf(ABILITY_ORB_TEXTURE, SUPPORT_ORB_TEXTURE, DAMAGE_ORB_TEXTURE)
     private val HEALER_ORB_NAMES = listOf("ABILITY DAMAGE", "DAMAGE", "DEFENSE")
 
     init {
@@ -60,38 +54,6 @@ object RenderOptimiser : Module(
                     val entityPath = getKey(packet.type).path
                     if (hideFallingBlocks && entityPath == "falling_block" ||
                         hideLightning && entityPath == "lightning_bolt") cancel()
-                }
-
-                is ClientboundSetEquipmentPacket -> {
-                    if (!inDungeons) return@on
-                    packet.slots.forEach { slot ->
-                        if (slot.second.isEmpty) return@forEach
-                        val texture = slot.second.texture ?: return@forEach
-
-                        if (
-                            (hideFairy && slot.first == EquipmentSlot.MAINHAND && texture == HEALER_FAIRY_TEXTURE) ||
-                            (hideWeaver && slot.first == EquipmentSlot.HEAD && texture == SOUL_WEAVER_TEXTURE)
-                        ) mc.execute { level.removeEntity(packet.entity, Entity.RemovalReason.DISCARDED) }
-                    }
-
-                    if (hideHealerOrbs) {
-                        packet.slots.forEach { slot ->
-                            val item = slot.second
-                            if (slot.first != EquipmentSlot.HEAD || item.isEmpty || item.skyblockId !in HEALER_ORB_IDS) return@forEach
-                            mc.execute { level.removeEntity(packet.entity, Entity.RemovalReason.DISCARDED) }
-                        }
-                    }
-                }
-
-                is ClientboundSetEntityDataPacket -> {
-                    if (!hideHealerOrbs || !inDungeons) return@on
-                    val entity = level.getEntity(packet.id) as? ArmorStand ?: return@on
-                    val hasHealerOrbName = packet.packedItems().any { item ->
-                        if (item.serializer() != EntityDataSerializers.OPTIONAL_COMPONENT) return@any false
-                        val name = ((item.value() as? Optional<*>)?.orElse(null) as? Component)?.string ?: return@any false
-                        HEALER_ORB_NAMES.any { name.startsWith(it) }
-                    }
-                    if (hasHealerOrbName) mc.execute { level.removeEntity(entity.id, Entity.RemovalReason.DISCARDED) }
                 }
 
                 is ClientboundUpdateMobEffectPacket -> {
@@ -104,6 +66,33 @@ object RenderOptimiser : Module(
                     if (hideParticles && !currentArea.isArea(Island.Garden) && !Floor7.inPhaseAt(Phase.P5)) cancel()
                     else if (hidePotionBubbles && packet.particle.type == ParticleTypes.ENTITY_EFFECT) cancel()
                 }
+            }
+        }
+
+        on<RenderEvent.Entity> {
+            if (!inDungeons) return@on
+            val armorStand = entity as? ArmorStand ?: return@on
+            if (!hideHealerOrbs && !hideFairy && !hideWeaver) return@on
+
+            if (hideHealerOrbs) {
+                val name = armorStand.name.string.noControlCodes
+                if (HEALER_ORB_NAMES.any { name.startsWith(it) }) {
+                    cancel()
+                    return@on
+                }
+            }
+
+            if (hideHealerOrbs || hideWeaver) {
+                val headTexture = armorStand.getItemBySlot(EquipmentSlot.HEAD).texture
+                if ((hideHealerOrbs && headTexture in HEALER_ORB_TEXTURES) ||
+                    (hideWeaver && headTexture == SOUL_WEAVER_TEXTURE)) {
+                    cancel()
+                    return@on
+                }
+            }
+
+            if (hideFairy && armorStand.getItemBySlot(EquipmentSlot.MAINHAND).texture == HEALER_FAIRY_TEXTURE) {
+                cancel()
             }
         }
     }
