@@ -128,7 +128,6 @@ object AutoLeap : Module(
     private var crystalCount = 0
     private var oofCount = 0
     private var melodyTarget: String? = null
-    private var pickedUpRelic = false
     private var leapedHealerPy = false
     private var p4Leapt = false
 
@@ -209,9 +208,7 @@ object AutoLeap : Module(
                 leapToConfigured(predevName, predevClass.selected)
             }
 
-            if (unformatted == "[BOSS] Necron: Goodbye." &&
-                middleLeap && middleAuto && isOutsideMiddle()
-            ) {
+            if (unformatted == "[BOSS] Necron: Goodbye." && middleLeap && middleAuto && isOutsideMiddle()) {
                 leapToConfigured(middleName, middleClass.selected)
             }
 
@@ -223,10 +220,9 @@ object AutoLeap : Module(
                 leapToConfigured(crystalName, crystalClass.selected)
             }
 
-            if (!i4Leap || !i4Auto || !isAtPre4()) return@on
-            if (!unformatted.startsWith("${player.name.string} completed a device!")) return@on
-
-            leapToPre4Target()
+            if (i4Leap && i4Auto && isAtPre4() && unformatted.startsWith("${player.name.string} completed a device!")) {
+                leapToPre4Target()
+            }
         }
 
         on<BossBarEvent.Update> {
@@ -238,10 +234,9 @@ object AutoLeap : Module(
         }
 
         on<PacketEvent.ReceivedPost, ClientboundContainerSetSlotPacket> {
-            if (!relicLeap || !relicAuto || pickedUpRelic || !isInRelic()) return@on
+            if (!relicLeap || !relicAuto || !isInRelic()) return@on
             if (packet.containerId != 0 || packet.slot != 44 || packet.item.skyblockId !in relicIds) return@on
 
-            pickedUpRelic = true
             leapToConfigured(relicName, relicClass.selected)
         }
 
@@ -371,7 +366,6 @@ object AutoLeap : Module(
         melodyTarget = null
         crystalCount = 0
         oofCount = 0
-        pickedUpRelic = false
         leapedHealerPy = false
         p4Leapt = false
     }
