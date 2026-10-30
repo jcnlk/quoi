@@ -122,7 +122,6 @@ object AutoLeap : Module(
     private var crystalCount = 0
     private var oofCount = 0
     private var melodyTarget: String? = null
-    private var leapedHealerPy = false
     private var p4Leaped = false
 
     private val melodyProgress = setOf("1/3", "2/3", "33%", "66%", "67%")
@@ -323,7 +322,6 @@ object AutoLeap : Module(
         melodyTarget = null
         crystalCount = 0
         oofCount = 0
-        leapedHealerPy = false
         p4Leaped = false
     }
 
