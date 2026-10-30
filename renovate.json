@@ -36,6 +36,12 @@
   ],
   "packageRules": [
     {
+      "description": "Resolve the Stonecutter plugin and its release timestamps from the Gradle Plugin Portal",
+      "matchDatasources": ["maven"],
+      "matchPackageNames": ["dev.kikugie.stonecutter:dev.kikugie.stonecutter.gradle.plugin"],
+      "registryUrls": ["https://plugins.gradle.org/m2/"]
+    },
+    {
       "description": "Annotated properties are owned by the custom manager",
       "matchManagers": ["gradle"],
       "matchFileNames": ["gradle.properties", "versions/**/gradle.properties"],
