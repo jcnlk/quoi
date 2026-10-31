@@ -17,6 +17,15 @@ import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.utils.skyblock.item.ItemUtils.skyblockId
 
 class AutoLeap(parent: Module) : LeapSettings(parent, "Auto Leap", automatic = true) {
+    private val firstCrush = LeapTarget(
+        this, "First crush leap", "Leap after Storm's first crush, from any position."
+    )
+    private val secondCrush = LeapTarget(
+        this, "Second crush leap", "Leap after Storm's second crush, from any position."
+    )
+    private val stormDeath = LeapTarget(
+        this, "Storm death leap", "Leap on Storm's death message, from any position."
+    )
     private val stormEnrage = LeapTarget(
         this, "Storm enrage leap", "Leap when Storm becomes enraged while P2 is active."
     ) { Floor7.inPhase(Phase.P2) }
@@ -34,11 +43,8 @@ class AutoLeap(parent: Module) : LeapSettings(parent, "Auto Leap", automatic = t
             if (!Floor7.inF7Boss) return@on
             when (unformatted) {
                 "[BOSS] Storm: Oof", "[BOSS] Storm: Ouch, that hurt!" -> when (++crushCount) {
-                    1 -> {
-                        purple.leap()
-                        betweenPads.leap()
-                    }
-                    2 -> yellow.leap()
+                    1 -> firstCrush.leap()
+                    2 -> secondCrush.leap()
                 }
                 "The Energy Laser is charging up!" -> if (p1.enabled && ++crystalCount == 2) p1.leap()
                 "⚠ Storm is enraged! ⚠" -> stormEnrage.leap()

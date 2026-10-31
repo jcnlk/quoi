@@ -23,21 +23,6 @@ abstract class LeapSettings(parent: Module, name: String, val automatic: Boolean
     protected val predev = LeapTarget(
         this, "Predev leap", "Leap from P3 while Maxor or Storm is still active.", "Leap on Storm's lightning dialogue while in P3."
     ) { Floor7.inPhaseAt(Phase.P3) && Floor7.inPhase(Phase.P1, Phase.P2) }
-    protected val yellow = LeapTarget(
-        this, "Yellow pad leap", "Leap from the yellow pad.", "Leap after Storm's second crush while on yellow.",
-        matches = at(AABB(24.0, 170.0, 86.0, 41.0, 172.0, 103.0))
-    )
-    protected val purple = LeapTarget(
-        this, "Purple pad leap", "Leap from the purple pad.", "Leap after Storm's first crush while on purple.",
-        matches = at(AABB(106.0, 170.0, 86.0, 125.0, 172.0, 103.0))
-    )
-    protected val betweenPads = LeapTarget(
-        this, "Between PY pad leap", "Leap from between the purple and yellow pads.", "Leap after Storm's first crush while between the pads.",
-        matches = at(AABB(41.0, 163.0, 86.0, 106.0, 172.0, 103.0))
-    )
-    protected val stormDeath = LeapTarget(
-        this, "Storm death leap", "Leap from P2, outside the pads and the area between them.", "Leap on Storm's death message, from any position."
-    ) { Floor7.inPhaseAt(Phase.P2) && !purple.matches() && !yellow.matches() && !betweenPads.matches() }
     protected val i4: LeapTarget = LeapTarget(
         this, "I4 leap", "Leap from the I4 device.", "Leap after completing I4 during section 1 or 2.",
         nameOverride = { Leaps.melodyTarget.takeIf { i4LeapMelody } }, matches = at(AABB(62.0, 127.0, 34.0, 65.0, 130.0, 37.0))
@@ -76,5 +61,5 @@ abstract class LeapSettings(parent: Module, name: String, val automatic: Boolean
         if (current != Stage.Unknown && current.number <= stage.number) sections.getOrNull(stage.number - 1)?.leap()
     }
 
-    private fun at(box: AABB): () -> Boolean = { box.contains(player.position()) }
+    protected fun at(box: AABB): () -> Boolean = { box.contains(player.position()) }
 }
