@@ -54,7 +54,7 @@ open class Text(
             if (w > limit && w > 0) {
                 val ratio = limit / w
                 val newH = height * ratio
-                constraints.height = newH.px
+                height = newH
 
                 width = limit
 
