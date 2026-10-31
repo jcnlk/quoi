@@ -51,7 +51,6 @@ object BoulderSolver : SettingGroup(PuzzleSolvers, "Boulder") {
     private var solutions: Map<String, List<List<Int>>>
     private var currentPositions = mutableListOf<BoxPosition>()
     private var walking = false
-    private var lastClick = 0L
 
     init {
         try {
@@ -76,9 +75,9 @@ object BoulderSolver : SettingGroup(PuzzleSolvers, "Boulder") {
         }
 
         on<TickEvent.End> {
-            if (!triggerbot || System.currentTimeMillis() - lastClick < 200L) return@on
+            if (!triggerbot) return@on
             val pos = currentPositions.firstOrNull()?.click ?: return@on
-            if (PuzzleSolvers.triggerBlock(pos)) lastClick = System.currentTimeMillis()
+            PuzzleSolvers.triggerBlock(pos)
         }
 
         on<WorldEvent.Change> {
@@ -135,7 +134,6 @@ object BoulderSolver : SettingGroup(PuzzleSolvers, "Boulder") {
             walking = false
         }
         currentPositions = mutableListOf()
-        lastClick = 0L
     }
 
     private fun runTo(room: OdonRoom, z: Double, onArrival: () -> Unit = {}) {

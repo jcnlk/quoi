@@ -44,7 +44,6 @@ object WaterBoardSolver : SettingGroup(PuzzleSolvers, "Water board"), Reposition
     private val optimised by switch("Optimised solutions", desc = "Uses optimised solutions for the water board puzzle.").asParent()
     private val auto by switch("Auto").asParent()
     private val triggerbot by switch("Triggerbot", desc = "Automatically clicks the next correct water board lever when you look at it.")
-    private val triggerbotDelay by slider("Triggerbot delay", 200L, 70L, 500L, 10L, unit = "ms").childOf(::triggerbot)
 
     private var waterSolutions: JsonObject = PuzzleSolvers.loadSolution("waterSolutions.json", JsonObject())
 
@@ -151,10 +150,7 @@ object WaterBoardSolver : SettingGroup(PuzzleSolvers, "Water board"), Reposition
             val water = lever == LeverBlock.WATER
             if (!(water && (openedWaterTicks == -1 || remaining <= 0)) && !(!water && remaining <= 0)) return@on
 
-            val now = System.currentTimeMillis()
-            if (now - lastClick < triggerbotDelay) return@on
-
-            if (PuzzleSolvers.triggerBlock(lever.leverPos)) lastClick = now
+            PuzzleSolvers.triggerBlock(lever.leverPos)
         }
 
         on<WorldEvent.Change> {
