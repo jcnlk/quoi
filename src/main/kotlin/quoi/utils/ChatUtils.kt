@@ -56,11 +56,8 @@ object ChatUtils {
     }
 
     fun removeLines(id: Int, text: String): Boolean {
-        //? if <26.2 {
+        //~ if >=26.2 'it.content.' -> 'it.content().'
         return removeLines { it.id == id || it.content.string.noControlCodes == text }
-        //?} else {
-        /*return removeLines { it.id == id || it.content().string.noControlCodes == text }
-        *///?}
     }
 
     fun removeLines(id: Int): Boolean {
@@ -102,11 +99,9 @@ object ChatUtils {
             editedLine = true
             messageList.remove()
 
-            //? if <26.2 {
+            //~ if >=26.2 'msg.addedTime,' -> 'msg.addedTime(),'
+            //~ if >=26.2 'GuiMessageSource.SYSTEM_CLIENT' -> 'msg.source()'
             val line = GuiMessage(msg.addedTime, replaceWith, null, GuiMessageSource.SYSTEM_CLIENT, indicator)
-            //?} else {
-            /*val line = GuiMessage(msg.addedTime(), replaceWith, null, msg.source(), indicator)
-            *///?}
             line.id = msg.id
             messageList.add(line)
         }

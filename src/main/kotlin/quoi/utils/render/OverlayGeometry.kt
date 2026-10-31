@@ -15,10 +15,7 @@ internal fun SubmitNodeCollector.submitOverlayGeometry(
     } else {
         val collection = order(Int.MAX_VALUE) as SubmitNodeCollection
         val submit = CustomFeatureRenderer.Submit(stack.last().copy(), CustomRenderLayer.TRIANGLE_STRIP_ESP, renderer)
-        //? if >=26.3 {
-        /*collection.alwaysOnTopGizmos.submit(submit)
-        *///?} else {
+        //~ if >=26.3 'collection.alwaysOnTop.' -> 'collection.alwaysOnTopGizmos.'
         collection.alwaysOnTop.submit(submit)
-        //?}
     }
 }

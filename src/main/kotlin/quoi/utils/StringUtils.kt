@@ -9,6 +9,7 @@ import net.minecraft.ChatFormatting
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.MutableComponent
 import net.minecraft.network.chat.Style
+import net.minecraft.network.chat.TextColor
 import net.minecraft.network.chat.contents.PlainTextContents
 import quoi.QuoiMod.mc
 
@@ -21,21 +22,13 @@ object StringUtils {
 
     private val rgbMap by lazy {
         ChatFormatting.entries
-            //? if <26.2 {
-            .mapNotNull { it.color?.let { color -> color to it } }
-            //?} else {
-            /*.mapNotNull { formatting -> net.minecraft.network.chat.TextColor.fromLegacyFormat(formatting)?.getValue()?.let { it to formatting } }
-            *///?}
+            .mapNotNull { formatting -> TextColor.fromLegacyFormat(formatting)?.getValue()?.let { it to formatting } }
             .toMap()
     }
 
     val Component.formattedString: String get() = buildString {
         visit<Unit>({ style, content ->
-            //? if <26.2 {
-            style.color?.value?.let { rgbMap[it]?.let(::append) }
-            //?} else {
-            /*style.getColor()?.value?.let { rgbMap[it]?.let(::append) }
-            *///?}
+            style.getColor()?.value?.let { rgbMap[it]?.let(::append) }
             if (style.isBold) append(ChatFormatting.BOLD)
             if (style.isItalic) append(ChatFormatting.ITALIC)
             if (style.isUnderlined) append(ChatFormatting.UNDERLINE)

@@ -29,9 +29,7 @@ import quoi.utils.WorldUtils.ticksUntilCollision
 import quoi.utils.distanceToSqr
 import quoi.utils.skyblock.player.MovementUtils.cancelMovementTask
 import quoi.utils.skyblock.player.MovementUtils.moveTo
-//? if >=26.2 {
-/*import quoi.utils.center
-*///?}
+import quoi.utils.center
 
 // todo improve fire dodge shit. make it walk away from pigman and out of fire similar to ddr
 object DamageDodge : ToggleableGroup(BlazeSlayer, "Damage dodge", desc = "Automatically dodges or prevents damage.") {

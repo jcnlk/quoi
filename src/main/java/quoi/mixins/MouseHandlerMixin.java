@@ -60,11 +60,8 @@ public class MouseHandlerMixin {
             at = @At("HEAD"),
             cancellable = true
     )
-    //? if <26.3 {
+    //~ if >=26.3 'double my, CallbackInfo' -> 'double my, double dx, double dy, CallbackInfo'
     private void onMouseMove(long window, double mx, double my, CallbackInfo ci) {
-    //?} else {
-    /*private void onMouseMove(long window, double mx, double my, double dx, double dy, CallbackInfo ci) {
-    *///?}
         if (checkShit(window)) return;
         if (new MouseEvent.Move(mx, my).post()) ci.cancel();
     }
@@ -97,11 +94,8 @@ public class MouseHandlerMixin {
     @Inject(method = "releaseMouse", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;getWindow()Lcom/mojang/blaze3d/platform/Window;"))
     private void odin$correctCursorPosition(CallbackInfo ci) {
         if (Minecraft.getInstance().screen instanceof ContainerScreen && Tweaks.shouldHookMouse()) {
-            //? if <26.3 {
+            //~ if >=26.3 'grabOrReleaseMouse(Minecraft.getInstance().getWindow(), InputConstants.CURSOR_NORMAL,' -> 'releaseMouse(Minecraft.getInstance().getWindow(),'
             InputConstants.grabOrReleaseMouse(Minecraft.getInstance().getWindow(), InputConstants.CURSOR_NORMAL, this.beforeX, this.beforeY);
-            //?} else {
-            /*InputConstants.releaseMouse(Minecraft.getInstance().getWindow(), this.beforeX, this.beforeY);
-            *///?}
             this.xpos = this.beforeX;
             this.ypos = this.beforeY;
         }

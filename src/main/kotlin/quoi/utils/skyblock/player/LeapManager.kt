@@ -1,6 +1,5 @@
 package quoi.utils.skyblock.player
 
-import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
 import net.minecraft.network.protocol.game.ServerboundUseItemPacket
@@ -17,7 +16,6 @@ import quoi.api.events.core.EventListener
 import quoi.api.events.core.Priority
 import quoi.api.events.core.on
 import quoi.api.input.Keyboard
-import quoi.api.input.Mouse
 import quoi.api.skyblock.dungeon.Dungeon.dungeonTeammatesNoSelf
 import quoi.api.skyblock.dungeon.Dungeon.getMageCooldownMultiplier
 import quoi.api.skyblock.dungeon.Dungeon.inDungeons
@@ -280,16 +278,7 @@ object LeapManager : EventListener {
         useInputSuppressed = false
 
         val useKey = mc.options.keyUse.key
-        mc.options.keyUse.isDown = when (useKey.type) {
-            //? if <26.3 {
-            InputConstants.Type.MOUSE -> Mouse.isButtonDown(useKey.value)
-            InputConstants.Type.KEYSYM -> Keyboard.isKeyDown(useKey.value)
-            InputConstants.Type.SCANCODE -> false
-            //?} else {
-            /*InputConstants.Type.MOUSE -> Mouse.isSDLButtonDown(useKey.value)
-            InputConstants.Type.KEYBOARD -> Keyboard.isKeyDown(useKey.value)
-            *///?}
-        }
+        mc.options.keyUse.isDown = Keyboard.isKeyDown(useKey)
     }
 
     private enum class LeapStartResult {

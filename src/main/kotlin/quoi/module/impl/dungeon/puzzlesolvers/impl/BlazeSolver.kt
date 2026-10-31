@@ -1,6 +1,5 @@
 package quoi.module.impl.dungeon.puzzlesolvers.impl
 
-import com.mojang.blaze3d.platform.InputConstants
 import net.minecraft.client.player.LocalPlayer
 import net.minecraft.core.BlockPos
 import net.minecraft.world.entity.decoration.ArmorStand
@@ -17,7 +16,6 @@ import quoi.api.events.WorldEvent
 import quoi.api.events.core.Event
 import quoi.api.events.core.on
 import quoi.api.input.Keyboard
-import quoi.api.input.Mouse
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.enums.Puzzle
 import quoi.api.skyblock.dungeon.enums.PuzzleStatus
@@ -368,16 +366,7 @@ object BlazeSolver : SettingGroup(PuzzleSolvers, "Blaze"), Repositionable { // t
         repositionTicker = null
         if (sneakingForReposition) {
             val key = mc.options.keyShift.key
-            val physicallyDown = key.value >= 0 && when (key.type) {
-                //? if <26.3 {
-                InputConstants.Type.MOUSE -> Mouse.isButtonDown(key.value)
-                InputConstants.Type.KEYSYM -> Keyboard.isKeyDown(key.value)
-                InputConstants.Type.SCANCODE -> false
-                //?} else {
-                /*InputConstants.Type.MOUSE -> Mouse.isSDLButtonDown(key.value)
-                InputConstants.Type.KEYBOARD -> Keyboard.isKeyDown(key.value)
-                *///?}
-            }
+            val physicallyDown = key.value >= 0 && Keyboard.isKeyDown(key)
             if (mc.options.keyShift.isDown != physicallyDown) {
                 mc.options.keyShift.isDown = physicallyDown || mc.options.toggleCrouch().get()
             }

@@ -13,11 +13,7 @@ class KeyCodeAdapter : TypeAdapter<Int>() {
             out.value(if (key == 0) Keybinds.KEY_NONE else key)
             return
         }
-        //? if <26.3 {
         out.value(InputConstants.Type.KEYSYM.getOrCreate(key).name)
-        //?} else {
-        /*out.value(InputConstants.Type.KEYBOARD.getOrCreate(key).name)
-        *///?}
     }
 
     override fun read(reader: JsonReader): Int {

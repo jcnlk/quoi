@@ -24,9 +24,7 @@ import quoi.utils.StringUtils.toFixed
 import quoi.utils.render.drawText
 import quoi.utils.render.drawWireFrameBox
 import quoi.utils.skyblock.item.ItemUtils.texture
-//? if >=26.2 {
-/*import quoi.utils.center
-*///?}
+import quoi.utils.center
 
 // based on https://github.com/soshimee/soshimeeaddons/blob/main/features/bloodHelper/index.js
 object BloodCamp : Module( // todo auto
@@ -42,17 +40,8 @@ object BloodCamp : Module( // todo auto
     init {
         on<PacketEvent.Received, ClientboundMoveEntityPacket> {
             if (currentRoom?.data?.type != RoomType.BLOOD) return@on
-            //? if <26.3 {
-            if (packet.xa.toInt() == 0 && packet.ya.toInt() == 0 && packet.za.toInt() == 0) return@on
-            //?}
             val entity = packet.getEntity(level) as? ArmorStand ?: return@on
-            //? if >=26.3 {
-            /*if (!packet.hasPosition()) return@on
-            val positionCodec = entity.positionCodec
-            val nextPosition = packet.positionDelta.decode(positionCodec).endPosition()
-            val delta = nextPosition.subtract(positionCodec.base)
-            if (delta == Vec3.ZERO) return@on
-            *///?}
+            val delta = packet.movementDelta(entity) ?: return@on
 
             val headItem = entity.getItemBySlot(EquipmentSlot.HEAD)
             if (headItem.item != Items.PLAYER_HEAD) return@on
@@ -61,11 +50,6 @@ object BloodCamp : Module( // todo auto
 
             val centre = currentRoom!!.getRealCoords(BlockPos(15, 75, 15)).center
             if (entity.position().distanceToSqr(centre) > 400.0) return@on
-            //? if <26.3 {
-            val dx = packet.xa / 4096.0
-            val dy = packet.ya / 4096.0
-            val dz = packet.za / 4096.0
-            //?}
 
             val bloodEntity = entities.getOrPut(entity.id) {
                 BloodEntity(
@@ -77,11 +61,7 @@ object BloodCamp : Module( // todo auto
                 )
             }
 
-            //? if <26.3 {
-            bloodEntity.vecs.add(Vec3(dx, dy, dz))
-            //?} else {
-            /*bloodEntity.vecs.add(delta)
-            *///?}
+            bloodEntity.vecs.add(delta)
 
             var vec = Vec3.ZERO
             for (v in bloodEntity.vecs) {
@@ -129,6 +109,18 @@ object BloodCamp : Module( // todo auto
             entities.clear()
             watcherPhase = 0
         }
+    }
+
+    private fun ClientboundMoveEntityPacket.movementDelta(entity: ArmorStand): Vec3? {
+        //? if <26.3 {
+        if (xa.toInt() == 0 && ya.toInt() == 0 && za.toInt() == 0) return null
+        return Vec3(xa / 4096.0, ya / 4096.0, za / 4096.0)
+        //?} else {
+        /*if (!hasPosition()) return null
+        val positionCodec = entity.positionCodec
+        val nextPosition = positionDelta.decode(positionCodec).endPosition()
+        return nextPosition.subtract(positionCodec.base).takeUnless { it == Vec3.ZERO }
+        *///?}
     }
 
     private data class BloodEntity(val entity: ArmorStand, val initPos: Vec3, var finalPos: Vec3, val vecs: MutableList<Vec3>, val ticks: Int)

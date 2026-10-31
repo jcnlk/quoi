@@ -2,9 +2,8 @@ package quoi.api.input
 
 import com.mojang.blaze3d.platform.InputConstants
 import quoi.QuoiMod.mc
-//? if <26.3 {
+//? if <26.3
 import org.lwjgl.glfw.GLFW
-//?}
 
 object Keyboard {
     val modifierCodes = intArrayOf(
@@ -52,7 +51,7 @@ object Keyboard {
 
         return GLFW.glfwGetKeyName(key, scancode) ?: when (key) {
         //?} else {
-        /*return InputConstants.Type.KEYBOARD.getOrCreate(key).displayName.string.ifBlank { null } ?: when (key) {
+        /*return InputConstants.Type.KEYSYM.getOrCreate(key).displayName.string.ifBlank { null } ?: when (key) {
         *///?}
             Keybinds.KEY_SPACE -> "Space"
             Keybinds.KEY_ENTER -> "Enter"
@@ -80,6 +79,15 @@ object Keyboard {
             *///?}
             else -> null
         }
+    }
+
+    @JvmStatic
+    fun isKeyDown(key: InputConstants.Key): Boolean = when (key.type) {
+        //~ if >=26.3 'Mouse.isButtonDown' -> 'Mouse.isSDLButtonDown'
+        InputConstants.Type.MOUSE -> Mouse.isButtonDown(key.value)
+        InputConstants.Type.KEYSYM -> isKeyDown(key.value)
+        //? if <26.3
+        InputConstants.Type.SCANCODE -> false
     }
 
     @JvmStatic

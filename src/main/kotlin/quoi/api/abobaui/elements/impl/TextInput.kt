@@ -111,17 +111,15 @@ class TextInput(
 //              updateVisibleText()
 //        }
         registerEventUnit(Focus.Gained) {
-            //? if >=26.3 {
-            /*mc.textInputManager().startTextInput(this@TextInput)
-            *///?}
+            //? if >=26.3
+            //mc.textInputManager().startTextInput(this@TextInput)
             caretBlinkTime = System.currentTimeMillis()
             visibleText = null
             caretFromMouse()
         }
         registerEventUnit(Focus.Lost) {
-            //? if >=26.3 {
-            /*mc.textInputManager().stopTextInput(this@TextInput)
-            *///?}
+            //? if >=26.3
+            //mc.textInputManager().stopTextInput(this@TextInput)
             clearSelection()
             textOffset = 0f
             // if text is longer than width (if width is defined),

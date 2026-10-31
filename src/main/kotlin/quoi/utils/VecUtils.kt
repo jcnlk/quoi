@@ -67,9 +67,8 @@ inline val Vec3.floored: Vec3 get() = Vec3(floor(x), floor(y), floor(z))
 inline val BlockPos.aabb: AABB get() = AABB(this)
 inline val BlockPos.vec3: Vec3 get() = Vec3(x.toDouble(), y.toDouble(), z.toDouble())
 
-//? if >=26.2 {
-/*inline val BlockPos.center: Vec3 get() = Vec3(x + 0.5, y + 0.5, z + 0.5)
-*///?}
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+inline val BlockPos.center: Vec3 get() = Vec3(x + 0.5, y + 0.5, z + 0.5)
 inline val BlockPos.bounds: AABB?
     get() {
         return level.let { level ->

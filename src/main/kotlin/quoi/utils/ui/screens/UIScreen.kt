@@ -24,9 +24,8 @@ class UIScreen(val instance: AbobaUI.Instance, val background: Boolean = true ) 
     }
 
     override fun extractRenderState(ctx: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, deltaTicks: Float) {
-        //? if <26.2 {
+        //? if <26.2
         super.extractRenderState(ctx, mouseX, mouseY, deltaTicks)
-        //?}
         instance.ctx = ctx
         //? if >=26.4-snapshot-5 {
         /*val mouseX = ctx.mouseX()
@@ -38,9 +37,8 @@ class UIScreen(val instance: AbobaUI.Instance, val background: Boolean = true ) 
             instance.render(true)
         }
         instance.render(false)
-        //? if >=26.2 {
-        /*super.extractRenderState(ctx, mouseX, mouseY, deltaTicks)
-        *///?}
+        //? if >=26.2
+        //super.extractRenderState(ctx, mouseX, mouseY, deltaTicks)
     }
 
     override fun mouseClicked(mouseButtonEvent: MouseButtonEvent, doubled: Boolean) =

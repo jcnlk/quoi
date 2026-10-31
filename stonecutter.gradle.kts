@@ -66,6 +66,9 @@ stonecutter parameters {
         replace("renderHandsWithItems", "submitHandsWithItems")
         replace("renderArmWithItem", "submitArmWithItem")
     }
+    replacements.string(gui, "entity_interaction") {
+        replace("entity.boundingBox.center.subtract(entity.position())", "Vec3.ZERO")
+    }
 
     replacements.string(current.parsed >= "26.4-snapshot-3", "texture_resources") {
         replace(
@@ -92,7 +95,8 @@ stonecutter parameters {
         replace("RenderPipelines.GUI", "GuiPipeline.DEFAULT")
     }
     replacements.regex(current.parsed >= "26.4-snapshot-6", "gui_pipeline") {
-        replace(": RenderPipeline\\b", ": GuiPipeline", ": GuiPipeline\\b", ": RenderPipeline")
+        // A type colon must not match the Elvis expression ?: GuiPipeline.DEFAULT.
+        replace("(?<!\\?): RenderPipeline\\b", ": GuiPipeline", "(?<!\\?): GuiPipeline\\b", ": RenderPipeline")
     }
     replacements.string(current.parsed >= "26.4-snapshot-6", "styled_text") {
         replace("}, Style.EMPTY)", "}, Unit, Style.EMPTY)")
@@ -154,11 +158,10 @@ stonecutter parameters {
     // SDL input, swing and movement packet changes in Minecraft 26.3.
     replacements.string(sdl) {
         replace("RedStoneWireBlock", "RedstoneWireBlock")
+        replace("InputConstants.Type.KEYSYM", "InputConstants.Type.KEYBOARD")
         replace("InputConstants.KEY_LSUPER", "InputConstants.KEY_LGUI")
         replace("InputConstants.KEY_RSUPER", "InputConstants.KEY_RGUI")
         replace("input.scancode()", "input.keycode()")
-        replace("Util.getPlatform().openUri(", "Blaze3D.openUri(")
-        replace("Util.getPlatform().openPath(", "Blaze3D.openPath(")
         replace("com.mojang.blaze3d.pipeline.BlendFunction", "com.mojang.renderpearl.api.pipeline.BlendFunction")
         replace("com.mojang.blaze3d.pipeline.ColorTargetState", "com.mojang.renderpearl.api.pipeline.ColorTargetState")
         replace("com.mojang.blaze3d.pipeline.DepthStencilState", "com.mojang.renderpearl.api.pipeline.DepthStencilState")
@@ -174,8 +177,28 @@ stonecutter parameters {
         replace("mouseButtonEvent.button()", "quoi.api.input.Mouse.normalizeButton(mouseButtonEvent.button())")
         replace("input.button()", "quoi.api.input.Mouse.normalizeButton(input.button())")
     }
+    replacements.string(sdl, "desktop_platform") {
+        replace("import net.minecraft.util.Util", "import com.mojang.blaze3d.Blaze3D")
+        replace("Util.getPlatform().openUri(", "Blaze3D.openUri(")
+        replace("Util.getPlatform().openPath(", "Blaze3D.openPath(")
+    }
+    replacements.string(sdl, "system_cursor") {
+        replace("import org.lwjgl.glfw.GLFW", "import org.lwjgl.sdl.SDLMouse")
+    }
+    replacements.string(sdl, "name_tag_rendering") {
+        replace("import net.minecraft.client.renderer.feature.NameTagFeatureRenderer;", "import net.minecraft.client.renderer.SubmitNodeCollection;")
+        replace("@Mixin(NameTagFeatureRenderer.class)", "@Mixin(SubmitNodeCollection.class)")
+        replace("method = \"prepareText\"", "method = \"nameTag\"")
+        replace(
+            "Lnet/minecraft/client/gui/Font;prepareText(Lnet/minecraft/util/FormattedCharSequence;FFIZZI)Lnet/minecraft/client/gui/Font\$PreparedText;",
+            "Lnet/minecraft/client/renderer/feature/TextFeatureRenderer\$Content\$Text;<init>(FFLnet/minecraft/util/FormattedCharSequence;ZIII)V",
+        )
+    }
     replacements.regex(sdl, "enderman_type") {
         replace("\\bEnderMan\\b", "Enderman", "\\bEnderman\\b", "EnderMan")
+    }
+    replacements.regex(sdl, "swing_packet") {
+        replace("\\bServerboundSwingPacket\\b", "ServerboundPunchPacket", "\\bServerboundPunchPacket\\b", "ServerboundSwingPacket")
     }
     replacements.string(!pipelineInBlaze3d) {
         replace("com.mojang.blaze3d.pipeline.RenderPipeline", "com.mojang.renderpearl.api.pipeline.RenderPipeline")
@@ -184,6 +207,24 @@ stonecutter parameters {
     swaps["system_cursor"] = when {
         !sdl -> "val \$1 by lazy { GLFW.glfwCreateStandardCursor(GLFW.GLFW_\$2_CURSOR) }"
         else -> "val \$1 by lazy { SDLMouse.SDL_CreateSystemCursor(SDLMouse.SDL_SYSTEM_CURSOR_\$3) }"
+    }
+    swaps["input_key"] = when {
+        !sdl -> "val \$1: Int = InputConstants.getKey(\"\$2\").value"
+        else -> "const val \$1: Int = SDLScancode.SDL_SCANCODE_\$3"
+    }
+    swaps["pose_rotation"] = when {
+        !sdl -> "pose.mulPose(Axis.\$1.rotationDegrees(\$2))"
+        else -> "pose.rotateDegrees(Axis.\$1, \$2)"
+    }
+    swaps["primitive_type_import"] = when {
+        !gui -> "import com.mojang.blaze3d.vertex.VertexFormat"
+        !sdl -> "import com.mojang.blaze3d.PrimitiveTopology"
+        else -> "import com.mojang.renderpearl.api.pipeline.PrimitiveTopology"
+    }
+    swaps["chat_render_method"] = when {
+        !gui -> "method = \"extractRenderState*\","
+        !snapshot5 -> "method = \"extractRenderState(Lnet/minecraft/client/gui/GuiGraphicsExtractor;Lnet/minecraft/client/gui/Font;IIILnet/minecraft/client/gui/components/ChatComponent\$DisplayMode;Z)V\","
+        else -> "method = \"extractRenderState(Lnet/minecraft/client/gui/GuiGraphicsExtractor;Lnet/minecraft/client/gui/Font;ILnet/minecraft/client/gui/components/ChatComponent\$DisplayMode;Z)V\","
     }
     swaps["pipeline_start"] = when {
         current.parsed < "26.4-snapshot-1" -> "val \$1: RenderPipeline = RenderPipelines.register("

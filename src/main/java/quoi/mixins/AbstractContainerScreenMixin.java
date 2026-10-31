@@ -20,23 +20,16 @@ public class AbstractContainerScreenMixin {
     @Inject(
             method = "extractSlot",
             at = @At("HEAD"),
-            //? if <26.2 {
+            //~ if >=26.2 'cancellable = true' -> 'cancellable = true, require = 1'
             cancellable = true
-            //?} else {
-            /*cancellable = true,
-            require = 1
-            *///?}
     )
     private void quoi$onDrawSlot(GuiGraphicsExtractor context, Slot slot, int x, int y, CallbackInfo ci) {
         if (new GuiEvent.Slot.Draw((Screen) (Object) this, context, slot).post()) ci.cancel();
     }
 
     @Inject(
-            //? if <26.3 {
+            //~ if >=26.3 '"slotClicked"' -> '"slotClicked(Lnet/minecraft/world/inventory/Slot;IILnet/minecraft/world/inventory/ContainerInput;)V"'
             method = "slotClicked",
-            //?} else {
-            /*method = "slotClicked(Lnet/minecraft/world/inventory/Slot;IILnet/minecraft/world/inventory/ContainerInput;)V",
-            *///?}
             at = @At("HEAD"),
             cancellable = true
     )

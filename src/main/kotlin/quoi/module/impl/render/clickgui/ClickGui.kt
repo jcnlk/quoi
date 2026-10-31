@@ -1,3 +1,4 @@
+//~ desktop_platform
 package quoi.module.impl.render.clickgui
 
 import quoi.annotations.AlwaysActive
@@ -48,11 +49,7 @@ import quoi.utils.ui.rendering.NVGRenderer.defaultFont
 import quoi.utils.ui.screens.UIScreen.Companion.open
 import java.net.URI
 
-//? if <26.3 {
 import net.minecraft.util.Util
-//?} else {
-/*import com.mojang.blaze3d.Blaze3D
-*///?}
 
 @AlwaysActive
 @OptIn(Internal::class)

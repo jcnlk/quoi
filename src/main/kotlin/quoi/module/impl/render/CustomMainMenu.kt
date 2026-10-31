@@ -1,3 +1,4 @@
+//~ desktop_platform
 package quoi.module.impl.render
 
 import net.fabricmc.fabric.api.client.screen.v1.Screens
@@ -13,11 +14,7 @@ import quoi.ui.CustomMainMenuScreen
 import quoi.utils.StringUtils.noControlCodes
 import java.io.File
 
-//? if <26.3 {
 import net.minecraft.util.Util
-//?} else {
-/*import com.mojang.blaze3d.Blaze3D
-*///?}
 
 object CustomMainMenu : Module(
     "Custom Main Menu",

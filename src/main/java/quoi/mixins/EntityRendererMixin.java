@@ -19,11 +19,8 @@ public class EntityRendererMixin<T extends Entity, S extends EntityRenderState> 
             at = @At("HEAD"),
             cancellable = true
     )
-    //? if <26.3 {
+    //~ if >=26.3 'double z, CallbackInfoReturnable' -> 'double z, float partialTick, CallbackInfoReturnable'
     private void onRender(T entity, Frustum frustum, double x, double y, double z, CallbackInfoReturnable<Boolean> cir) {
-    //?} else {
-    /*private void onRender(T entity, Frustum frustum, double x, double y, double z, float partialTick, CallbackInfoReturnable<Boolean> cir) {
-    *///?}
         if (new RenderEvent.Entity(entity).post()) {
             cir.setReturnValue(false);
         }

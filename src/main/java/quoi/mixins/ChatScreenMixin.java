@@ -137,11 +137,8 @@ public class ChatScreenMixin extends Screen implements ISearchMode {
 
             messages.addAll(filteredResults);
         }
-        //? if <26.2 {
+        //~ if >=26.2 'mc.gui.getGuiTicks()' -> '0'
         messages.addFirst(new GuiMessage(mc.gui.getGuiTicks(), Component.literal("§e§lSEARCH ON"), null, GuiMessageSource.SYSTEM_CLIENT, null));
-        //?} else {
-        /*messages.addFirst(new GuiMessage(0, Component.literal("§e§lSEARCH ON"), null, GuiMessageSource.SYSTEM_CLIENT, null));
-        *///?}
         chatHud.rescaleChat();
     }
 

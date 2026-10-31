@@ -29,12 +29,8 @@ public class FogRendererMixin {
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/client/renderer/GameRenderer;getNightVisionScale(Lnet/minecraft/world/entity/LivingEntity;F)F"
-            //? if <26.2 {
+            //~ if >=26.2 ')' -> '), require = 1'
             )
-            //?} else {
-            /*),
-            require = 1
-            *///?}
     )
     private float fixCrimsonIsleFog(LivingEntity entity, float partialTick, Operation<Float> original) {
         return Tweaks.shouldFixCrimsonIsleFog() ? 0.0F : original.call(entity, partialTick);

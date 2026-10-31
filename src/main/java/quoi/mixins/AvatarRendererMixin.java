@@ -18,15 +18,13 @@ public class AvatarRendererMixin {
             at = @At("RETURN")
     )
     private void quoi$itemAnimationsThirdPersonSwing(Avatar avatar, AvatarRenderState avatarRenderState, float tickProgress, CallbackInfo ci) {
-        //? if <26.3 {
+        //~ if >=26.3 'avatar.swingingArm != null ? avatar.swingingArm' -> 'avatarRenderState.currentSwing != null ? avatarRenderState.currentSwing.hand()'
         InteractionHand hand = avatar.swingingArm != null ? avatar.swingingArm : InteractionHand.MAIN_HAND;
         if (ItemAnimations.isMap(avatar.getItemInHand(hand))) return;
+        //~ if >=26.3 'avatarRenderState.attackTime' -> 'avatarRenderState.swingAnimation'
+        //~ if >=26.3 'avatarRenderState.id)' -> 'avatarRenderState.id, avatarRenderState.currentSwing)'
         avatarRenderState.attackTime = ItemAnimations.getThirdPersonSwingAnimation(avatarRenderState.attackTime, avatarRenderState.id);
-        //?} else {
-        /*InteractionHand hand = avatarRenderState.currentSwing != null ? avatarRenderState.currentSwing.hand() : InteractionHand.MAIN_HAND;
-        if (ItemAnimations.isMap(avatar.getItemInHand(hand))) return;
-        avatarRenderState.swingAnimation = ItemAnimations.getThirdPersonSwingAnimation(avatarRenderState.swingAnimation, avatarRenderState.id, avatarRenderState.currentSwing);
-        avatarRenderState.currentSwing = ItemAnimations.getThirdPersonSwingDescription(avatarRenderState.currentSwing, avatarRenderState.id);
-        *///?}
+        //? if >=26.3
+        //avatarRenderState.currentSwing = ItemAnimations.getThirdPersonSwingDescription(avatarRenderState.currentSwing, avatarRenderState.id);
     }
 }

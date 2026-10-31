@@ -42,23 +42,17 @@ public class MinecraftMixin {
             method = "startAttack()Z",
             at = @At(
                     value = "INVOKE",
-                    //? if <26.3 {
+                    //~ if >=26.3 'InteractionHand;)V' -> 'InteractionHand;Lnet/minecraft/world/item/component/SwingAnimation;Z)Z'
                     target = "Lnet/minecraft/client/player/LocalPlayer;swing(Lnet/minecraft/world/InteractionHand;)V"
-                    //?} else {
-                    /*target = "Lnet/minecraft/client/player/LocalPlayer;swing(Lnet/minecraft/world/InteractionHand;Lnet/minecraft/world/item/component/SwingAnimation;Z)Z"
-                    *///?}
             )
     )
-    //? if <26.3 {
+    //~ if >=26.3 'void redirectSwing' -> 'boolean redirectSwing'
+    //~ if >=26.3 'InteractionHand hand)' -> 'InteractionHand hand, SwingAnimation animation, boolean sendToSwingingEntity)'
     private void redirectSwing(LocalPlayer instance, InteractionHand hand) {
-    //?} else {
-    /*private boolean redirectSwing(LocalPlayer instance, InteractionHand hand, SwingAnimation animation, boolean sendToSwingingEntity) {
-    *///?}
         if (cancelSwing) {
             cancelSwing = false;
-            //? if >=26.3 {
-            /*return false;
-            *///?}
+            //? if >=26.3
+            //return false;
         } else {
             //? if <26.3 {
             instance.swing(hand);

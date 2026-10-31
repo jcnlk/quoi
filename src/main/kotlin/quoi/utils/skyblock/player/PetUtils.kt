@@ -289,23 +289,13 @@ object PetUtils : EventListener, Shortcuts {
 
     private val Style.petRarity: PetRarity
         get() = when (color?.value) {
-            //? if <26.2 {
-            ChatFormatting.WHITE.color -> PetRarity.COMMON
-            ChatFormatting.GREEN.color -> PetRarity.UNCOMMON
-            ChatFormatting.BLUE.color -> PetRarity.RARE
-            ChatFormatting.DARK_PURPLE.color -> PetRarity.EPIC
-            ChatFormatting.GOLD.color -> PetRarity.LEGENDARY
-            ChatFormatting.LIGHT_PURPLE.color -> PetRarity.MYTHIC
-            ChatFormatting.RED.color -> PetRarity.SPECIAL
-            //?} else {
-            /*TextColor.fromLegacyFormat(ChatFormatting.WHITE)?.getValue() -> PetRarity.COMMON
+            TextColor.fromLegacyFormat(ChatFormatting.WHITE)?.getValue() -> PetRarity.COMMON
             TextColor.fromLegacyFormat(ChatFormatting.GREEN)?.getValue() -> PetRarity.UNCOMMON
             TextColor.fromLegacyFormat(ChatFormatting.BLUE)?.getValue() -> PetRarity.RARE
             TextColor.fromLegacyFormat(ChatFormatting.DARK_PURPLE)?.getValue() -> PetRarity.EPIC
             TextColor.fromLegacyFormat(ChatFormatting.GOLD)?.getValue() -> PetRarity.LEGENDARY
             TextColor.fromLegacyFormat(ChatFormatting.LIGHT_PURPLE)?.getValue() -> PetRarity.MYTHIC
             TextColor.fromLegacyFormat(ChatFormatting.RED)?.getValue() -> PetRarity.SPECIAL
-            *///?}
             else -> PetRarity.UNKNOWN
         }
 

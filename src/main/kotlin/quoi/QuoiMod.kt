@@ -15,9 +15,8 @@ import quoi.api.events.core.once
 import quoi.config.Config
 import quoi.module.ModuleManager
 import quoi.utils.ui.hud.HudManager
-//? if <26.2 {
+//? if <26.2
 import quoi.utils.ui.rendering.NVGSpecialRenderer
-//?}
 
 // todo add docs to some utils and apis
 object QuoiMod : ClientModInitializer, EventListener {

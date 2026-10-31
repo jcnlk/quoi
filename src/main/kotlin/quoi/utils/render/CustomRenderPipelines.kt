@@ -7,14 +7,10 @@ import com.mojang.blaze3d.pipeline.RenderPipeline
 import com.mojang.blaze3d.platform.CompareOp
 import com.mojang.blaze3d.vertex.DefaultVertexFormat
 import net.minecraft.client.renderer.RenderPipelines
-//? if >=26.4-snapshot-5 {
-/*import net.minecraft.client.renderer.BindGroupLayouts
-*///?}
-//? if <26.2 {
+//? if >=26.4-snapshot-5
+//import net.minecraft.client.renderer.BindGroupLayouts
+//$ primitive_type_import
 import com.mojang.blaze3d.vertex.VertexFormat
-//?} else {
-/*import com.mojang.blaze3d.PrimitiveTopology
-*///?}
 
 /**
  * from OdinFabric (BSD 3-Clause)

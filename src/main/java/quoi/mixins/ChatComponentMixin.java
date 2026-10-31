@@ -110,13 +110,8 @@ public abstract class ChatComponentMixin implements IChatComponent {
     }
 
     @ModifyVariable(
-            //? if <26.2 {
+            //$ chat_render_method
             method = "extractRenderState*",
-            //?} elif <26.4-snapshot-5 {
-            /*method = "extractRenderState(Lnet/minecraft/client/gui/GuiGraphicsExtractor;Lnet/minecraft/client/gui/Font;IIILnet/minecraft/client/gui/components/ChatComponent$DisplayMode;Z)V",
-            *///?} else {
-            /*method = "extractRenderState(Lnet/minecraft/client/gui/GuiGraphicsExtractor;Lnet/minecraft/client/gui/Font;ILnet/minecraft/client/gui/components/ChatComponent$DisplayMode;Z)V",
-            *///?}
             at = @At("HEAD"),
             argsOnly = true
     )

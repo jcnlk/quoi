@@ -29,9 +29,7 @@ import quoi.utils.distanceTo2D
 import quoi.utils.rad
 import quoi.utils.skyblock.player.RotationUtils.yaw
 import quoi.utils.skyblock.player.simulation.PlayerSimulation
-//? if >=26.2 {
-/*import quoi.utils.center
-*///?}
+import quoi.utils.center
 
 @Init
 object MovementUtils : EventListener, Shortcuts {

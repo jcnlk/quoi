@@ -1,3 +1,5 @@
+//~ swing_packet
+
 package quoi.module.impl.misc.slayers.blaze
 
 import net.minecraft.world.InteractionHand
@@ -13,23 +15,16 @@ import quoi.utils.skyblock.item.ItemUtils.lore
 import quoi.utils.skyblock.player.PlayerUtils.rightClick
 import quoi.utils.skyblock.player.SwapManager
 
-//? if <26.3 {
 import net.minecraft.network.protocol.game.ServerboundSwingPacket
-//?} else {
-/*import net.minecraft.network.protocol.game.ServerboundPunchPacket
-*///?}
 
 object AutoAttune : ToggleableGroup(BlazeSlayer, "Auto attune") {
     private var swapTask: Subscription<TickEvent.Start>? = null
     private val pendingAttunements = mutableMapOf<String, Pair<Attunement, Long>>()
 
     init {
-        //? if <26.3 {
         on<PacketEvent.Sent, ServerboundSwingPacket> {
+            //? if <26.3
             if (packet.hand != InteractionHand.MAIN_HAND) return@on
-            //?} else {
-            /*on<PacketEvent.Sent, ServerboundPunchPacket> {
-            *///?}
             if (swapTask != null) return@on
             if (BlazeSlayer.attune == null) return@on
 
