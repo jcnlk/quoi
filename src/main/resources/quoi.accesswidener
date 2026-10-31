@@ -24,3 +24,8 @@ accessible method net/minecraft/world/entity/Entity getInputVector (Lnet/minecra
 accessible field net/minecraft/world/entity/Entity dimensions Lnet/minecraft/world/entity/EntityDimensions;
 accessible field net/minecraft/world/entity/LivingEntity jumping Z
 accessible field net/minecraft/world/entity/LivingEntity noJumpDelay I
+
+# Entity overlay textures
+accessible field net/minecraft/client/renderer/rendertype/RenderType state Lnet/minecraft/client/renderer/rendertype/RenderSetup;
+accessible field net/minecraft/client/renderer/rendertype/RenderSetup textures Ljava/util/Map;
+accessible class net/minecraft/client/renderer/rendertype/RenderSetup$TextureBinding

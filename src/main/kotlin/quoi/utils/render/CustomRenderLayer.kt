@@ -4,12 +4,37 @@ import com.mojang.blaze3d.pipeline.RenderPipeline
 import net.minecraft.client.renderer.rendertype.LayeringTransform
 import net.minecraft.client.renderer.rendertype.RenderSetup
 import net.minecraft.client.renderer.rendertype.RenderType
+import net.minecraft.resources.Identifier
+import net.minecraft.client.renderer.feature.ItemFeatureRenderer
 //? if >=26.3
 //import net.minecraft.client.renderer.RenderPipelines
 //? if >=26.4-snapshot-5
 //import net.minecraft.client.renderer.pipeline.variant.DebugPrimitiveRenderPipelineVariant
 
 object CustomRenderLayer {
+    private val entityOverlays = mutableMapOf<Pair<Identifier, Boolean>, RenderType>()
+    private val entityOverlayEspLayers = mutableSetOf<RenderType>()
+
+    @JvmStatic
+    fun isEntityOverlayEsp(layer: RenderType): Boolean = layer in entityOverlayEspLayers
+
+    internal fun overlayTexture(layer: RenderType): Identifier? {
+        val texture = layer.state.textures["Sampler0"]?.location() ?: return null
+        // Keep glint on its own shader
+        if (texture == ItemFeatureRenderer.ENCHANTED_GLINT_ARMOR || texture == ItemFeatureRenderer.ENCHANTED_GLINT_ITEM) return null
+        return texture
+    }
+
+    @JvmStatic
+    fun entityOverlay(texture: Identifier, depth: Boolean): RenderType = entityOverlays.getOrPut(texture to depth) {
+        create("quoi_entity_overlay", if (depth) CustomRenderPipelines.ENTITY_OVERLAY else CustomRenderPipelines.ENTITY_OVERLAY_ESP) {
+            withTexture("Sampler0", texture)
+            useLightmap()
+            //? if <26.4-snapshot-5
+            useOverlay()
+        }.also { if (!depth) entityOverlayEspLayers.add(it) }
+    }
+
     private fun create(
         name: String,
         pipeline: RenderPipeline,

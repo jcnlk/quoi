@@ -11,6 +11,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import quoi.api.events.EntityEvent;
 import quoi.api.events.RenderEvent;
+import quoi.utils.render.EntityOverlayState;
 
 @Mixin(EntityRenderer.class)
 public class EntityRendererMixin<T extends Entity, S extends EntityRenderState> {
@@ -32,7 +33,11 @@ public class EntityRendererMixin<T extends Entity, S extends EntityRenderState> 
     )
     private void onExtractRenderState(T entity, S state, float partialTick, CallbackInfo ci) {
         EntityEvent.ForceGlow event = new EntityEvent.ForceGlow(entity);
-        if (event.post()) {
+        boolean suppressGlow = event.post();
+        if (state instanceof EntityOverlayState overlay) {
+            overlay.quoi$setOverlay(event.getOverlayColour() == null ? 0 : event.getOverlayColour().getRgb(), event.getOverlayDepth());
+        }
+        if (suppressGlow) {
             state.outlineColor = 0;
             return;
         }

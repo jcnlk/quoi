@@ -12,6 +12,8 @@ abstract class EntityEvent {
     class Spawn(val entity: Entity) : Event()
     class ArmorStandHeadEquipmentUpdate(val entity: ArmorStand) : Event()
     class ForceGlow(val entity: Entity) : CancellableEvent() {
+        var overlayColour: Colour? = null
+        var overlayDepth: Boolean = false
         var isGlowing: Boolean = false
         var glowColour: Colour = Colour.WHITE
             set(value) {

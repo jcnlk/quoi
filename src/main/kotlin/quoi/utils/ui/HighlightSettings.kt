@@ -6,24 +6,24 @@ import quoi.api.colour.Colour
 import quoi.api.colour.withAlpha
 import quoi.api.events.EntityEvent
 import quoi.api.events.core.AreaBoundListener
+import quoi.module.settings.SettingsDSL
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.module.settings.UIComponent.Companion.visibleIf
 import quoi.module.settings.group.SettingGroup
 import quoi.module.settings.impl.SelectorComponent
 import quoi.utils.equalsOneOf
 import quoi.utils.render.drawStyledBox
-import quoi.module.settings.SettingsDSL
 
 /**
  * A [SettingGroup] for rendering esp boxes
- * Represents a selector with styles (Box, Filled box, Filled, Glow) with optional colour and other settings
+ * Represents a selector with styles (Box, Filled box, Filled, Glow, Overlay) with optional colour and other settings
  *
  * @param parent Parent
  * @param name Selector name
  * @param desc Selector description
  * @param colour Default outline colour. If `null`, the outline colour picker is hidden
  * @param fillColour Fill colour. If `null`, the fill colour picker is hidden
- * @param glow Whether to include `Glow` in available render styles
+ * @param glow Whether to include `Glow` and `Overlay` in available render styles
  * @param customColour Whether to show a `Custom colour` toggle for the outline
  * @param customFillColour Whether to show a `Custom colour` toggle for the outline
  * @param aabbOffset Whether to show a slider to inflate/deflate the aabb size
@@ -31,7 +31,8 @@ import quoi.module.settings.SettingsDSL
  *
  * @see [SettingsDSL.highlight]
  */
-class HighlightSettings( // kinda ugly but it works
+class HighlightSettings(
+    // kinda ugly but it works
     parent: AreaBoundListener,
     name: String = "Style",
     desc: String = "Esp render style to be used.",
@@ -42,7 +43,7 @@ class HighlightSettings( // kinda ugly but it works
     customFillColour: Boolean = false,
     private val aabbOffset: Boolean = false,
     defaultStyle: String = "Box",
-): SettingGroup(
+) : SettingGroup(
     parent,
     SelectorComponent(
         name,
@@ -51,7 +52,10 @@ class HighlightSettings( // kinda ugly but it works
             add("Box")
             add("Filled box")
             add("Filled")
-            if (glow) add("Glow")
+            if (glow) {
+                add("Glow")
+                add("Overlay")
+            }
         }.also { styles ->
             require(defaultStyle in styles) { "Unknown default highlight style: $defaultStyle" }
         },
@@ -69,7 +73,7 @@ class HighlightSettings( // kinda ugly but it works
     private val _outline = colour?.let { col ->
         colourPicker("Colour", col, allowAlpha = true).also {
             if (!customColour) +it
-            else it.childOf(customCol)
+            else +it.childOf(customCol)
         }
     }
     val outline: Colour
@@ -113,7 +117,7 @@ class HighlightSettings( // kinda ugly but it works
         overrideColour: Colour? = null,
         overrideFillColour: Colour? = null,
     ) {
-        if (style == "Glow") return
+        if (style.equalsOneOf("Glow", "Overlay")) return
 
         val box = if (aabbOffset) aabb.inflate(sizeOffset.value, 0.0, sizeOffset.value) else aabb
 
@@ -124,12 +128,17 @@ class HighlightSettings( // kinda ugly but it works
     }
 
     /**
-     * shit for glow
+     * Applies Glow or Overlay to an entity
      */
     fun draw(event: EntityEvent.ForceGlow, colour: Colour = Colour.WHITE, overrideColour: Colour? = null) {
-        if (style != "Glow") return
-        if (depth && !player.hasLineOfSight(event.entity)) return // todo replace with something better.
+        if (!style.equalsOneOf("Glow", "Overlay")) return
         val c = overrideColour ?: if (_outline != null && customCol.value) _outline.value else colour
-        event.glowColour = c
+        if (style == "Overlay") {
+            event.overlayColour = c
+            event.overlayDepth = depth
+        } else {
+            if (depth && !player.hasLineOfSight(event.entity)) return
+            event.glowColour = c
+        }
     }
 }

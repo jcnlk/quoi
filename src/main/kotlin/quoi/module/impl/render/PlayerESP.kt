@@ -51,7 +51,6 @@ object PlayerESP : Module(
         }
 
         on<EntityEvent.ForceGlow> {
-            if (highlight.style != "Glow") return@on
             if (entity !is Player || entity == mc.player || entity.uuid.version() != 4) return@on
             if (mc.level?.players()?.contains(entity) != true) return@on
             if (!matchesFilters(entity.name?.string, entity.displayName?.string)) return@on

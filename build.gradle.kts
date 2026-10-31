@@ -51,6 +51,7 @@ sourceSets.named("main") {
                 "quoi/mixins/FirstPersonHandsAndItemsMixin.java",
                 "quoi/mixins/OverlayLevelRendererMixin.java",
                 "quoi/mixins/OverlayQuadSortingMixin.java",
+                "quoi/mixins/OverlaySubmitNodeCollectionMixin.java",
             )
             sc.current.parsed < "26.3" -> listOf(
                 "quoi/mixins/LegacyGuiMixin.java",

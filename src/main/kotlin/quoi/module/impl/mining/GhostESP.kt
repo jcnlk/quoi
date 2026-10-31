@@ -4,6 +4,7 @@ import net.minecraft.world.entity.monster.Creeper
 import quoi.api.colour.Colour
 import quoi.api.colour.withAlpha
 import quoi.api.events.RenderEvent
+import quoi.api.events.EntityEvent
 import quoi.api.events.core.on
 import quoi.api.skyblock.location.Island
 import quoi.module.Module
@@ -23,6 +24,10 @@ object GhostESP : Module(
     )
 
     init {
+        on<EntityEvent.ForceGlow> {
+            if (!hideGhost && entity is Creeper && isGhost(entity)) highlight.draw(this)
+        }
+
         on<RenderEvent.Entity> {
             if (hideGhost && entity is Creeper && isGhost(entity)) cancel()
         }

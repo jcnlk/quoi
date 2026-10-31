@@ -120,9 +120,8 @@ object DungeonESP : Module(
         on<EntityEvent.ForceGlow>(Priority.LOWEST) {
             if (!enabled) return@on
             getDungeonPlayerColour(entity)?.let { colour ->
-                if (teammateHighlight.style == "Glow") {
-                    if (entity != player) teammateHighlight.draw(this, colour = colour)
-                } else if (teammateHideGlow) {
+                if (entity != player) teammateHighlight.draw(this, colour = colour)
+                if (teammateHighlight.style != "Glow" && teammateHideGlow) {
                     cancel()
                     return@on
                 }

@@ -194,6 +194,9 @@ stonecutter parameters {
             "Lnet/minecraft/client/renderer/feature/TextFeatureRenderer\$Content\$Text;<init>(FFLnet/minecraft/util/FormattedCharSequence;ZIII)V",
         )
     }
+    replacements.string(sdl, "entity_overlay_shader") {
+        replace("#moj_import", "#include")
+    }
     replacements.regex(sdl, "enderman_type") {
         replace("\\bEnderMan\\b", "Enderman", "\\bEnderman\\b", "EnderMan")
     }

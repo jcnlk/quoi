@@ -7,6 +7,7 @@ import com.mojang.blaze3d.pipeline.RenderPipeline
 import com.mojang.blaze3d.platform.CompareOp
 import com.mojang.blaze3d.vertex.DefaultVertexFormat
 import net.minecraft.client.renderer.RenderPipelines
+import net.minecraft.resources.Identifier
 //? if >=26.4-snapshot-5
 //import net.minecraft.client.renderer.BindGroupLayouts
 //$ primitive_type_import
@@ -18,6 +19,49 @@ import com.mojang.blaze3d.vertex.VertexFormat
  * original: https://github.com/odtheking/OdinFabric/blob/main/src/main/kotlin/com/odtheking/odin/utils/render/CustomRenderPipelines.kt
  */
 object CustomRenderPipelines {
+    private fun entityOverlayPipeline(depth: Boolean): RenderPipeline {
+        //? if >=26.4-snapshot-5 {
+        /*val builder = RenderPipeline.builder(RenderPipelines.GLOBALS_SNIPPET)
+            .withBindGroupLayout(BindGroupLayouts.PROJECTION)
+            .withBindGroupLayout(BindGroupLayouts.DYNAMIC_TRANSFORMS)
+            .withBindGroupLayout(BindGroupLayouts.FOG)
+            .withBindGroupLayout(BindGroupLayouts.LIGHTING)
+            .withBindGroupLayout(BindGroupLayouts.SAMPLER0_SAMPLER2)
+        *///?} else {
+        val builder = RenderPipeline.builder(RenderPipelines.ENTITY_SNIPPET)
+        //?}
+        val pipeline = builder
+            .withLocation(if (depth) "quoi/pipeline/entity_overlay" else "quoi/pipeline/entity_overlay_esp")
+            .withVertexShader(Identifier.fromNamespaceAndPath("quoi", "core/entity_overlay"))
+            .withFragmentShader("core/entity")
+            .withShaderDefine("ALPHA_CUTOUT", 0.1f)
+            .withColorTargetState(ColorTargetState.DEFAULT)
+            //? if <26.2 {
+            .withCull(!depth)
+            //?} else {
+            //.withCull(false)
+            //?}
+            //$ pipeline_vertices ENTITY QUADS {
+            .withVertexFormat(DefaultVertexFormat.ENTITY, VertexFormat.Mode.QUADS)
+            //$}
+            .withDepthStencilState(
+                // 26.2+ renders ESP with a separate depth buffer
+                //? if >=26.2 {
+                //DepthStencilState.DEFAULT
+                //?} else {
+                if (depth) DepthStencilState.DEFAULT else DepthStencilState(CompareOp.ALWAYS_PASS, false)
+                //?}
+            )
+            .build()
+        //? if <26.4-snapshot-1 {
+        return RenderPipelines.register(pipeline)
+        //?} else
+        //return pipeline
+    }
+
+    val ENTITY_OVERLAY: RenderPipeline = entityOverlayPipeline(true)
+    val ENTITY_OVERLAY_ESP: RenderPipeline = entityOverlayPipeline(false)
+
     //? if >=26.4-snapshot-5 {
     /*private val filledSnippet = RenderPipeline.builder(RenderPipelines.GLOBALS_SNIPPET)
         .withBindGroupLayout(BindGroupLayouts.PROJECTION)

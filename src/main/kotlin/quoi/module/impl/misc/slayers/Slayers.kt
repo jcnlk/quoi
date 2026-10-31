@@ -155,6 +155,19 @@ object Slayers : Module(
                 }
             }
         }
+
+        on<EntityEvent.ForceGlow> {
+            if (!esp || questState != QuestState.KILLING || entity.isInvisible || !entity.isAlive) return@on
+            if (entity == currentBoss) {
+                highlight.draw(this)
+                return@on
+            }
+            slayers.forEach { slayer ->
+                slayer.entitiesForRender.firstOrNull { it.first == entity }?.let { (_, colour) ->
+                    if (colour != null) highlight.draw(this, colour)
+                }
+            }
+        }
     }
 
     override fun onDisable() {
