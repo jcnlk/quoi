@@ -17,6 +17,12 @@ object VisualsSettings : SettingGroup(
 ) {
     val selectedTheme get() = (component as SelectorComponent<*>).selected
     val colour by colourPicker("Colour", Colour.CYAN).asParent()
+    val classColors by selector(
+        "Class colors",
+        "Hypixel Style",
+        listOf("Hypixel Style", "Noamm Style"),
+        desc = "Noamm Style swaps the Archer and Berserk colours."
+    )
     val moduleSorting by selector("Module sorting", ModuleSorting.Longest).onValueChanged { _, _ -> reopen() }
 
     var rainbowSpeed by slider("Rainbow colour speed", 0.5f, 0.05f, 5.0f, 0.05f)

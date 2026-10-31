@@ -1,6 +1,7 @@
 package quoi.api.skyblock.dungeon.enums
 
 import quoi.api.colour.Colour
+import quoi.module.impl.render.clickgui.impl.VisualsSettings.classColors
 
 /**
  * from OdinFabric (BSD 3-Clause)
@@ -33,8 +34,16 @@ enum class DungeonClass(
     Unknown(Colour.WHITE, 'f', 0, 0);
 
     val colour: Colour
-        get() = hypixelColour
+        get() = when {
+            classColors.selected == "Noamm Style" && this == Archer -> Berserk.hypixelColour
+            classColors.selected == "Noamm Style" && this == Berserk -> Archer.hypixelColour
+            else -> hypixelColour
+        }
 
     val colourCode: Char
-        get() = hypixelColourCode
+        get() = when {
+            classColors.selected == "Noamm Style" && this == Archer -> Berserk.hypixelColourCode
+            classColors.selected == "Noamm Style" && this == Berserk -> Archer.hypixelColourCode
+            else -> hypixelColourCode
+        }
 }
