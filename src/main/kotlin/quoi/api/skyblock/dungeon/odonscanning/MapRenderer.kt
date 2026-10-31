@@ -7,7 +7,6 @@ import quoi.api.abobaui.dsl.*
 import quoi.api.abobaui.elements.Element
 import quoi.api.abobaui.elements.ElementScope
 import quoi.api.abobaui.elements.impl.Block.Companion.outline
-import quoi.api.abobaui.elements.impl.Text
 import quoi.api.abobaui.elements.impl.Text.Companion.maxWidth
 import quoi.api.abobaui.elements.impl.Text.Companion.shadow
 import quoi.api.abobaui.elements.impl.Text.Companion.string
@@ -15,10 +14,7 @@ import quoi.api.animations.Animation
 import quoi.api.colour.*
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.ScoreCalculation
-import quoi.api.skyblock.dungeon.odonscanning.tiles.OdonDoor
-import quoi.api.skyblock.dungeon.odonscanning.tiles.OdonRoom
-import quoi.api.skyblock.dungeon.odonscanning.tiles.RoomTile
-import quoi.api.skyblock.dungeon.odonscanning.tiles.RoomType
+import quoi.api.skyblock.dungeon.odonscanning.tiles.*
 import quoi.api.vec.Vec2i
 import quoi.module.impl.dungeon.DungeonMap
 import quoi.module.impl.dungeon.autoclear.impl.InteractiveMap
@@ -28,6 +24,7 @@ import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.StringUtils.width
 import quoi.utils.ui.rendering.Font
 import quoi.utils.ui.rendering.NVGRenderer
+import quoi.utils.ui.rendering.NVGRenderer.image
 import quoi.utils.ui.watch
 
 object MapRenderer {
@@ -63,10 +60,13 @@ object MapRenderer {
             val roomViews = mutableMapOf<OdonRoom, RoomView>()
             val doorViews = mutableMapOf<OdonDoor, Element>()
             var previousScale = Float.NaN
+            var previousOverlay: OverlaySettings? = null
 
             if (DungeonMap.showInfo) renderInfo(config, mapHeight)
 
-            watch({ layoutRevision }, immediate = true) {
+            watch({ layoutRevision to OverlaySettings() }, immediate = true) { (_, overlay) ->
+                val overlayChanged = previousOverlay != overlay
+                previousOverlay = overlay
                 val baseW = (mapSize.x * 16 + (mapSize.x - 1) * 4).toFloat().coerceAtLeast(1f)
                 val baseH = (mapSize.z * 16 + (mapSize.z - 1) * 4).toFloat().coerceAtLeast(1f)
                 val newScale = size / maxOf(baseW, baseH)
@@ -96,17 +96,32 @@ object MapRenderer {
                 for (room in ScanUtils.scannedRooms) {
                     val view = roomViews.getOrPut(room) { RoomView(rooms.group(size(Copying, Copying)).element) }
                     val label = buildList {
-                        addAll((if (room.identified) room.name else "?").split(" "))
-                        if (DungeonMap.showSecretCount && room.identified) add("${room.secretsFound ?: 0}/${room.data.secrets}")
+                        if (room.identified && room.data.type !in unlabelledTypes) {
+                            val secrets = if (room.data.secrets == 0) "0" else "${room.secretsFound ?: 0}/${room.data.secrets}"
+                            when (overlay.style) {
+                                "Secrets" -> add(secrets)
+                                "Room Name" -> addAll(room.name.split(" "))
+                                "Room Name + Secrets" -> {
+                                    addAll(room.name.split(" "))
+                                    if (room.data.secrets > 0) add(secrets)
+                                }
+                                "Secrets + Puzzle Name" -> {
+                                    if (room.data.type == RoomType.PUZZLE || room.data.secrets == 0) addAll(room.name.split(" "))
+                                    else add(secrets)
+                                }
+                            }
+                        }
                     }
-                    if (!resized && view.tiles == room.tiles && view.label == label) continue
+                    if (!resized && !overlayChanged && view.tiles == room.tiles && view.label == label && view.state == room.data.state) continue
                     view.element.removeAll()
                     ElementScope(view.element).apply {
                         renderTiles(new, room)
+                        if (overlay.style == "Checkmarks") renderCheckmark(new, room)
                         renderName(new, room, label)
                     }
                     view.tiles = room.tiles.toSet()
                     view.label = label
+                    view.state = room.data.state
                 }
                 if (ui.initialised) {
                     element.size()
@@ -134,7 +149,7 @@ object MapRenderer {
             watch({ infoLines()[index] }, immediate = true) { line ->
                 label.string = line
                 val width = if (config.font.name == "Minecraft") line.width(textSize / mc.font.lineHeight)
-                    else NVGRenderer.textWidth(line.noControlCodes, textSize, config.font)
+                else NVGRenderer.textWidth(line.noControlCodes, textSize, config.font)
                 label.element.constraints.width = width.coerceAtMost(116f * config.scale).px
                 label.element.constraints.height = textSize.px
             }
@@ -158,7 +173,14 @@ object MapRenderer {
     private class RoomView(val element: Element) {
         var tiles: Set<RoomTile> = emptySet()
         var label: List<String>? = null
+        var state: RoomState? = null
     }
+
+    private data class OverlaySettings(
+        val style: String = DungeonMap.checkmarkStyle.selected,
+        val limitTextSize: Boolean = DungeonMap.limitRoomNameSize,
+        val checkmarkScale: Float = DungeonMap.checkmarkScale,
+    )
 
     private fun ElementScope<*>.renderDoor(config: MapConfig, door: OdonDoor): Element {
         val pos = door.placement
@@ -331,20 +353,56 @@ object MapRenderer {
     }
 
     private fun ElementScope<*>.renderName(config: MapConfig, room: OdonRoom, lines: List<String>) {
+        if (room.tiles.isEmpty() || lines.isEmpty()) return
         val (scale, _, font, fontScale, shadow) = config
-        val textSize = 18f * fontScale * (scale / 5f)
-
-        lines.forEachIndexed { i, line ->
-            val tw = if (font.name == "Minecraft") line.width(textSize / mc.font.lineHeight) else NVGRenderer.textWidth(line, textSize, font)
-            val x = room.textPlacement.x * scale + 8f * scale - tw / 2f
-            val y = room.textPlacement.z * scale + 8f * scale - lines.size * textSize / 2f + i * textSize
-
-            object : Text(line, font, colour { room.textColour.rgb }, at(x.px, y.px), textSize.px) {
-                override fun draw() {
-                    if (room.data.type !in unlabelledTypes) super.draw()
+        val available = 14f * scale
+        var textSize = 18f * fontScale * (scale / 5f)
+        fun textWidth(line: String, size: Float) =
+            if (font.name == "Minecraft") line.width(size / mc.font.lineHeight) else NVGRenderer.textWidth(line, size, font)
+        if (DungeonMap.limitRoomNameSize) {
+            textSize = minOf(textSize, available / lines.size)
+            fun fits(size: Float) = lines.all { line ->
+                textWidth(line, size) <= available
+            }
+            if (!fits(textSize)) {
+                // Custom font metrics can round differently at each size
+                var low = 0f
+                var high = textSize
+                repeat(12) {
+                    val size = (low + high) / 2f
+                    if (fits(size)) low = size else high = size
                 }
-            }.scope {}.shadow = shadow
+                textSize = low
+            }
         }
+        val width = maxOf(available, lines.maxOf { textWidth(it, textSize) })
+        val height = maxOf(available, lines.size * textSize)
+        val top = (height - lines.size * textSize) / 2f
+        val placement = room.textPlacement
+
+        group(constrain(((placement.x + 8f) * scale - width / 2f).px, ((placement.z + 8f) * scale - height / 2f).px, width.px, height.px)) {
+            lines.forEachIndexed { i, line ->
+                text(line, font, colour { room.textColour.rgb }, at(Centre, (top + i * textSize).px), textSize.px) {
+                    this.shadow = shadow
+                }
+            }
+        }
+    }
+
+    private fun ElementScope<*>.renderCheckmark(config: MapConfig, room: OdonRoom) {
+        if (room.tiles.isEmpty() || room.data.type in setOf(RoomType.ENTRANCE, RoomType.FAIRY)) return
+        val texture = when (room.data.state) {
+            RoomState.GREEN -> "green_check.png"
+            RoomState.CLEARED -> "white_check.png"
+            RoomState.FAILED -> "cross.png"
+            else -> return
+        }
+        val size = 10f * config.scale * DungeonMap.checkmarkScale
+        val placement = room.textPlacement
+        image(
+            "dungeonmap/$texture".image(),
+            constrain(((placement.x + 8f) * config.scale - size / 2f).px, ((placement.z + 8f) * config.scale - size / 2f).px, size.px, size.px)
+        )
     }
 
     private val unlabelledTypes = setOf(RoomType.ENTRANCE, RoomType.FAIRY, RoomType.BLOOD)
