@@ -55,8 +55,8 @@ object LeapManager : EventListener {
 
     init {
         on<ChatEvent.Packet> {
-            if (unformatted == "You cannot use this in a solo dungeon!" ||
-                unformatted == "There are no other players to teleport to!"
+            if (unformatted != "You cannot use this in a solo dungeon!" &&
+                unformatted != "There are no other players to teleport to!"
             ) return@on
 
             if (!inProgress) return@on
