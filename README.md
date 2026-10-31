@@ -105,7 +105,8 @@ Download the JAR for your Minecraft version from [Releases](https://github.com/j
 - **Auto Invincibility**
   - Swaps to an available invincibility mask or Phoenix Pet after a proc.
 - **Auto Leap**
-  - Leaps to configured teammates at clear, boss, device, and relic triggers.
+  - **Fast Leap** - Left-click a Spirit Leap to leap to the target for your location.
+  - **Auto Leap** - Leaps to configured teammates at clear, boss, device, and relic triggers.
 - **Barrier Boom**
   - Uses Superboom when you aim at Goldor's gates.
 - **Crystals**
