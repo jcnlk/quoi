@@ -31,8 +31,8 @@ class LeapTarget(
 
     override fun <K : Setting<T>, T> register(setting: K): K = group.register(setting)
 
-    fun leap(checkPosition: Boolean = true): Boolean {
-        if (!enabled || checkPosition && !matches()) return false
+    fun leap(): Boolean {
+        if (!enabled || !matches()) return false
         val name = nameOverride() ?: targetName.takeIf { Leaps.byName }
         if (name != null) {
             if (name.isBlank()) return false

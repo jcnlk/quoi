@@ -13,20 +13,17 @@ import quoi.utils.skyblock.item.ItemUtils.skyblockId
 
 class FastLeap(parent: Module) : LeapSettings(parent, "Fast Leap", automatic = false) {
     private val yellow = LeapTarget(
-        this, "Yellow pad leap", "Leap from the yellow pad.",
-        matches = at(AABB(24.0, 170.0, 86.0, 41.0, 172.0, 103.0))
-    )
+        this, "Yellow pad leap", "Leap from the yellow pad."
+    ) { Floor7.inPhase(Phase.P2) && at(AABB(24.0, 170.0, 86.0, 41.0, 172.0, 103.0)) }
     private val purple = LeapTarget(
-        this, "Purple pad leap", "Leap from the purple pad.",
-        matches = at(AABB(106.0, 170.0, 86.0, 125.0, 172.0, 103.0))
-    )
+        this, "Purple pad leap", "Leap from the purple pad."
+    ) { Floor7.inPhase(Phase.P2) && at(AABB(106.0, 170.0, 86.0, 125.0, 172.0, 103.0)) }
     private val betweenPads = LeapTarget(
-        this, "Between PY pad leap", "Leap from between the purple and yellow pads.",
-        matches = at(AABB(41.0, 163.0, 86.0, 106.0, 172.0, 103.0))
-    )
+        this, "Between PY pad leap", "Leap from between the purple and yellow pads."
+    ) { Floor7.inPhase(Phase.P2) && at(AABB(41.0, 163.0, 86.0, 106.0, 172.0, 103.0)) }
     private val stormDeath = LeapTarget(
         this, "Storm death leap", "Leap from P2, outside the pads and the area between them."
-    ) { Floor7.inPhaseAt(Phase.P2) && !purple.matches() && !yellow.matches() && !betweenPads.matches() }
+    ) { Floor7.inPhase(Phase.P2) && Floor7.inPhaseAt(Phase.P2) && !purple.matches() && !yellow.matches() && !betweenPads.matches() }
     private var lastClick = 0L
     private val spiritLeapIds = setOf("INFINITE_SPIRIT_LEAP", "SPIRIT_LEAP")
     private val targets = listOf(crystal, predev, relic, p1, p4, yellow, purple, betweenPads, stormDeath, middle, i4)
@@ -52,6 +49,6 @@ class FastLeap(parent: Module) : LeapSettings(parent, "Fast Leap", automatic = f
         }
         if (!Floor7.inF7Boss) return false
         val target = targets.firstOrNull { it.enabled && it.matches() } ?: return false
-        return target.leap(checkPosition = false)
+        return target.leap()
     }
 }

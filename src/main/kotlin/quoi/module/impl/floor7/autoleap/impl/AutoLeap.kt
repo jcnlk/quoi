@@ -19,13 +19,13 @@ import quoi.utils.skyblock.item.ItemUtils.skyblockId
 class AutoLeap(parent: Module) : LeapSettings(parent, "Auto Leap", automatic = true) {
     private val firstCrush = LeapTarget(
         this, "First crush leap", "Leap after Storm's first crush, from any position."
-    )
+    ) { Floor7.inPhase(Phase.P2) }
     private val secondCrush = LeapTarget(
         this, "Second crush leap", "Leap after Storm's second crush, from any position."
-    )
+    ) { Floor7.inPhase(Phase.P2) }
     private val stormDeath = LeapTarget(
         this, "Storm death leap", "Leap on Storm's death message, from any position."
-    )
+    ) { Floor7.inPhase(Phase.P2) }
     private val stormEnrage = LeapTarget(
         this, "Storm enrage leap", "Leap when Storm becomes enraged while P2 is active."
     ) { Floor7.inPhase(Phase.P2) }
@@ -50,7 +50,7 @@ class AutoLeap(parent: Module) : LeapSettings(parent, "Auto Leap", automatic = t
                 "⚠ Storm is enraged! ⚠" -> stormEnrage.leap()
                 "[BOSS] Storm: I'd be happy to show you what that's like!" -> predev.leap()
                 "[BOSS] Necron: Goodbye." -> middle.leap()
-                "[BOSS] Storm: I should have known that I stood no chance." -> stormDeath.leap(checkPosition = false)
+                "[BOSS] Storm: I should have known that I stood no chance." -> stormDeath.leap()
                 "${player.name.string} picked up an Energy Crystal!" -> crystal.leap()
                 else -> if (Floor7.inStage(Stage.S1, Stage.S2) && unformatted.startsWith("${player.name.string} completed a device!")) {
                     i4.leap()
@@ -59,10 +59,10 @@ class AutoLeap(parent: Module) : LeapSettings(parent, "Auto Leap", automatic = t
         }
 
         on<BossBarEvent.Update> {
-            if (!p4.enabled || p4Leaped || !Floor7.inF7Boss || !Floor7.inPhaseAt(Phase.P4)) return@on
+            if (!p4.enabled || p4Leaped || !p4.matches()) return@on
             if (progress !in 0.001f..0.051f || !unformatted.contains("necron", ignoreCase = true)) return@on
             p4Leaped = true
-            p4.leap(checkPosition = false)
+            p4.leap()
         }
 
         on<PacketEvent.ReceivedPost, ClientboundContainerSetSlotPacket> {
