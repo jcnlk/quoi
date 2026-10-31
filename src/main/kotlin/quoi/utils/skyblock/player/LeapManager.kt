@@ -33,6 +33,8 @@ import quoi.utils.skyblock.player.container.task.*
 @Init
 @OptIn(Internal::class)
 object LeapManager : EventListener {
+    private const val MENU_TIMEOUT_TICKS = 60
+
     private data class LeapRequest(
         val target: DungeonPlayer,
         val settings: IContainerSettings,
@@ -212,8 +214,16 @@ object LeapManager : EventListener {
             settings = leap.settings,
         ) {
             if (!preOpened) {
+                check("could not select a Spirit Leap before use. Try again.") {
+                    SwapManager.swapById("INFINITE_SPIRIT_LEAP", "SPIRIT_LEAP").success
+                }
                 action { PlayerUtils.interact() }
-                awaitContainer("Spirit Leap", waitForItems = true)
+                awaitContainer(
+                    "Spirit Leap",
+                    waitForItems = true,
+                    timeout = MENU_TIMEOUT_TICKS,
+                    failureMessage = "Spirit Leap menu did not open in time. Try again.",
+                )
             }
             pickup(
                 item { it.displayName.string.contains(leap.target.name) }.menu,
@@ -242,6 +252,11 @@ object LeapManager : EventListener {
             ContainerTaskResult.Cancelled -> Unit
             is ContainerTaskResult.Failure -> {
                 modMessage("&cFailed to leap to ${formatName(leap.target)}&c: ${result.message}")
+                logger.warn(
+                    "Leap failed: target={}, reason={}, slot={}, item={}, container={}, title={}",
+                    leap.target.name, result.message, mc.player?.inventory?.selectedSlot,
+                    mc.player?.mainHandItem?.skyblockId, ContainerUtils.containerId, ContainerUtils.current?.title
+                )
             }
         }
 

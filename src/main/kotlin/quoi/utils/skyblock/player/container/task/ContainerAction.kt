@@ -124,8 +124,9 @@ interface ContainerAction {
         val containerName: Regex,
         val timeout: Int,
         val waitForItems: Boolean,
+        failureMessage: String? = null,
     ) : ContainerAction {
-        override var failureReason = "Timed out waiting for container matching ${containerName.pattern}"
+        override var failureReason = failureMessage ?: "Timed out waiting for container matching ${containerName.pattern}"
             private set
 
         override suspend fun ContainerManager.execute(): Boolean {

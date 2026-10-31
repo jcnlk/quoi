@@ -150,18 +150,21 @@ class ContainerTaskBuilder(val force: Boolean) {
      * @param name container name to wait for
      * @param waitForItems if `true`, waits for items to fill the container
      * @param timeout time to wait for the container to open (server ticks)
+     * @param failureMessage optional message if the container does not open in time
      */
     fun awaitContainer(
         name: Regex,
         waitForItems: Boolean = false,
-        timeout: Int = 20
-    ) = actions.add(ContainerAction.AwaitContainer(name, timeout, waitForItems))
+        timeout: Int = 20,
+        failureMessage: String? = null,
+    ) = actions.add(ContainerAction.AwaitContainer(name, timeout, waitForItems, failureMessage))
 
     fun awaitContainer(
         name: String,
         waitForItems: Boolean = false,
-        timeout: Int = 20
-    ) = awaitContainer(Regex(Regex.escape(name), RegexOption.IGNORE_CASE), waitForItems, timeout)
+        timeout: Int = 20,
+        failureMessage: String? = null,
+    ) = awaitContainer(Regex(Regex.escape(name), RegexOption.IGNORE_CASE), waitForItems, timeout, failureMessage)
 
     /**
      * Applies [awaitContainer] before each action.
