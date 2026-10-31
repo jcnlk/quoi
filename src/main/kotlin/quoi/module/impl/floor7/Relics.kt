@@ -43,7 +43,7 @@ object Relics : Module(
     private val relicLook by switch("Relic look", desc = "Turns toward the cauldron when you pick up a red or orange relic.")
     private val relicLookTime by slider("Relic look time", 150, 10, 300, 1, unit = "ms").childOf(::relicLook)
     private val relicRun by switch("Relic run", desc = "Runs red and orange relics from the marked start spots toward their cauldrons.").childOf(::relicLook).asParent()
-    private val relicTriggerbot by switch("Relic triggerbot", desc = "Picks up nearby relics and places your carried relic when aiming at its cauldron. Automatically selects hotbar slot 9 for placement.")
+    private val relicTriggerbot by switch("Relic triggerbot", desc = "Picks up nearby relics and places your carried relic when aiming at its cauldron or the anvil below it. Automatically selects hotbar slot 9 for placement.")
     private val relicAura by switch("Relic aura", desc = "Automatically picks up and places relics within the configured range. Selects hotbar slot 9 for placement.")
     private val auraRange by slider("Aura range", 4.5, 1.0, 4.5, 0.1, unit = " blocks", desc = "Maximum distance for relic pickup and placement.").childOf(::relicAura)
 
@@ -195,7 +195,7 @@ object Relics : Module(
         BLUE("Corrupted Blue Relic", BlockPos(59, 7, 44), 60, 45),
         PURPLE("Corrupted Purple Relic", BlockPos(54, 7, 41), 55, 42);
 
-        fun isPlacementTarget(pos: BlockPos): Boolean = pos == cauldronPos || pos == cauldronPos.above()
+        fun isPlacementTarget(pos: BlockPos): Boolean = pos == cauldronPos || pos == cauldronPos.below()
 
         fun isAtCauldron(pos: Vec3): Boolean {
             val dx = pos.x - placedX
