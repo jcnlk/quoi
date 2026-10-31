@@ -12,10 +12,14 @@ import quoi.api.skyblock.dungeon.enums.Phase
 import quoi.api.skyblock.dungeon.enums.Stage
 import quoi.module.Module
 import quoi.module.impl.floor7.autoleap.LeapSettings
+import quoi.module.impl.floor7.autoleap.LeapTarget
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.utils.skyblock.item.ItemUtils.skyblockId
 
 class AutoLeap(parent: Module) : LeapSettings(parent, "Auto Leap", automatic = true) {
+    private val stormEnrage = LeapTarget(
+        this, "Storm enrage leap", "Leap when Storm becomes enraged while P2 is active."
+    ) { Floor7.inPhase(Phase.P2) }
     private val whenBlown by switch("Only when gate blown", desc = "Also waits for the gate, or the Core entrance in section 4.").childOf(p3)
     private var crystalCount = 0
     private var crushCount = 0
@@ -37,6 +41,7 @@ class AutoLeap(parent: Module) : LeapSettings(parent, "Auto Leap", automatic = t
                     2 -> yellow.leap()
                 }
                 "The Energy Laser is charging up!" -> if (p1.enabled && ++crystalCount == 2) p1.leap()
+                "⚠ Storm is enraged! ⚠" -> stormEnrage.leap()
                 "[BOSS] Storm: I'd be happy to show you what that's like!" -> predev.leap()
                 "[BOSS] Necron: Goodbye." -> middle.leap()
                 "[BOSS] Storm: I should have known that I stood no chance." -> stormDeath.leap(checkPosition = false)
