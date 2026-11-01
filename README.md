@@ -264,6 +264,8 @@ Download the JAR for your Minecraft version from [Releases](https://github.com/j
   - Restores the old red Master Star display.
 - **Trajectories**
   - Shows bow and Ender Pearl paths, with optional impact boxes and planes.
+- **Trail**
+  - Draws a trail behind you
 - **Waypoints**
   - Creates temporary waypoints from coordinates in chat.
 
