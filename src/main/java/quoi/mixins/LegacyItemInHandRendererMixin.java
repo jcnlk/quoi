@@ -17,6 +17,7 @@ import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
@@ -24,6 +25,16 @@ import quoi.module.impl.render.ItemAnimations;
 
 @Mixin(ItemInHandRenderer.class)
 public abstract class LegacyItemInHandRendererMixin {
+
+    @ModifyArg(
+            method = "renderHandsWithItems",
+            at = @At(value = "INVOKE", target = "Lcom/mojang/math/Axis;rotationDegrees(F)Lorg/joml/Quaternionf;"),
+            index = 0,
+            require = 2
+    )
+    private float quoi$itemAnimationsHandMovement(float angle) {
+        return ItemAnimations.disableHandMovement() ? 0f : angle;
+    }
 
     @WrapOperation(
             method = "renderHandsWithItems",

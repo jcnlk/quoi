@@ -43,6 +43,7 @@ object ItemAnimations : Module(
     private val noReequipReset by switch("No re-equip reset")
     private val inplaceSwing by switch("Swing in place")
     private val noSwing by switch("No swing animation")
+    private val noHandMovement by switch("Disable hand movement", desc = "Stops hand sway when looking around.")
 
     @Suppress("unused")
     private val reset by button("Reset") { resetSettings() }
@@ -93,6 +94,8 @@ object ItemAnimations : Module(
     }
 
     @JvmStatic fun disableReequip(): Boolean = enabled && noReequipReset
+
+    @JvmStatic fun disableHandMovement(): Boolean = enabled && noHandMovement
 
     @JvmStatic
     fun disableReequip(arm: HumanoidArm): Boolean {

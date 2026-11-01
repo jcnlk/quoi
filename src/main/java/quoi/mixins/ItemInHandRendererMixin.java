@@ -18,12 +18,23 @@ import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import quoi.module.impl.render.ItemAnimations;
 
 @Mixin(FirstPersonHandsAndItemsRenderer.class)
 public abstract class ItemInHandRendererMixin {
+
+    @ModifyArg(
+            method = "submitHandsWithItems",
+            at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;rotateDegrees(Lcom/mojang/math/Axis;F)V"),
+            index = 1,
+            require = 2
+    )
+    private float quoi$itemAnimationsHandMovement(float angle) {
+        return ItemAnimations.disableHandMovement() ? 0f : angle;
+    }
 
     @ModifyExpressionValue(
             method = "submitHandsWithItems",
