@@ -12,6 +12,11 @@ import net.minecraft.client.renderer.entity.LivingEntityRenderer
 import net.minecraft.client.renderer.entity.state.CatRenderState
 import net.minecraft.client.renderer.state.level.CameraRenderState
 import net.minecraft.resources.Identifier
+//? if >=26.2 {
+/*import net.minecraft.world.entity.EntityTypes as EntityType
+*///?} else {
+import net.minecraft.world.entity.EntityType
+//?}
 import quoi.module.impl.misc.catmode.CatMode
 import quoi.module.settings.group.ToggleableGroup
 
@@ -45,6 +50,10 @@ object CatModel : ToggleableGroup(
             super.extractRenderState(player, state, partialTicks)
             state.isBaby = baby
             state.ageScale = if (baby) 0.5f else 1f
+            val dimensions = EntityType.CAT.dimensions.scale(state.scale * state.ageScale)
+            state.boundingBoxWidth = dimensions.width()
+            state.boundingBoxHeight = dimensions.height()
+            state.eyeHeight = dimensions.eyeHeight()
             state.texture = if (baby) catModel.selected.babyPath else catModel.selected.path
             state.isCrouching = player.isCrouching
             state.isSprinting = player.isSprinting

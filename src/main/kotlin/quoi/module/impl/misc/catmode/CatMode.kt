@@ -3,11 +3,9 @@ package quoi.module.impl.misc.catmode
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.Component.literal
 import net.minecraft.network.chat.Style
-import net.minecraft.network.protocol.game.ClientboundSoundPacket
+import net.minecraft.resources.Identifier
 import net.minecraft.sounds.SoundEvents
 import net.minecraft.util.FormattedCharSequence
-import quoi.api.events.PacketEvent
-import quoi.api.events.core.on
 import quoi.module.Module
 import quoi.module.impl.misc.catmode.impl.CatModel
 import quoi.module.impl.misc.catmode.impl.FallingCats
@@ -28,22 +26,10 @@ object CatMode : Module(
     @Suppress("unused")
     private val feat = listOf(FallingCats, CatModel)
 
-    init {
-        on<PacketEvent.Received, ClientboundSoundPacket> {
-            if (!meowSound || packet.sound == SoundEvents.CAT_AMBIENT_BABY) return@on
-
-            cancel()
-            level.playLocalSound(
-                packet.x,
-                packet.y,
-                packet.z,
-                SoundEvents.CAT_AMBIENT_BABY.value(),
-                packet.source,
-                packet.volume,
-                packet.pitch,
-                false
-            )
-        }
+    @JvmStatic
+    fun replaceSound(sound: Identifier): Identifier {
+        if (!enabled || !meowSound) return sound
+        return SoundEvents.CAT_AMBIENT_BABY.value().location()
     }
 
     @JvmStatic
@@ -60,14 +46,13 @@ object CatMode : Module(
         var style: Style? = null
 
         text.accept { _, s, codepoint ->
-            val c = codepoint.toChar()
-            if (c.isLetter()) {
+            if (Character.isLetter(codepoint)) {
                 style = style ?: s
             } else {
                 style?.let { result.append(literal("meow").withStyle(it)) }
                 style = null
 
-                result.append(literal("$c").withStyle(s))
+                result.append(literal(String(Character.toChars(codepoint))).withStyle(s))
             }
             true
         }

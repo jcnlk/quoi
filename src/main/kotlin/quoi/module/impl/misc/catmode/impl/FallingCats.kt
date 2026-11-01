@@ -23,7 +23,7 @@ object FallingCats : ToggleableGroup(CatMode, "Falling cats", desc = "THEY'RE EV
     private val renderer = FallingCatsRenderer()
 
     init {
-        on<GuiEvent.DrawPost> {
+        on<GuiEvent.DrawBackground.Post> {
             renderer.draw(ctx, screen.width, screen.height, catTexture.selected.path, catSize, catSpeed, darken)
         }
     }
@@ -101,8 +101,7 @@ object FallingCats : ToggleableGroup(CatMode, "Falling cats", desc = "THEY'RE EV
                 ctx.pose().rotate(rotation.rad)
                 ctx.pose().translate(-offset, -offset)
 
-                ctx.drawImage(texture, 0, 0, size, size)
-                if (darken) ctx.fill(0, 0, size, size, 0x4D000000)
+                ctx.drawImage(texture, 0, 0, size, size, if (darken) 0xB3808080.toInt() else -1)
             }
         }
 

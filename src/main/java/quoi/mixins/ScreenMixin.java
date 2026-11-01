@@ -71,6 +71,14 @@ public class ScreenMixin {
         if (new GuiEvent.DrawBackground((Screen) (Object) this, context, mouseX, mouseY).post()) ci.cancel();
     }
 
+    @Inject(
+            method = "extractBackground",
+            at = @At("TAIL")
+    )
+    protected void quoi$onRenderBackgroundPost(GuiGraphicsExtractor context, int mouseX, int mouseY, float deltaTicks, CallbackInfo ci) {
+        new GuiEvent.DrawBackground.Post((Screen) (Object) this, context).post();
+    }
+
     @ModifyArgs(
             method = "extractTransparentBackground",
             at = @At(

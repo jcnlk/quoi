@@ -121,9 +121,8 @@ object DrawContextUtils {
         }
     }
 
-    fun GuiGraphicsExtractor.drawImage(image: Identifier, x: Int, y: Int, width: Int, height: Int) {
-//        blitSprite(RenderPipelines.GUI_TEXTURED, image, x, y, width, height)
-        blit(RenderPipelines.GUI_TEXTURED, image, x, y, 0f, 0f, width, height, width, height)
+    fun GuiGraphicsExtractor.drawImage(image: Identifier, x: Int, y: Int, width: Int, height: Int, colour: Int = -1) {
+        blit(RenderPipelines.GUI_TEXTURED, image, x, y, 0f, 0f, width, height, width, height, colour)
     }
     fun GuiGraphicsExtractor.drawEntity(
         entity: LivingEntity,

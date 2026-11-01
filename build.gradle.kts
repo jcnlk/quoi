@@ -52,6 +52,7 @@ sourceSets.named("main") {
                 "quoi/mixins/OverlayLevelRendererMixin.java",
                 "quoi/mixins/OverlayQuadSortingMixin.java",
                 "quoi/mixins/OverlaySubmitNodeCollectionMixin.java",
+                "quoi/mixins/LevelExtractorMixin.java",
             )
             sc.current.parsed < "26.3" -> listOf(
                 "quoi/mixins/LegacyGuiMixin.java",
@@ -59,6 +60,7 @@ sourceSets.named("main") {
                 "quoi/mixins/ItemInHandRendererMixin.java",
                 "quoi/mixins/OverlayLevelRendererMixin.java",
                 "quoi/mixins/OverlayQuadSortingMixin.java",
+                "quoi/mixins/LevelExtractorMixin.java",
             )
             else -> listOf("quoi/mixins/LegacyGuiMixin.java", "quoi/mixins/LegacyItemInHandRendererMixin.java")
         }
