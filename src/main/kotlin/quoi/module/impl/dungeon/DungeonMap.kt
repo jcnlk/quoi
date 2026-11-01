@@ -24,7 +24,7 @@ object DungeonMap : Module(
         listOf("Checkmarks", "Secrets", "Room Name", "Room Name + Secrets", "Secrets + Puzzle Name"),
         desc = "Chooses the information shown in each room. Checkmarks appear after clearing or failing a room. Unknown secret progress defaults to 0 found."
     )
-    val limitRoomNameSize by switch("Limit room name size", true, desc = "Shrinks room text to fit inside its room. Disable to always use the configured font scale.")
+    val limitRoomNameSize by switch("Limit room name size", true, desc = "Fits room text to the room's shape and size. Disable to always use the configured font scale.")
         .childOf(::checkmarkStyle) { it.selected != "Checkmarks" }
     val checkmarkScale by slider("Checkmark scale", 1f, 0.3f, 1.5f, 0.1f)
         .childOf(::checkmarkStyle) { it.selected == "Checkmarks" }

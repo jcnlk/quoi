@@ -7,7 +7,6 @@ import quoi.api.abobaui.dsl.*
 import quoi.api.abobaui.elements.Element
 import quoi.api.abobaui.elements.ElementScope
 import quoi.api.abobaui.elements.impl.Block.Companion.outline
-import quoi.api.abobaui.elements.impl.Text.Companion.maxWidth
 import quoi.api.abobaui.elements.impl.Text.Companion.shadow
 import quoi.api.abobaui.elements.impl.Text.Companion.string
 import quoi.api.animations.Animation
@@ -135,26 +134,33 @@ object MapRenderer {
 
     // based on: https://github.com/Noamm9/NoammAddons/blob/1bca286c77939638c13029b1b6d7f387cf92b3f4/src/main/kotlin/com/github/noamm9/features/impl/dungeon/map/MapRenderer.kt
     private fun ElementScope<*>.renderInfo(config: MapConfig, y: Float) {
-        val textSize = 6.3f * config.scale * config.fontScale
+        val textSize = 6.3f * config.scale
+        val maxWidth = 116f * config.scale
         for (index in 0..1) {
             val label = text(
                 "",
                 font = config.font,
-                pos = at(Centre, (y + config.scale * (-2f + index * 7f * config.fontScale)).px),
+                pos = at(Centre, (y + config.scale * (-2f + index * 7f)).px),
                 size = textSize.px
             ) {
-                maxWidth(Copying - (12f * config.scale).px)
                 shadow = config.shadow
             }
             watch({ infoLines()[index] }, immediate = true) { line ->
+                val size = MapTextLayout.fitSize(listOf(line), textSize, maxWidth, textSize) { text, size ->
+                    textWidth(text, size, config.font)
+                }
+                val width = textWidth(line, size, config.font)
                 label.string = line
-                val width = if (config.font.name == "Minecraft") line.width(textSize / mc.font.lineHeight)
-                else NVGRenderer.textWidth(line.noControlCodes, textSize, config.font)
-                label.element.constraints.width = width.coerceAtMost(116f * config.scale).px
-                label.element.constraints.height = textSize.px
+                label.element.constraints.x = ((128f * config.scale - width) / 2f).px
+                label.element.constraints.width = width.px
+                label.element.constraints.height = size.px
             }
         }
     }
+
+    private fun textWidth(line: String, size: Float, font: Font): Float =
+        if (font.name == "Minecraft") line.width(size / mc.font.lineHeight)
+        else NVGRenderer.textWidth(line.noControlCodes, size, font)
 
     private fun infoLines(): List<String> {
         val secrets = "§6Secrets: §b${Dungeon.secretCount}§f/§b${ScoreCalculation.secretsUntil300}§f/§e${ScoreCalculation.totalSecrets}"
@@ -355,36 +361,22 @@ object MapRenderer {
     private fun ElementScope<*>.renderName(config: MapConfig, room: OdonRoom, lines: List<String>) {
         if (room.tiles.isEmpty() || lines.isEmpty()) return
         val (scale, _, font, fontScale, shadow) = config
-        val available = 14f * scale
-        var textSize = 18f * fontScale * (scale / 5f)
-        fun textWidth(line: String, size: Float) =
-            if (font.name == "Minecraft") line.width(size / mc.font.lineHeight) else NVGRenderer.textWidth(line, size, font)
-        if (DungeonMap.limitRoomNameSize) {
-            textSize = minOf(textSize, available / lines.size)
-            fun fits(size: Float) = lines.all { line ->
-                textWidth(line, size) <= available
+        val bounds = MapTextLayout.roomBounds(room.tiles.map { it.placement })
+        val preferredSize = 3.6f * fontScale * scale
+        val textSize = if (DungeonMap.limitRoomNameSize) {
+            MapTextLayout.fitSize(lines, preferredSize, bounds.x * scale, bounds.z * scale) { line, size ->
+                textWidth(line, size, font)
             }
-            if (!fits(textSize)) {
-                // Custom font metrics can round differently at each size
-                var low = 0f
-                var high = textSize
-                repeat(12) {
-                    val size = (low + high) / 2f
-                    if (fits(size)) low = size else high = size
-                }
-                textSize = low
-            }
-        }
-        val width = maxOf(available, lines.maxOf { textWidth(it, textSize) })
-        val height = maxOf(available, lines.size * textSize)
-        val top = (height - lines.size * textSize) / 2f
+        } else preferredSize
         val placement = room.textPlacement
+        val centerX = (placement.x + 8f) * scale
+        val top = (placement.z + 8f) * scale - lines.size * textSize / 2f
 
-        group(constrain(((placement.x + 8f) * scale - width / 2f).px, ((placement.z + 8f) * scale - height / 2f).px, width.px, height.px)) {
-            lines.forEachIndexed { i, line ->
-                text(line, font, colour { room.textColour.rgb }, at(Centre, (top + i * textSize).px), textSize.px) {
-                    this.shadow = shadow
-                }
+        lines.forEachIndexed { i, line ->
+            val width = textWidth(line, textSize, font)
+            text(line, font, colour { room.textColour.rgb }, at((centerX - width / 2f).px, (top + i * textSize).px), textSize.px) {
+                element.constraints.width = width.px
+                this.shadow = shadow
             }
         }
     }
@@ -417,7 +409,7 @@ object MapRenderer {
         val icon: IconConfig = IconConfig(),
         val autoClear: Boolean = false,
     ) {
-        val height: Float get() = (128f + if (DungeonMap.showInfo) 15f * fontScale else 0f) * scale
+        val height: Float get() = (128f + if (DungeonMap.showInfo) 15f else 0f) * scale
     }
 
     data class IconConfig(
