@@ -89,8 +89,9 @@ class EventManager(private val ui: AbobaUI) {
     }
 
     fun postToAll(event: AbobaEvent, element: Element = ui.main) {
+        if (event == Lifetime.Uninitialised) element.hovered = false
         element.accept(event)
-        element.children?.forEach { postToAll(event, it) }
+        element.children?.toList()?.forEach { postToAll(event, it) }
     }
 
     fun recalculate() {
@@ -114,6 +115,8 @@ class EventManager(private val ui: AbobaUI) {
                 element.hovered = true
                 if (result == null) result = element
             }
+        } else {
+            unmarkHovered(element)
         }
         return result
     }
@@ -121,6 +124,6 @@ class EventManager(private val ui: AbobaUI) {
     private fun unmarkHovered(element: Element) {
         if (!element.hovered && element.acceptsInput) return
         element.hovered = false
-        element.children?.forEach { unmarkHovered(it) }
+        element.children?.toList()?.forEach { unmarkHovered(it) }
     }
 }

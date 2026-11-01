@@ -21,14 +21,19 @@ import quoi.utils.ui.rendering.NVGRenderer.minecraftFont
 inline val inHudEditor get() = mc.screen?.title?.string == "Quoi! hud editor"
 
 inline fun ElementScope<*>.onHover(duration: Float, crossinline block: () -> Unit) {
+    var generation = 0
+    onMouseExit { generation++ }
+
     onMouseEnter {
+        val current = ++generation
         val time = System.nanoTime()
         operation {
+            if (current != generation || !element.renders) return@operation true
             if (System.nanoTime() - time >= duration) {
                 block()
                 return@operation true
             }
-            !element.isInside(ui.mx, ui.my) || !element.renders
+            false
         }
     }
 }

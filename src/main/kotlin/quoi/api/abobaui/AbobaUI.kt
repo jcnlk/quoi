@@ -58,6 +58,7 @@ class AbobaUI(val title: String) {
             initialised = true
         }
 
+        recalculateMouse = true
     }
 
     fun prepareFrame() {
@@ -65,6 +66,7 @@ class AbobaUI(val title: String) {
         if (layoutDirty) {
             layoutDirty = false
             main.prepareLayout()
+            recalculateMouse = true
         }
         if (recalculateMouse) {
             eventManager.recalculate()
