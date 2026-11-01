@@ -6,6 +6,7 @@ import quoi.QuoiMod
 import quoi.QuoiMod.mc
 import quoi.api.events.PacketEvent
 import quoi.api.events.TickEvent
+import quoi.utils.DualTime
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.*
@@ -118,7 +119,7 @@ suspend fun EventListener.wait(ticks: Int, server: Boolean = false) {
 /**
  * Suspends until an event matches [predicate]
  * @param timeout ticks to wait. negative waits indefinitely, 0 returns immediately
- * @param serverTicks count server ticks instead of client ticks for the timeout
+ * @param serverTicks count server ticks, with at least 50 ms elapsed per tick, instead of client ticks
  * @return the matching event, or `null` on timeout
  */
 suspend inline fun <reified T : Event> EventListener.await(
@@ -131,7 +132,7 @@ suspend inline fun <reified T : Event> EventListener.await(
     if (timeout == 0) return null
 
     return suspendCancellableCoroutine { cont ->
-        var ticks = 0
+        var ticks = 0L
         val settled = AtomicBoolean()
         var timeoutSub: Subscription<*>? = null
         lateinit var eventSub: Subscription<T>
@@ -152,8 +153,12 @@ suspend inline fun <reified T : Event> EventListener.await(
             }
         }
         if (timeout > 0) {
+            val startedAt = DualTime(ticks)
             val onTimeoutTick: () -> Unit = {
-                if (++ticks >= timeout && settled.compareAndSet(false, true)) {
+                val elapsed = DualTime(++ticks) - startedAt
+                if (elapsed.ticks >= timeout && (!serverTicks || elapsed.real >= timeout * 50L) &&
+                    settled.compareAndSet(false, true)
+                ) {
                     eventSub.unregister()
                     timeoutSub?.unregister()
                     cont.resume(null)
