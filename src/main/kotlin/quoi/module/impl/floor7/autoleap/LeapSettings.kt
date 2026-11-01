@@ -41,7 +41,7 @@ abstract class LeapSettings(parent: Module, name: String, val automatic: Boolean
         this, "P4 leap", "Leap from the P4 middle platform.", "Leap once at about 5% Necron HP while in P4."
     ) { Floor7.inPhase(Phase.P4) && Floor7.inPhaseAt(Phase.P4) && (automatic || at(middlePlatform)) }
     protected val relic = LeapTarget(
-        this, "Relic leap", "Leap during M7 P5.", "Leap when a relic enters hotbar slot 9 in P5."
+        this, "Relic leap", "Leap during M7 P5.", "Leap once per run after picking up a relic in P5."
     ) { Floor7.inPhase(Phase.P5) && Floor7.inPhaseAt(Phase.P5) }
 
     private val middlePlatform = AABB(47.0, 64.0, 69.0, 62.0, 75.0, 84.0)

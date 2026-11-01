@@ -1,10 +1,9 @@
 package quoi.module.impl.floor7.autoleap.impl
 
-import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket
 import quoi.api.events.BossBarEvent
 import quoi.api.events.ChatEvent
 import quoi.api.events.DungeonEvent
-import quoi.api.events.PacketEvent
+import quoi.api.events.TickEvent
 import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.Floor7
@@ -33,6 +32,7 @@ class AutoLeap(parent: Module) : LeapSettings(parent, "Auto Leap", automatic = t
     private var crystalCount = 0
     private var crushCount = 0
     private var p4Leaped = false
+    private var pickedUpRelic = false
     private val relicIds = setOf("GREEN_KING_RELIC", "PURPLE_KING_RELIC", "BLUE_KING_RELIC", "ORANGE_KING_RELIC", "RED_KING_RELIC")
 
     init {
@@ -65,8 +65,10 @@ class AutoLeap(parent: Module) : LeapSettings(parent, "Auto Leap", automatic = t
             p4.leap()
         }
 
-        on<PacketEvent.ReceivedPost, ClientboundContainerSetSlotPacket> {
-            if (packet.containerId == 0 && packet.slot == 44 && packet.item.skyblockId in relicIds) relic.leap()
+        on<TickEvent.End> {
+            if (pickedUpRelic || !relic.enabled || !relic.matches()) return@on
+            if (player.inventory.getItem(8).skyblockId !in relicIds) return@on
+            pickedUpRelic = relic.leap()
         }
 
         on<DungeonEvent.DoorOpen> {
@@ -82,5 +84,6 @@ class AutoLeap(parent: Module) : LeapSettings(parent, "Auto Leap", automatic = t
         crystalCount = 0
         crushCount = 0
         p4Leaped = false
+        pickedUpRelic = false
     }
 }
