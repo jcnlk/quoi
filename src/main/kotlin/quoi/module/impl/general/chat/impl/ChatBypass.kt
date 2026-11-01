@@ -8,12 +8,13 @@ import quoi.module.settings.group.ToggleableGroup
 import quoi.utils.ChatUtils.commandAny
 import quoi.utils.ChatUtils.say
 
+// TODO: add more bypass modes: https://github.com/jcnlk/ChatFilterBypass/blob/main/index.js
 object ChatBypass : ToggleableGroup(
     Chat,
     "Chat bypass",
     desc = "Bypasses chat filters on servers."
 ) {
-    private val mode by selector("Mode", BypassMode.Cyrillic, desc = "Bypass mode.")
+    private val mode by selector("Mode", BypassMode.Dots, desc = "Bypass mode.")
 
     private var bypass = false
 
@@ -55,46 +56,17 @@ object ChatBypass : ToggleableGroup(
 
     @Suppress("unused")
     private enum class BypassMode {
-        Cyrillic {
-            private val map = mapOf(
-                'a' to 'а', 'A' to 'А', 'e' to 'е', 'E' to 'Е',
-                'o' to 'о', 'O' to 'О', 'c' to 'с', 'C' to 'С',
-                'p' to 'р', 'P' to 'Р', 'x' to 'х', 'X' to 'Х',
-                'y' to 'у', 'Y' to 'У'
-            )
-            override fun apply(str: String) = str.map { map[it] ?: it }.joinToString("")
-        },
-        Wide {
-            private val map by lazy {
-                val normal = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-                val notNormal =
-                    "ａｂｃｄｅｆｇｈｉｊｋｌｍｎｏｐｑｒｓｔｕｖｗｘｙｚ" +
-                    "ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺ" +
-                    "０１２３４５６７８９"
-                normal.zip(notNormal).toMap()
-            }
-            override fun apply(str: String): String {
-                val s = if (onHypixel) str.lowercase() else str
-                return s.map { map[it] ?: it }.joinToString("")
-            }
-        },
         Dots {
             override fun apply(str: String): String = buildString {
                 for (i in str.indices) {
                     append(str[i])
-                    if (i < str.length - 1 && str[i] != ' ' && str[i + 1] != ' ') {
-                        append('.')
-                    }
+                    if (i < str.length - 1 && str[i] != ' ' && str[i + 1] != ' ') append('.')
                 }
             }
         },
         SmallCaps {
-            private val hMap = mapOf(
-                'b' to 'ʙ', 'g' to 'ɢ', 'h' to 'ʜ', 'j' to 'ᴊ', 'q' to 'ǫ', 'z' to 'ᴢ', 'x' to 'x'
-            )
-            private val map by lazy {
-                "abcdefghijklmnopqrstuvwxyz".zip("ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘǫʀꜱᴛᴜᴠᴡxʏᴢ").toMap()
-            }
+            private val hMap = mapOf('b' to 'ʙ', 'g' to 'ɢ', 'h' to 'ʜ', 'j' to 'ᴊ', 'q' to 'ǫ', 'z' to 'ᴢ', 'x' to 'x')
+            private val map by lazy { "abcdefghijklmnopqrstuvwxyz".zip("ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘǫʀꜱᴛᴜᴠᴡxʏᴢ").toMap() }
 
             override fun apply(str: String): String {
                 val m = if (onHypixel) hMap else map
