@@ -118,7 +118,8 @@ object InventorySearch : SettingGroup(Inventory, HudComponent("Search Bar", Hud(
             highlightSlots.clear()
 
             player.containerMenu.items.forEachIndexed { i, stack ->
-                val name = stack.customName?.string?.lowercase()?.trim().orEmpty()
+                if (stack.isEmpty) return@forEachIndexed
+                val name = stack.hoverName.string.lowercase().trim()
                 val lore = stack.loreString?.lowercase()?.trim().orEmpty()
                 if (name.isEmpty() && lore.isEmpty()) return@forEachIndexed
                 queries.forEach { query ->
@@ -140,7 +141,7 @@ object InventorySearch : SettingGroup(Inventory, HudComponent("Search Bar", Hud(
     }
 
     private fun matchType(name: String, lore: String, string: String) = when {
-        name.isEmpty() || lore.isEmpty() || string.isEmpty() -> null
+        string.isEmpty() -> null
         name.contains(string, true) -> false
         lore.contains(string, true) -> true
         else -> null

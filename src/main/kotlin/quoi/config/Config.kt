@@ -97,7 +97,7 @@ object Config : EventListener {
                     })
                 }
             }
-            configFile.bufferedWriter().use { it.write(gson.toJson(jsonArray)) }
+            writeConfigAtomically(configFile) { gson.toJson(jsonArray, it) }
         } catch (e: Exception) {
             println("Error saving config.\n${e.message}")
             logger.error("Error saving config.", e)

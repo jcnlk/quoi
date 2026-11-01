@@ -7,7 +7,6 @@ import net.minecraft.util.FormattedCharSequence
 import quoi.api.colour.Colour
 import quoi.module.Module
 import quoi.utils.ChatUtils.literal
-import kotlin.math.min
 
 /**
  * modified Client-Custom-Name (GPL-3.0) (c) Ownwn
@@ -25,115 +24,46 @@ object NickHider : Module(
     @JvmStatic
     fun replaceName(string: String): String {
         val u = getUsername() ?: return string
-        var out = string
-        repeat(10) { if (out.contains(u)) out = out.replace(u, customName) else return out }
-        return out
+        return string.replace(u, customName)
     }
 
     @JvmStatic
     fun replaceName(text: FormattedCharSequence): FormattedCharSequence {
         val username = getUsername() ?: return text
-
-        val originalTextArray = openOrderedText(text)
-        if (!originalTextArray.joinToString("") { it.string }.contains(username)) return text
-
-        var currentText = text
-
-        repeat(10) {
-            if (currentText.contains(username))
-                currentText = replaceOrderedText(
-                    currentText,
-                    username,
-                    literal(customName).setStyle(Style.EMPTY.withColor(TextColor.fromRgb(nameColour.rgb)))
-                )
-            else return currentText
-        }
-
-        return currentText
+        return replaceOrderedText(
+            text,
+            username,
+            literal(customName).setStyle(Style.EMPTY.withColor(TextColor.fromRgb(nameColour.rgb)))
+        )
     }
+}
 
-    private fun openOrderedText(text: FormattedCharSequence): MutableList<Component> {
-        val textArray: MutableList<Component> = mutableListOf()
+internal fun replaceOrderedText(original: FormattedCharSequence, target: String, replacement: Component): FormattedCharSequence {
+    if (target.isEmpty()) return original
 
-        text.accept { _, style, codePoint ->
-            textArray += Component.literal(codePoint.toChar().toString()).setStyle(style)
+    val characters = mutableListOf<Component>()
+    val string = buildString {
+        original.accept { _, style, codePoint ->
+            val character = Character.toString(codePoint)
+            append(character)
+            characters.add(Component.literal(character).setStyle(style))
             true
         }
-        return textArray
     }
+    var nextMatch = string.indexOf(target)
+    if (nextMatch < 0) return original
 
-    fun replaceOrderedText(original: FormattedCharSequence, target: String, replacement: Component): FormattedCharSequence =
-        replaceOrderedText(original, openOrderedText(original), target, replacement)
-
-    private fun replaceOrderedText( // cba figuring what it does
-        originalText: FormattedCharSequence,
-        originalTextArray: MutableList<Component>, // list of single characters
-        target: String,
-        replacement: Component
-    ): FormattedCharSequence {
-        // include originalText in case of early return, or if no changes are made
-
-        val targetIndex = originalTextArray.joinToString("") { it.string }.indexOf(target)
-        if (targetIndex == -1) return originalText // text does not contain target
-
-
-        val replacementString = replacement.string
-        val targetLength = target.length
-
-        val replacementStyleHasSiblings = replacement.siblings.size >= replacementString.length
-
-
-        var replacementStrIndex = 0 // index in the replacement string
-        var appendedExtraReplacement = false
-        val newText = Component.empty()
-        var shortOffset = targetLength - replacementString.length
-
-
-        for ((i, currentCharacter) in originalTextArray.withIndex()) {
-            var currentStyle = currentCharacter.style
-            var currentStr = currentCharacter.string
-
-            // target.len > replacement.len so we need to remove some characters
-            if (replacementStrIndex >= replacementString.length && shortOffset > 0) {
-                shortOffset--
-                currentStr = ""
-            }
-
-            // whether to replace character
-            if (i > (targetIndex - 1) && replacementStrIndex < min(targetLength, replacementString.length)) {
-                currentStr = replacementString[replacementStrIndex].toString()
-
-                currentStyle = if (replacementStyleHasSiblings) replacement.siblings[replacementStrIndex].style
-                else replacement.style
-                replacementStrIndex++
-
-            }
-
-            newText.append(Component.literal(currentStr).setStyle(currentStyle))
-
-            // replacement.len > target.len so we need to add extra chars to the text
-            if (!appendedExtraReplacement && replacementString.length > targetLength && replacementStrIndex == targetLength) {
-
-                if (!replacementStyleHasSiblings) {
-                    newText.append(Component.literal(replacementString.substring(targetLength)).setStyle(currentStyle))
-                } else {
-                    // account for styles of individual chars in replacement
-                    for ((replacementIterator, theChar) in replacementString.substring(targetLength).toCharArray()
-                        .withIndex()) {
-                        newText.append(
-                            Component.literal(theChar.toString())
-                                .setStyle(replacement.siblings[replacementIterator + replacementStrIndex].style)
-                        )
-                    }
-                }
-
-                appendedExtraReplacement = true
-            }
+    val result = Component.empty()
+    var offset = 0
+    var skipUntil = 0
+    for (character in characters) {
+        if (offset == nextMatch) {
+            result.append(replacement.copy())
+            skipUntil = nextMatch + target.length
+            nextMatch = string.indexOf(target, skipUntil)
         }
-
-        return if (newText.string.isEmpty()) originalText else newText.visualOrderText
+        if (offset >= skipUntil) result.append(character)
+        offset += character.string.length
     }
-
-    private fun FormattedCharSequence.contains(string: String): Boolean =
-        openOrderedText(this).joinToString("") { it.string }.contains(string)
+    return result.visualOrderText
 }

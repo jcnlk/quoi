@@ -18,8 +18,6 @@ import quoi.utils.ChatUtils
 import quoi.utils.ChatUtils.modMessage
 import java.io.File
 import java.lang.reflect.Type
-import java.nio.file.Files
-import java.nio.file.StandardCopyOption
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KClass
 import kotlin.reflect.full.createInstance
@@ -67,14 +65,7 @@ object ConfigSystem {
         check(file.absoluteFile.normalize() !in failedLoads) {
             "Saving ${file.absolutePath} is blocked because loading failed. Fix the config and reload it first."
         }
-        val tmpFile = File(file.parent, "${file.name}.tmp") // should prevent corruption on err
-        tmpFile.writer().use { gson.toJson(data, it) }
-        Files.move(
-            tmpFile.toPath(),
-            file.toPath(),
-            StandardCopyOption.REPLACE_EXISTING,
-            StandardCopyOption.ATOMIC_MOVE
-        )
+        writeConfigAtomically(file) { gson.toJson(data, it) }
     }.onFailure {
         modMessage(
             ChatUtils.button(

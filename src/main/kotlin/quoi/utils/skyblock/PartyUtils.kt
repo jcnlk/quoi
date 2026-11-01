@@ -136,9 +136,8 @@ object PartyUtils : EventListener, Shortcuts {
                     val memberMatch = memberFormat.find(segment.trim()) ?: return@forEach
                     addMember(memberMatch.groupValues[2])
                     if (type == "Leader") partyLeader = memberMatch.groupValues[2]
-
-                    return@on
                 }
+                return@on
             }
 
             partyWith.find(unformatted)?.let { match ->
