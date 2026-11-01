@@ -32,7 +32,6 @@ Download the JAR for your Minecraft version from [Releases](https://github.com/j
 - `/quoi antiafk <delay>` - Runs the anti-AFK helper.
 - `/quoi findlobby <area> <day|server|player> <value>` - Searches for matching lobbies.
 - `/route <em|add|rm|restore|clear|edit|editdb|chain|convert|reload> ...` - Edits and runs Auto Routes.
-- `/grieferpro` or `/gp <add|update|remove|get|list|donotgrief> ...` - Manages the Griefer Tracker list.
 - `/clearchat` - Clears the in-game chat.
 - `/ptr` - Transfers the party to a random member.
 - `/quoi <ep|ij|sl|sb|dd|tap|twap> [amount]` - Refills dungeon items from sacks.
@@ -281,8 +280,6 @@ Download the JAR for your Minecraft version from [Releases](https://github.com/j
   - Shows players, structures, and route blocks on a map.
 - **Crystal Hollows Scanner**
   - Finds structures and mining route blocks in loaded chunks.
-- **Griefer Tracker**
-  - Tracks saved players and encounter details in Crystal Hollows through `/grieferpro` or `/gp`.
 - **Ghost ESP**
   - Highlights or hides Ghosts in the Mist.
 - **Glacite Tunnels**

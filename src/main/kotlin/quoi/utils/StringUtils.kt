@@ -156,26 +156,6 @@ object StringUtils {
         }
     }
 
-    fun formatNumber(numStr: String): String {
-        val num = numStr.replace(",", "").toDoubleOrNull() ?: return numStr
-        return when {
-            num >= 1_000_000_000 -> "%.2fB".format(num / 1_000_000_000)
-            num >= 1_000_000 -> "%.2fM".format(num / 1_000_000)
-            num >= 1_000 -> "%.2fK".format(num / 1_000)
-            else -> "%.0f".format(num)
-        }
-    }
-
-    fun parseNumber(str: String): Double {
-        val s = str.trim().uppercase()
-        return when {
-            s.endsWith("B") -> s.dropLast(1).toDoubleOrNull()?.times(1_000_000_000) ?: 0.0
-            s.endsWith("M") -> s.dropLast(1).toDoubleOrNull()?.times(1_000_000) ?: 0.0
-            s.endsWith("K") -> s.dropLast(1).toDoubleOrNull()?.times(1_000) ?: 0.0
-            else -> s.replace(",", "").toDoubleOrNull() ?: 0.0
-        }
-    }
-
     fun Number.percentColour(max: Double) = when {
         this.toDouble() >= max * 0.75 -> "§2"
         this.toDouble() >= max * 0.50 -> "§e"

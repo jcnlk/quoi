@@ -40,7 +40,6 @@ object CrystalHollowsMap : Module(
 ) {
     private val iconScale by slider("Icon scale", 2.0f, 0.1f, 5.0f, 0.1f)
     private val drawPlayers by switch("Draw players")
-    private val onlyGriefed by switch("Only griefed").visibleIf { drawPlayers && GrieferTracker.enabled }
     private val drawOutOfRange by switch("Draw out of range").visibleIf { drawPlayers }
     private val drawNames by switch("Draw names").visibleIf { drawPlayers }
     private val textScale by slider("Text scale", 2.0f, 0.1f, 5.0f, 0.1f).visibleIf { drawPlayers && drawNames }
@@ -57,7 +56,7 @@ object CrystalHollowsMap : Module(
             size(MAP_SIZE.px, MAP_SIZE.px)
         )
     }.withSettings(
-        ::iconScale, ::drawPlayers, ::onlyGriefed, ::drawOutOfRange, ::drawNames, ::textScale,
+        ::iconScale, ::drawPlayers, ::drawOutOfRange, ::drawNames, ::textScale,
         ::other, ::drawChunks, ::chunksCol, ::drawRouteBlocks, ::drawStructures
     ).setting()
 
@@ -95,17 +94,14 @@ object CrystalHollowsMap : Module(
 
             mapPlayers.keys.retainAll(WorldUtils.players.map { it.profile.name }.toSet())
 
-            val griefedPlayers = GrieferTracker.getPlayers().map { it.name }
             playerEntities.forEach {
                 val name = it.name.string
-                if (onlyGriefed && name !in griefedPlayers && it.uuid != player.uuid) return@forEach
                 mapPlayers[name] = MapPlayer(it.uuid, name, it.x, it.z, it.yHeadRot)
             }
 
             val now = System.currentTimeMillis()
             mapPlayers.entries.removeIf {
-                it.value.uuid != player.uuid &&
-                (now - it.value.lastSeen > 60_000 || (onlyGriefed && it.value.name !in griefedPlayers))
+                it.value.uuid != player.uuid && now - it.value.lastSeen > 60_000
             }
         }
 
