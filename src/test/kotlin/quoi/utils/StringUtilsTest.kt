@@ -89,14 +89,11 @@ class StringUtilsTest {
     }
 
     @ParameterizedTest
-    @CsvSource("1, 4, bcd", "4, 1, bcd", "-2, 3, abc", "3, 99, def", "0, 6, abcdef", "2, 2, ''")
-    fun `safe substring handles reversed bounds negative starts and oversized ends`(from: Int, to: Int, expected: String) {
-        assertEquals(expected, "abcdef".substringSafe(from, to))
-    }
-
-    @ParameterizedTest
-    @CsvSource("-5, -1, ''", "7, 99, ''", "99, 3, def", "-99, 99, abcdef")
-    fun `safe substring clamps both bounds to the string`(from: Int, to: Int, expected: String) {
+    @CsvSource(
+        "1, 4, bcd", "4, 1, bcd", "-2, 3, abc", "3, 99, def", "0, 6, abcdef", "2, 2, ''",
+        "-5, -1, ''", "7, 99, ''", "99, 3, def", "-99, 99, abcdef",
+    )
+    fun `safe substring handles reversed and out of bounds indices`(from: Int, to: Int, expected: String) {
         assertEquals(expected, "abcdef".substringSafe(from, to))
     }
 

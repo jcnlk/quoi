@@ -36,10 +36,10 @@ class ColourTest {
     }
 
     @ParameterizedTest
-    @CsvSource("0.0, #00000000", "0.5, #80808080", "1.0, #FFFFFFFF")
+    @CsvSource("0.0, #1450C833", "0.25, #41469B59", "0.5, #6E3C6E80", "1.0, #C82814CC")
     fun `mix interpolates RGB and alpha including both endpoints`(weight: Float, expected: String) {
-        val from = Colour.RGB(0, 0, 0, 0f)
-        val to = Colour.RGB(255, 255, 255, 1f)
+        val from = Colour.RGB(20, 80, 200, 0.2f)
+        val to = Colour.RGB(200, 40, 20, 0.8f)
 
         assertEquals(expected, from.mix(to, weight).toHexString(returnAlpha = true))
     }

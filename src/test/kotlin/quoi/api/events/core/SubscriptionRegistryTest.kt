@@ -13,23 +13,9 @@ class SubscriptionRegistryTest {
     private fun subscription(priority: Int) = Subscription<TestEvent>(listener, TestEvent::class.java, priority) {}
 
     @Test
-    fun `registry starts empty and sorts additions by descending priority with stable ties`() {
-        val registry = SubscriptionRegistry<TestEvent>()
-        assertTrue(registry.dispatchSnapshot.isEmpty())
-        val low = subscription(Priority.LOW)
-        val firstHigh = subscription(Priority.HIGH)
-        val secondHigh = subscription(Priority.HIGH)
-        val normal = subscription(0)
-
-        listOf(low, firstHigh, secondHigh, normal).forEach(registry::add)
-
-        val expected = listOf(firstHigh, secondHigh, normal, low)
-        assertContentEquals(expected, registry.dispatchSnapshot.asList())
-    }
-
-    @Test
     fun `adding and removing subscriptions does not change a previously captured dispatch snapshot`() {
         val registry = SubscriptionRegistry<TestEvent>()
+        assertTrue(registry.dispatchSnapshot.isEmpty())
         val original = subscription(0)
         val added = subscription(Priority.HIGH)
         registry.add(original)

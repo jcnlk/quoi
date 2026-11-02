@@ -1,8 +1,15 @@
 package quoi.config
 
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
+import java.io.File
+import java.io.IOException
+import java.util.AbstractMap.SimpleEntry
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertSame
 
 class ConfigCollectionsTest {
     @Test
@@ -80,6 +87,107 @@ class ConfigCollectionsTest {
 
         assertEquals(listOf(mapOf("first" to 2), mapOf("first" to 2, "second" to 3, "third" to 4), mapOf("first" to 2, "third" to 4), emptyMap()), saved)
         assertEquals(emptyMap(), map.toMap())
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["entries", "keys", "values", "entry iterator", "key iterator", "value iterator", "removeAll", "retainAll"])
+    fun `map view removals persist the updated contents`(view: String) {
+        val backing = mutableMapOf("removed" to 1, "kept" to 2)
+        val saved = mutableListOf<Map<String, Int>>()
+        val map = ConfigMap(backing, { saved.add(backing.toMap()) }, {})
+
+        when (view) {
+            "entries" -> map.entries.remove(SimpleEntry("removed", 1))
+            "keys" -> map.keys.remove("removed")
+            "values" -> map.values.remove(1)
+            "entry iterator" -> map.entries.iterator().apply { next() }.remove()
+            "key iterator" -> map.keys.iterator().apply { next() }.remove()
+            "value iterator" -> map.values.iterator().apply { next() }.remove()
+            "removeAll" -> map.entries.removeAll(setOf(SimpleEntry("removed", 1)))
+            "retainAll" -> map.entries.retainAll(setOf(SimpleEntry("kept", 2)))
+            else -> error("Unknown view: $view")
+        }
+
+        assertEquals(mapOf("kept" to 2), backing)
+        assertEquals(listOf(mapOf("kept" to 2)), saved)
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["entries", "keys", "values"])
+    fun `clearing a map view persists once after removing all entries`(view: String) {
+        val backing = mutableMapOf("first" to 1, "second" to 2)
+        val saved = mutableListOf<Map<String, Int>>()
+        val map = ConfigMap(backing, { saved.add(backing.toMap()) }, {})
+
+        when (view) {
+            "entries" -> map.entries.clear()
+            "keys" -> map.keys.clear()
+            "values" -> map.values.clear()
+            else -> error("Unknown view: $view")
+        }
+
+        assertEquals(emptyMap(), backing)
+        assertEquals(listOf(emptyMap()), saved)
+    }
+
+    @Test
+    fun `map entry value updates persist and preserve entry equality and hashing`() {
+        val backing = mutableMapOf("key" to 1)
+        val saved = mutableListOf<Map<String, Int>>()
+        val map = ConfigMap(backing, { saved.add(backing.toMap()) }, {})
+        val entry = map.entries.single()
+
+        assertEquals(1, entry.setValue(2))
+
+        assertEquals(mapOf("key" to 2), backing)
+        assertEquals(listOf(mapOf("key" to 2)), saved)
+        assertEquals(SimpleEntry("key", 2), entry)
+        assertEquals(SimpleEntry("key", 2).hashCode(), entry.hashCode())
+        assertEquals(backing.hashCode(), map.hashCode())
+    }
+
+    @Test
+    fun `failed and absent map view mutations do not notify persistence`() {
+        var saves = 0
+        val map = ConfigMap(mutableMapOf("kept" to 1), { saves++ }, {})
+
+        assertFailsWith<UnsupportedOperationException> { map.entries.add(SimpleEntry("added", 2)) }
+        assertFailsWith<IllegalStateException> { map.entries.iterator().remove() }
+        map.keys.remove("absent")
+        map.values.remove(2)
+
+        assertEquals(mapOf("kept" to 1), map.toMap())
+        assertEquals(0, saves)
+    }
+
+    @Test
+    fun `atomic config writes replace the original only after writing completes`(@TempDir directory: File) {
+        val file = File(directory, "config.json").apply { writeText("original") }
+
+        writeConfigAtomically(file) { writer ->
+            writer.write("replacement")
+            assertEquals("original", file.readText())
+        }
+
+        assertEquals("replacement", file.readText())
+        assertEquals(listOf("config.json"), directory.list()?.toList())
+    }
+
+    @Test
+    fun `failed config writes preserve the original and remove temporary files`(@TempDir directory: File) {
+        val file = File(directory, "config.json").apply { writeText("original") }
+        val expected = IOException("write failed")
+
+        val actual = assertFailsWith<IOException> {
+            writeConfigAtomically(file) { writer ->
+                writer.write("partial replacement")
+                throw expected
+            }
+        }
+
+        assertSame(expected, actual)
+        assertEquals("original", file.readText())
+        assertEquals(listOf("config.json"), directory.list()?.toList())
     }
 
     @Test
