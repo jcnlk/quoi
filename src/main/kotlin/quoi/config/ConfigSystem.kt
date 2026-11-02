@@ -132,7 +132,31 @@ class ConfigMap<K, V>(
     fun reload() = onReload()
 
     override val size: Int get() = map.size
-    override val entries get() = map.entries
+    override val entries: MutableSet<MutableMap.MutableEntry<K, V>> = object : AbstractMutableSet<MutableMap.MutableEntry<K, V>>() {
+        override val size: Int get() = map.size
+
+        override fun iterator(): MutableIterator<MutableMap.MutableEntry<K, V>> {
+            val iterator = map.entries.iterator()
+            return object : MutableIterator<MutableMap.MutableEntry<K, V>> {
+                override fun hasNext() = iterator.hasNext()
+
+                override fun next(): MutableMap.MutableEntry<K, V> {
+                    val entry = iterator.next()
+                    return object : MutableMap.MutableEntry<K, V> by entry {
+                        override fun setValue(newValue: V): V = modify { entry.setValue(newValue) }
+                        override fun equals(other: Any?) = entry == other
+                        override fun hashCode() = entry.hashCode()
+                        override fun toString() = entry.toString()
+                    }
+                }
+
+                override fun remove() = modify { iterator.remove() }
+            }
+        }
+
+        override fun add(element: MutableMap.MutableEntry<K, V>): Boolean = throw UnsupportedOperationException()
+        override fun clear() = this@ConfigMap.clear()
+    }
 
     private inline fun <R> modify(block: () -> R): R {
         val result = block()
