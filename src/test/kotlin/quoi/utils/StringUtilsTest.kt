@@ -4,7 +4,9 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import quoi.utils.StringUtils.containsOneOf
+import quoi.utils.StringUtils.dropAt
 import quoi.utils.StringUtils.noControlCodes
+import quoi.utils.StringUtils.removeRangeSafe
 import quoi.utils.StringUtils.startsWithOneOf
 import quoi.utils.StringUtils.substringSafe
 import quoi.utils.StringUtils.toFixed
@@ -26,6 +28,9 @@ class StringUtilsTest {
         "3661250, 1h 1m 1.25s",
         "86400000, 1d",
         "90061250, 1d 1h 1m 1.25s",
+        "2160000000, 25d",
+        "4323661250, 50d 1h 1m 1.25s",
+        "9223372036854775807, 106751991167d 7h 12m 55.81s",
     )
     fun `formats millisecond durations across unit boundaries`(milliseconds: Long, expected: String) {
         assertEquals(expected, StringUtils.formatTime(milliseconds))
@@ -87,6 +92,36 @@ class StringUtilsTest {
     @CsvSource("1, 4, bcd", "4, 1, bcd", "-2, 3, abc", "3, 99, def", "0, 6, abcdef", "2, 2, ''")
     fun `safe substring handles reversed bounds negative starts and oversized ends`(from: Int, to: Int, expected: String) {
         assertEquals(expected, "abcdef".substringSafe(from, to))
+    }
+
+    @ParameterizedTest
+    @CsvSource("-5, -1, ''", "7, 99, ''", "99, 3, def", "-99, 99, abcdef")
+    fun `safe substring clamps both bounds to the string`(from: Int, to: Int, expected: String) {
+        assertEquals(expected, "abcdef".substringSafe(from, to))
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        "1, 4, aef", "4, 1, aef", "-2, 3, def", "3, 99, abc",
+        "-5, -1, abcdef", "7, 99, abcdef", "-99, 99, ''", "2, 2, abcdef",
+    )
+    fun `safe range removal handles reversed and out of bounds indices`(from: Int, to: Int, expected: String) {
+        assertEquals(expected, "abcdef".removeRangeSafe(from, to))
+    }
+
+    @Test
+    fun `safe range operations accept empty strings`() {
+        assertEquals("", "".substringSafe(-5, 5))
+        assertEquals("", "".substringSafe(1, 5))
+        assertEquals("", "".removeRangeSafe(-5, 5))
+    }
+
+    @Test
+    fun `character deletion handles both directions and string boundaries`() {
+        assertEquals("abdef", "abcdef".dropAt(3, -1))
+        assertEquals("abcef", "abcdef".dropAt(3, 1))
+        assertEquals("abcdef", "abcdef".dropAt(0, -1))
+        assertEquals("abcdef", "abcdef".dropAt(6, 1))
     }
 
     @Test

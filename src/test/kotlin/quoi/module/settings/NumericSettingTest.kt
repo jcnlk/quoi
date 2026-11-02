@@ -104,4 +104,23 @@ class NumericSettingTest {
         restored.reset()
         assertEquals(1 to 9, restored.value)
     }
+
+    @Test
+    fun `range JSON loading preserves each supported numeric type`() {
+        val intSetting = RangeSliderComponent("Int", default = 1 to 9)
+        val longSetting = RangeSliderComponent("Long", default = 0L to 4_000_000_000L, min = 0L, max = Long.MAX_VALUE)
+        val floatSetting = RangeSliderComponent("Float", default = 0f to 1f)
+        val doubleSetting = RangeSliderComponent("Double", default = 0.0 to 1.0)
+
+        intSetting.read(JsonParser.parseString("[3,7]"))
+        longSetting.read(JsonParser.parseString("[3000000000,4000000000]"))
+        floatSetting.read(JsonParser.parseString("[0.25,0.75]"))
+        doubleSetting.read(JsonParser.parseString("[0.25,0.75]"))
+
+        assertEquals(3 to 7, intSetting.value)
+        assertEquals(3_000_000_000L to 4_000_000_000L, longSetting.value)
+        assertEquals(0.25f to 0.75f, floatSetting.value)
+        assertEquals(0.25 to 0.75, doubleSetting.value)
+        assertEquals(JsonParser.parseString("[0.25,0.75]"), doubleSetting.write())
+    }
 }

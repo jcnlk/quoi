@@ -48,7 +48,7 @@ class RangeSliderComponent<E>(
         is Int -> n.toInt()
         is Float -> n.toFloat()
         is Long -> n.toLong()
-        is Double -> n
+        is Double -> n.toDouble()
         else -> n
     } as E
 

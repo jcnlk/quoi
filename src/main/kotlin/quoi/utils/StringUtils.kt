@@ -95,9 +95,8 @@ object StringUtils {
      * Safer implementation of [substring], which doesn't crash.
      */
     fun String.substringSafe(from: Int, to: Int): String {
-        val f = min(from, to).coerceAtLeast(0)
-        val t = max(to, from)
-        if (t > length) return substring(f)
+        val f = min(from, to).coerceIn(0, length)
+        val t = max(to, from).coerceIn(0, length)
         return substring(f, t)
     }
 
@@ -105,8 +104,8 @@ object StringUtils {
      * Safer implementation of [removeRange], which doesn't crash.
      */
     fun String.removeRangeSafe(from: Int, to: Int): String {
-        val f = min(from, to)
-        val t = max(to, from)
+        val f = min(from, to).coerceIn(0, length)
+        val t = max(to, from).coerceIn(0, length)
         return removeRange(f, t)
     }
 
@@ -131,12 +130,12 @@ object StringUtils {
         if (time == 0L) return "0s"
         var remaining = time
 
-        val daysVal = (remaining / 86_400_000).toInt()
-        remaining -= daysVal * 86_400_000
-        val hoursVal = (remaining / 3_600_000).toInt()
-        remaining -= hoursVal * 3_600_000
-        val minutesVal = (remaining / 60_000).toInt()
-        remaining -= minutesVal * 60_000
+        val daysVal = remaining / 86_400_000
+        remaining %= 86_400_000
+        val hoursVal = remaining / 3_600_000
+        remaining %= 3_600_000
+        val minutesVal = remaining / 60_000
+        remaining %= 60_000
         val secondsVal = remaining / 1000f
 
         val days = daysVal.let { if (showDays && it > 0) "${it}d " else "" }
