@@ -22,6 +22,7 @@ import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import quoi.module.impl.render.ItemAnimations;
+import quoi.module.impl.render.VisualBlocking;
 
 @Mixin(FirstPersonHandsAndItemsRenderer.class)
 public abstract class ItemInHandRendererMixin {
@@ -100,6 +101,7 @@ public abstract class ItemInHandRendererMixin {
         AvatarRenderState avatar = playerState.avatarRenderState;
         HumanoidArm arm = hand == net.minecraft.world.InteractionHand.MAIN_HAND ? avatar.mainArm : avatar.mainArm.getOpposite();
         ItemDisplayContext displayContext = arm == HumanoidArm.RIGHT ? ItemDisplayContext.FIRST_PERSON_RIGHT_HAND : ItemDisplayContext.FIRST_PERSON_LEFT_HAND;
+        if (hand == InteractionHand.MAIN_HAND) VisualBlocking.applyFirstPerson(poseStack, itemStack, displayContext);
         ItemAnimations.applyScale(poseStack, itemStack, displayContext);
     }
 

@@ -27,6 +27,7 @@ Download the JAR for your Minecraft version from [Releases](https://github.com/j
 - `/quoi autocroesus <go|forcego|api|reset|copylog|loot|alwaysbuy|worthless> ...` - Controls Auto Croesus.
 - `/quoi autosell <add|remove|clear|list> [item]` - Manages the Auto Sell list.
 - `/quoi autoclicker <add|remove|clear> <left|right>` - Manages Auto Clicker whitelists.
+- `/quoi blocking <whitelist|blacklist> <add|remove|toggle|list|clear> ...` - Manages Visual Blocking item lists.
 - `/quoi hotbar <save|load|list|delete|setmsg|setfloor|setclass> ...` - Manages Auto Hotbar presets.
 - `/quoi petkeybinds <add|get|list|remove|clear|addfromuuidname|removefromuuidname> ...` - Manages pet keybind entries.
 - `/quoi antiafk <delay>` - Runs the anti-AFK helper.
@@ -264,6 +265,9 @@ Download the JAR for your Minecraft version from [Releases](https://github.com/j
   - Restores the old red Master Star display.
 - **Trajectories**
   - Shows bow and Ender Pearl paths, with optional impact boxes and planes.
+- **Visual Blocking**
+  - Shows a visual blocking pose while holding use, with optional third-person rendering.
+  - Adds item whitelists and blacklists with Minecraft item, tag, and SkyBlock ID support.
 - **Trail**
   - Draws a trail behind you
 - **Waypoints**

@@ -22,6 +22,7 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import quoi.module.impl.render.ItemAnimations;
+import quoi.module.impl.render.VisualBlocking;
 
 @Mixin(ItemInHandRenderer.class)
 public abstract class LegacyItemInHandRendererMixin {
@@ -102,6 +103,7 @@ public abstract class LegacyItemInHandRendererMixin {
             at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/item/ItemStackRenderState;submit(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;III)V")
     )
     private void quoi$itemAnimationsItemScale(LivingEntity livingEntity, ItemStack itemStack, ItemDisplayContext itemDisplayContext, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, CallbackInfo ci) {
+        VisualBlocking.applyFirstPerson(poseStack, itemStack, itemDisplayContext);
         ItemAnimations.applyScale(poseStack, itemStack, itemDisplayContext);
     }
 
