@@ -8,7 +8,7 @@ import quoi.module.settings.group.ToggleableGroup
 import quoi.utils.ChatUtils.commandAny
 import quoi.utils.ChatUtils.say
 
-// TODO: add more bypass modes: https://github.com/jcnlk/ChatFilterBypass/blob/main/index.js
+// based on: https://github.com/jcnlk/ChatFilterBypass/blob/main/index.js
 object ChatBypass : ToggleableGroup(
     Chat,
     "Chat bypass",
@@ -55,15 +55,8 @@ object ChatBypass : ToggleableGroup(
     private fun apply(str: String) = mode.selected.apply(str)
 
     @Suppress("unused")
-    private enum class BypassMode {
-        Dots {
-            override fun apply(str: String): String = buildString {
-                for (i in str.indices) {
-                    append(str[i])
-                    if (i < str.length - 1 && str[i] != ' ' && str[i + 1] != ' ') append('.')
-                }
-            }
-        },
+    private enum class BypassMode(private val separator: String = "") {
+        Dots("."),
         SmallCaps {
             private val hMap = mapOf('b' to 'ʙ', 'g' to 'ɢ', 'h' to 'ʜ', 'j' to 'ᴊ', 'q' to 'ǫ', 'z' to 'ᴢ', 'x' to 'x')
             private val map by lazy { "abcdefghijklmnopqrstuvwxyz".zip("ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘǫʀꜱᴛᴜᴠᴡxʏᴢ").toMap() }
@@ -72,8 +65,13 @@ object ChatBypass : ToggleableGroup(
                 val m = if (onHypixel) hMap else map
                 return str.lowercase().map { m[it] ?: it }.joinToString("")
             }
-        };
+        },
+        Spaces(" "),
+        Asterisks("*"),
+        Dashes("-");
 
-        abstract fun apply(str: String): String
+        open fun apply(str: String): String = str.split(' ').joinToString(" ") { word ->
+            word.codePoints().toArray().joinToString(separator) { String(Character.toChars(it)) }
+        }
     }
 }
