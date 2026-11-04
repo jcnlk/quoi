@@ -96,6 +96,9 @@ stonecutter parameters {
     }
 
     replacements.string(v26_4) {
+        replace("mc.mouseHandler.xpos()", "mc.mouseHandler.xpos")
+        replace("mc.mouseHandler.ypos()", "mc.mouseHandler.ypos")
+        replace("isHoveredOrFocused", "(isHovered || isFocused)")
         replace("SoundEvents.CAT_AMBIENT_BABY", "SoundEvents.BABY_CAT_SOUND_SET.ambientSound().get()")
         replace("import net.minecraft.tags.FluidTags", "import net.minecraft.world.level.material.Fluids")
         replace("FluidTags.WATER", "Fluids.WATER")

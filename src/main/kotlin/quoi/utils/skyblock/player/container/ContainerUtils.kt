@@ -197,11 +197,15 @@ object ContainerUtils : EventListener, Shortcuts {
     val Screen.hoveredSlot: Slot?
         get() {
             if (this !is AbstractContainerScreen<*>) return null
+            //? if >=26.4 {
+            /*return (this as AbstractContainerScreenAccessor).`quoi$getSlotAtPos`()?.slot()
+            *///?} else {
             val window = mc.window
             return (this as AbstractContainerScreenAccessor).`quoi$getSlotAtPos`(
                 mc.mouseHandler.getScaledXPos(window),
                 mc.mouseHandler.getScaledYPos(window)
             )
+            //?}
         }
 
     fun LocalPlayer.clickSlot(slot: Int, containerId: Int = ContainerUtils.containerId, button: Int = 0, shift: Boolean = false) {
