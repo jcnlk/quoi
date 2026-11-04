@@ -18,8 +18,7 @@ import quoi.api.events.WorldEvent
 import quoi.api.events.core.Priority
 import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.Dungeon
-import quoi.api.skyblock.dungeon.Dungeon.floor
-import quoi.api.skyblock.dungeon.Dungeon.inBoss
+import quoi.api.skyblock.dungeon.Floor7.inF7Boss
 import quoi.api.skyblock.dungeon.odonscanning.ScanUtils
 import quoi.api.skyblock.dungeon.odonscanning.tiles.OdonRoom
 import quoi.api.skyblock.dungeon.odonscanning.tiles.RoomState
@@ -78,7 +77,7 @@ object DungeonESP : Module(
 
     init {
         scheduleLoop(10) {
-            if (!Dungeon.inDungeons) return@scheduleLoop
+            if (!Dungeon.inClear) return@scheduleLoop
             updateEntities()
             Test.collectMobs()
         }
@@ -100,7 +99,7 @@ object DungeonESP : Module(
             currentEntities.removeIf { _, mob ->
                 val entity = mob.entity
 
-                if (entity.isDeadOrDying || entity.isRemoved) return@removeIf true
+                if (!Dungeon.inClear || entity.isDeadOrDying || entity.isRemoved) return@removeIf true
                 if (!enabled || !starEsp) return@removeIf false
 
                 starHighlight.draw(
@@ -112,7 +111,7 @@ object DungeonESP : Module(
                 false
             }
 
-            if (enabled && bossEsp && inBoss && floor?.floorNumber == 7) getEntities<WitherBoss>()
+            if (enabled && bossEsp && inF7Boss) getEntities<WitherBoss>()
                 .filter { it.isWitherBoss }
                 .forEach { bossHighlight.draw(ctx, it.interpolatedBox) }
         }
@@ -127,7 +126,7 @@ object DungeonESP : Module(
                 }
             }
 
-            if (starEsp) {
+            if (starEsp && Dungeon.inClear) {
                 getColour(entity)?.let {
                     starHighlight.draw(this, overrideColour = it.first)
                     return@on
@@ -138,7 +137,7 @@ object DungeonESP : Module(
                 }
             }
 
-            if (bossEsp && inBoss && floor?.floorNumber == 7 && entity.isWitherBoss) {
+            if (bossEsp && inF7Boss && entity.isWitherBoss) {
                 bossHighlight.draw(this)
             }
         }
