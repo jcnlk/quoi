@@ -8,7 +8,7 @@ import net.minecraft.resources.Identifier
 import net.minecraft.client.renderer.feature.ItemFeatureRenderer
 //? if >=26.3
 //import net.minecraft.client.renderer.RenderPipelines
-//? if >=26.4-snapshot-5
+//? if >=26.4
 //import net.minecraft.client.renderer.pipeline.variant.DebugPrimitiveRenderPipelineVariant
 
 object CustomRenderLayer {
@@ -30,7 +30,7 @@ object CustomRenderLayer {
         create("quoi_entity_overlay", if (depth) CustomRenderPipelines.ENTITY_OVERLAY else CustomRenderPipelines.ENTITY_OVERLAY_ESP) {
             withTexture("Sampler0", texture)
             useLightmap()
-            //? if <26.4-snapshot-5
+            //? if <26.4
             useOverlay()
         }.also { if (!depth) entityOverlayEspLayers.add(it) }
     }
@@ -40,7 +40,7 @@ object CustomRenderLayer {
         pipeline: RenderPipeline,
         configure: RenderSetup.RenderSetupBuilder.() -> Unit = {}
     ): RenderType {
-        //? if >=26.4-snapshot-5 {
+        //? if >=26.4 {
         /*val builder = if (pipeline === CustomRenderPipelines.TRIANGLE_STRIP) {
             RenderSetup.builder { stage ->
                 RenderPipelines.debugPrimitive(RenderPipelines.DebugPrimitiveParameters(DebugPrimitiveRenderPipelineVariant.QUADS, stage))
@@ -58,7 +58,7 @@ object CustomRenderLayer {
     }
 
     val TRIANGLE_STRIP: RenderType = create("quoi_debug_quads", CustomRenderPipelines.TRIANGLE_STRIP) {
-        //? if >=26.3 && <26.4-snapshot-5
+        //? if >=26.3 && <26.4
         //setOitPipelines(RenderPipelines.OIT_DEBUG_QUADS)
         setLayeringTransform(LayeringTransform.VIEW_OFFSET_Z_LAYERING)
         sortOnUpload()

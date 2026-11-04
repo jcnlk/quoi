@@ -7,7 +7,7 @@ plugins {
     kotlin("jvm")
 }
 
-val mcVersion = sc.current.version
+val mcVersion = findProperty("minecraft_version")?.toString() ?: sc.current.version
 val modVersion = providers.gradleProperty("mod_version").get()
 val archivesBaseName = providers.gradleProperty("archives_base_name").get()
 val usesSharedSources = sc.current.isActive

@@ -63,7 +63,7 @@ object GreatSpook : Module(
     private fun getCommand(text: Component): String? {
         val msg = text.string.noControlCodes.trim().removePrefix("[FEAR] Commitment Phobia: Please sign this paper!\n")
         if (!msg.startsWith("Click HERE to sign the ") || !msg.endsWith('.')) return null
-        //? if >=26.4-snapshot-6 {
+        //? if >=26.4 {
         /*val click = text.visit<ClickEvent>({ style, content ->
             if ("HERE" in content.noControlCodes) Optional.ofNullable(style.clickEvent) else Optional.empty()
         }, ClickEvent.RunCommand(""), Style.EMPTY).orElse(null)

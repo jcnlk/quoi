@@ -27,7 +27,7 @@ class UIScreen(val instance: AbobaUI.Instance, val background: Boolean = true ) 
         //? if <26.2
         super.extractRenderState(ctx, mouseX, mouseY, deltaTicks)
         instance.ctx = ctx
-        //? if >=26.4-snapshot-5 {
+        //? if >=26.4 {
         /*val mouseX = ctx.mouseX()
         val mouseY = ctx.mouseY()
         *///?}

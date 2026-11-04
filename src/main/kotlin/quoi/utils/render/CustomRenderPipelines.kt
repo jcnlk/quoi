@@ -8,7 +8,7 @@ import com.mojang.blaze3d.platform.CompareOp
 import com.mojang.blaze3d.vertex.DefaultVertexFormat
 import net.minecraft.client.renderer.RenderPipelines
 import net.minecraft.resources.Identifier
-//? if >=26.4-snapshot-5
+//? if >=26.4
 //import net.minecraft.client.renderer.BindGroupLayouts
 //$ primitive_type_import
 import com.mojang.blaze3d.vertex.VertexFormat
@@ -20,7 +20,7 @@ import com.mojang.blaze3d.vertex.VertexFormat
  */
 object CustomRenderPipelines {
     private fun entityOverlayPipeline(depth: Boolean): RenderPipeline {
-        //? if >=26.4-snapshot-5 {
+        //? if >=26.4 {
         /*val builder = RenderPipeline.builder(RenderPipelines.GLOBALS_SNIPPET)
             .withBindGroupLayout(BindGroupLayouts.PROJECTION)
             .withBindGroupLayout(BindGroupLayouts.DYNAMIC_TRANSFORMS)
@@ -53,7 +53,7 @@ object CustomRenderPipelines {
                 //?}
             )
             .build()
-        //? if <26.4-snapshot-1 {
+        //? if <26.4 {
         return RenderPipelines.register(pipeline)
         //?} else
         //return pipeline
@@ -62,7 +62,7 @@ object CustomRenderPipelines {
     val ENTITY_OVERLAY: RenderPipeline = entityOverlayPipeline(true)
     val ENTITY_OVERLAY_ESP: RenderPipeline = entityOverlayPipeline(false)
 
-    //? if >=26.4-snapshot-5 {
+    //? if >=26.4 {
     /*private val filledSnippet = RenderPipeline.builder(RenderPipelines.GLOBALS_SNIPPET)
         .withBindGroupLayout(BindGroupLayouts.PROJECTION)
         .withBindGroupLayout(BindGroupLayouts.DYNAMIC_TRANSFORMS)

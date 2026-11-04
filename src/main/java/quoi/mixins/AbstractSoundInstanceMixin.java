@@ -10,7 +10,7 @@ import quoi.module.impl.misc.catmode.CatMode;
 @Mixin(AbstractSoundInstance.class)
 public class AbstractSoundInstanceMixin {
     @ModifyArg(
-            //? if >=26.4-snapshot-6 {
+            //? if >=26.4 {
             /*method = "resolveAndSelectSound",
             *///?} else if >=26.3 {
             /*method = "getOrResolve",

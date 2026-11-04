@@ -145,7 +145,7 @@ class McFonts {
     fun flushUploads() {
         pages.forEach { page ->
             if (page.dirty) {
-                //? if >=26.4-snapshot-3 {
+                //? if >=26.4 {
                 /*val encoder = RenderSystem.getDevice().createCommandEncoder()
                 page.image.writeToGpuTexture(encoder, page.texture.texture)
                 encoder.submit()

@@ -33,8 +33,8 @@ tasks.register("runActive") {
 stonecutter parameters {
     val gui = current.parsed >= "26.2"
     val sdl = current.parsed >= "26.3"
-    val snapshot5 = current.parsed >= "26.4-snapshot-5"
-    val pipelineInBlaze3d = current.parsed < "26.3" || current.parsed >= "26.4-snapshot-1"
+    val v26_4 = current.parsed >= "26.4"
+    val pipelineInBlaze3d = !sdl || v26_4
 
     // Minecraft 26.2 moves screens and HUD state into Gui and Hud.
     replacements.string(gui) {
@@ -70,7 +70,8 @@ stonecutter parameters {
         replace("entity.boundingBox.center.subtract(entity.position())", "Vec3.ZERO")
     }
 
-    replacements.string(current.parsed >= "26.4-snapshot-3", "texture_resources") {
+    // Minecraft 26.4 rendering, GUI, text, sound and fluid changes.
+    replacements.string(v26_4, "texture_resources") {
         replace(
             "import net.minecraft.client.renderer.texture.DynamicTexture",
             "import net.minecraft.client.renderer.texture.TextureResources",
@@ -81,35 +82,30 @@ stonecutter parameters {
         replace("it.textureView", "it.textureView()")
     }
 
-    replacements.string(current.parsed >= "26.4-snapshot-4") {
-        replace("SoundEvents.CAT_AMBIENT_BABY", "SoundEvents.BABY_CAT_SOUND_SET.ambientSound().get()")
-        replace("import net.minecraft.tags.FluidTags", "import net.minecraft.world.level.material.Fluids")
-        replace("FluidTags.WATER", "Fluids.WATER")
-        replace("FluidTags.LAVA", "Fluids.LAVA")
-    }
-
-    // Snapshot 6 wraps GUI pipelines and bounds styled text traversal.
-    replacements.string(current.parsed >= "26.4-snapshot-6", "gui_pipeline") {
+    replacements.string(v26_4, "gui_pipeline") {
         replace("import net.minecraft.client.renderer.RenderPipelines", "import net.minecraft.client.gui.GuiPipeline")
         replace("RenderPipelines.GUI_TEXTURED", "GuiPipeline.TEXTURED")
         replace("RenderPipelines.GUI", "GuiPipeline.DEFAULT")
     }
-    replacements.regex(current.parsed >= "26.4-snapshot-6", "gui_pipeline") {
+    replacements.regex(v26_4, "gui_pipeline") {
         // A type colon must not match the Elvis expression ?: GuiPipeline.DEFAULT.
         replace("(?<!\\?): RenderPipeline\\b", ": GuiPipeline", "(?<!\\?): GuiPipeline\\b", ": RenderPipeline")
     }
-    replacements.string(current.parsed >= "26.4-snapshot-6", "styled_text") {
+    replacements.string(v26_4, "styled_text") {
         replace("}, Style.EMPTY)", "}, Unit, Style.EMPTY)")
     }
 
-    // Snapshot 5 moves pipeline definitions and carries GUI input in the extractor.
-    replacements.string(snapshot5) {
+    replacements.string(v26_4) {
+        replace("SoundEvents.CAT_AMBIENT_BABY", "SoundEvents.BABY_CAT_SOUND_SET.ambientSound().get()")
+        replace("import net.minecraft.tags.FluidTags", "import net.minecraft.world.level.material.Fluids")
+        replace("FluidTags.WATER", "Fluids.WATER")
+        replace("FluidTags.LAVA", "Fluids.LAVA")
         replace("net.minecraft.client.renderer.RenderPipelines", "net.minecraft.client.renderer.pipeline.RenderPipelines")
         replace("RenderSetup.builder(pipeline)", "RenderSetup.nonOitBuilder(pipeline)")
         replace("RenderPipeline.builder(RenderPipelines.DEBUG_FILLED_SNIPPET)", "RenderPipeline.builder(filledSnippet)")
     }
 
-    replacements.string(snapshot5, "gui_extraction") {
+    replacements.string(v26_4, "gui_extraction") {
         listOf("extractRenderState", "extractBackground", "extractWidgetRenderState").forEach { method ->
             listOf("ctx", "guiGraphics").forEach { context ->
                 replace(
@@ -123,10 +119,10 @@ stonecutter parameters {
         replace("{ ctx, a ->", "{ ctx ->")
         replace("RenderEvent.Overlay(ctx, a)", "RenderEvent.Overlay(ctx, ctx.deltaTracker())")
     }
-    replacements.string(snapshot5, "screen_extraction") {
+    replacements.string(v26_4, "screen_extraction") {
         replace("GuiGraphicsExtractor context, int mouseX, int mouseY, float deltaTicks, CallbackInfo", "GuiGraphicsExtractor context, CallbackInfo")
     }
-    replacements.string(snapshot5, "container_extraction") {
+    replacements.string(v26_4, "container_extraction") {
         replace("GuiGraphicsExtractor context, int mouseX, int mouseY, CallbackInfo", "GuiGraphicsExtractor context, CallbackInfo")
         replace("GuiGraphicsExtractor context, Slot slot, int x, int y, CallbackInfo", "GuiGraphicsExtractor context, Slot slot, CallbackInfo")
     }
@@ -226,15 +222,15 @@ stonecutter parameters {
     }
     swaps["chat_render_method"] = when {
         !gui -> "method = \"extractRenderState*\","
-        !snapshot5 -> "method = \"extractRenderState(Lnet/minecraft/client/gui/GuiGraphicsExtractor;Lnet/minecraft/client/gui/Font;IIILnet/minecraft/client/gui/components/ChatComponent\$DisplayMode;Z)V\","
+        !v26_4 -> "method = \"extractRenderState(Lnet/minecraft/client/gui/GuiGraphicsExtractor;Lnet/minecraft/client/gui/Font;IIILnet/minecraft/client/gui/components/ChatComponent\$DisplayMode;Z)V\","
         else -> "method = \"extractRenderState(Lnet/minecraft/client/gui/GuiGraphicsExtractor;Lnet/minecraft/client/gui/Font;ILnet/minecraft/client/gui/components/ChatComponent\$DisplayMode;Z)V\","
     }
     swaps["pipeline_start"] = when {
-        current.parsed < "26.4-snapshot-1" -> "val \$1: RenderPipeline = RenderPipelines.register("
+        !v26_4 -> "val \$1: RenderPipeline = RenderPipelines.register("
         else -> "val \$1: RenderPipeline ="
     }
     swaps["pipeline_end"] = when {
-        current.parsed < "26.4-snapshot-1" -> ")"
+        !v26_4 -> ")"
         else -> "// Empty."
     }
     swaps["pipeline_vertices"] = when {
