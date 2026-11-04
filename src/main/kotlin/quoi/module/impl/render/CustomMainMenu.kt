@@ -1,20 +1,18 @@
 //~ desktop_platform
 package quoi.module.impl.render
 
+import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents
 import net.fabricmc.fabric.api.client.screen.v1.Screens
-import net.minecraft.client.gui.components.AbstractWidget
+import net.minecraft.client.gui.components.AbstractButton
 import net.minecraft.client.gui.screens.TitleScreen
+import net.minecraft.network.chat.contents.TranslatableContents
+import net.minecraft.util.Util
 import quoi.api.colour.Colour
-import quoi.api.events.GuiEvent
-import quoi.api.events.TickEvent
-import quoi.api.events.core.on
 import quoi.module.Module
 import quoi.module.settings.impl.SelectorComponent
 import quoi.ui.CustomMainMenuScreen
 import quoi.utils.StringUtils.noControlCodes
 import java.io.File
-
-import net.minecraft.util.Util
 
 object CustomMainMenu : Module(
     "Custom Main Menu",
@@ -22,32 +20,12 @@ object CustomMainMenu : Module(
 ) {
     private const val VANILLA_BACKGROUND = "Vanilla"
     private val SUPPORTED_BACKGROUND_EXTENSIONS = setOf("png", "jpg", "jpeg")
-    private val NON_CUSTOM_TITLE_BUTTONS = setOf(
-        "settings",
-        "setting",
-        "options",
-        "option",
-        "config",
-        "configuration",
-        "configure",
-        "mod settings",
-        "mod options",
-    )
     private val VANILLA_TITLE_BUTTONS = setOf(
-        "Singleplayer",
-        "Multiplayer",
-        "Minecraft Realms",
-        "Options...",
-        "Options",
-        "Quit Game",
-        "Quit",
-        "Language",
-        "Accessibility",
-        "Copyright Mojang AB. Do not distribute!",
+        "menu.singleplayer", "menu.multiplayer", "menu.online", "menu.options", "menu.quit",
+        "menu.playdemo", "menu.resetdemo", "menu.test", "options.language", "options.accessibility",
+        "accessibility.onboarding.accessibility.button", "gui.friends.open", "title.credits",
     )
-
     private val backgroundFolder = File(mc.gameDirectory, "config/quoi!/images").apply { mkdirs() }
-    private var lastBackgroundRefresh = 0L
 
     val backgroundImage: SelectorComponent<String> by selector(
         "Background image",
@@ -61,7 +39,6 @@ object CustomMainMenu : Module(
         Colour.RGB(255, 204, 134),
         desc = "Accent colour for custom main menu buttons and overlays."
     )
-
     @Suppress("unused")
     private val openBackgroundsFolder by button("Open backgrounds folder") {
         runCatching { Util.getPlatform().openPath(backgroundFolder.toPath()) }
@@ -72,54 +49,36 @@ object CustomMainMenu : Module(
 
     init {
         refreshBackgroundOptions()
+        ScreenEvents.AFTER_INIT.register { _, screen, _, _ ->
+            if (!enabled) return@register
+            refreshBackgroundOptions()
+            if (screen !is TitleScreen) return@register
 
-        on<TickEvent.End> { refreshBackgroundOptions() }
-
-        on<GuiEvent.Open.Post> {
-            if (screen !is TitleScreen) return@on
-
-            val extraButtons = Screens.getWidgets(screen).filter(::isExternalTitleButton)
-
-            // Replacing the screen while TitleScreen.init() is still on the stack leaves
-            // the GUI state inconsistent. Defer it to the next client task instead.
-            mc.submit {
-                if (mc.screen === screen) mc.setScreen(CustomMainMenuScreen(extraButtons))
+            // Wait for every mod's initialization before collecting buttons and replacing the screen.
+            mc.schedule {
+                if (enabled && mc.screen === screen) {
+                    val buttons = Screens.getWidgets(screen).filterIsInstance<AbstractButton>().filter(::isExternalTitleButton)
+                    mc.setScreen(CustomMainMenuScreen(buttons))
+                }
             }
         }
     }
 
-    fun selectedBackgroundFile(): File? {
-        refreshBackgroundOptions()
-        val selected = backgroundImage.selected
-        if (selected == VANILLA_BACKGROUND) return null
-        return File(backgroundFolder, selected).takeIf { it.isFile }
-    }
+    fun selectedBackgroundFile(): File? = backgroundImage.selected
+        .takeUnless { it == VANILLA_BACKGROUND }
+        ?.let { File(backgroundFolder, it).takeIf(File::isFile) }
 
     private fun refreshBackgroundOptions() {
-        val now = System.currentTimeMillis()
-        if (now - lastBackgroundRefresh < 1000) return
-        lastBackgroundRefresh = now
-
-        val files = backgroundFolder.listFiles()
-            ?.filter { it.isFile && it.extension.lowercase() in SUPPORTED_BACKGROUND_EXTENSIONS }
-            ?.map { it.name }
-            ?.sortedWith(String.CASE_INSENSITIVE_ORDER)
-            ?: emptyList()
-        val options = listOf(VANILLA_BACKGROUND) + files
-        if (options == backgroundImage.options) return
-
         val previous = backgroundImage.selected
-        backgroundImage.options = options
+        val files = backgroundFolder.listFiles().orEmpty()
+            .filter { it.isFile && it.extension.lowercase() in SUPPORTED_BACKGROUND_EXTENSIONS }
+            .map { it.name }
+            .sortedWith(String.CASE_INSENSITIVE_ORDER)
+        backgroundImage.options = listOf(VANILLA_BACKGROUND) + files
         backgroundImage.selected = previous
     }
 
-    private fun isExternalTitleButton(widget: AbstractWidget): Boolean {
-        val label = widget.message.string.noControlCodes.trim()
-        val normalised = label.lowercase()
-        if (label.isBlank()) return false
-        if (widget.width < 80) return false
-        if (normalised.contains("language") || normalised.contains("accessibility")) return false
-        if (normalised in NON_CUSTOM_TITLE_BUTTONS) return false
-        return label !in VANILLA_TITLE_BUTTONS
-    }
+    private fun isExternalTitleButton(button: AbstractButton): Boolean =
+        button.visible && button.message.string.noControlCodes.isNotBlank() &&
+            (button.message.contents as? TranslatableContents)?.key !in VANILLA_TITLE_BUTTONS
 }

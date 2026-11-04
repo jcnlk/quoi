@@ -106,7 +106,7 @@ stonecutter parameters {
     }
 
     replacements.string(v26_4, "gui_extraction") {
-        listOf("extractRenderState", "extractBackground", "extractWidgetRenderState").forEach { method ->
+        listOf("extractRenderState", "extractBackground", "extractWidgetRenderState", "extractContents").forEach { method ->
             listOf("ctx", "guiGraphics").forEach { context ->
                 replace(
                     "override fun $method($context: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, deltaTicks: Float)",

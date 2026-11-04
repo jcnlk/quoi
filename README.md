@@ -243,7 +243,7 @@ Download the JAR for your Minecraft version from [Releases](https://github.com/j
 - **Click GUI**
   - Configures modules, themes, keybinds, and HUDs.
 - **Custom Main Menu**
-  - Replaces the vanilla menu with server shortcuts.
+  - Replaces the vanilla menu with custom backgrounds, colours, and server shortcuts.
 - **Etherwarp Overlay**
   - Shows the predicted Etherwarp destination.
 - **Hide Players**
