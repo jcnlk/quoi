@@ -59,12 +59,12 @@ object DungeonESP : Module(
 
     private val starHighlight = highlight(colour = null, fillColour = null, aabbOffset = true).childOf(::starEsp)
 
-    private val colourDropdown by text("Colours").childOf(::starEsp)
+    private val colourDropdown by text("Colours").childOf(::starEsp).visibleIf { starHighlight.style != "Filled" }
     private val colourStar by colourPicker("Star", Colour.RED, true, "ESP color for star mobs.").childOf(::colourDropdown)
     private val colourSA by colourPicker("Shadow assassin", Colour.RED, true, "ESP color for shadow assassins.").childOf(::colourDropdown)
     private val colourBat by colourPicker("Bat", Colour.RED, true, "ESP color for bats.").childOf(::colourDropdown)
 
-    private val fillDropdown by text("Fill colours").childOf(::starEsp).visibleIf { starHighlight.style == "Filled box" }
+    private val fillDropdown by text("Fill colours").childOf(::starEsp).visibleIf { starHighlight.style.equalsOneOf("Filled box", "Filled") }
     private val colourStarFill by colourPicker("Star", Colour.RED.withAlpha(60), true, "ESP color for star mobs.").json("Star fill").childOf(::fillDropdown)
     private val colourSAFill by colourPicker("Shadow assassin", Colour.RED.withAlpha(60), true, "ESP color for shadow assassins.").json("Shadow assassin fill").childOf(::fillDropdown)
     private val colourBatFill by colourPicker("Bat", Colour.RED.withAlpha(60), true, "ESP color for bats.").json("Bat fill").childOf(::fillDropdown)
