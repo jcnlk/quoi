@@ -4,6 +4,7 @@ package quoi.utils.ui.rendering
 
 import com.mojang.blaze3d.platform.NativeImage
 import com.mojang.blaze3d.systems.RenderSystem
+import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap
 import java.nio.ByteBuffer
 import kotlin.math.floor
 import net.minecraft.client.renderer.texture.DynamicTexture
@@ -171,7 +172,7 @@ class McFonts {
 
         private val glyphIndexCache = HashMap<Int, Int>()
         private val advanceCache = HashMap<Int, Int>()
-        private val kernCache = HashMap<Long, Int>()
+        private val kernCache = Long2IntOpenHashMap()
 
         init {
             val data = font.buffer()
@@ -200,8 +201,13 @@ class McFonts {
             }
         }
 
-        fun kern(g1: Int, g2: Int): Int = kernCache.getOrPut((g1.toLong() shl 32) or g2.toLong()) {
-            stbtt_GetGlyphKernAdvance(info, g1, g2)
+        fun kern(g1: Int, g2: Int): Int {
+            val key = (g1.toLong() shl 32) or g2.toLong()
+            val cached = kernCache.getOrDefault(key, Int.MIN_VALUE)
+            if (cached != Int.MIN_VALUE) return cached
+            val advance = stbtt_GetGlyphKernAdvance(info, g1, g2)
+            kernCache.put(key, advance)
+            return advance
         }
     }
 

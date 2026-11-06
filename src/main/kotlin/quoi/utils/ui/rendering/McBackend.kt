@@ -60,7 +60,8 @@ class McBackend : RendererBackend {
     }
 
     private val stateStack = ArrayList<DrawState>()
-    private var state = DrawState()
+    private var stateDepth = 0
+    private val state = DrawState()
 
     /** window-space scissor rects as (x, y, maxX, maxY), already intersected. */
     private class ScissorEntry(val rect: FloatArray, val screenRect: ScreenRectangle?)
@@ -87,8 +88,9 @@ class McBackend : RendererBackend {
         basePose.set(ctx.pose()).scale(invGuiScale, invGuiScale)
         inheritedScissor = ctx.scissorStack.peek()
 
-        stateStack.clear()
-        state = DrawState()
+        stateDepth = 0
+        state.pose.identity()
+        state.alpha = 1f
         scissorStack.clear()
         resetBatch()
 
@@ -102,14 +104,14 @@ class McBackend : RendererBackend {
     }
 
     override fun push() {
-        val saved = DrawState()
+        val saved = if (stateDepth < stateStack.size) stateStack[stateDepth] else DrawState().also { stateStack.add(it) }
         saved.set(state)
-        stateStack.add(saved)
+        stateDepth++
     }
 
     override fun pop() {
-        val saved = stateStack.removeLastOrNull() ?: return
-        state.set(saved)
+        if (stateDepth == 0) return
+        state.set(stateStack[--stateDepth])
     }
 
     override fun translate(x: Float, y: Float) {
@@ -487,7 +489,10 @@ class McBackend : RendererBackend {
         if (bounds != null && bounds.width > 0 && bounds.height > 0) {
             val vertices = pendingVerts.toFloatArray()
             val colors = pendingCols.toIntArray()
-            val clipped = scissor?.let { UIGeometry.clipQuads(vertices, colors, it.rect) } ?: (vertices to colors)
+            val clipRect = scissor?.rect
+            val clipped = if (clipRect != null &&
+                (pendingMinX < clipRect[0] || pendingMinY < clipRect[1] || pendingMaxX > clipRect[2] || pendingMaxY > clipRect[3])
+            ) UIGeometry.clipQuads(vertices, colors, clipRect) else vertices to colors
             if (clipped.first.isEmpty()) { resetBatch(); return }
             val textureSetup = pendingTexture?.let {
                 TextureSetup.singleTexture(it.textureView, RenderSystem.getSamplerCache().getClampToEdge(FilterMode.LINEAR))
