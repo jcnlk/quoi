@@ -1,6 +1,5 @@
 package quoi.module.impl.dungeon
 
-import kotlin.math.roundToLong
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.network.protocol.game.ServerboundContainerClosePacket
 import net.minecraft.network.protocol.game.ServerboundInteractPacket
@@ -9,7 +8,7 @@ import net.minecraft.world.item.Items
 import net.minecraft.world.phys.EntityHitResult
 import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
-import quoi.api.abobaui.dsl.*
+import quoi.api.abobaui.dsl.px
 import quoi.api.abobaui.elements.impl.Text.Companion.shadow
 import quoi.api.abobaui.elements.impl.Text.Companion.textSupplied
 import quoi.api.colour.Colour
@@ -18,39 +17,21 @@ import quoi.api.events.GuiEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
 import quoi.api.events.core.on
-import quoi.api.input.Keyboard
 import quoi.api.input.Keybinds
+import quoi.api.input.Keyboard
 import quoi.api.skyblock.SkyblockPrices
 import quoi.api.skyblock.SkyblockPrices.BazaarPriceType
 import quoi.api.skyblock.location.Island
 import quoi.config.configList
 import quoi.module.Module
-import quoi.module.impl.dungeon.autocroesus.AutoCroesusChestParser
-import quoi.module.impl.dungeon.autocroesus.ChestData
-import quoi.module.impl.dungeon.autocroesus.ClaimingChestInfo
-import quoi.module.impl.dungeon.autocroesus.LoggedRun
-import quoi.module.impl.dungeon.autocroesus.LootFilters
-import quoi.module.impl.dungeon.autocroesus.LootSummaryItem
-import quoi.module.impl.dungeon.autocroesus.autoCroesusChestNames
-import quoi.module.impl.dungeon.autocroesus.autoCroesusChestSlots
-import quoi.module.impl.dungeon.autocroesus.autoCroesusFloors
-import quoi.module.impl.dungeon.autocroesus.cleanLore
-import quoi.module.impl.dungeon.autocroesus.coinsFromMillions
-import quoi.module.impl.dungeon.autocroesus.containsId
-import quoi.module.impl.dungeon.autocroesus.defaultAutoCroesusAlwaysBuy
-import quoi.module.impl.dungeon.autocroesus.defaultAutoCroesusWorthless
-import quoi.module.impl.dungeon.autocroesus.displayNameFromId
-import quoi.module.impl.dungeon.autocroesus.formatCoins
-import quoi.module.impl.dungeon.autocroesus.orFalse
-import quoi.module.impl.dungeon.autocroesus.parseRoman
-import quoi.module.impl.dungeon.autocroesus.previewChestData
-import quoi.module.impl.dungeon.autocroesus.profitText
+import quoi.module.impl.dungeon.autocroesus.*
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.module.settings.impl.ListSetting
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.skyblock.item.ItemUtils.lore
 import quoi.utils.skyblock.player.container.ContainerUtils.clickSlot
+import kotlin.math.roundToLong
 
 /**
  * TODO:
@@ -65,6 +46,7 @@ object AutoCroesus : Module(
     area = Island.DungeonHub
 ) {
     private val clickDelay by slider("Click delay", 500L, 50L, 1_000L, 50L, desc = "Delay between automatic clicks.", unit = "ms")
+
     @Suppress("unused")
     private val profitOverlay by textHud("Auto Croesus profit", Colour.WHITE) {
         visibleIf { preview || inRunChest() }
@@ -94,17 +76,20 @@ object AutoCroesus : Module(
     private val chestKeyMinProfit by slider("Chest key min profit", 0.2, 0.0, 10.0, 0.1, desc = "Minimum profit required to use a Dungeon Chest Key.", unit = "M")
         .childOf(::useChestKeys)
     private val bazaarPriceType by selector("Bazaar price", BazaarPriceType.InstaSell, desc = "Bazaar price used for Auto Croesus profit calculations.")
-    private val useKismets by switch("Use kismets", false, desc = "Rerolls configured floors when Bedrock profit is below the threshold.")
+    private val useKismets by switch("Use kismets", desc = "Rerolls configured floors when Bedrock profit is below the threshold.")
     private val kismetMinProfit by slider("Kismet min profit", 2.0, 0.0, 10.0, 0.1, desc = "Bedrock chests below this profit are rerolled.", unit = "M")
         .childOf(::useKismets)
+
     @Suppress("unused")
     private val addDefaultAlwaysBuy by button("Add default always buy", desc = "Adds the original Auto Croesus always-buy defaults.") {
         addDefaults("Always buy", alwaysBuy, defaultAutoCroesusAlwaysBuy)
     }
+
     @Suppress("unused")
     private val addDefaultWorthless by button("Add default worthless", desc = "Adds the original Auto Croesus worthless defaults.") {
         addDefaults("Worthless", worthless, defaultAutoCroesusWorthless)
     }
+
     @Suppress("unused")
     private val startKey by keybind("Start key", Keybinds.KEY_NONE, desc = "Starts Auto Croesus.").onPress(::startFromKeybind)
     private val killSwitch by keybind("Kill switch", Keybinds.KEY_NONE, desc = "Stops the current Auto Croesus claim.")
@@ -114,8 +99,8 @@ object AutoCroesus : Module(
     private val worthless by ListSetting("Worthless", mutableListOf<String>())
     private val runLoot by configList<LoggedRun>("autocroesus_loot.json")
 
-    private val croesusRegex = Regex("^(?:\\([1-3]/3\\) )?Croesus$")
-    private val runChestRegex = Regex("^(?:Master )?Catacombs - Floor [IVX]+$")
+    private val croesusRegex = Regex("""^(?:\(\d/\d\) )?Croesus$""") // https://github.com/Noamm9/NoammAddons/blob/771d2702200bcdabf2bdc7d5256ec327b6d5a2c7/src/main/kotlin/com/github/noamm9/features/impl/dungeon/ChestProfit.kt#L46
+    private val runChestRegex = Regex("^(Master )?Catacombs - Flo(or (IV|V?I{0,3}))?$") // https://github.com/Noamm9/NoammAddons/blob/771d2702200bcdabf2bdc7d5256ec327b6d5a2c7/src/main/kotlin/com/github/noamm9/features/impl/dungeon/ChestProfit.kt#L45
     private val chestParser = AutoCroesusChestParser(worthless) { bazaarPriceType.selected }
 
     private val failedIndexes = mutableSetOf<Int>()
@@ -506,11 +491,11 @@ object AutoCroesus : Module(
 
     private fun shouldKismet(chest: ClaimingChestInfo, bedrock: ChestData): Boolean =
         useKismets &&
-            canKismet &&
-            !chest.skipKismet &&
-            kismetFloors.any { it.equals(chest.floor, true) } &&
-            bedrock.items.none { alwaysBuy.containsId(it.id) } &&
-            bedrock.profit < kismetMinProfit.coinsFromMillions()
+                canKismet &&
+                !chest.skipKismet &&
+                kismetFloors.any { it.equals(chest.floor, true) } &&
+                bedrock.items.none { alwaysBuy.containsId(it.id) } &&
+                bedrock.profit < kismetMinProfit.coinsFromMillions()
 
     private fun startClaiming() {
         claiming = true
