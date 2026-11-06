@@ -487,12 +487,11 @@ class McBackend : RendererBackend {
         }
 
         if (bounds != null && bounds.width > 0 && bounds.height > 0) {
-            val vertices = pendingVerts.toFloatArray()
-            val colors = pendingCols.toIntArray()
             val clipRect = scissor?.rect
             val clipped = if (clipRect != null &&
                 (pendingMinX < clipRect[0] || pendingMinY < clipRect[1] || pendingMaxX > clipRect[2] || pendingMaxY > clipRect[3])
-            ) UIGeometry.clipQuads(vertices, colors, clipRect) else vertices to colors
+            ) UIGeometry.clipQuads(pendingVerts.elements(), pendingCols.elements(), clipRect, pendingCols.size)
+            else pendingVerts.toFloatArray() to pendingCols.toIntArray()
             if (clipped.first.isEmpty()) { resetBatch(); return }
             val textureSetup = pendingTexture?.let {
                 TextureSetup.singleTexture(it.textureView, RenderSystem.getSamplerCache().getClampToEdge(FilterMode.LINEAR))

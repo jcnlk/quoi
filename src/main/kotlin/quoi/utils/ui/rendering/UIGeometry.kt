@@ -16,26 +16,45 @@ import kotlin.math.sqrt
  */
 object UIGeometry {
 
-    /** Clip both triangles of each GUI quad, interpolating UVs and vertex colours. */
-    fun clipQuads(vertices: FloatArray, colors: IntArray, rect: FloatArray): Pair<FloatArray, IntArray> {
+    // arcSegments caps rounded corners at 24. Keep double precision so the
+    // radius multiplication rounds exactly as it does with direct sin/cos calls.
+    private val cornerDirections = Array(25) { segments ->
+        DoubleArray(4 * (segments + 1) * 2).also { directions ->
+            if (segments > 0) for (corner in 0..3) for (i in 0..segments) {
+                val angle = Math.toRadians(corner * 90.0 + 90.0 * i / segments)
+                val offset = (corner * (segments + 1) + i) * 2
+                directions[offset] = cos(angle)
+                directions[offset + 1] = sin(angle)
+            }
+        }
+    }
+
+    /**
+     * Clip both triangles of each GUI quad, interpolating UVs and vertex colours.
+     * Reads [vertexCount] vertices from the backing arrays and returns independent arrays.
+     */
+    fun clipQuads(vertices: FloatArray, colors: IntArray, rect: FloatArray, vertexCount: Int = colors.size): Pair<FloatArray, IntArray> {
         if (rect[2] <= rect[0] || rect[3] <= rect[1]) return FloatArray(0) to IntArray(0)
         var output = FloatArray(0)
         var outputColors = IntArray(0)
         var size = 0
         fun reserve(count: Int) {
             if (size + count > outputColors.size) {
-                val capacity = max(size + count, max(colors.size, outputColors.size * 2))
+                val capacity = max(size + count, max(vertexCount, outputColors.size * 2))
                 output = output.copyOf(capacity * 4)
                 outputColors = outputColors.copyOf(capacity)
             }
         }
-        fun emit(vertex: ClipVertex) {
+        fun emit(polygon: ClipPolygon, index: Int) {
             reserve(1)
-            val p = size * 4
-            output[p] = vertex.x; output[p + 1] = vertex.y; output[p + 2] = vertex.u; output[p + 3] = vertex.v
-            outputColors[size++] = vertex.color
+            polygon.vertices.copyInto(output, size * 4, index * 4, index * 4 + 4)
+            outputColors[size++] = polygon.colors[index]
         }
-        for (offset in colors.indices step 4) {
+        // A triangle clipped against four half-planes has at most seven vertices.
+        // Reuse both buffers for every triangle in this batch.
+        var polygonA: ClipPolygon? = null
+        var polygonB: ClipPolygon? = null
+        for (offset in 0 until vertexCount step 4) {
             var inside = true
             var left = true; var right = true; var above = true; var below = true
             for (i in 0..3) {
@@ -54,34 +73,38 @@ object UIGeometry {
             }
             if (left || right || above || below) continue
 
-            val quad = (0..3).map { i ->
-                val p = (offset + i) * 4
-                ClipVertex(vertices[p], vertices[p + 1], vertices[p + 2], vertices[p + 3], colors[offset + i])
-            }
-            for (triangle in listOf(listOf(quad[0], quad[1], quad[2]), listOf(quad[0], quad[2], quad[3]))) {
-                var polygon = triangle
+            val first = polygonA ?: ClipPolygon().also { polygonA = it }
+            val second = polygonB ?: ClipPolygon().also { polygonB = it }
+            for (triangle in 0..1) {
+                var polygon = first
+                var clipped = second
+                polygon.size = 0
+                polygon.add(vertices, colors, offset)
+                polygon.add(vertices, colors, offset + triangle + 1)
+                polygon.add(vertices, colors, offset + triangle + 2)
                 for (edge in 0..3) {
-                    if (polygon.isEmpty()) break
+                    if (polygon.size == 0) break
                     val axis = edge % 2
                     val boundary = rect[edge]
                     val keepGreater = edge < 2
-                    fun coordinate(v: ClipVertex) = if (axis == 0) v.x else v.y
-                    fun inside(v: ClipVertex) = if (keepGreater) coordinate(v) >= boundary else coordinate(v) <= boundary
-                    val clipped = ArrayList<ClipVertex>()
-                    var previous = polygon.last()
-                    for (next in polygon) {
+                    fun coordinate(index: Int) = polygon.vertices[index * 4 + axis]
+                    fun inside(index: Int) = if (keepGreater) coordinate(index) >= boundary else coordinate(index) <= boundary
+                    clipped.size = 0
+                    var previous = polygon.size - 1
+                    for (next in 0 until polygon.size) {
                         if (inside(previous) != inside(next)) {
                             val t = (boundary - coordinate(previous)) / (coordinate(next) - coordinate(previous))
-                            val intersection = previous.interpolate(next, t)
-                            clipped.add(if (axis == 0) intersection.copy(x = boundary) else intersection.copy(y = boundary))
+                            clipped.addIntersection(polygon, previous, next, t, axis, boundary)
                         }
-                        if (inside(next)) clipped.add(next)
+                        if (inside(next)) clipped.add(polygon.vertices, polygon.colors, next)
                         previous = next
                     }
+                    val spare = polygon
                     polygon = clipped
+                    clipped = spare
                 }
                 for (i in 1 until polygon.size - 1) {
-                    emit(polygon[0]); emit(polygon[i]); emit(polygon[i + 1]); emit(polygon[i + 1])
+                    emit(polygon, 0); emit(polygon, i); emit(polygon, i + 1); emit(polygon, i + 1)
                 }
             }
         }
@@ -89,15 +112,30 @@ object UIGeometry {
             (if (size == outputColors.size) outputColors else outputColors.copyOf(size))
     }
 
-    private data class ClipVertex(val x: Float, val y: Float, val u: Float, val v: Float, val color: Int) {
-        fun interpolate(other: ClipVertex, t: Float): ClipVertex {
+    private class ClipPolygon {
+        val vertices = FloatArray(7 * 4)
+        val colors = IntArray(7)
+        var size = 0
+
+        fun add(source: FloatArray, sourceColors: IntArray, index: Int) {
+            source.copyInto(vertices, size * 4, index * 4, index * 4 + 4)
+            colors[size++] = sourceColors[index]
+        }
+
+        fun addIntersection(source: ClipPolygon, previous: Int, next: Int, t: Float, axis: Int, boundary: Float) {
+            for (component in 0..3) {
+                val a = source.vertices[previous * 4 + component]
+                val b = source.vertices[next * 4 + component]
+                vertices[size * 4 + component] = a + (b - a) * t
+            }
+            vertices[size * 4 + axis] = boundary
             var blended = 0
-            for (shift in intArrayOf(0, 8, 16, 24)) {
-                val a = (color ushr shift) and 255
-                val b = (other.color ushr shift) and 255
+            for (shift in 0..24 step 8) {
+                val a = (source.colors[previous] ushr shift) and 255
+                val b = (source.colors[next] ushr shift) and 255
                 blended = blended or ((a + (b - a) * t).toInt().coerceIn(0, 255) shl shift)
             }
-            return ClipVertex(x + (other.x - x) * t, y + (other.y - y) * t, u + (other.u - u) * t, v + (other.v - v) * t, blended)
+            colors[size++] = blended
         }
     }
 
@@ -286,10 +324,12 @@ object UIGeometry {
             return offset + 2
         }
         var offset = offset
+        val directions = cornerDirections.getOrNull(segments)
+        val cornerOffset = startDeg.toInt() / 90 * (segments + 1) * 2
         for (i in 0..segments) {
-            val angle = Math.toRadians(startDeg + 90.0 * i / segments)
-            out[offset++] = cx + (rx * cos(angle)).toFloat()
-            out[offset++] = cy + (ry * sin(angle)).toFloat()
+            val angle = if (directions == null) Math.toRadians(startDeg + 90.0 * i / segments) else 0.0
+            out[offset++] = cx + (rx * (directions?.get(cornerOffset + i * 2) ?: cos(angle))).toFloat()
+            out[offset++] = cy + (ry * (directions?.get(cornerOffset + i * 2 + 1) ?: sin(angle))).toFloat()
         }
         return offset
     }
