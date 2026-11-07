@@ -104,8 +104,8 @@ object ScanUtils : EventListener, Shortcuts {
 
         on<DungeonEvent.Enter> { MapScan.initFloor(floor.floorNumber) }
 
-        on<PacketEvent.ReceivedPost> {
-            if (packet is ClientboundMapItemDataPacket && Dungeon.inClear) MapScan.update(packet)
+        on<PacketEvent.ReceivedPost, ClientboundMapItemDataPacket> {
+            if (Dungeon.inClear) MapScan.update(packet)
         }
 
         on<WorldEvent.Chunk.Load> {

@@ -16,9 +16,8 @@ import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.StringUtils.toFixed
-import quoi.utils.render.drawFilledBox
+import quoi.utils.render.drawStyledBox
 import quoi.utils.render.drawText
-import quoi.utils.render.drawWireFrameBox
 
 object Waypoints : Module(
     "Waypoints",
@@ -68,8 +67,7 @@ object Waypoints : Module(
         val box = AABB(waypoint.pos)
         val colour = waypoint.colour
         renderBeaconBeam(ctx, waypoint.pos, colour.rgb)
-        ctx.drawFilledBox(box, colour)
-        ctx.drawWireFrameBox(box, colour, 3f)
+        ctx.drawStyledBox("Filled box", box, colour, thickness = 3f)
         val label = Component.literal("${waypoint.name} §7(${distance.toFixed(1)}m)")
         ctx.drawText(label, waypoint.center.add(0.0, 1.0, 0.0), shadow = true, scale = 1f)
     }

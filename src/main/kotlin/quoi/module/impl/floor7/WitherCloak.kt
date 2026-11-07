@@ -20,6 +20,7 @@ import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.Scheduler.scheduleTask
 import quoi.utils.StringUtils.noControlCodes
+import quoi.utils.StringUtils.toFixed
 import quoi.utils.skyblock.player.PlayerUtils
 import quoi.utils.skyblock.player.SwapManager
 import kotlin.math.roundToLong
@@ -109,7 +110,7 @@ object WitherCloak : Module(
         preview || inCloak -> displayTitle()
         !timer -> null
         else -> remainingCloakMillis()?.let {
-            "%.2f".format(it / 1000.0)
+            (it / 1000.0).toFixed(2)
         }
     }
 

@@ -10,6 +10,7 @@ import quoi.module.settings.group.ToggleableGroup
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.Vec3
 import quoi.utils.aabb
+import quoi.utils.distanceTo2D
 import quoi.utils.getDirection
 import quoi.utils.render.drawFilledBox
 import quoi.utils.skyblock.player.MovementUtils.cancelMovementTask
@@ -17,7 +18,6 @@ import quoi.utils.skyblock.player.MovementUtils.moveTo
 import quoi.utils.skyblock.player.MovementUtils.stop
 import quoi.utils.skyblock.player.RotationUtils.rotate
 import kotlin.math.abs
-import kotlin.math.hypot
 
 object LavaParkour : ToggleableGroup(MirrorverseSolvers, "Lava parkour") {
     private var active = false
@@ -106,10 +106,8 @@ object LavaParkour : ToggleableGroup(MirrorverseSolvers, "Lava parkour") {
 
     private fun hasLanded(pos: Vec3): Boolean {
         if (!player.onGround()) return false
-        val dx = player.x - pos.x
-        val dz = player.z - pos.z
         val dy = abs(player.y - pos.y)
-        return hypot(dx, dz) <= 0.5 && dy <= 1.0
+        return player.position().distanceTo2D(pos) <= 0.5 && dy <= 1.0
     }
 
     private fun start() {

@@ -1,5 +1,7 @@
 package quoi.api.skyblock
 
+import quoi.utils.FormattingCodes
+
 data class Pet(
     val name: String,
     val level: Int? = null,
@@ -18,11 +20,9 @@ data class Pet(
             (rarity == PetRarity.UNKNOWN || this.rarity == rarity)
 
     companion object {
-        private val formattingPattern = Regex("§[0-9A-FK-OR]", RegexOption.IGNORE_CASE)
         private val levelPattern = Regex("""^\[Lvl\s+\d+]\s*""")
 
-        fun cleanName(name: String): String = name
-            .replace(formattingPattern, "")
+        fun cleanName(name: String): String = FormattingCodes.strip(name, ampersandCodes = false)
             .trim()
             .removePrefix("⭐")
             .trim()

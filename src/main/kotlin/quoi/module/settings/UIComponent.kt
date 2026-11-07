@@ -85,12 +85,11 @@ abstract class UIComponent<T>(
         var chevronAlphaAnim: Alpha.Animated? = null
 
         var hasVisible = false
-        var showing = false
 
         val rendering = if (children.isNotEmpty()) {
 
             hasVisible = children.any { it.isLocallyVisible }
-            showing = !collapsed && hasVisible
+            val showing = !collapsed && hasVisible
 
             chevronSpaceAnim = Animatable(from = 0.px, to = 28.px, swapIf = hasVisible)
             chevronAlphaAnim = Alpha.Animated(to = 1f, from = 0f)
@@ -143,7 +142,7 @@ abstract class UIComponent<T>(
 
                             if (index > 0) { // fixes a bug with a trailing gap. I don't like it.
                                 val prev = children.take(index)
-                                var gapVisible = child.isVisible && prev.any { it.isVisible }
+                                val gapVisible = child.isVisible && prev.any { it.isVisible }
 
                                 val gapAnim = Animatable(
                                     from = 8.px,
@@ -153,13 +152,8 @@ abstract class UIComponent<T>(
 
                                 divider(gapAnim)
 
-                                operation {
-                                    val visible = child.isVisible && prev.any { it.isVisible }
-                                    if (gapVisible != visible) {
-                                        gapVisible = visible
-                                        gapAnim.animate(0.2.seconds, Animation.Style.EaseInOutQuint)
-                                    }
-                                    false
+                                watch({ child.isVisible && prev.any { it.isVisible } }) {
+                                    gapAnim.animate(0.2.seconds, Animation.Style.EaseInOutQuint)
                                 }
                             }
 
@@ -176,11 +170,10 @@ abstract class UIComponent<T>(
 
 
         val element = rendering.element
-        var hashCode = value.hashCode()
         var oldValue = value
 
         val alphaAnimation = Alpha.Animated(to = 0f, from = 1f)
-        var visible = isVisible
+        val visible = isVisible
 
         element.addTransform(alphaAnimation)
 
@@ -196,45 +189,35 @@ abstract class UIComponent<T>(
             }
         }
 
-        rendering.operation {
+        rendering.watch({ isVisible }) {
+            (element.constraints.height as Animatable).animate(0.2.seconds, Animation.Style.EaseInOutQuint)
+            alphaAnimation.animate(0.2.seconds, Animation.Style.EaseInOutQuint)
+            element.parent?.redraw = true
+        }
 
-            if (visible != isVisible) {
-                visible = isVisible
-                (element.constraints.height as Animatable).animate(0.2.seconds, Animation.Style.EaseInOutQuint)
-                alphaAnimation.animate(0.2.seconds, Animation.Style.EaseInOutQuint)
-                element.parent?.redraw = true
-            }
+        if (chevronImage != null && gapAnim != null && chevronSpaceAnim != null && chevronAlphaAnim != null) {
+            rendering.watch({ children.any { it.isLocallyVisible } }) { current ->
+                hasVisible = current
 
-            if (chevronImage != null && gapAnim != null && chevronSpaceAnim != null && chevronAlphaAnim != null) {
-                val hasVisibleCurr = children.any { it.isLocallyVisible }
-
-                if (hasVisibleCurr != hasVisible) {
-                    hasVisible = hasVisibleCurr
-
-                    if (hasVisible) {
-                        chevronImage.element.enabled = true
-                    }
-
-                    chevronSpaceAnim.animate(0.2.seconds, Animation.Style.EaseInOutQuint)
-                    chevronAlphaAnim.animate(0.2.seconds, Animation.Style.EaseInOutQuint)?.onFinish {
-                        chevronImage.element.enabled = hasVisible
-                    }
+                if (hasVisible) {
+                    chevronImage.element.enabled = true
                 }
 
-                val showingCurr = !collapsed && hasVisible
-                if (showingCurr != showing) {
-                    showing = showingCurr
-                    gapAnim.animate(0.2.seconds, Animation.Style.EaseInOutQuint)
+                chevronSpaceAnim.animate(0.2.seconds, Animation.Style.EaseInOutQuint)
+                chevronAlphaAnim.animate(0.2.seconds, Animation.Style.EaseInOutQuint)?.onFinish {
+                    chevronImage.element.enabled = hasVisible
                 }
             }
 
-            if (hashCode != value.hashCode()) {
-                hashCode = value.hashCode()
-                onValueChanged.invoke(oldValue, value)
-                oldValue = value
-                rendering.ui.eventManager.postToAll(valueUpdated, element)
+            rendering.watch({ !collapsed && hasVisible }) {
+                gapAnim.animate(0.2.seconds, Animation.Style.EaseInOutQuint)
             }
-            false
+        }
+
+        rendering.watch({ value.hashCode() }) {
+            onValueChanged.invoke(oldValue, value)
+            oldValue = value
+            rendering.ui.eventManager.postToAll(valueUpdated, element)
         }
         return rendering
     }

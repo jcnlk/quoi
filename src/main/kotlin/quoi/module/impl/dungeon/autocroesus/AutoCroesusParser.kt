@@ -3,7 +3,9 @@ package quoi.module.impl.dungeon.autocroesus
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import quoi.api.skyblock.SkyblockPrices
 import quoi.api.skyblock.SkyblockPrices.BazaarPriceType
-import quoi.utils.StringUtils.noControlCodes
+import quoi.utils.romanToInt
+import quoi.utils.skyblock.item.ItemUtils.cleanName
+import quoi.utils.skyblock.item.ItemUtils.getCleanLore
 import kotlin.math.roundToInt
 
 internal class AutoCroesusChestParser(
@@ -44,11 +46,11 @@ internal class AutoCroesusChestParser(
         val result = mutableListOf<ChestData>()
         for (idx in 0..27) {
             val stack = container.menu.slots.getOrNull(idx)?.item ?: continue
-            val name = stack.hoverName.string.noControlCodes
+            val name = stack.cleanName
             if (!chestNameRegex.matches(name)) continue
 
             val formattedLore = stack.formattedLore()
-            val lore = stack.cleanLore()
+            val lore = stack.getCleanLore()
             if (lore.isEmpty()) continue
             val chest = ChestData(name, idx)
             var inContents = false
@@ -93,7 +95,7 @@ internal class AutoCroesusChestParser(
             formattedBookRegex.matches(formattedLine) -> {
                 val match = formattedBookRegex.matchEntire(formattedLine)!!.groupValues
                 val cleanName = match[2].uppercase().replace(" ", "_")
-                val tier = parseRoman(match[3]) ?: match[3].toIntOrNull()
+                val tier = romanToInt(match[3])
                     ?: return ParsedReward.Error("Could not parse book tier \"$line\"")
                 val id = "ENCHANTMENT_${if (match[1].isNotEmpty()) "ULTIMATE_" else ""}${cleanName}_$tier"
                     .replace("ULTIMATE_ULTIMATE_", "ULTIMATE_")
@@ -102,7 +104,7 @@ internal class AutoCroesusChestParser(
             enchantedBookRegex.matches(line) -> {
                 val match = enchantedBookRegex.matchEntire(line)!!.groupValues
                 val cleanName = match[1].uppercase().replace(" ", "_")
-                val tier = parseRoman(match[2]) ?: match[2].toIntOrNull()
+                val tier = romanToInt(match[2])
                     ?: return ParsedReward.Error("Could not parse book tier \"$line\"")
                 val normal = "ENCHANTMENT_${cleanName}_$tier"
                 val ultimate = "ENCHANTMENT_ULTIMATE_${cleanName}_$tier".replace("ULTIMATE_ULTIMATE_", "ULTIMATE_")

@@ -23,6 +23,7 @@ import quoi.api.skyblock.dungeon.enums.DungeonClass
 import quoi.api.skyblock.dungeon.enums.DungeonPlayer
 import quoi.module.impl.render.clickgui.ClickGui
 import quoi.utils.ChatUtils.modMessage
+import quoi.utils.StringUtils.toFixed
 import quoi.utils.skyblock.item.ItemUtils.skyblockId
 import quoi.utils.skyblock.player.container.ContainerUtils
 import quoi.utils.skyblock.player.container.CONTAINER_MENU
@@ -182,7 +183,7 @@ object LeapManager : EventListener {
     private fun doLeap(leap: LeapRequest, preOpened: Boolean = false): LeapStartResult {
         if (inProgress) return LeapStartResult.Retry
         if (leapCD > 0) {
-            modMessage("&cFailed to leap! On cooldown: ${"%.1f".format(leapCD / 20.0)}s")
+            modMessage("&cFailed to leap! On cooldown: ${(leapCD / 20.0).toFixed(1)}s")
             return LeapStartResult.Rejected
         }
 

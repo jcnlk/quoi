@@ -13,6 +13,7 @@ import quoi.utils.ChatUtils.modMessage
 import quoi.utils.aabb
 import quoi.utils.addVec
 import quoi.utils.blockPos
+import quoi.utils.distanceTo2D
 import quoi.utils.getDirection
 import quoi.utils.render.drawFilledBox
 import quoi.utils.skyblock.player.MovementUtils.stop
@@ -20,7 +21,6 @@ import quoi.utils.skyblock.player.PlayerUtils.at
 import quoi.utils.skyblock.player.PlayerUtils.eyePosition
 import quoi.utils.skyblock.player.RotationUtils.rotate
 import kotlin.math.abs
-import kotlin.math.hypot
 
 object Tubulator : ToggleableGroup(MirrorverseSolvers, "Tubulator") {
     private var active = false
@@ -79,9 +79,10 @@ object Tubulator : ToggleableGroup(MirrorverseSolvers, "Tubulator") {
         val dir = getDirection(player.eyePosition(), target)
         player.rotate(yaw = dir.yaw)
 
-        val dist = hypot(player.x - prev.x, player.z - prev.z)
-        val distNext = hypot(target.x - player.x, target.z - player.z)
-        val totalDist = hypot(target.x - prev.x, target.z - prev.z)
+        val position = player.position()
+        val dist = position.distanceTo2D(prev)
+        val distNext = target.distanceTo2D(position)
+        val totalDist = target.distanceTo2D(prev)
 
         val edge = dist >= 0.7 && distNext > totalDist / 2
         mc.options.keyJump.isDown = player.onGround() && edge
@@ -105,11 +106,9 @@ object Tubulator : ToggleableGroup(MirrorverseSolvers, "Tubulator") {
     private fun hasLanded(pos: Vec3): Boolean {
         if (!player.onGround()) return false
         val pos = pos.add(0.5, 0.0, 0.5)
-        val dx = abs(player.x - pos.x)
-        val dz = abs(player.z - pos.z)
         val dy = abs(player.y - pos.y)
 
-        return hypot(dx, dz) <= 0.03 && dy <= 1.5
+        return player.position().distanceTo2D(pos) <= 0.03 && dy <= 1.5
     }
 
     private fun start() {

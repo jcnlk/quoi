@@ -11,6 +11,7 @@ import quoi.api.abobaui.elements.impl.Text.Companion.textSupplied
 import quoi.api.abobaui.elements.impl.TextInput.Companion.maxWidth
 import quoi.api.abobaui.elements.impl.TextInput.Companion.onTextChanged
 import quoi.api.input.CursorShape
+import quoi.utils.StringUtils.toFixed
 import quoi.utils.ThemeManager.theme
 import quoi.utils.ui.cursor
 import quoi.api.customtriggers.ui.triggerDropdown
@@ -121,7 +122,7 @@ fun ElementScope<*>.intField(label: String, value: () -> Int, min: Int, max: Int
 }
 
 fun ElementScope<*>.sliderField(label: String, value: KMutableProperty0<Float>, min: Float, max: Float) = column(size(w = 200.px.coerceAtMost(Copying)), gap = 4.px) {
-    textSupplied(supplier = { "$label: ${"%.2f".format(java.util.Locale.ROOT, value.get())}" }, size = 14.px, colour = theme.onSurfaceVariant)
+    textSupplied(supplier = { "$label: ${value.get().toFixed(2)}" }, size = 14.px, colour = theme.onSurfaceVariant)
     // The shared slider writes Double values. Bridge explicitly to the stored Float setting.
     val bridge = object {
         var number: Double

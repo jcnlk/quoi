@@ -33,8 +33,7 @@ object SwapManager : EventListener, Shortcuts {
             lastKnownServerSlot = packet.slot()
         }
 
-        on<PacketEvent.Sent>(Priority.HIGHEST) {
-            if (packet !is ServerboundSetCarriedItemPacket) return@on
+        on<PacketEvent.Sent, ServerboundSetCarriedItemPacket>(Priority.HIGHEST) {
             if (packet.slot == lastKnownServerSlot) {
                 cancel()
                 return@on

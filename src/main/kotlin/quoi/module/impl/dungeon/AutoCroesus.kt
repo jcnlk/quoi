@@ -28,8 +28,9 @@ import quoi.module.impl.dungeon.autocroesus.*
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.module.settings.impl.ListSetting
 import quoi.utils.ChatUtils.modMessage
-import quoi.utils.StringUtils.noControlCodes
-import quoi.utils.skyblock.item.ItemUtils.lore
+import quoi.utils.romanToInt
+import quoi.utils.skyblock.item.ItemUtils.cleanName
+import quoi.utils.skyblock.item.ItemUtils.getCleanLore
 import quoi.utils.skyblock.player.container.ContainerUtils.clickSlot
 import kotlin.math.roundToLong
 
@@ -145,7 +146,7 @@ object AutoCroesus : Module(
             if (!inCroesus()) return@on
             val stack = slot.item
             if (stack.item != Items.PLAYER_HEAD) return@on
-            val lore = stack.cleanLore()
+            val lore = stack.getCleanLore()
             if (lore.any { it == "No chests opened yet!" }) {
                 ctx.fill(slot.x, slot.y, slot.x + 16, slot.y + 16, 0xAA00FF00.toInt())
             }
@@ -463,8 +464,8 @@ object AutoCroesus : Module(
             val kismet = container.menu.slots.getOrNull(50)?.item
             tryingToKismet = false
 
-            val lore = kismet.lore?.map { it.noControlCodes } ?: emptyList()
-            if (kismet == null || kismet.hoverName.string.noControlCodes != "Reroll Chest" || lore.any { it.contains("Bring a Kismet Feather") }) {
+            val lore = kismet.getCleanLore()
+            if (kismet == null || kismet.cleanName != "Reroll Chest" || lore.any { it.contains("Bring a Kismet Feather") }) {
                 canKismet = false
                 modMessage("&cNo Kismet Feather found. Auto Croesus disabled kismet claims for this session.")
                 currentChest = null
@@ -529,8 +530,7 @@ object AutoCroesus : Module(
         val next = slots.getOrNull(53)?.item ?: return -1
         val isNext = next.item == Items.ARROW
         val pageItem = if (isNext) next else prev.takeIf { it.item == Items.ARROW } ?: return 1
-        val page = pageItem.lore?.firstOrNull { it.noControlCodes.startsWith("Page ") }
-            ?.noControlCodes
+        val page = pageItem.getCleanLore().firstOrNull { it.startsWith("Page ") }
             ?.removePrefix("Page ")
             ?.toIntOrNull()
             ?: return -1
@@ -544,17 +544,17 @@ object AutoCroesus : Module(
             if (index in failedIndexes) continue
             val stack = slots.getOrNull(slot)?.item ?: return null to null
             if (stack.item != Items.PLAYER_HEAD) continue
-            val lore = stack.lore?.map { it.noControlCodes } ?: continue
+            val lore = stack.getCleanLore()
             if (lore.none { it == "No chests opened yet!" }) continue
             val floorLine = lore.firstOrNull { it.startsWith("Floor ") } ?: run {
                 failedIndexes.add(index)
                 continue
             }
-            val floorNum = floorLine.removePrefix("Floor ").toIntOrNull() ?: parseRoman(floorLine.removePrefix("Floor ")) ?: run {
+            val floorNum = romanToInt(floorLine.removePrefix("Floor ")) ?: run {
                 failedIndexes.add(index)
                 continue
             }
-            val prefix = if (stack.hoverName.string.noControlCodes == "Master Mode The Catacombs") "M" else "F"
+            val prefix = if (stack.cleanName == "Master Mode The Catacombs") "M" else "F"
             val floor = "$prefix$floorNum"
             if (!canKismet && kismetFloors.any { it.equals(floor, true) }) {
                 failedIndexes.add(index)

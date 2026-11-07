@@ -259,8 +259,8 @@ object BlazeSolver : SettingGroup(PuzzleSolvers, "Blaze"), Repositionable { // t
         val target = hitboxes.firstOrNull { it.isTarget } ?: return sideArrow
         val center = target.aabb.center
 
-        val dist = if (sideArrow) hitboxes.maxOf { (it.aabb.center.x - from.x).sq + (it.aabb.center.z - from.z).sq }
-            else (center.x - from.x).sq + (center.z - from.z).sq
+        val dist = if (sideArrow) hitboxes.maxOf { it.aabb.center.distanceTo2DSqr(from) }
+            else center.distanceTo2DSqr(from)
 
         var (px, py, pz) = from
         val yawRad = yaw.rad
@@ -296,7 +296,7 @@ object BlazeSolver : SettingGroup(PuzzleSolvers, "Blaze"), Repositionable { // t
             py = nextY
             pz = nextZ
 
-            val currDist = (px - from.x).sq + (pz - from.z).sq
+            val currDist = nextPos.distanceTo2DSqr(from)
             if (currDist > dist + 30.0) break
 
             mx *= 0.99

@@ -77,20 +77,18 @@ object ServerInfo : EventListener {
         //
         // PING
         //
-        on<PacketEvent.Sent> {
-            if (packet is ServerboundPingRequestPacket) lastBeat = System.currentTimeMillis()
+        on<PacketEvent.Sent, ServerboundPingRequestPacket> {
+            lastBeat = System.currentTimeMillis()
         }
 
-        on<PacketEvent.Received> {
-            if (packet is ClientboundPongResponsePacket) {
-                val t = System.currentTimeMillis()
-                val a = (System.nanoTime() - packet.time) * 1e-6
-                val b = (t - packet.time).toDouble()
-                val c = (Util.getMillis() - packet.time).toDouble()
+        on<PacketEvent.Received, ClientboundPongResponsePacket> {
+            val t = System.currentTimeMillis()
+            val a = (System.nanoTime() - packet.time) * 1e-6
+            val b = (t - packet.time).toDouble()
+            val c = (Util.getMillis() - packet.time).toDouble()
 
-                val p = listOf(a, b, c).filter { it >= 0.0 }.minOrNull() ?: return@on
-                addSample(p, 1, t)
-            }
+            val p = listOf(a, b, c).filter { it >= 0.0 }.minOrNull() ?: return@on
+            addSample(p, 1, t)
         }
 
         scheduleLoop {

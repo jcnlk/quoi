@@ -10,8 +10,7 @@ import quoi.api.events.core.once
 import quoi.module.impl.misc.slayers.QuestState
 import quoi.module.impl.misc.slayers.Slayers
 import quoi.module.settings.group.ToggleableGroup
-import quoi.utils.StringUtils.noControlCodes
-import quoi.utils.skyblock.item.ItemUtils.lore
+import quoi.utils.skyblock.item.ItemUtils.getCleanLore
 import quoi.utils.skyblock.player.PlayerUtils.rightClick
 import quoi.utils.skyblock.player.SwapManager
 
@@ -35,9 +34,8 @@ object AutoAttune : ToggleableGroup(BlazeSlayer, "Auto attune") {
 
                 if (!result.success) return@once
 
-                val attuned = player.mainHandItem.lore
-                    ?.map { it.noControlCodes }
-                    ?.firstOrNull { it.startsWith("Attuned: ") }
+                val attuned = player.mainHandItem.getCleanLore()
+                    .firstOrNull { it.startsWith("Attuned: ") }
                     ?.removePrefix("Attuned: ")
                     ?.trim()
                     ?.uppercase()

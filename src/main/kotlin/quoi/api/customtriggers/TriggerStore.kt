@@ -7,9 +7,9 @@ import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import quoi.config.ConfigMap
+import quoi.config.writeConfigAtomically
 import java.io.File
 import java.nio.file.Files
-import java.nio.file.StandardCopyOption
 
 /**
  * Loads and saves grouped [TriggerRule]s.
@@ -88,9 +88,7 @@ class TriggerStore(private val file: File, private val gson: Gson, private val w
                 root.add(name, array)
             }
             file.parentFile.mkdirs()
-            val temp = File(file.parentFile, "${file.name}.tmp")
-            temp.writer().use { gson.toJson(root, it) }
-            Files.move(temp.toPath(), file.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
+            writeConfigAtomically(file) { gson.toJson(root, it) }
             saveError = null
         } catch (error: Exception) {
             saveError = "Could not save custom triggers: ${error.message}"

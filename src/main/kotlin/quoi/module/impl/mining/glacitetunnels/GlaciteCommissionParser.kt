@@ -1,8 +1,8 @@
 package quoi.module.impl.mining.glacitetunnels
 
 import net.minecraft.world.item.ItemStack
-import quoi.utils.StringUtils.noControlCodes
-import quoi.utils.skyblock.item.ItemUtils.lore
+import quoi.utils.skyblock.item.ItemUtils.cleanName
+import quoi.utils.skyblock.item.ItemUtils.getCleanLore
 
 internal data class ActiveGlaciteCommission(val routeTarget: String?)
 
@@ -17,10 +17,10 @@ internal fun List<ItemStack>.selectActiveGlaciteCommission(
 }
 
 private fun ItemStack.activeGlaciteCommission(graph: TunnelGraph): ActiveGlaciteCommission? {
-    val lines = lore?.map { it.noControlCodes.trim() }.orEmpty()
+    val lines = getCleanLore().map { it.trim() }
     if (lines.none(GLACITE_REWARD::matches) || isCompletedCommission()) return null
 
-    val name = sequenceOf(hoverName.string.noControlCodes.trim())
+    val name = sequenceOf(cleanName.trim())
         .plus(lines.asSequence())
         .firstOrNull(COLLECTOR_COMMISSION::matches)
         ?: return null
@@ -28,7 +28,7 @@ private fun ItemStack.activeGlaciteCommission(graph: TunnelGraph): ActiveGlacite
 }
 
 internal fun ItemStack.isCompletedCommission(): Boolean =
-    lore?.any { it.noControlCodes.contains("COMPLETED", ignoreCase = true) } == true
+    getCleanLore().any { it.contains("COMPLETED", ignoreCase = true) }
 
 private val COLLECTOR_COMMISSION = Regex("^.+ Collector$")
 private val GLACITE_REWARD = Regex("^- [\\d,]+ Glacite Powder$")

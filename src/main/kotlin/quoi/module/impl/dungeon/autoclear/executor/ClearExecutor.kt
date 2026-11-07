@@ -47,8 +47,8 @@ object ClearExecutor : EventListener {
     private var pendingCompletion: (() -> Unit)? = null
 
     init {
-        on<PacketEvent.Received> {
-            if (packet is ClientboundPlayerPositionPacket) if (syncDelay == 1) syncDelay = 2
+        on<PacketEvent.Received, ClientboundPlayerPositionPacket> {
+            if (syncDelay == 1) syncDelay = 2
         }
 
         on<TickEvent.Server> {

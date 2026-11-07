@@ -30,8 +30,7 @@ import quoi.utils.WorldUtils.state
 import quoi.utils.aabb
 import quoi.utils.isWithinFov
 import quoi.utils.minFovDot
-import quoi.utils.render.drawFilledBox
-import quoi.utils.render.drawWireFrameBox
+import quoi.utils.render.drawStyledBox
 import quoi.utils.skyblock.item.ItemUtils.getBreakerCharges
 import quoi.utils.skyblock.item.ItemUtils.skyblockId
 import quoi.utils.skyblock.player.PlayerUtils
@@ -146,14 +145,7 @@ object DungeonBreaker : Module(
             for (pos in dbBlocks) {
                 val lineColour = if (pos.state.isAir) missingBlockColour else blockColour
                 val fillColour = if (pos.state.isAir) missingBlockFillColour else blockFillColour
-                when (blockStyle.selected) {
-                    "Box" -> ctx.drawWireFrameBox(pos.aabb, lineColour, blockThickness, blockDepth)
-                    "Filled box" -> {
-                        ctx.drawFilledBox(pos.aabb, fillColour, blockDepth)
-                        ctx.drawWireFrameBox(pos.aabb, lineColour, blockThickness, blockDepth)
-                    }
-                    "Filled" -> ctx.drawFilledBox(pos.aabb, fillColour, blockDepth)
-                }
+                ctx.drawStyledBox(blockStyle.selected, pos.aabb, lineColour, fillColour, blockThickness, blockDepth)
             }
         }
 

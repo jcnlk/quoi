@@ -21,12 +21,12 @@ import quoi.api.skyblock.location.Location
 import quoi.module.Module
 import quoi.utils.ChatUtils.literal
 import quoi.utils.StringUtils.containsOneOf
-import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.aabb
 import quoi.utils.render.drawText
 import quoi.utils.render.drawWireFrameBox
 import quoi.utils.romanToInt
-import quoi.utils.skyblock.item.ItemUtils.lore
+import quoi.utils.skyblock.item.ItemUtils.cleanName
+import quoi.utils.skyblock.item.ItemUtils.getCleanLore
 import quoi.utils.skyblock.item.ItemUtils.texture
 
 /**
@@ -281,21 +281,18 @@ object ChocolateFactory : Module(
     }
 
     private fun parseUpgradeCost(item: ItemStack?): Long? {
-        val lore = item?.lore ?: return null
-        val costIndex = lore.indexOfFirst { it.noControlCodes.contains("Cost") }
+        val lore = item.getCleanLore()
+        val costIndex = lore.indexOfFirst { it.contains("Cost") }
             .takeIf { it != -1 }
             ?: return null
         return lore.getOrNull(costIndex + 1)
-            ?.noControlCodes
             ?.replace(Regex("\\D"), "")
             ?.toLongOrNull()
     }
 
     private fun parseChocolatePerSecond(item: ItemStack): Double? {
-        return item.lore
-            ?.asSequence()
-            ?.map { it.noControlCodes }
-            ?.firstNotNullOfOrNull { line ->
+        return item.getCleanLore()
+            .firstNotNullOfOrNull { line ->
                 chocolatePerSecondPattern.find(line)?.groupValues?.getOrNull(1)
                     ?.replace(",", "")
                     ?.toDoubleOrNull()
@@ -303,25 +300,21 @@ object ChocolateFactory : Module(
     }
 
     private fun parseTotalMultiplier(item: ItemStack): Double? {
-        return item.lore
-            ?.asSequence()
-            ?.map { it.noControlCodes }
-            ?.firstNotNullOfOrNull { line ->
+        return item.getCleanLore()
+            .firstNotNullOfOrNull { line ->
                 totalMultiplierPattern.find(line)?.groupValues?.getOrNull(1)?.toDoubleOrNull()
             }
     }
 
     private fun parseUpgradeTier(item: ItemStack?): Int {
-        val cleanName = item?.hoverName?.string?.noControlCodes ?: return 0
+        val cleanName = item.cleanName
         val tier = cleanName.substringAfterLast(' ', "").takeIf(String::isNotBlank) ?: return 0
-        return runCatching { romanToInt(tier) }.getOrDefault(0)
+        return romanToInt(tier) ?: 0
     }
 
     private fun isTimeTowerActive(item: ItemStack?): Boolean {
-        return (item?.lore
-            ?.asSequence()
-            ?.map { it.noControlCodes }
-            ?.firstNotNullOfOrNull { line -> timeTowerStatusPattern.find(line)?.groupValues?.getOrNull(1) }) == "ACTIVE"
+        return (item.getCleanLore()
+            .firstNotNullOfOrNull { line -> timeTowerStatusPattern.find(line)?.groupValues?.getOrNull(1) }) == "ACTIVE"
     }
 
     private fun shouldActivateTimeTower(item: ItemStack?): Boolean {
@@ -330,10 +323,8 @@ object ChocolateFactory : Module(
     }
 
     private fun parseTimeTowerCurrentCharges(item: ItemStack?): Int? {
-        return item?.lore
-            ?.asSequence()
-            ?.map { it.noControlCodes }
-            ?.firstNotNullOfOrNull { line ->
+        return item.getCleanLore()
+            .firstNotNullOfOrNull { line ->
                 timeTowerChargesPattern.find(line)?.groupValues?.getOrNull(1)?.toIntOrNull()
             }
     }

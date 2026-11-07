@@ -4,8 +4,6 @@ import quoi.api.abobaui.constraints.impl.positions.Centre
 import quoi.api.abobaui.dsl.constrain
 import quoi.api.abobaui.dsl.minus
 import quoi.api.abobaui.dsl.px
-import quoi.api.abobaui.elements.impl.Text.Companion.shadow
-import quoi.api.abobaui.elements.impl.Text.Companion.textSupplied
 import quoi.api.colour.Colour
 import quoi.api.colour.colour
 import quoi.api.events.ChatEvent
@@ -15,6 +13,7 @@ import quoi.api.skyblock.dungeon.Dungeon.inBoss
 import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.location.Location.inSkyblock
 import quoi.module.Module
+import quoi.utils.ui.textPair
 import quoi.utils.ChatUtils.command as sendCommand
 
 object InvincibilityTimer : Module(
@@ -38,20 +37,14 @@ object InvincibilityTimer : Module(
                         constraints = constrain(y = Centre - 5.px, w = 10.px, h = 10.px),
                         colour = colour { if (type.shouldDot()) colour.rgb else Colour.TRANSPARENT.rgb },
                     )
-                    row {
-                        text(
-                            string = "${type.displayName}: ",
-                            font = font,
-                            size = 18.px,
-                            colour = colour
-                        ).shadow = shadow
-                        textSupplied(
-                            supplier = displayTime,
-                            font = font,
-                            size = 18.px,
-                            colour = colour
-                        ).shadow = shadow
-                    }
+                    textPair(
+                        string = "${type.displayName}:",
+                        supplier = displayTime,
+                        labelColour = colour,
+                        valueColour = colour,
+                        shadow = shadow,
+                        font = font
+                    )
                 }
             }
         }

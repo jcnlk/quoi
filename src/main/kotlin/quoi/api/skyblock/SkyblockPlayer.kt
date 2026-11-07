@@ -13,6 +13,7 @@ import quoi.api.skyblock.dungeon.odonscanning.ScanUtils
 import quoi.utils.Scheduler.scheduleLoop
 import quoi.utils.Shortcuts
 import quoi.utils.StringUtils.capitaliseFirst
+import quoi.utils.StringUtils.toFixed
 import quoi.utils.skyblock.item.ItemUtils.lore
 import quoi.utils.skyblock.player.PetUtils
 import kotlin.math.floor
@@ -217,7 +218,7 @@ object SkyblockPlayer : EventListener, Shortcuts {
             }
 
             val col = if (!highlight && currentCooldown <= 0) "&a" else "&c"
-            val time = if (currentCooldown <= 0) "✔" else "%.1f".format(currentCooldown / 20.0)
+            val time = if (currentCooldown <= 0) "✔" else (currentCooldown / 20.0).toFixed(1)
             return "$col$time"
         }
 

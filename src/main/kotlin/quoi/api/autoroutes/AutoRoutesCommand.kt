@@ -259,13 +259,10 @@ object AutoRoutesCommand : EventListener {
 
         modMessage("Breaker editor &aenabled&r.")
 
-        interactListener = on<PacketEvent.Sent> {
+        interactListener = on<PacketEvent.Sent, ServerboundUseItemOnPacket> {
             val editing = breakerRing ?: return@on
-
-            val (pos, adding) = when (packet) {
-                is ServerboundUseItemOnPacket -> packet.hitResult.blockPos to !player.isCrouching
-                else -> return@on
-            }
+            val pos = packet.hitResult.blockPos
+            val adding = !player.isCrouching
 
             if (lastClickedBlock == pos) return@on
             lastClickedBlock = pos

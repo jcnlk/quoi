@@ -32,6 +32,7 @@ import quoi.utils.EntityUtils
 import quoi.utils.StringUtils.containsOneOf
 import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.equalsOneOf
+import quoi.utils.inGame
 
 /**
  * Bridges fabric's own event hooks and packet handling.
@@ -53,11 +54,11 @@ object EventDispatcher {
                 lastWorld = world
             }
 
-            if (mc.level != null && mc.player != null) TickEvent.Start().post()
+            if (inGame) TickEvent.Start().post()
         }
-        ClientTickEvents.END_CLIENT_TICK.register { if (mc.level != null && mc.player != null) TickEvent.End().post() }
+        ClientTickEvents.END_CLIENT_TICK.register { if (inGame) TickEvent.End().post() }
 
-        LevelRenderEvents.END_MAIN.register { if (mc.level != null && mc.player != null) RenderEvent.World(it).post() }
+        LevelRenderEvents.END_MAIN.register { if (inGame) RenderEvent.World(it).post() }
 
         ClientLifecycleEvents.CLIENT_STARTED.register { GameEvent.Load().post() }
         ClientLifecycleEvents.CLIENT_STOPPING.register { GameEvent.Unload().post() }
@@ -72,7 +73,7 @@ object EventDispatcher {
         }
 
         ClientChunkEvents.CHUNK_LOAD.register { _, chunk ->
-            if (mc.level != null && mc.player != null) WorldEvent.Chunk.Load(chunk).post()
+            if (inGame) WorldEvent.Chunk.Load(chunk).post()
         }
 
         ClientPlayConnectionEvents.JOIN.register { handler, _, _ ->

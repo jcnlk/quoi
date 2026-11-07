@@ -20,9 +20,11 @@ import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.utils.EntityUtils.getEntities
 import quoi.utils.StringUtils.noControlCodes
+import quoi.utils.distanceTo2DSqr
 import quoi.utils.getDirection
 import quoi.utils.getHitResult
 import quoi.utils.render.drawLine
+import quoi.utils.skyblock.item.ItemUtils.cleanName
 import quoi.utils.skyblock.player.PlayerUtils.rightClick
 import quoi.utils.skyblock.player.RotationUtils
 import quoi.utils.skyblock.player.RotationUtils.rotate
@@ -171,14 +173,12 @@ object Relics : Module(
 
     private fun reachedCauldron(relic: Relic): Boolean {
         val target = Vec3.atCenterOf(relic.cauldronPos)
-        val dx = player.x - target.x
-        val dz = player.z - target.z
-        return dx * dx + dz * dz <= 3.0 * 3.0
+        return player.position().distanceTo2DSqr(target) <= 3.0 * 3.0
     }
 
     private fun isRelicStand(stand: ArmorStand): Boolean =
         !stand.isRemoved && stand.isAlive &&
-                stand.getItemBySlot(EquipmentSlot.HEAD).hoverName.string.noControlCodes.contains("Relic")
+                stand.getItemBySlot(EquipmentSlot.HEAD).cleanName.contains("Relic")
 
     private fun canPickUp(stand: ArmorStand, range: Double = 3.0): Boolean =
         stand.position().distanceToSqr(player.position()) <= range * range && Relic.entries.none { it.isAtCauldron(stand.position()) }

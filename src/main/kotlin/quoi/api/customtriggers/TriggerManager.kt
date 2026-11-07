@@ -19,6 +19,7 @@ import quoi.config.typedEntries
 import quoi.module.impl.misc.CustomTriggers
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.StringUtils.noControlCodes
+import quoi.utils.inGame
 
 /**
  * Connects game events to [TriggerEngine] and manages saved rules and editor previews.
@@ -56,7 +57,7 @@ object TriggerManager : EventListener {
             reset()
         }
 
-    private val canRunInWorld get() = CustomTriggers.enabled && Location.inSkyblock && mc.player != null && mc.level != null
+    private val canRunInWorld get() = CustomTriggers.enabled && Location.inSkyblock && inGame
     private val canRun get() = canRunInWorld && !editing
 
     fun init() {

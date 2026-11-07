@@ -238,7 +238,8 @@ object Dungeon : EventListener, Shortcuts {
                     is ClientboundTabListPacket -> {
                         Blessing.entries.forEach { blessing ->
                             blessing.regex.find(footer.string)
-                                ?.let { blessing.current = romanToInt(it.groupValues[1]) }
+                                ?.let { romanToInt(it.groupValues[1]) }
+                                ?.let { blessing.current = it }
                         }
                     }
 
@@ -328,7 +329,7 @@ object Dungeon : EventListener, Shortcuts {
                         DungeonPlayer(
                             name = name,
                             clazz = DungeonClass.entries.find { it.name == clazz } ?: continue,
-                            clazzLvl = romanToInt(clazzLevel),
+                            clazzLvl = romanToInt(clazzLevel) ?: continue,
                             playerSkin = player.skin,
                             colour = colour
                         )

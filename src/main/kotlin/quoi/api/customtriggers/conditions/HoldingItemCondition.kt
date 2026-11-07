@@ -5,7 +5,7 @@ import quoi.api.abobaui.elements.ElementScope
 import quoi.api.customtriggers.*
 import quoi.config.TypeName
 import quoi.QuoiMod.mc
-import quoi.utils.StringUtils.noControlCodes
+import quoi.utils.skyblock.item.ItemUtils.cleanName
 import quoi.utils.skyblock.item.ItemUtils.skyblockId
 
 @TypeName("holding_item")
@@ -18,7 +18,7 @@ class HoldingItemCondition(
     fun matchesItem(name: String, id: String) = matcher.matches(if (field == Field.NAME) name else id)
     override fun matches(ctx: TriggerContext): Boolean {
         val stack = mc.player?.mainHandItem ?: return false
-        return !stack.isEmpty && matchesItem(stack.hoverName.string.noControlCodes, stack.skyblockId.orEmpty())
+        return !stack.isEmpty && matchesItem(stack.cleanName, stack.skyblockId.orEmpty())
     }
     override fun displayString() = "Holding ${matcher.pattern}"
     override fun ElementScope<*>.draw() = settingRow(
