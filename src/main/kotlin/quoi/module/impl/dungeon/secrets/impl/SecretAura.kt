@@ -23,8 +23,7 @@ import quoi.api.events.WorldEvent
 import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.Dungeon.currentRoom
-import quoi.api.skyblock.dungeon.Dungeon.inDungeons
-import quoi.api.skyblock.location.Location.inSkyblock
+import quoi.api.skyblock.location.Island
 import quoi.module.impl.dungeon.autoclear.executor.ClearExecutor
 import quoi.module.impl.dungeon.secrets.Secrets
 import quoi.module.settings.Setting.Companion.json
@@ -36,14 +35,14 @@ import quoi.utils.WorldUtils.state
 import quoi.utils.skyblock.player.SwapManager
 import quoi.utils.skyblock.player.SwapResult
 import quoi.utils.skyblock.player.interact.AuraManager
-import quoi.utils.center
 
 // modified https://github.com/Hypericat/NoobRoutes/blob/main/src/main/kotlin/noobroutes/features/dungeon/SecretAura.kt
 @Suppress("UNNECESSARY_SAFE_CALL")
 object SecretAura : ToggleableGroup(
     Secrets,
     "Aura",
-    desc = "Automatically collects secrets."
+    desc = "Automatically collects secrets.",
+    area = Island.Dungeon
 ) {
     private val range by slider("Range", 6.2, 2.1, 6.5, 0.1, desc = "Maximum range for secret aura. Both levers and chests.").json("Chest range")
     private val skullRange by slider("Skull range", 4.7, 2.1, 4.7, 0.1, desc = "Maximum range for secret aura when clicking skulls.")
@@ -57,7 +56,6 @@ object SecretAura : ToggleableGroup(
     private val swapSlot by slider("Swap item slot", 1, 1, 9, 1, desc = "Slot for secret aura to swap to.").childOf(::swapOn) { it.index >= 1 }
 
     private val swing by switch("Swing hand", desc = "Makes secret aura swing hand on click.")
-    private val dungeonsOnly by switch("Dungeons only", true, desc = "Makes secret aura only work in dungeons.")
     private val inBoss by switch("In boss", true, desc = "Makes secret aura work in floor 7 boss.")
     private val inContainer by switch("In container", desc = "Makes secret aura work while container is opened.")
 
@@ -72,17 +70,11 @@ object SecretAura : ToggleableGroup(
     }
 
     init {
-        on<WorldEvent.Change> {
-            clear()
-        }
+        on<WorldEvent.Change> { clear() }
 
         on<TickEvent.End> {
             if (ClearExecutor.active) return@on
-            if (!inSkyblock ||
-                (mc.screen != null && !inContainer) ||
-                (dungeonsOnly && !inDungeons) ||
-                (Dungeon.inBoss && !inBoss)
-            ) return@on
+            if ((mc.screen != null && !inContainer) || (Dungeon.inBoss && !inBoss)) return@on
 
             val currentTime = System.currentTimeMillis()
             val iterator = clickedBlocks.long2LongEntrySet().fastIterator()
