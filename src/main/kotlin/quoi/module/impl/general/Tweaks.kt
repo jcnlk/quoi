@@ -16,7 +16,6 @@ object Tweaks : Module(
     desc = "Various player tweaks."
 ) {
     @JvmStatic val fixDoubleSneak by switch("Fix double sneak", desc = "Fixes a bug where your camera can bounce when you quickly sneak and unsneak.") // kinda a rendering thing rite? :grin:
-    @JvmStatic val instantSneak by switch("Instant sneak", desc = "Instantly moves your camera when sneaking.")
     @JvmStatic val muteSounds by switch("Mute sounds", desc = "Mutes in-game sounds while Minecraft is unfocused.")
     private val legacySkullSizeSetting = switch("1.8 skull size", desc = "Scales held skull items to their 1.8 size.")
     private val legacySkullSize by legacySkullSizeSetting

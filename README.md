@@ -185,7 +185,7 @@ Download the JAR for your Minecraft version from [Releases](https://github.com/j
 - **Titles**
   - Shows configurable titles or subtitles for AutoPet rules, invincibility procs, and Shadow Assassin alerts.
 - **Tweaks**
-  - Adjusts sneaking and sounds, and fixes SkyBlock cooldowns, interactions, fog, and cursor resets.
+  - Fixes camera bounce when sneaking, mutes sounds, and fixes SkyBlock cooldowns, interactions, fog, and cursor resets.
 - **Wardrobe Keybinds**
   - Adds Wardrobe slot, page, and unequip keybinds.
 
