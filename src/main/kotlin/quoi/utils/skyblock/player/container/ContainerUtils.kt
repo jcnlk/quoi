@@ -8,7 +8,6 @@ import net.minecraft.world.inventory.AbstractContainerMenu
 import net.minecraft.world.inventory.ContainerInput
 import net.minecraft.world.inventory.MenuType
 import net.minecraft.world.inventory.Slot
-import quoi.QuoiMod.logger
 import quoi.annotations.Init
 import quoi.annotations.Internal
 import quoi.api.events.ContainerEvent
@@ -19,7 +18,6 @@ import quoi.api.events.core.EventListener
 import quoi.api.events.core.Priority
 import quoi.api.events.core.on
 import quoi.mixins.accessors.AbstractContainerScreenAccessor
-import quoi.module.impl.render.clickgui.ClickGui
 import quoi.utils.Shortcuts
 import quoi.utils.skyblock.player.container.task.ContainerAction
 import quoi.utils.skyblock.player.container.task.ContainerManager
@@ -102,12 +100,6 @@ object ContainerUtils : EventListener, Shortcuts {
                     if (p.slot == lastMenuSlot) loaded(p.containerId)
                 }
                 is ClientboundContainerClosePacket -> {
-                    if (p.containerId != containerId && ClickGui.debug) {
-                        logger.info(
-                            "Server close ID differs: packetId={}, trackedId={}, playerId={}, title={}",
-                            p.containerId, containerId, mc.player?.containerMenu?.containerId, current?.title
-                        )
-                    }
                     containerId = 0
                     lastStateId = 0
                     containerServerSide = false

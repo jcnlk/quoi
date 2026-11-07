@@ -1,17 +1,11 @@
 package quoi.utils.skyblock.player
 
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
-import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
-import net.minecraft.network.protocol.game.ServerboundUseItemPacket
-import quoi.QuoiMod.logger
 import quoi.QuoiMod.mc
 import quoi.annotations.Init
-import quoi.annotations.Internal
 import quoi.api.events.ChatEvent
-import quoi.api.events.PacketEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
-import quoi.api.events.core.EventDispatcher
 import quoi.api.events.core.EventListener
 import quoi.api.events.core.Priority
 import quoi.api.events.core.on
@@ -21,18 +15,15 @@ import quoi.api.skyblock.dungeon.Dungeon.getMageCooldownMultiplier
 import quoi.api.skyblock.dungeon.Dungeon.inDungeons
 import quoi.api.skyblock.dungeon.enums.DungeonClass
 import quoi.api.skyblock.dungeon.enums.DungeonPlayer
-import quoi.module.impl.render.clickgui.ClickGui
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.StringUtils.toFixed
-import quoi.utils.skyblock.item.ItemUtils.skyblockId
-import quoi.utils.skyblock.player.container.ContainerUtils
 import quoi.utils.skyblock.player.container.CONTAINER_MENU
+import quoi.utils.skyblock.player.container.ContainerUtils
 import quoi.utils.skyblock.player.container.IContainerSettings
 import quoi.utils.skyblock.player.container.task.*
 
 // TODO: redo?
 @Init
-@OptIn(Internal::class)
 object LeapManager : EventListener {
     private const val MENU_TIMEOUT_TICKS = 60
 
@@ -81,10 +72,9 @@ object LeapManager : EventListener {
             val pending = pendingLeap ?: return@on
             if (mc.screen != null || ContainerUtils.containerId != 0 || ContainerManager.activeTask != null) return@on
 
-            when (val result = doLeap(pending)) {
+            when (doLeap(pending)) {
                 LeapStartResult.Started,
                 LeapStartResult.Rejected -> if (pendingLeap === pending) {
-                    if (ClickGui.debug) logger.info("Leap dequeued: target={}, result={}", pending.target.name, result)
                     pendingLeap = null
                 }
                 LeapStartResult.Retry -> Unit
@@ -93,23 +83,6 @@ object LeapManager : EventListener {
 
         on<TickEvent.Server> {
             if (leapCD > 0) leapCD -= 1
-        }
-
-        on<PacketEvent.Sent, ServerboundUseItemPacket>(Priority.LOWEST - 2, acceptCancelled = true) {
-            val leap = activeLeap ?: return@on
-            if (!ClickGui.debug) return@on
-            logger.info(
-                "Leap use-item event: target={}, hand={}, sequence={}, cancelled={}, item={}",
-                leap.target.name, packet.hand, packet.sequence, cancelled, mc.player?.mainHandItem?.skyblockId
-            )
-        }
-        on<PacketEvent.Received, ClientboundOpenScreenPacket>(Priority.HIGHEST + 2, acceptCancelled = true) {
-            val leap = activeLeap ?: return@on
-            if (!ClickGui.debug) return@on
-            logger.info(
-                "Leap received menu: target={}, id={}, title={}",
-                leap.target.name, packet.containerId, packet.title.string
-            )
         }
     }
 
@@ -159,24 +132,6 @@ object LeapManager : EventListener {
 
     private fun queueLeap(request: LeapRequest) {
         pendingLeap = request
-        if (ClickGui.debug) {
-            val screen = mc.screen
-            val runningTask = ContainerManager.activeTask
-            val reason = when {
-                screen != null -> "screen open"
-                ContainerUtils.containerId != 0 -> "container open"
-                runningTask != null -> "container task active"
-                inProgress -> "leap active"
-                else -> "hotbar swap used this tick"
-            }
-            logger.info(
-                "Leap queued: target={}, reason={}, screen={}, trackedContainer={}, playerContainer={}, title={}, silent={}, task={}, action={}/{}, activeLeap={}, leapTaskResult={}",
-                request.target.name, reason, screen?.javaClass?.name, ContainerUtils.containerId,
-                mc.player?.containerMenu?.containerId, ContainerUtils.current?.title, ContainerUtils.containerServerSide,
-                runningTask?.name, runningTask?.completedActions, runningTask?.totalActions,
-                activeLeap?.target?.name, task?.result
-            )
-        }
         modMessage("&eQueued leap to ${formatName(request.target)}")
     }
 
@@ -203,13 +158,6 @@ object LeapManager : EventListener {
         } else null
 
         activeLeap = leap
-        if (ClickGui.debug) {
-            logger.info(
-                "Leap started: target={}, preOpened={}, slot={}, item={}, serverTick={}",
-                leap.target.name, preOpened, mc.player?.inventory?.selectedSlot,
-                mc.player?.mainHandItem?.skyblockId, EventDispatcher.totalTicks
-            )
-        }
         val newTask = containerTask(
             name = "Leap to ${leap.target.name}",
             settings = leap.settings,
@@ -242,7 +190,6 @@ object LeapManager : EventListener {
     private fun finishLeap(leap: LeapRequest, result: ContainerTaskResult, previousSlot: Int?) {
         if (activeLeap !== leap) return
 
-        if (ClickGui.debug) logger.info("Leap finished: target={}, result={}, serverTick={}", leap.target.name, result, EventDispatcher.totalTicks)
         when (result) {
             ContainerTaskResult.Success -> {
                 lastLeap = System.currentTimeMillis()
@@ -251,14 +198,7 @@ object LeapManager : EventListener {
             }
             ContainerTaskResult.Busy -> modMessage("&cFailed to leap: another container action is active")
             ContainerTaskResult.Cancelled -> Unit
-            is ContainerTaskResult.Failure -> {
-                modMessage("&cFailed to leap to ${formatName(leap.target)}&c: ${result.message}")
-                logger.warn(
-                    "Leap failed: target={}, reason={}, slot={}, item={}, container={}, title={}",
-                    leap.target.name, result.message, mc.player?.inventory?.selectedSlot,
-                    mc.player?.mainHandItem?.skyblockId, ContainerUtils.containerId, ContainerUtils.current?.title
-                )
-            }
+            is ContainerTaskResult.Failure -> modMessage("&cFailed to leap to ${formatName(leap.target)}&c: ${result.message}")
         }
 
         previousSlot?.let(SwapManager::swapToSlot)

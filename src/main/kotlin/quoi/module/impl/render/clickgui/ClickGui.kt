@@ -1,6 +1,7 @@
 //~ desktop_platform
 package quoi.module.impl.render.clickgui
 
+import net.minecraft.util.Util
 import quoi.annotations.AlwaysActive
 import quoi.annotations.Internal
 import quoi.api.abobaui.AbobaUI
@@ -49,7 +50,10 @@ import quoi.utils.ui.rendering.NVGRenderer.defaultFont
 import quoi.utils.ui.screens.UIScreen.Companion.open
 import java.net.URI
 
-import net.minecraft.util.Util
+/**
+ * TODO:
+ *  - add proper debug
+ */
 
 @AlwaysActive
 @OptIn(Internal::class)
@@ -57,7 +61,6 @@ object ClickGui : Module(
     "Click GUI",
     key = Keybinds.KEY_RIGHT_SHIFT
 ) {
-    val debug by switch("Debug", desc = "Writes leap and container diagnostics to latest.log.") // TODO: make actual debug or smth
     val forceSkyblock by switch("Force skyblock")
     val forceDungeons by switch("Force dungeon").onValueChanged { _, new -> if (new) Dungeon.setFloor(dungeonFloor.selected) }
     val dungeonFloor: SelectorComponent<Floor> by selector("Floor", Floor.F7).childOf(::forceDungeons).onValueChanged { _, new ->
