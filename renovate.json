@@ -72,6 +72,11 @@
       "enabled": false
     },
     {
+      "description": "Fabric Loom updates are managed manually",
+      "matchPackageNames": ["net.fabricmc:fabric-loom", "net.fabricmc.fabric-loom:net.fabricmc.fabric-loom.gradle.plugin"],
+      "enabled": false
+    },
+    {
       "description": "Fabric Loader updates are managed manually",
       "matchPackageNames": ["net.fabricmc:fabric-loader"],
       "enabled": false
