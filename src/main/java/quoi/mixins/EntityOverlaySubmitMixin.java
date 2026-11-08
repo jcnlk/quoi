@@ -9,8 +9,6 @@ import net.minecraft.client.resources.model.geometry.BakedQuad;
 //? if >=26.3
 //import net.minecraft.client.resources.model.geometry.ItemQuads;
 import net.minecraft.world.item.ItemDisplayContext;
-//? if <26.2
-import net.minecraft.client.model.geom.ModelPart;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -45,16 +43,4 @@ public class EntityOverlaySubmitMixin {
     private int quoi$overlayModelColour(int original, Model<?> model, Object state, PoseStack poseStack, RenderType layer) {
         return EntityOverlayRenderer.overlayCoords(original, layer);
     }
-
-    //? if <26.2 {
-    @ModifyVariable(method = "submitModelPart", at = @At("HEAD"), argsOnly = true)
-    private RenderType quoi$overlayPartType(RenderType original) {
-        return EntityOverlayRenderer.renderType(original);
-    }
-
-    @ModifyVariable(method = "submitModelPart", at = @At("HEAD"), argsOnly = true, ordinal = 1)
-    private int quoi$overlayPartColour(int original, ModelPart model, PoseStack poseStack, RenderType layer) {
-        return EntityOverlayRenderer.overlayCoords(original, layer);
-    }
-    //?}
 }

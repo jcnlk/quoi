@@ -25,7 +25,7 @@ object Trail : Module(
     @Suppress("unused")
     private val resetKey by keybind("Reset trail", desc = "Clears the current trail when pressed in game.")
         .onPress {
-            if (enabled && mc.screen == null) history.clear()
+            if (enabled && mc.gui.screen() == null) history.clear()
         }
 
     init {

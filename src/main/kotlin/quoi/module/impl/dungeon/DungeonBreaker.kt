@@ -183,7 +183,7 @@ object DungeonBreaker : Module(
         return result.blockPos
     }
 
-    private fun disableInGUI() = disableInInventory && mc.screen != null
+    private fun disableInGUI() = disableInInventory && mc.gui.screen() != null
 
     private fun tickTriggerBot() {
         val pos = lookedBlock()?.takeIf { it in dbBlocks && isMineableDbBlock(it) }

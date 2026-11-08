@@ -4,7 +4,7 @@ import quoi.api.abobaui.constraints.Constraints
 import quoi.api.abobaui.elements.Element
 import quoi.api.colour.Colour
 import quoi.utils.ui.data.Radii
-import quoi.utils.ui.rendering.NVGRenderer
+import quoi.utils.ui.rendering.UIRenderer
 
 class Shadow(
     constraints: Constraints,
@@ -18,7 +18,7 @@ class Shadow(
 
     private val radii = radii ?: Block.EMPTY_RADIUS
 
-    override fun drawNvg() {
-        NVGRenderer.dropShadow(x + offsetX, y + offsetY, width, height, blur, spread, radii, colour!!.rgb)
+    override fun drawCustom() {
+        UIRenderer.dropShadow(x + offsetX, y + offsetY, width, height, blur, spread, radii, colour!!.rgb)
     }
 }

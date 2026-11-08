@@ -35,7 +35,7 @@ object EntityUtils {
         get() = boundingBox.move(renderX - x, renderY - y, renderZ - z)
 
     inline val Entity.distanceToCamera: Double get() {
-        val cameraPos = mc.gameRenderer.mainCamera.position()
+        val cameraPos = mc.gameRenderer.mainCamera().position()
         val dx = cameraPos.x - this.x
         val dy = cameraPos.y - this.y + this.getEyeHeight(this.pose)
         val dz = cameraPos.z - this.z

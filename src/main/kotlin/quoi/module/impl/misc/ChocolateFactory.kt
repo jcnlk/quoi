@@ -169,7 +169,7 @@ object ChocolateFactory : Module(
     }
 
     private fun tickFactoryActions() {
-        val screen = mc.screen as? AbstractContainerScreen<*> ?: return
+        val screen = mc.gui.screen() as? AbstractContainerScreen<*> ?: return
         if (screen.title.string != "Chocolate Factory") return
 
         if (autoTimeTower && shouldActivateTimeTower(screen.menu.getSlot(39).item)) {
@@ -191,7 +191,7 @@ object ChocolateFactory : Module(
     }
 
     private fun tickUpgrades() {
-        val screen = mc.screen as? AbstractContainerScreen<*> ?: return
+        val screen = mc.gui.screen() as? AbstractContainerScreen<*> ?: return
         if (screen.title.string != "Chocolate Factory") return
 
         chocolate = screen.menu.getSlot(13).item.hoverName.string
@@ -357,7 +357,7 @@ object ChocolateFactory : Module(
     }
 
     private fun isInChocolateFactory(): Boolean =
-        (mc.screen as? AbstractContainerScreen<*>)?.title?.string == "Chocolate Factory"
+        (mc.gui.screen() as? AbstractContainerScreen<*>)?.title?.string == "Chocolate Factory"
 
     private data class Egg(
         val entity: ArmorStand,

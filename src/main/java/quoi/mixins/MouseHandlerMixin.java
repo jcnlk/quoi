@@ -69,7 +69,7 @@ public class MouseHandlerMixin {
     @Unique
     private boolean checkShit(long window) {
         Minecraft mc = Minecraft.getInstance();
-        return window != mc.getWindow().handle() || mc.screen != null;
+        return window != mc.getWindow().handle() || mc.gui.screen() != null;
     }
 
     /**
@@ -93,7 +93,7 @@ public class MouseHandlerMixin {
 
     @Inject(method = "releaseMouse", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;getWindow()Lcom/mojang/blaze3d/platform/Window;"))
     private void odin$correctCursorPosition(CallbackInfo ci) {
-        if (Minecraft.getInstance().screen instanceof ContainerScreen && Tweaks.shouldHookMouse()) {
+        if (Minecraft.getInstance().gui.screen() instanceof ContainerScreen && Tweaks.shouldHookMouse()) {
             //~ if >=26.3 'grabOrReleaseMouse(Minecraft.getInstance().getWindow(), InputConstants.CURSOR_NORMAL,' -> 'releaseMouse(Minecraft.getInstance().getWindow(),'
             InputConstants.grabOrReleaseMouse(Minecraft.getInstance().getWindow(), InputConstants.CURSOR_NORMAL, this.beforeX, this.beforeY);
             this.xpos = this.beforeX;

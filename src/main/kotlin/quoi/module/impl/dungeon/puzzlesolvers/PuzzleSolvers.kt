@@ -53,10 +53,10 @@ object PuzzleSolvers : Module(
     val missCd by slider("Miss cooldown", 550L, 300L, 1050L, 50L, unit = "ms").childOf(::bowDropdown)
 
     val screenBlocksAuto: Boolean
-        get() = mc.screen != null && !InteractiveMap.mapOpen
+        get() = mc.gui.screen() != null && !InteractiveMap.mapOpen
 
     fun triggerBlock(pos: BlockPos): Boolean {
-        if (mc.screen != null || Dungeon.isDead || ClearExecutor.active) return false
+        if (mc.gui.screen() != null || Dungeon.isDead || ClearExecutor.active) return false
         val hit = mc.hitResult as? BlockHitResult ?: return false
         if (hit.type != HitResult.Type.BLOCK || hit.blockPos != pos) return false
         val state = level.getBlockState(pos)

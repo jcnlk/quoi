@@ -56,7 +56,7 @@ class ContainerTask(
     internal var silentInventoryOpen = false
 
     private val blocksForMenu: Boolean
-        get() = !completed && settings.silent && mc.screen == null &&
+        get() = !completed && settings.silent && mc.gui.screen() == null &&
                 (silentInventoryOpen ||
                         mc.player?.let { it.containerMenu !== it.inventoryMenu } == true)
 

@@ -277,7 +277,7 @@ object QuoiCommand : EventListener {
         devCommand.register()
 
         BaseCommand("clearchat") {
-            mc.gui.chat.clearMessages(false)
+            mc.gui.hud.chat.clearMessages(false)
             CompactChat.chatList.clear()
             modMessage("Cleared chat.")
         }.register()

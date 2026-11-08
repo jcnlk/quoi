@@ -328,7 +328,7 @@ object Test : Module("Test", desc = "Dev module for testing.") {
         Data("   Levers", { "${Floor7.getStage().levers}/2" }, { p3Stage }),
         Data("   Device", { Floor7.getStage().device }, { p3Stage }),
         Data("   Gate", { Floor7.getStage().gate }, { p3Stage }),
-        Data("Container", { "${mc.screen != null} | ${ContainerUtils.containerId}" }, { container })
+        Data("Container", { "${mc.gui.screen() != null} | ${ContainerUtils.containerId}" }, { container })
     )
     private data class Data(val name: String, val value: () -> Any?, val enabled: () -> Boolean)
 

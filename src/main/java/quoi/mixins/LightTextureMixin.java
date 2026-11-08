@@ -17,19 +17,8 @@ import static quoi.module.impl.render.RenderOptimiser.should;
 @Mixin(LightmapRenderStateExtractor.class)
 public class LightTextureMixin {
 
-    //? if <26.2 {
+    //? if <26.3 {
     @ModifyExpressionValue(
-            method = "extract",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Ljava/lang/Math;max(FF)F"
-            )
-    )
-    private float getAmbientLight(float original) {
-        return should(RenderOptimiser.getFullBright()) ? 15.0f : original;
-    }
-    //?} else if <26.3 {
-    /*@ModifyExpressionValue(
             method = "extract",
             at = @At(
                     value = "INVOKE",
@@ -45,7 +34,7 @@ public class LightTextureMixin {
     private Vector3f getAmbientLight(Vector3f original) {
         return should(RenderOptimiser.getFullBright()) ? new Vector3f(15.0f) : original;
     }
-    *///?} else {
+    //?} else {
     /*@WrapOperation(
             method = "extract",
             at = @At(

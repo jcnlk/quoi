@@ -43,8 +43,8 @@ import quoi.utils.ThemeManager.theme
 import quoi.utils.ui.elements.themedInput
 import quoi.utils.ui.hud.HudManager
 import quoi.utils.ui.onHover
-import quoi.utils.ui.rendering.NVGRenderer
-import quoi.utils.ui.rendering.NVGRenderer.defaultFont
+import quoi.utils.ui.rendering.UIRenderer
+import quoi.utils.ui.rendering.UIRenderer.defaultFont
 import quoi.utils.ui.screens.UIScreen.Companion.open
 import java.net.URI
 
@@ -78,7 +78,7 @@ object ClickGui : Module(
     }
 
     override fun onKeybind() {
-        if (mc.screen != null) return
+        if (mc.gui.screen() != null) return
         open(clickGui)
     }
 
@@ -307,7 +307,7 @@ object ClickGui : Module(
 
             val y = (element.y + 7 / 2).px
 
-            val lines = NVGRenderer.wrapText(desc, 200f, 14f, defaultFont)
+            val lines = UIRenderer.wrapText(desc, 200f, 14f, defaultFont)
 
             popup = popup(constrain(x, y, Bounding, Bounding), smooth = false) {
                 block(
@@ -340,12 +340,12 @@ object ClickGui : Module(
             .filter { it.category == category }
             .sortedWith(
                 compareByDescending<Module> {
-                    NVGRenderer.textWidth(it.name, MODULE_TEXT_SIZE, defaultFont)
+                    UIRenderer.textWidth(it.name, MODULE_TEXT_SIZE, defaultFont)
                 }.thenBy(String.CASE_INSENSITIVE_ORDER) { it.name }
             )
 
     fun reopen() {
-        mc.setScreen(null)
+        mc.gui.setScreen(null)
         clickGui = clickGui()
         open(clickGui)
     }

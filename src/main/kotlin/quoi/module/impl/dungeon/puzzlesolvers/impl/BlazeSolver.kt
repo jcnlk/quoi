@@ -115,7 +115,7 @@ object BlazeSolver : SettingGroup(PuzzleSolvers, "Blaze"), Repositionable { // t
             if (!solver && !auto && !triggerbot) return@on
             pruneBlazes()
             if ((!auto && !triggerbot) || ClearExecutor.active || blazes.isEmpty() || PuzzleSolvers.screenBlocksAuto || Dungeon.isDead) return@on
-            if (!auto && mc.screen != null) return@on
+            if (!auto && mc.gui.screen() != null) return@on
             val room = Dungeon.currentRoom ?: return@on
 
             if (auto) repositionTicker?.let {

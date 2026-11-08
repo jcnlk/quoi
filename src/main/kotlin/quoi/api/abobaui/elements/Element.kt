@@ -17,7 +17,7 @@ import quoi.api.abobaui.events.Mouse
 import quoi.api.abobaui.transforms.Transform
 import quoi.api.colour.Colour
 import quoi.utils.sf
-import quoi.utils.ui.rendering.NVGRenderer
+import quoi.utils.ui.rendering.UIRenderer
 import kotlin.experimental.ExperimentalTypeInference
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -88,10 +88,10 @@ abstract class Element(
     }
 
     open fun draw() {
-        if (ui.nvgPass) drawNvg() else if (usingCtx) drawCtx()
+        if (ui.customPass) drawCustom() else if (usingCtx) drawCtx()
     }
 
-    open fun drawNvg() {}
+    open fun drawCustom() {}
 
     open fun drawCtx() {}
 
@@ -110,10 +110,10 @@ abstract class Element(
 
         if (!renders) return
 
-        if (ui.nvgPass) {
-            NVGRenderer.push()
+        if (ui.customPass) {
+            UIRenderer.push()
 
-            if (scissors) NVGRenderer.pushScissor(x, y, width, height)
+            if (scissors) UIRenderer.pushScissor(x, y, width, height)
 
             shadows?.forEach { it.render() }
 
@@ -135,13 +135,13 @@ abstract class Element(
                     is Layout.Divider -> Colour.RED
                     else -> Colour.BLACK
                 }
-                NVGRenderer.hollowRect(x, y, width, height, 1.0f, col.rgb)
+                UIRenderer.hollowRect(x, y, width, height, 1.0f, col.rgb)
             }
 
             children?.forEach { it.render() }
 
-            if (scissors) NVGRenderer.popScissor()
-            NVGRenderer.pop()
+            if (scissors) UIRenderer.popScissor()
+            UIRenderer.pop()
         } else {
             if (scissors) {
                 val scaled = generateSequence(parent) { it.parent }.firstOrNull { it.scaleX != 1f } ?: this

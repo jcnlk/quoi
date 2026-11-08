@@ -11,7 +11,7 @@ import net.minecraft.resources.Identifier
 //? if >=26.4
 //import net.minecraft.client.renderer.BindGroupLayouts
 //$ primitive_type_import
-import com.mojang.blaze3d.vertex.VertexFormat
+import com.mojang.blaze3d.PrimitiveTopology
 
 /**
  * from OdinFabric (BSD 3-Clause)
@@ -36,22 +36,10 @@ object CustomRenderPipelines {
             .withFragmentShader("core/entity")
             .withShaderDefine("ALPHA_CUTOUT", 0.1f)
             .withColorTargetState(ColorTargetState.DEFAULT)
-            //? if <26.2 {
-            .withCull(!depth)
-            //?} else {
-            //.withCull(false)
-            //?}
-            //$ pipeline_vertices ENTITY QUADS {
-            .withVertexFormat(DefaultVertexFormat.ENTITY, VertexFormat.Mode.QUADS)
-            //$}
-            .withDepthStencilState(
-                // 26.2+ renders ESP with a separate depth buffer
-                //? if >=26.2 {
-                //DepthStencilState.DEFAULT
-                //?} else {
-                if (depth) DepthStencilState.DEFAULT else DepthStencilState(CompareOp.ALWAYS_PASS, false)
-                //?}
-            )
+            .withCull(false)
+            .withVertexBinding(0, DefaultVertexFormat.ENTITY)
+            .withPrimitiveTopology(PrimitiveTopology.QUADS)
+            .withDepthStencilState(DepthStencilState.DEFAULT)
             .build()
         //? if <26.4 {
         return RenderPipelines.register(pipeline)
@@ -78,9 +66,8 @@ object CustomRenderPipelines {
         RenderPipeline.builder(RenderPipelines.DEBUG_FILLED_SNIPPET)
             .withLocation("quoi/pipeline/debug_filled_box")
             .withCull(false)
-            //$ pipeline_vertices POSITION_COLOR QUADS {
-            .withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS)
-            //$}
+            .withVertexBinding(0, DefaultVertexFormat.POSITION_COLOR)
+            .withPrimitiveTopology(PrimitiveTopology.QUADS)
             .withDepthStencilState(testedDepth)
             .withColorTargetState(ColorTargetState(BlendFunction.TRANSLUCENT))
             .build()
@@ -93,9 +80,8 @@ object CustomRenderPipelines {
         RenderPipeline.builder(RenderPipelines.DEBUG_FILLED_SNIPPET)
             .withLocation("quoi/pipeline/debug_filled_box_esp")
             .withCull(false)
-            //$ pipeline_vertices POSITION_COLOR QUADS {
-            .withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS)
-            //$}
+            .withVertexBinding(0, DefaultVertexFormat.POSITION_COLOR)
+            .withPrimitiveTopology(PrimitiveTopology.QUADS)
             .withDepthStencilState(DepthStencilState(CompareOp.ALWAYS_PASS, false))
             .withColorTargetState(ColorTargetState(BlendFunction.TRANSLUCENT))
             .build()

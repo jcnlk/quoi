@@ -4,7 +4,6 @@ import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 import net.fabricmc.fabric.impl.command.client.ClientCommandInternals
 import net.minecraft.client.gui.components.ChatComponent
 import net.minecraft.client.multiplayer.chat.GuiMessage
-import net.minecraft.client.multiplayer.chat.GuiMessageSource
 import net.minecraft.client.multiplayer.chat.GuiMessageTag
 import net.minecraft.network.chat.*
 import net.minecraft.world.entity.player.ChatVisiblity
@@ -55,8 +54,7 @@ object ChatUtils {
     }
 
     fun removeLines(id: Int, text: String): Boolean {
-        //~ if >=26.2 'it.content.' -> 'it.content().'
-        return removeLines { it.id == id || it.content.string.noControlCodes == text }
+        return removeLines { it.id == id || it.content().string.noControlCodes == text }
     }
 
     fun removeLines(id: Int): Boolean {
@@ -65,7 +63,7 @@ object ChatUtils {
 
     fun removeLines(cb: (GuiMessage) -> Boolean): Boolean {
         var removedLine = false
-        val messageList = mc.gui.chat.allMessages.listIterator()
+        val messageList = mc.gui.hud.chat.allMessages.listIterator()
 
         while (messageList.hasNext()) {
             val msg = messageList.next()
@@ -75,7 +73,7 @@ object ChatUtils {
             removedLine = true
         }
 
-        if (removedLine) mc.gui.chat.refreshTrimmedMessages()
+        if (removedLine) mc.gui.hud.chat.refreshTrimmedMessages()
 
         return removedLine
     }
@@ -87,9 +85,9 @@ object ChatUtils {
     fun editLines(cb: (GuiMessage) -> Boolean, replaceWith: Component): Boolean {
         var editedLine = false
         val indicator =
-            if (mc.isSingleplayer) GuiMessageTag.systemSinglePlayer()
+            if (mc.hasSingleplayerServer()) GuiMessageTag.systemSinglePlayer()
             else GuiMessageTag.system()
-        val messageList = mc.gui.chat.allMessages.listIterator()
+        val messageList = mc.gui.hud.chat.allMessages.listIterator()
 
         while (messageList.hasNext()) {
             val msg = messageList.next()
@@ -98,14 +96,12 @@ object ChatUtils {
             editedLine = true
             messageList.remove()
 
-            //~ if >=26.2 'msg.addedTime,' -> 'msg.addedTime(),'
-            //~ if >=26.2 'GuiMessageSource.SYSTEM_CLIENT' -> 'msg.source()'
-            val line = GuiMessage(msg.addedTime, replaceWith, null, GuiMessageSource.SYSTEM_CLIENT, indicator)
+            val line = GuiMessage(msg.addedTime(), replaceWith, null, msg.source(), indicator)
             line.id = msg.id
             messageList.add(line)
         }
 
-        if (editedLine) mc.gui.chat.refreshTrimmedMessages()
+        if (editedLine) mc.gui.hud.chat.refreshTrimmedMessages()
 
         return editedLine
     }
@@ -121,12 +117,8 @@ object ChatUtils {
     }
 
     private fun executeClientCommand(command: String): Boolean {
-        //? if <26.2 {
-        return ClientCommandInternals.executeCommand(command)
-        //?} else {
-        /*val source = mc.connection?.suggestionsProvider as? FabricClientCommandSource ?: return false
+        val source = mc.connection?.suggestionsProvider as? FabricClientCommandSource ?: return false
         return ClientCommandInternals.executeCommand(command, source, null)
-        *///?}
     }
 
     fun say(message: String) = connection.sendChat(message)
@@ -163,7 +155,7 @@ object ChatUtils {
         }.also { chatStyle?.let(it::setStyle) }
 
         mc.execute {
-            id?.let { mc.gui.chat.add(text, it) } ?: mc.gui.chat.addClientSystemMessage(text)
+            id?.let { mc.gui.hud.chat.add(text, it) } ?: mc.gui.hud.chat.addClientSystemMessage(text)
         }
     }
 }

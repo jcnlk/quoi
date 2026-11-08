@@ -79,7 +79,7 @@ object ThreeWeirdosSolver : SettingGroup(PuzzleSolvers, "Three weirdos") {
 
         on<TickEvent.End> {
             if ((!auto && !triggerbot) || clickedChest || ClearExecutor.active || PuzzleSolvers.screenBlocksAuto) return@on
-            if (!auto && (mc.screen != null || Dungeon.isDead)) return@on
+            if (!auto && (mc.gui.screen() != null || Dungeon.isDead)) return@on
 
             val currentTime = System.currentTimeMillis()
 

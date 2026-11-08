@@ -36,7 +36,7 @@ object Terminals : Module(
 
     init {
         on<TickEvent.Start> {
-            if (Dungeon.inTerminal || Dungeon.isDead || mc.screen != null) return@on
+            if (Dungeon.inTerminal || Dungeon.isDead || mc.gui.screen() != null) return@on
             if (System.currentTimeMillis() - lastClick < delay) return@on
 
             if (leapDelayEnabled) {

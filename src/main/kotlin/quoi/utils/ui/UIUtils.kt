@@ -16,9 +16,9 @@ import quoi.api.input.Mouse
 import quoi.api.input.CursorShape
 import quoi.module.settings.UIComponent
 import quoi.utils.ui.rendering.Font
-import quoi.utils.ui.rendering.NVGRenderer.minecraftFont
+import quoi.utils.ui.rendering.UIRenderer.minecraftFont
 
-inline val inHudEditor get() = mc.screen?.title?.string == "Quoi! hud editor"
+inline val inHudEditor get() = mc.gui.screen()?.title?.string == "Quoi! hud editor"
 
 inline fun ElementScope<*>.onHover(duration: Float, crossinline block: () -> Unit) {
     var generation = 0

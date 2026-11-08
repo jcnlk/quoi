@@ -1,4 +1,3 @@
-//~ ui_frame
 
 package quoi.utils.ui.screens
 
@@ -15,7 +14,7 @@ import quoi.api.input.Keybinds
 import quoi.utils.equalsOneOf
 import quoi.utils.height
 import quoi.utils.width
-import quoi.utils.ui.rendering.NVGSpecialRenderer
+import quoi.utils.ui.rendering.UIRenderer
 
 class UIContainer(ui: AbobaUI.Instance, val cancelling: Boolean = true) : UIHandler(ui) {
 
@@ -42,7 +41,7 @@ class UIContainer(ui: AbobaUI.Instance, val cancelling: Boolean = true) : UIHand
         mouseMove(mx, my)
 
         ui.prepareFrame()
-        NVGSpecialRenderer.draw(ctx, 0, 0, ctx.guiWidth(), ctx.guiHeight()) {
+        UIRenderer.frame(ctx) {
             ui.render(true)
         }
         ui.render(false)

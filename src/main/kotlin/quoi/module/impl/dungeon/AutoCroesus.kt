@@ -213,7 +213,7 @@ object AutoCroesus : Module(
     }
 
     private fun startFromKeybind() {
-        if (!enabled || mc.screen != null) return
+        if (!enabled || mc.gui.screen() != null) return
         startWithPriceUpdate()
     }
 
@@ -376,7 +376,7 @@ object AutoCroesus : Module(
         modMessage("&aAuto Croesus finished. All chests looted.")
         reset()
         connection.send(ServerboundContainerClosePacket(container.menu.containerId))
-        mc.setScreen(null)
+        mc.gui.setScreen(null)
     }
 
     private fun onRunChestTick() {
@@ -470,7 +470,7 @@ object AutoCroesus : Module(
                 modMessage("&cNo Kismet Feather found. Auto Croesus disabled kismet claims for this session.")
                 currentChest = null
                 connection.send(ServerboundContainerClosePacket(container.menu.containerId))
-                mc.setScreen(null)
+                mc.gui.setScreen(null)
                 return
             }
 
@@ -591,9 +591,9 @@ object AutoCroesus : Module(
         else -> 0
     }
 
-    private fun inCroesus(): Boolean = mc.screen?.title?.string?.matches(croesusRegex) == true
-    private fun inRunChest(): Boolean = mc.screen?.title?.string?.matches(runChestRegex) == true
-    private fun container() = mc.screen as? AbstractContainerScreen<*>
+    private fun inCroesus(): Boolean = mc.gui.screen()?.title?.string?.matches(croesusRegex) == true
+    private fun inRunChest(): Boolean = mc.gui.screen()?.title?.string?.matches(runChestRegex) == true
+    private fun container() = mc.gui.screen() as? AbstractContainerScreen<*>
 
     private fun invLoaded(container: AbstractContainerScreen<*>): Boolean {
         val slots = container.menu.slots

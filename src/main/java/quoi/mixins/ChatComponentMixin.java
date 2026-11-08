@@ -100,7 +100,7 @@ public abstract class ChatComponentMixin implements IChatComponent {
             cancellable = true
     )
     private void interceptMessage(Component message, CallbackInfo ci) {
-        Screen currentScreen = Minecraft.getInstance().screen;
+        Screen currentScreen = Minecraft.getInstance().gui.screen();
         if (currentScreen instanceof ISearchMode searchScreen) {
             if (searchScreen.quoi$isSearchActive()) {
                 searchScreen.quoi$queueMessage(message);
@@ -111,7 +111,7 @@ public abstract class ChatComponentMixin implements IChatComponent {
 
     @ModifyVariable(
             //$ chat_render_method
-            method = "extractRenderState*",
+            method = "extractRenderState(Lnet/minecraft/client/gui/GuiGraphicsExtractor;Lnet/minecraft/client/gui/Font;IIILnet/minecraft/client/gui/components/ChatComponent$DisplayMode;Z)V",
             at = @At("HEAD"),
             argsOnly = true
     )

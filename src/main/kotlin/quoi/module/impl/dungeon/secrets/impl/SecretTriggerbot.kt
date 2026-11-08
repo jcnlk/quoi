@@ -44,7 +44,7 @@ object SecretTriggerbot : ToggleableGroup(
         }
 
         on<TickEvent.End> {
-            if (mc.screen != null) return@on
+            if (mc.gui.screen() != null) return@on
             if (Dungeon.currentRoom?.name.equalsOneOf("Water Board", "Three Weirdos")) {
                 tBotTicker = null
                 return@on

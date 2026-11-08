@@ -57,7 +57,7 @@ object AutoClicker: Module(
     }
 
     private fun shouldClick(isLeft: Boolean): Boolean {
-        if (mc.screen != null) return false
+        if (mc.gui.screen() != null) return false
         if (stopWhileSneaking && player.isShiftKeyDown) return false
         if (blockDungeonBreaker && player.mainHandItem.skyblockId == "DUNGEONBREAKER") return false
 
@@ -137,7 +137,7 @@ object AutoClicker: Module(
             if (!leftClickKeybind.isDown()) leftBlockedUntilRelease = false
             if (!rightClickKeybind.isDown()) rightBlockedUntilRelease = false
 
-            if (mc.screen != null) {
+            if (mc.gui.screen() != null) {
                 reset()
                 return@on
             }

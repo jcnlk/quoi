@@ -22,8 +22,8 @@ import quoi.module.impl.dungeon.autoclear.pathToRoom
 import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.StringUtils.width
 import quoi.utils.ui.rendering.Font
-import quoi.utils.ui.rendering.NVGRenderer
-import quoi.utils.ui.rendering.NVGRenderer.image
+import quoi.utils.ui.rendering.UIRenderer
+import quoi.utils.ui.rendering.UIRenderer.image
 import quoi.utils.ui.watch
 
 object MapRenderer {
@@ -160,7 +160,7 @@ object MapRenderer {
 
     private fun textWidth(line: String, size: Float, font: Font): Float =
         if (font.name == "Minecraft") line.width(size / mc.font.lineHeight)
-        else NVGRenderer.textWidth(line.noControlCodes, size, font)
+        else UIRenderer.textWidth(line.noControlCodes, size, font)
 
     private fun infoLines(): List<String> {
         val secrets = "§6Secrets: §b${Dungeon.secretCount}§f/§b${ScoreCalculation.secretsUntil300}§f/§e${ScoreCalculation.totalSecrets}"

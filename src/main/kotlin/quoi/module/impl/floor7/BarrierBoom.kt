@@ -26,7 +26,7 @@ object BarrierBoom : Module(
     init {
         on<TickEvent.Start> {
             val currentStage = Floor7.getStage()
-            if (mc.screen != null || isDead || currentStage.number !in 1..3 || currentStage.gate) return@on
+            if (mc.gui.screen() != null || isDead || currentStage.number !in 1..3 || currentStage.gate) return@on
 
             val result = mc.hitResult
             if (result is BlockHitResult && result.type == HitResult.Type.BLOCK) {

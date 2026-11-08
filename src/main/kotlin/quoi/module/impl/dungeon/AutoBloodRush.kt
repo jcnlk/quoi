@@ -33,7 +33,7 @@ object AutoBloodRush : Module(
 
     init {
         on<TickEvent.End> {
-            if (!Dungeon.hasStarted || !Dungeon.inClear || Dungeon.isDead || mc.screen != null && !InteractiveMap.mapOpen || mode.selected != "Doorcamp") {
+            if (!Dungeon.hasStarted || !Dungeon.inClear || Dungeon.isDead || mc.gui.screen() != null && !InteractiveMap.mapOpen || mode.selected != "Doorcamp") {
                 reset()
                 return@on
             }

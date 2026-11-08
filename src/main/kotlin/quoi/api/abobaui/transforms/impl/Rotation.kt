@@ -3,7 +3,7 @@ package quoi.api.abobaui.transforms.impl
 import quoi.api.abobaui.elements.Element
 import quoi.api.abobaui.transforms.Transform
 import quoi.utils.rad
-import quoi.utils.ui.rendering.NVGRenderer
+import quoi.utils.ui.rendering.UIRenderer
 
 class Rotation(override var amount: Float) : Transform.Mutable {
 
@@ -37,13 +37,13 @@ private fun rotate(element: Element, amount: Float) {
     val y = element.y + element.height / 2f
     val ang = amount.rad
 
-    if (!element.ui.nvgPass) {
+    if (!element.ui.customPass) {
         element.ctx.pose().translate(x, y)
         element.ctx.pose().rotate(ang)
         element.ctx.pose().translate(-x, -y)
     } else {
-        NVGRenderer.translate(x, y)
-        NVGRenderer.rotate(ang)
-        NVGRenderer.translate(-x, -y)
+        UIRenderer.translate(x, y)
+        UIRenderer.rotate(ang)
+        UIRenderer.translate(-x, -y)
     }
 }

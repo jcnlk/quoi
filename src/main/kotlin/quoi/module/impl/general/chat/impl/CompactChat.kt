@@ -38,10 +38,10 @@ object CompactChat : ToggleableGroup(
 
                 Scheduler.scheduleTask {
                     val count = chatList[msg]?.first ?: return@scheduleTask
-                    val scrollBefore = mc.gui.chat.chatScrollbarPos // without this scroll resets every time message gets compacted. visual bug: scroll bar changes colour for a split second. I can't be asked fixing it
+                    val scrollBefore = mc.gui.hud.chat.chatScrollbarPos // without this scroll resets every time message gets compacted. visual bug: scroll bar changes colour for a split second. I can't be asked fixing it
                     ChatUtils.removeLines(id, msg)
-                    mc.gui.chat.add(text.copy().append(literal(" &7($count)")), id)
-                    mc.gui.chat.chatScrollbarPos = scrollBefore
+                    mc.gui.hud.chat.add(text.copy().append(literal(" &7($count)")), id)
+                    mc.gui.hud.chat.chatScrollbarPos = scrollBefore
                 }
 
                 return@on

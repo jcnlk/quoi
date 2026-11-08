@@ -8,20 +8,17 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import quoi.module.impl.render.RenderOptimiser;
-//~ if >=26.2 'renderer.MultiBufferSource' -> 'renderer.SubmitNodeCollector'
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 
 @Mixin(ScreenEffectRenderer.class)
 public class ScreenEffectRendererMixin {
 
     @Inject(
-            //~ if >=26.2 '"renderFire"' -> '"submitFire"'
-            method = "renderFire",
+            method = "submitFire",
             at = @At("HEAD"),
             cancellable = true
     )
-    //~ if >=26.2 'MultiBufferSource multiBufferSource' -> 'SubmitNodeCollector submitNodeCollector'
-    private static void onRenderFire(PoseStack poseStack, MultiBufferSource multiBufferSource, TextureAtlasSprite textureAtlasSprite, CallbackInfo ci) {
+    private static void onRenderFire(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, TextureAtlasSprite textureAtlasSprite, CallbackInfo ci) {
         if (RenderOptimiser.should(RenderOptimiser.getHideFire())) ci.cancel();
     }
 }

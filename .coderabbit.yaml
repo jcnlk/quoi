@@ -18,7 +18,7 @@ reviews:
   path_instructions:
     - path: "src/**"
       instructions: |
-        This is a Fabric client mod targeting Minecraft 26.1, 26.2, 26.3, and 26.4 snapshots through Stonecutter.
+        This is a Fabric client mod targeting Minecraft 26.2, 26.3, and 26.4 snapshots through Stonecutter.
         Interpret Stonecutter condition comments and replacements in stonecutter.gradle.kts before evaluating version-specific code.
         Check event consumption, render state, client-thread access, and behavior across the supported Minecraft targets.
     - path: "**/gradle.properties"
@@ -28,7 +28,7 @@ reviews:
     - path: "**/*.gradle.kts"
       instructions: |
         Account for Stonecutter preprocessing, target-specific source exclusions, Java 25, and the shared source tree.
-        Verify that buildAll still produces a separate JAR for each of the four Minecraft targets.
+        Verify that buildAll still produces a separate JAR for each of the three Minecraft targets.
     - path: ".github/workflows/**"
       instructions: |
         Review event and path filters, token permissions, cache trust, and pinned action references.

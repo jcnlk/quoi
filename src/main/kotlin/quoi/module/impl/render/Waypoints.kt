@@ -74,7 +74,7 @@ object Waypoints : Module(
 
     private fun renderBeaconBeam(ctx: LevelRenderContext, pos: BlockPos, colour: Int) {
         val pose = com.mojang.blaze3d.vertex.PoseStack()
-        val cameraPos = mc.gameRenderer.mainCamera.position()
+        val cameraPos = mc.gameRenderer.mainCamera().position()
         val time = level.gameTime + mc.deltaTracker.getGameTimeDeltaPartialTick(true)
 
         pose.pushPose()

@@ -2,7 +2,7 @@ plugins {
     id("dev.kikugie.stonecutter")
 }
 
-stonecutter active "26.1.x" /* [SC] DO NOT EDIT */
+stonecutter active "26.2" /* [SC] DO NOT EDIT */
 
 tasks.register<Delete>("clean") {
     group = "build"
@@ -31,44 +31,9 @@ tasks.register("runActive") {
 }
 
 stonecutter parameters {
-    val gui = current.parsed >= "26.2"
     val sdl = current.parsed >= "26.3"
     val v26_4 = current.parsed >= "26.4"
     val pipelineInBlaze3d = !sdl || v26_4
-
-    // Minecraft 26.2 moves screens and HUD state into Gui and Hud.
-    replacements.string(gui) {
-        replace("mc.screen", "mc.gui.screen()")
-        replace("minecraft.screen", "minecraft.gui.screen()")
-        replace("Minecraft.getInstance().screen", "Minecraft.getInstance().gui.screen()")
-        replace("mc.setScreen(", "mc.gui.setScreen(")
-        replace("minecraft.setScreen(", "minecraft.gui.setScreen(")
-        replace("mc.gui.chat", "mc.gui.hud.chat")
-        replace("mc.gui.getChat()", "mc.gui.hud.getChat()")
-        replace("mc.gameRenderer.mainCamera", "mc.gameRenderer.mainCamera()")
-        replace("mc.isSingleplayer", "mc.hasSingleplayerServer()")
-        replace("mc.options.hideGui", "mc.gui.hud.isHidden")
-        replace("LevelRenderEvents.END_MAIN", "LevelRenderEvents.COLLECT_SUBMITS")
-        replace("GameRenderer;getNightVisionScale", "GameRenderer;nightVisionScale")
-        replace("mc.gui.setTimes(", "mc.gui.hud.setTimes(")
-        replace("mc.gui.setTitle(", "mc.gui.hud.setTitle(")
-        replace("mc.gui.setSubtitle(", "mc.gui.hud.setSubtitle(")
-    }
-    replacements.regex(gui) {
-        replace("\\bNVGRenderer\\b", "UIRenderer", "\\bUIRenderer\\b", "NVGRenderer")
-    }
-    replacements.string(gui, "ui_frame") {
-        replace("import quoi.utils.ui.rendering.NVGSpecialRenderer", "import quoi.utils.ui.rendering.UIRenderer")
-        replace("NVGSpecialRenderer.draw(ctx, 0, 0, ctx.guiWidth(), ctx.guiHeight())", "UIRenderer.frame(ctx)")
-    }
-
-    replacements.string(gui, "item_in_hand") {
-        replace("renderHandsWithItems", "submitHandsWithItems")
-        replace("renderArmWithItem", "submitArmWithItem")
-    }
-    replacements.string(gui, "entity_interaction") {
-        replace("entity.boundingBox.center.subtract(entity.position())", "Vec3.ZERO")
-    }
 
     // Minecraft 26.4 rendering, GUI, text, sound and fluid changes.
     replacements.string(v26_4, "texture_resources") {
@@ -128,30 +93,6 @@ stonecutter parameters {
     replacements.string(v26_4, "container_extraction") {
         replace("GuiGraphicsExtractor context, int mouseX, int mouseY, CallbackInfo", "GuiGraphicsExtractor context, CallbackInfo")
         replace("GuiGraphicsExtractor context, Slot slot, int x, int y, CallbackInfo", "GuiGraphicsExtractor context, Slot slot, CallbackInfo")
-    }
-
-    // Registry families replace the individual colored and weathered constants.
-    replacements.string(gui) {
-        val colors = mapOf(
-            "WHITE" to "white", "ORANGE" to "orange", "MAGENTA" to "magenta", "LIGHT_BLUE" to "lightBlue",
-            "YELLOW" to "yellow", "LIME" to "lime", "PINK" to "pink", "GRAY" to "gray",
-            "LIGHT_GRAY" to "lightGray", "CYAN" to "cyan", "PURPLE" to "purple", "BLUE" to "blue",
-            "BROWN" to "brown", "GREEN" to "green", "RED" to "red", "BLACK" to "black",
-        )
-        mapOf(
-            "WOOL" to "WOOL", "CARPET" to "CARPET", "TERRACOTTA" to "DYED_TERRACOTTA",
-            "SHULKER_BOX" to "DYED_SHULKER_BOX", "CANDLE" to "DYED_CANDLE",
-            "STAINED_GLASS" to "STAINED_GLASS", "STAINED_GLASS_PANE" to "STAINED_GLASS_PANE",
-        ).forEach { (old, family) ->
-            colors.forEach { (color, method) -> replace("Blocks.${color}_$old", "Blocks.$family.$method()") }
-        }
-        listOf("DOOR", "TRAPDOOR", "BULB").forEach { family ->
-            listOf("EXPOSED", "WEATHERED", "OXIDIZED").forEach { state ->
-                replace("Blocks.${state}_COPPER_$family", "Blocks.COPPER_$family.weathering().${state.lowercase()}()")
-                replace("Blocks.WAXED_${state}_COPPER_$family", "Blocks.COPPER_$family.waxed().${state.lowercase()}()")
-            }
-            replace("Blocks.WAXED_COPPER_$family", "Blocks.COPPER_$family.waxed().unaffected()")
-        }
     }
 
     // SDL input, swing and movement packet changes in Minecraft 26.3.
@@ -219,12 +160,10 @@ stonecutter parameters {
         else -> "pose.rotateDegrees(Axis.\$1, \$2)"
     }
     swaps["primitive_type_import"] = when {
-        !gui -> "import com.mojang.blaze3d.vertex.VertexFormat"
         !sdl -> "import com.mojang.blaze3d.PrimitiveTopology"
         else -> "import com.mojang.renderpearl.api.pipeline.PrimitiveTopology"
     }
     swaps["chat_render_method"] = when {
-        !gui -> "method = \"extractRenderState*\","
         !v26_4 -> "method = \"extractRenderState(Lnet/minecraft/client/gui/GuiGraphicsExtractor;Lnet/minecraft/client/gui/Font;IIILnet/minecraft/client/gui/components/ChatComponent\$DisplayMode;Z)V\","
         else -> "method = \"extractRenderState(Lnet/minecraft/client/gui/GuiGraphicsExtractor;Lnet/minecraft/client/gui/Font;ILnet/minecraft/client/gui/components/ChatComponent\$DisplayMode;Z)V\","
     }
@@ -235,12 +174,5 @@ stonecutter parameters {
     swaps["pipeline_end"] = when {
         !v26_4 -> ")"
         else -> "// Empty."
-    }
-    swaps["pipeline_vertices"] = when {
-        !gui -> ".withVertexFormat(DefaultVertexFormat.\$1, VertexFormat.Mode.\$2)"
-        else -> """
-            .withVertexBinding(0, DefaultVertexFormat.${'$'}1)
-            .withPrimitiveTopology(PrimitiveTopology.${'$'}2)
-        """.trimIndent()
     }
 }

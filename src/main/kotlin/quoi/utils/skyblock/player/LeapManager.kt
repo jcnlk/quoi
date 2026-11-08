@@ -70,7 +70,7 @@ object LeapManager : EventListener {
 
         on<TickEvent.Start>(Priority.LOWEST) {
             val pending = pendingLeap ?: return@on
-            if (mc.screen != null || ContainerUtils.containerId != 0 || ContainerManager.activeTask != null) return@on
+            if (mc.gui.screen() != null || ContainerUtils.containerId != 0 || ContainerManager.activeTask != null) return@on
 
             when (doLeap(pending)) {
                 LeapStartResult.Started,
@@ -119,11 +119,11 @@ object LeapManager : EventListener {
         teammate ?: return modMessage("&cFailed to leap! $formattedTarget &cnot found")
 
         val request = LeapRequest(teammate, settings, swapBack)
-        val openLeapMenu = (mc.screen as? AbstractContainerScreen<*>)?.takeIf { it.title.string == "Spirit Leap" }
+        val openLeapMenu = (mc.gui.screen() as? AbstractContainerScreen<*>)?.takeIf { it.title.string == "Spirit Leap" }
 
         if (!inProgress && pendingLeap == null && openLeapMenu != null && ContainerManager.activeTask == null) {
             doLeap(request, preOpened = true)
-        } else if (mc.screen != null || ContainerUtils.containerId != 0 || ContainerManager.activeTask != null) {
+        } else if (mc.gui.screen() != null || ContainerUtils.containerId != 0 || ContainerManager.activeTask != null) {
             queueLeap(request)
         } else if (doLeap(request) == LeapStartResult.Retry) {
             queueLeap(request)

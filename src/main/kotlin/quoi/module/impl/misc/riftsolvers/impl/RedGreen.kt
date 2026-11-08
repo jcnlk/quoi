@@ -299,13 +299,13 @@ object RedGreen : ToggleableGroup(MirrorverseSolvers, "Red green") {
                         Side.LEFT -> -104.0
                         Side.RIGHT -> -110.0
                         null -> {
-                            val is104 = BlockPos(player.x, player.y, -104.0).state.block == Blocks.RED_STAINED_GLASS
+                            val is104 = BlockPos(player.x, player.y, -104.0).state.block == Blocks.STAINED_GLASS.red()
                             if (is104) -104.0 else -110.0
                         }
                     }
 
                     val pos = BlockPos(player.x, player.y, z)
-                    return if (pos.state.block == Blocks.RED_STAINED_GLASS) Vec3.atCenterOf(pos) else null
+                    return if (pos.state.block == Blocks.STAINED_GLASS.red()) Vec3.atCenterOf(pos) else null
                 }
         }
 

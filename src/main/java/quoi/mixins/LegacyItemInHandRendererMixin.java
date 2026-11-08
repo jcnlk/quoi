@@ -1,4 +1,3 @@
-//~ item_in_hand
 
 package quoi.mixins;
 
@@ -28,7 +27,7 @@ import quoi.module.impl.render.VisualBlocking;
 public abstract class LegacyItemInHandRendererMixin {
 
     @ModifyArg(
-            method = "renderHandsWithItems",
+            method = "submitHandsWithItems",
             at = @At(value = "INVOKE", target = "Lcom/mojang/math/Axis;rotationDegrees(F)Lorg/joml/Quaternionf;"),
             index = 0,
             require = 2
@@ -38,7 +37,7 @@ public abstract class LegacyItemInHandRendererMixin {
     }
 
     @WrapOperation(
-            method = "renderHandsWithItems",
+            method = "submitHandsWithItems",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;getAttackAnim(F)F"),
             require = 1
     )
@@ -85,7 +84,7 @@ public abstract class LegacyItemInHandRendererMixin {
     }
 
     @Inject(
-            method = "renderArmWithItem",
+            method = "submitArmWithItem",
             at = @At(
                     value = "INVOKE",
                     target = "Lcom/mojang/blaze3d/vertex/PoseStack;pushPose()V",

@@ -36,12 +36,12 @@ object Mastery : ToggleableGroup(Dojo, "Mastery", subarea = "dojo arena") {
 
     init {
         on<BlockEvent.Update> {
-            if (updated.block == Blocks.LIME_WOOL) {
+            if (updated.block == Blocks.WOOL.lime()) {
                 if (player.blockPosition().distanceToSqr(pos) > 400) return@on
                 blocks[pos] = System.currentTimeMillis() + 6_500
             }
 
-            if (old.block == Blocks.RED_WOOL) {
+            if (old.block == Blocks.WOOL.red()) {
                 blocks.remove(pos)
             }
         }

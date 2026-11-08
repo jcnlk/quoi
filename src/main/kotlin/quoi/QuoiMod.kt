@@ -3,7 +3,6 @@ package quoi
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlinx.coroutines.CoroutineScope
 import net.fabricmc.api.ClientModInitializer
-import net.fabricmc.fabric.api.client.rendering.v1.PictureInPictureRendererRegistry
 import net.minecraft.client.Minecraft
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
@@ -15,8 +14,6 @@ import quoi.api.events.core.once
 import quoi.config.Config
 import quoi.module.ModuleManager
 import quoi.utils.ui.hud.HudManager
-//? if <26.2
-import quoi.utils.ui.rendering.NVGSpecialRenderer
 
 // todo add docs to some utils and apis
 object QuoiMod : ClientModInitializer, EventListener {
@@ -27,11 +24,6 @@ object QuoiMod : ClientModInitializer, EventListener {
     val logger: Logger = LogManager.getLogger("quoi")
 
     override fun onInitializeClient() {
-        //? if <26.2 {
-        PictureInPictureRendererRegistry.register { context ->
-            NVGSpecialRenderer(context.bufferSource())
-        }
-        //?}
         ModuleManager.initialise()
         AnnotationLoader.load()
 

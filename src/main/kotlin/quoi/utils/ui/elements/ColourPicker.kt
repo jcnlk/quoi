@@ -30,8 +30,8 @@ import quoi.utils.ThemeManager.theme
 import quoi.utils.ui.*
 import quoi.utils.ui.data.Gradient
 import quoi.utils.ui.data.Radii
-import quoi.utils.ui.rendering.NVGRenderer
-import quoi.utils.ui.rendering.NVGRenderer.image
+import quoi.utils.ui.rendering.UIRenderer
+import quoi.utils.ui.rendering.UIRenderer.image
 
 fun ElementScope<*>.colourPicker(
     ref: KMutableProperty0<Colour.HSB>,
@@ -71,14 +71,14 @@ fun ElementScope<*>.colourPicker(
         )
 
         object : Element(constraints, colour) {
-            override fun drawNvg() {
+            override fun drawCustom() {
                 val r = 11f
                 val centerX = round(x + r - 3f)
                 val centerY = round(y + r - 3f)
-                NVGRenderer.dropShadow(x - 1, y - 1, size + 2, size + 2, blur = 4f, spread = 3f, radius = 10f)
-                NVGRenderer.circle(centerX, centerY, r, Colour.WHITE.rgb)
+                UIRenderer.dropShadow(x - 1, y - 1, size + 2, size + 2, blur = 4f, spread = 3f, radius = 10f)
+                UIRenderer.circle(centerX, centerY, r, Colour.WHITE.rgb)
                 if (allowAlpha) image("checker-24.svg".image(), x + 1, y + 1, size - 2, size - 2, 10.radius())
-                NVGRenderer.circle(centerX, centerY, r - 4f, this.colour!!.rgb)
+                UIRenderer.circle(centerX, centerY, r - 4f, this.colour!!.rgb)
             }
         }.add()
 

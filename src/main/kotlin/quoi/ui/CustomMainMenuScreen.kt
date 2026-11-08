@@ -56,12 +56,12 @@ class CustomMainMenuScreen(
         }
 
         val multiplayerAllowed = minecraft.allowsMultiplayer() && !minecraft.isDemo
-        addButton("Singleplayer") { minecraft.setScreen(SelectWorldScreen(this)) }
-        addButton("Multiplayer", multiplayerAllowed) { minecraft.setScreen(JoinMultiplayerScreen(this)) }
+        addButton("Singleplayer") { minecraft.gui.setScreen(SelectWorldScreen(this)) }
+        addButton("Multiplayer", multiplayerAllowed) { minecraft.gui.setScreen(JoinMultiplayerScreen(this)) }
         if (CustomMainMenu.showHypixelButton) addButton("Join Hypixel", multiplayerAllowed) { joinServer("Hypixel", "mc.hypixel.net") }
         if (CustomMainMenu.showP3SimButton) addButton("Join P3Sim", multiplayerAllowed) { joinServer("P3Sim", "p3sim.net") }
         //~ if >=26.3 'minecraft.options, false)' -> 'minecraft.options)'
-        addButton("Options") { minecraft.setScreen(OptionsScreen(this, minecraft.options, false)) }
+        addButton("Options") { minecraft.gui.setScreen(OptionsScreen(this, minecraft.options, false)) }
         externalTitleButtons.forEach { button ->
             addButton(button.message.string.noControlCodes.trim(), button.active) { input ->
                 if (button.active && button.visible) button.onPress(input)
@@ -90,8 +90,7 @@ class CustomMainMenuScreen(
     override fun extractBackground(guiGraphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, deltaTicks: Float) {
         val background = loadedImage
         if (background != null) drawCover(guiGraphics, BACKGROUND_ID)
-        //~ if >=26.2 'extractPanorama(guiGraphics, deltaTicks)' -> 'minecraft.gameRenderer.panorama().extractRenderState(guiGraphics, width, height)'
-        else extractPanorama(guiGraphics, deltaTicks)
+        else minecraft.gameRenderer.panorama().extractRenderState(guiGraphics, width, height)
 
         val dim = (CustomMainMenu.dimAmount.coerceIn(0f, 1f) * 255).toInt() shl 24
         guiGraphics.fill(0, 0, width, height, dim)

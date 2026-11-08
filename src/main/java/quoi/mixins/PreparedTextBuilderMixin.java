@@ -1,10 +1,8 @@
 package quoi.mixins;
 
 import net.minecraft.client.gui.Font;
-//? if >=26.2 {
-/*import net.minecraft.client.Minecraft;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-*///?}
 import net.minecraft.network.chat.Style;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -22,8 +20,7 @@ public class PreparedTextBuilderMixin {
             cancellable = true
     )
     private void devonian$disableTextShadow(Style style, int i, CallbackInfoReturnable<Integer> cir) {
-        //? if >=26.2
-        //if (should(RenderOptimiser.getContainerTextShadow()) && Minecraft.getInstance().screen instanceof AbstractContainerScreen) return;
+        if (should(RenderOptimiser.getContainerTextShadow()) && Minecraft.getInstance().gui.screen() instanceof AbstractContainerScreen) return;
         if (should(RenderOptimiser.getDisableTextShadow())) cir.setReturnValue(0);
     }
 }

@@ -1,4 +1,3 @@
-//~ ui_frame
 //~ gui_extraction
 
 package quoi.utils.ui.screens
@@ -15,7 +14,7 @@ import quoi.api.input.Keyboard.Modifier.isCtrlDown
 import quoi.api.input.Keybinds
 import quoi.utils.Scheduler.scheduleTask
 import quoi.utils.sf
-import quoi.utils.ui.rendering.NVGSpecialRenderer
+import quoi.utils.ui.rendering.UIRenderer
 
 class UIScreen(val instance: AbobaUI.Instance, val background: Boolean = true ) : Screen(Component.literal(instance.title)) {
 
@@ -24,8 +23,6 @@ class UIScreen(val instance: AbobaUI.Instance, val background: Boolean = true ) 
     }
 
     override fun extractRenderState(ctx: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, deltaTicks: Float) {
-        //? if <26.2
-        super.extractRenderState(ctx, mouseX, mouseY, deltaTicks)
         instance.ctx = ctx
         //? if >=26.4 {
         /*val mouseX = ctx.mouseX()
@@ -33,12 +30,11 @@ class UIScreen(val instance: AbobaUI.Instance, val background: Boolean = true ) 
         *///?}
         instance.eventManager.onMouseMove(mouseX * sf.toFloat(), mouseY * sf.toFloat())
         instance.prepareFrame()
-        NVGSpecialRenderer.draw(ctx, 0, 0, ctx.guiWidth(), ctx.guiHeight()) {
+        UIRenderer.frame(ctx) {
             instance.render(true)
         }
         instance.render(false)
-        //? if >=26.2
-        //super.extractRenderState(ctx, mouseX, mouseY, deltaTicks)
+        super.extractRenderState(ctx, mouseX, mouseY, deltaTicks)
     }
 
     override fun mouseClicked(mouseButtonEvent: MouseButtonEvent, doubled: Boolean) =
@@ -87,6 +83,6 @@ class UIScreen(val instance: AbobaUI.Instance, val background: Boolean = true ) 
     }
 
     companion object {
-        fun open(ui: AbobaUI.Instance, background: Boolean = true) = scheduleTask { mc.setScreen(UIScreen(ui, background)) }
+        fun open(ui: AbobaUI.Instance, background: Boolean = true) = scheduleTask { mc.gui.setScreen(UIScreen(ui, background)) }
     }
 }

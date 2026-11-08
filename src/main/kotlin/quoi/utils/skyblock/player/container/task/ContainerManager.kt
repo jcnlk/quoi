@@ -138,11 +138,11 @@ object ContainerManager : EventListener {
         var result: ContainerTaskResult = ContainerTaskResult.Success
         var inventoryScreen: InventoryScreen? = null
         val player = mc.player
-        val previousScreen = mc.screen
+        val previousScreen = mc.gui.screen()
         fun closeInventory() {
             if (inventoryScreen == null || mc.player !== player) return
-            if (mc.screen === inventoryScreen ||
-                (task.settings.silent && mc.screen === previousScreen && player?.containerMenu === player?.inventoryMenu)
+            if (mc.gui.screen() === inventoryScreen ||
+                (task.settings.silent && mc.gui.screen() === previousScreen && player?.containerMenu === player?.inventoryMenu)
             ) player?.closeContainer()
             task.silentInventoryOpen = false
             inventoryScreen = null
@@ -156,12 +156,12 @@ object ContainerManager : EventListener {
                 if (mc.player !== player) throw CancellationException("Player changed")
                 // open inventory for inventory clicks if no container or inventory screen is open
                 if (action is ContainerAction.Click && action.target.inContainer != true &&
-                    player.containerMenu.containerId == 0 && inventoryScreen == null && mc.screen !is InventoryScreen
+                    player.containerMenu.containerId == 0 && inventoryScreen == null && mc.gui.screen() !is InventoryScreen
                 ) {
                     inventoryScreen = InventoryScreen(player)
                     openingInventory = true
                     try {
-                        mc.setScreen(inventoryScreen)
+                        mc.gui.setScreen(inventoryScreen)
                     } finally {
                         openingInventory = false
                     }

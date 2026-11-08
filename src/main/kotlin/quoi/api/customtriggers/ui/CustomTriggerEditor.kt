@@ -30,7 +30,7 @@ import quoi.utils.ThemeManager.theme
 import quoi.utils.ui.cursor
 import quoi.utils.ui.elements.switch
 import quoi.utils.ui.elements.themedInput
-import quoi.utils.ui.rendering.NVGRenderer
+import quoi.utils.ui.rendering.UIRenderer
 
 class CustomTriggerEditor {
     private var selectedGroup = "General"
@@ -64,7 +64,7 @@ class CustomTriggerEditor {
         selectedId = triggers[selectedGroup]?.firstOrNull()?.id
         onAdd {
             // UIScreen.onClose is not called when Minecraft replaces a screen directly.
-            mc.screen?.let { screen ->
+            mc.gui.screen()?.let { screen ->
                 net.fabricmc.fabric.api.client.screen.v1.ScreenEvents.remove(screen).register {
                     if (!closingEditor) ui.close()
                 }
@@ -455,7 +455,7 @@ class CustomTriggerEditor {
     private fun ElementScope<*>.summaryText(
         value: () -> String, limit: Constraint.Size, fontSize: Float = 14f,
         colour: Colour = theme.onSurface, x: Float? = null
-    ) = object : Text(value(), NVGRenderer.defaultFont, colour, at(x = x?.px ?: quoi.api.abobaui.constraints.impl.measurements.Undefined, y = Centre), fontSize.px) {
+    ) = object : Text(value(), UIRenderer.defaultFont, colour, at(x = x?.px ?: quoi.api.abobaui.constraints.impl.measurements.Undefined, y = Centre), fontSize.px) {
         override fun prePosition() {
             val full = value()
             val available = limit.calculateSize(this, true).coerceAtLeast(0f)

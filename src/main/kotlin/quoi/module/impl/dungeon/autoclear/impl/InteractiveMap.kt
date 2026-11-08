@@ -47,14 +47,14 @@ object InteractiveMap : Module(
         .onPress {
             if (!enabled || !Dungeon.inClear || Dungeon.isDead) return@onPress
             if (mapOpen && closeOn.index == 1) {
-                mc.setScreen(null)
-            } else if (mc.screen == null) {
+                mc.gui.setScreen(null)
+            } else if (mc.gui.screen() == null) {
                 open(map(), background = false)
             }
         }
         .onRelease {
             if (!enabled || closeOn.index != 0 || !Dungeon.inClear || Dungeon.isDead) return@onRelease
-            if (mapOpen) mc.setScreen(null)
+            if (mapOpen) mc.gui.setScreen(null)
         }
 
     private val lockedKey: KeybindComponent = register(keybind("Locked door key", desc = "Teleports to the closest locked door"))
@@ -70,7 +70,7 @@ object InteractiveMap : Module(
     val roomInCol by colourPicker("Highlight colour", Colour.GREY.withAlpha(0.5f), allowAlpha = true, desc = "Room the player currently in colour.").childOf(::visuals)
 
     val mapOpen: Boolean
-        get() = mc.screen?.title?.string == "quoi clear map"
+        get() = mc.gui.screen()?.title?.string == "quoi clear map"
 
     init {
         on<PacketEvent.Received, ClientboundForgetLevelChunkPacket> {

@@ -42,7 +42,7 @@ object DamageDodge : ToggleableGroup(BlazeSlayer, "Damage dodge", desc = "Automa
     init {
         on<TickEvent.End> {
             if (Slayers.questState != QuestState.KILLING) return@on
-            if (mc.screen != null) return@on
+            if (mc.gui.screen() != null) return@on
 
             if (ddr && blazeBoss.canDDR) player.blocksAtFeet(-1) { it in ddrBlocks }.firstOrNull()?.let { a ->
                 val safePos =

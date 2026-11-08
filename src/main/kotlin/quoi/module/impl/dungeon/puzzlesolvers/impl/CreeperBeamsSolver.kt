@@ -122,7 +122,7 @@ object CreeperBeamsSolver : SettingGroup(PuzzleSolvers, "Creeper beams"), Reposi
         }
 
         on<TickEvent.End> {
-            if (!triggerbot || auto || ClearExecutor.active || mc.screen != null || Dungeon.isDead || progress.solvedPairs >= 4 || currentLanternPairs.isEmpty()) return@on
+            if (!triggerbot || auto || ClearExecutor.active || mc.gui.screen() != null || Dungeon.isDead || progress.solvedPairs >= 4 || currentLanternPairs.isEmpty()) return@on
             if (!player.mainHandItem.isShortbow) return@on
             val now = System.currentTimeMillis()
             if (now - lastShotTime < PuzzleSolvers.shootCd) return@on

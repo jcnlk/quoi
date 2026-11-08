@@ -96,7 +96,7 @@ object VisualBlocking : Module(
     fun isBlocking(stack: ItemStack): Boolean {
         if (!enabled) return false
         val player = mc.player ?: return false
-        if (mc.screen != null || !mc.options.keyUse.isDown || player.isSpectator || player.isSleeping ||
+        if (mc.gui.screen() != null || !mc.options.keyUse.isDown || player.isSpectator || player.isSleeping ||
             player.isUsingItem || player.isAutoSpinAttack) return false
         if (ItemAnimations.isMap(stack) || !ItemStack.isSameItemSameComponents(stack, player.mainHandItem)) return false
         return whitelistFilter.matches(stack, whitelist.value) && !blacklistFilter.matches(stack, blacklist.value)

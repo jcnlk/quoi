@@ -45,13 +45,11 @@ object CustomRenderLayer {
             RenderSetup.builder { stage ->
                 RenderPipelines.debugPrimitive(RenderPipelines.DebugPrimitiveParameters(DebugPrimitiveRenderPipelineVariant.QUADS, stage))
             }
-        } else RenderSetup.nonOitBuilder(pipeline)
+        } else RenderSetup.builder(pipeline)
         *///?} else {
         val builder = RenderSetup.builder(pipeline)
         //?}
         val setup = builder
-            //? if <26.2
-            .bufferSize(RenderType.TRANSIENT_BUFFER_SIZE)
             .apply(configure)
             .createRenderSetup()
         return RenderType.create(name, setup)

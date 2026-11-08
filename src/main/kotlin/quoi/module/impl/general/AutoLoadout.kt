@@ -23,7 +23,7 @@ object AutoLoadout : Module(
     }
 
     private fun onLoadoutKey(slot: Int) {
-        if (!enabled || mc.screen != null) return
+        if (!enabled || mc.gui.screen() != null) return
         LoadoutSwapper.equip(slot, settings = containerSettings)
     }
 }

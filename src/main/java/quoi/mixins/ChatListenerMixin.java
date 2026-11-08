@@ -14,8 +14,7 @@ public class ChatListenerMixin {
             method = "handleOverlay",
             at = @At(
                     value = "INVOKE",
-                    //~ if >=26.2 'gui/Gui;setOverlayMessage' -> 'gui/Hud;setOverlayMessage'
-                    target = "Lnet/minecraft/client/gui/Gui;setOverlayMessage(Lnet/minecraft/network/chat/Component;Z)V"
+                    target = "Lnet/minecraft/client/gui/Hud;setOverlayMessage(Lnet/minecraft/network/chat/Component;Z)V"
             ),
             index = 0,
             require = 1

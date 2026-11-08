@@ -116,7 +116,7 @@ object AutoBookCombine : Module(
         combinedInCurrentAnvil = false
     }
 
-    private fun currentAnvil() = (mc.screen as? AbstractContainerScreen<*>)?.takeIf { it.title.string == "Anvil" }
+    private fun currentAnvil() = (mc.gui.screen() as? AbstractContainerScreen<*>)?.takeIf { it.title.string == "Anvil" }
 
     private data class Enchantment(val id: String, val level: Int)
 }

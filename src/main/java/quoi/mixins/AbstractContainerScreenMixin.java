@@ -23,8 +23,7 @@ public class AbstractContainerScreenMixin {
     @Inject(
             method = "extractSlot",
             at = @At("HEAD"),
-            //~ if >=26.2 'cancellable = true' -> 'cancellable = true, require = 1'
-            cancellable = true
+            cancellable = true, require = 1
     )
     private void quoi$onDrawSlot(GuiGraphicsExtractor context, Slot slot, int x, int y, CallbackInfo ci) {
         if (new GuiEvent.Slot.Draw((Screen) (Object) this, context, slot).post()) ci.cancel();

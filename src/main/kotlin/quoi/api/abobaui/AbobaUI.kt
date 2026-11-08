@@ -10,7 +10,7 @@ import quoi.api.abobaui.elements.impl.Group
 import quoi.api.abobaui.events.EventManager
 import quoi.api.abobaui.events.Lifetime
 import quoi.api.abobaui.operations.Operation
-import quoi.utils.ui.rendering.NVGRenderer
+import quoi.utils.ui.rendering.UIRenderer
 
 // heavily inspired by stivais' auroraui. I'm too stupid for this
 class AbobaUI(val title: String) {
@@ -27,7 +27,7 @@ class AbobaUI(val title: String) {
 
     var debug = false
 
-    var nvgPass = true
+    var customPass = true
 
     internal var layoutDirty = true
 
@@ -74,12 +74,12 @@ class AbobaUI(val title: String) {
         }
     }
 
-    fun render(nvg: Boolean) {
-        nvgPass = nvg
-        if (nvg) {
-            NVGRenderer.push()
+    fun render(custom: Boolean) {
+        customPass = custom
+        if (custom) {
+            UIRenderer.push()
             main.render()
-            NVGRenderer.pop()
+            UIRenderer.pop()
         } else {
             main.render()
         }
@@ -139,7 +139,7 @@ class AbobaUI(val title: String) {
 
         fun prepareFrame() = ui.prepareFrame()
 
-        fun render(nvg: Boolean = true) = ui.render(nvg)
+        fun render(custom: Boolean = true) = ui.render(custom)
 
         fun close() = ui.close()
 

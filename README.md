@@ -1,5 +1,5 @@
 [![discord badge](https://img.shields.io/discord/1371490329508839455?label=discord&color=9089DA&logo=discord&style=for-the-badge)](https://discord.gg/QCWgrQ57pN)
-![minecraft-version](https://img.shields.io/badge/Minecraft-26.1.x%20%7C%2026.2%20%7C%2026.3%20%7C%2026.4%20snapshot-6BAA57?style=for-the-badge&logoColor=white)
+![minecraft-version](https://img.shields.io/badge/Minecraft-26.2%20%7C%2026.3%20%7C%2026.4%20snapshot-6BAA57?style=for-the-badge&logoColor=white)
 [![GitHub downloads](https://img.shields.io/github/downloads/jcnlk/quoi/total?label=downloads&color=6BAA57&logo=github&logoColor=white&style=for-the-badge)](https://github.com/jcnlk/quoi/releases)
 
 Download the JAR for your Minecraft version from [Releases](https://github.com/jcnlk/quoi/releases/latest).
@@ -304,7 +304,7 @@ GPL-3.0, but I don't give a single fuck if you use the code without crediting. D
 
 ## Credits
 
-- [Odin](https://github.com/odtheking/OdinFabric) - NanoVG implementation, world renderer, and module config system
+- [Odin](https://github.com/odtheking/OdinFabric) - UI rendering API, world renderer, and module config system
 - [Zen](https://github.com/StellariumMC/zen) - Event manager inspiration
 - [devonian](https://github.com/Synnerz/devonian) - commands API inspiration
 - [Stivias](https://github.com/Stivais/) - AuroraUI UI library

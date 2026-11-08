@@ -17,7 +17,7 @@ import quoi.utils.player
 import quoi.utils.skyblock.player.PlayerUtils.eyeHeight
 import quoi.utils.unaryMinus
 
-private fun camera() = mc.gameRenderer.mainCamera
+private fun camera() = mc.gameRenderer.mainCamera()
 
 private fun VertexConsumer.addQuad(
     pose: com.mojang.blaze3d.vertex.PoseStack.Pose,

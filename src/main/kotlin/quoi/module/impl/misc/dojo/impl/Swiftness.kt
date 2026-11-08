@@ -36,7 +36,7 @@ object Swiftness : ToggleableGroup(Dojo, "Swiftness", subarea = "dojo arena") { 
 
     init {
         on<BlockEvent.Update> {
-            if (updated.block != Blocks.LIME_WOOL) return@on
+            if (updated.block != Blocks.WOOL.lime()) return@on
 
             if (pos == centre) return@on
 

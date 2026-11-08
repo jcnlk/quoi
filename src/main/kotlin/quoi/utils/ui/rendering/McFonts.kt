@@ -176,7 +176,7 @@ class McFonts {
 
         init {
             val data = font.buffer()
-            buffer = if (data.remaining() > 0) data else NVGRenderer.defaultFont.buffer()
+            buffer = if (data.remaining() > 0) data else UIRenderer.defaultFont.buffer()
             require(stbtt_InitFont(info, buffer)) { "Failed to load font ${font.name}" }
             MemoryStack.stackPush().use { stack ->
                 val a = stack.mallocInt(1)

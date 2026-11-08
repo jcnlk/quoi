@@ -74,7 +74,7 @@ object Relics : Module(
         }
 
         on<TickEvent.Start> {
-            if (Dungeon.floor != Floor.M7 || Dungeon.isDead || mc.screen != null) {
+            if (Dungeon.floor != Floor.M7 || Dungeon.isDead || mc.gui.screen() != null) {
                 runningRelic = null
                 return@on
             }
@@ -108,7 +108,7 @@ object Relics : Module(
 
         on<KeyEvent.Input>(Priority.LOWEST - 1) {
             val relic = runningRelic ?: return@on
-            if (Dungeon.floor != Floor.M7 || !relicLook || !relicRun || Dungeon.isDead || mc.screen != null || carriedRelic != relic || reachedCauldron(relic)) {
+            if (Dungeon.floor != Floor.M7 || !relicLook || !relicRun || Dungeon.isDead || mc.gui.screen() != null || carriedRelic != relic || reachedCauldron(relic)) {
                 runningRelic = null
                 return@on
             }

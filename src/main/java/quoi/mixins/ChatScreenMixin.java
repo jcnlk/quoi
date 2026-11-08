@@ -85,7 +85,7 @@ public class ChatScreenMixin extends Screen implements ISearchMode {
     @Unique
     private void toggleSearch(boolean activate) {
         isSearchActive = activate;
-        ChatComponent chatHud = mc.gui.getChat();
+        ChatComponent chatHud = mc.gui.hud.getChat();
 
         if (activate) {
             messageBackup.clear();
@@ -115,7 +115,7 @@ public class ChatScreenMixin extends Screen implements ISearchMode {
 
     @Unique
     private void doSearch(String query) {
-        ChatComponent chatHud = mc.gui.getChat();
+        ChatComponent chatHud = mc.gui.hud.getChat();
         List<GuiMessage> messages = chatHud.allMessages;
 
         messages.clear();
@@ -137,8 +137,7 @@ public class ChatScreenMixin extends Screen implements ISearchMode {
 
             messages.addAll(filteredResults);
         }
-        //~ if >=26.2 'mc.gui.getGuiTicks()' -> '0'
-        messages.addFirst(new GuiMessage(mc.gui.getGuiTicks(), Component.literal("§e§lSEARCH ON"), null, GuiMessageSource.SYSTEM_CLIENT, null));
+        messages.addFirst(new GuiMessage(0, Component.literal("§e§lSEARCH ON"), null, GuiMessageSource.SYSTEM_CLIENT, null));
         chatHud.rescaleChat();
     }
 

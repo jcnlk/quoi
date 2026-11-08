@@ -74,7 +74,7 @@ object SecretAura : ToggleableGroup(
 
         on<TickEvent.End> {
             if (ClearExecutor.active) return@on
-            if ((mc.screen != null && !inContainer) || (Dungeon.inBoss && !inBoss)) return@on
+            if ((mc.gui.screen() != null && !inContainer) || (Dungeon.inBoss && !inBoss)) return@on
 
             val currentTime = System.currentTimeMillis()
             val iterator = clickedBlocks.long2LongEntrySet().fastIterator()

@@ -12,11 +12,7 @@ import net.minecraft.client.renderer.entity.LivingEntityRenderer
 import net.minecraft.client.renderer.entity.state.CatRenderState
 import net.minecraft.client.renderer.state.level.CameraRenderState
 import net.minecraft.resources.Identifier
-//? if >=26.2 {
-/*import net.minecraft.world.entity.EntityTypes as EntityType
-*///?} else {
-import net.minecraft.world.entity.EntityType
-//?}
+import net.minecraft.world.entity.EntityTypes as EntityType
 import quoi.module.impl.misc.catmode.CatMode
 import quoi.module.settings.group.ToggleableGroup
 

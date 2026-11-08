@@ -1,4 +1,3 @@
-//~ entity_interaction
 
 package quoi.utils.skyblock.player.interact
 
@@ -29,14 +28,14 @@ class EntityInteract(private val entity: Entity, private val action: AuraAction)
                 )
 
                 mc.connection?.send(
-                    ServerboundInteractPacket(entity.id, InteractionHand.MAIN_HAND, entity.boundingBox.center.subtract(entity.position()), player.isShiftKeyDown)
+                    ServerboundInteractPacket(entity.id, InteractionHand.MAIN_HAND, Vec3.ZERO, player.isShiftKeyDown)
                 )
 
                 debugBox(hitVec)
             }
         } else {
             mc.connection?.send(
-                ServerboundInteractPacket(entity.id, InteractionHand.MAIN_HAND, entity.boundingBox.center.subtract(entity.position()), player.isShiftKeyDown)
+                ServerboundInteractPacket(entity.id, InteractionHand.MAIN_HAND, Vec3.ZERO, player.isShiftKeyDown)
             )
             debugBox(entity.boundingBox.center)
         }

@@ -19,7 +19,7 @@ import kotlin.collections.remove
  *
  * Coordinates are physical window pixels; see [RendererBackend].
  */
-object NVGRenderer {
+object UIRenderer {
 
     val backend: RendererBackend = McBackend()
 
@@ -31,7 +31,6 @@ object NVGRenderer {
 
     /**
      * Composites everything drawn by [content] into the GUI frame represented by [ctx].
-     * Replaces the old direct NVGSpecialRenderer picture-in-picture call.
      */
     fun frame(ctx: GuiGraphicsExtractor, content: () -> Unit) = backend.frame(ctx, content)
 

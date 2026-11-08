@@ -27,7 +27,7 @@ public class GuiGraphicsMixin {
     private GuiTextRenderState disableShadow(Font textRenderer, FormattedCharSequence orderedText, Matrix3x2fc matrix, int x, int y, int color, int backgroundColor, boolean shadow, boolean includeEmpty, ScreenRectangle clipBounds) {
         boolean disableShadows = should(RenderOptimiser.getDisableTextShadow());
         boolean forceContainerShadows = should(RenderOptimiser.getContainerTextShadow());
-        boolean inContainer = Minecraft.getInstance().screen instanceof AbstractContainerScreen;
+        boolean inContainer = Minecraft.getInstance().gui.screen() instanceof AbstractContainerScreen;
 
         boolean finalShadow;
 

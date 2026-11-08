@@ -34,7 +34,7 @@ object Crystals : Module(
 
     init {
         on<TickEvent.End> {
-            if (Dungeon.isDead || (mc.screen != null && !inContainer)) return@on
+            if (Dungeon.isDead || (mc.gui.screen() != null && !inContainer)) return@on
 
             if (cooldown > 0) {
                 cooldown--

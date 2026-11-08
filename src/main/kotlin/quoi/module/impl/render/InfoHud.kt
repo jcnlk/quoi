@@ -25,7 +25,7 @@ import quoi.utils.render.DrawContextUtils.drawText
 import quoi.utils.ui.data.Anchor
 import quoi.utils.ui.elements.clock
 import quoi.utils.ui.hud.impl.TextHud
-import quoi.utils.ui.rendering.NVGRenderer
+import quoi.utils.ui.rendering.UIRenderer
 import quoi.utils.ui.textPair
 
 object InfoHud : Module(
@@ -74,15 +74,15 @@ object InfoHud : Module(
                 }
             }
 
-            override fun drawNvg() {
+            override fun drawCustom() {
                 if (font.name == "Minecraft") return
 
                 drawMetrics { text, x, y, colour ->
                     if (shadow) {
                         val offset = lineHeight / 25f
-                        NVGRenderer.formattedText(text, this.x + x + offset, this.y + y + offset, lineHeight, Colour.BLACK.rgb, font)
+                        UIRenderer.formattedText(text, this.x + x + offset, this.y + y + offset, lineHeight, Colour.BLACK.rgb, font)
                     }
-                    NVGRenderer.formattedText(text, this.x + x, this.y + y, lineHeight, colour.rgb, font)
+                    UIRenderer.formattedText(text, this.x + x, this.y + y, lineHeight, colour.rgb, font)
                 }
             }
 
@@ -120,7 +120,7 @@ object InfoHud : Module(
 
             private fun textWidth(text: String): Float =
                 if (font.name == "Minecraft") mc.font.width(text) * (lineHeight / mc.font.lineHeight)
-                else NVGRenderer.textWidth(text.noControlCodes, lineHeight, font)
+                else UIRenderer.textWidth(text.noControlCodes, lineHeight, font)
         }.add()
     }
 

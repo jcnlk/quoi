@@ -44,10 +44,10 @@ object Tweaks : Module(
                 SoundSource.entries.forEach(mc.soundManager::refreshCategoryVolume)
             }
 
-            if (mc.screen != null) {
+            if (mc.gui.screen() != null) {
                 wasNotNull = true
                 time = System.currentTimeMillis()
-            } else if (wasNotNull && mc.screen == null) {
+            } else if (wasNotNull && mc.gui.screen() == null) {
                 wasNotNull = false
                 time = System.currentTimeMillis()
 

@@ -37,7 +37,7 @@ object GlaciteTunnels : Module(
     @Suppress("unused")
     private val baseWarpKey by keybind("Base warp", desc = "Warps to the Dwarven Base Camp with /warp basecamp.")
         .onPress {
-            if (active && inGlaciteEnvironment() && mc.screen == null) command("warp basecamp")
+            if (active && inGlaciteEnvironment() && mc.gui.screen() == null) command("warp basecamp")
         }
     private val pathColour by colourPicker("Path colour", Colour.RGB(76, 235, 160), allowAlpha = true)
     private val pathWidth by slider("Path width", 4f, 1f, 12f, 1f)
@@ -97,7 +97,7 @@ object GlaciteTunnels : Module(
         }
 
         on<MouseEvent.Click> {
-            if (button != 0 || !state || mc.screen != null) return@on
+            if (button != 0 || !state || mc.gui.screen() != null) return@on
             if (player.mainHandItem.skyblockId == "ROYAL_PIGEON") navigator.skipCurrentTarget()
         }
 
@@ -134,7 +134,7 @@ object GlaciteTunnels : Module(
     }
 
     private fun handleCommissionMenuUpdate(packet: Packet<*>) {
-        val container = mc.screen as? AbstractContainerScreen<*> ?: return
+        val container = mc.gui.screen() as? AbstractContainerScreen<*> ?: return
         if (!container.title.string.noControlCodes.equals(COMMISSIONS_MENU, ignoreCase = true)) return
         val menu = container.menu
         val updatedSlot = when (packet) {

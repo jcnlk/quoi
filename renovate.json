@@ -89,11 +89,6 @@
     {
       "description": "Fabric API must match each Minecraft target",
       "matchPackageNames": ["net.fabricmc.fabric-api:fabric-api"],
-      "matchFileNames": ["versions/26.1.x/gradle.properties"],
-      "allowedVersions": "/\\+26\\.1$/"
-    },
-    {
-      "matchPackageNames": ["net.fabricmc.fabric-api:fabric-api"],
       "matchFileNames": ["versions/26.2/gradle.properties"],
       "allowedVersions": "/\\+26\\.2$/"
     },
@@ -111,11 +106,6 @@
       "description": "Mod Menu majors follow Minecraft releases, including their prereleases",
       "matchPackageNames": ["com.terraformersmc:modmenu"],
       "ignoreUnstable": false
-    },
-    {
-      "matchPackageNames": ["com.terraformersmc:modmenu"],
-      "matchFileNames": ["versions/26.1.x/gradle.properties"],
-      "allowedVersions": "/^18\\./"
     },
     {
       "matchPackageNames": ["com.terraformersmc:modmenu"],

@@ -26,6 +26,6 @@ object ChatPeek : ToggleableGroup(
 
     @JvmStatic
     fun scroll(amount: Int) {
-        mc.gui.chat.scrollChat(if (Keyboard.Modifier.isShiftDown) amount else amount * 7)
+        mc.gui.hud.chat.scrollChat(if (Keyboard.Modifier.isShiftDown) amount else amount * 7)
     }
 }

@@ -36,7 +36,7 @@ object AutoDoorOpener : Module(
 
     init {
         on<TickEvent.End> {
-            if (isDead || mc.screen != null && !inMenus && !InteractiveMap.mapOpen) return@on
+            if (isDead || mc.gui.screen() != null && !inMenus && !InteractiveMap.mapOpen) return@on
 
             val now = System.currentTimeMillis()
             if (now - lastClick < retryDelay) return@on
@@ -79,7 +79,7 @@ object AutoDoorOpener : Module(
                         abs(hitPos.z - door.pos.z) <= 2 &&
                         when (door.type) {
                             DoorType.WITHER -> hitPos.state.block == Blocks.COAL_BLOCK
-                            DoorType.BLOOD -> hitPos.state.block == Blocks.RED_TERRACOTTA
+                            DoorType.BLOOD -> hitPos.state.block == Blocks.DYED_TERRACOTTA.red()
                             else -> false
                         }
             }

@@ -56,9 +56,9 @@ object CustomMainMenu : Module(
 
             // Wait for every mod's initialization before collecting buttons and replacing the screen.
             mc.schedule {
-                if (enabled && mc.screen === screen) {
+                if (enabled && mc.gui.screen() === screen) {
                     val buttons = Screens.getWidgets(screen).filterIsInstance<AbstractButton>().filter(::isExternalTitleButton)
-                    mc.setScreen(CustomMainMenuScreen(buttons))
+                    mc.gui.setScreen(CustomMainMenuScreen(buttons))
                 }
             }
         }

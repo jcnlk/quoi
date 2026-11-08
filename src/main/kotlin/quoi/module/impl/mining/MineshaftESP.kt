@@ -169,8 +169,7 @@ object MineshaftESP : Module(
     private val Entity.espType: MineshaftMob?
         get() = when {
             !isAlive -> null
-            //~ if >=26.2 'type == EntityType.WOLF' -> 'EntityType.getKey(type).path == "wolf"'
-            type == EntityType.WOLF -> MineshaftMob.GLACITE_MUTT
+            EntityType.getKey(type).path == "wolf" -> MineshaftMob.GLACITE_MUTT
             this is Player -> MineshaftMob.fromName(cleanName)
             else -> null
         }

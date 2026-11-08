@@ -182,7 +182,7 @@ object ScanUtils : EventListener, Shortcuts {
                 val block = chunk.level.getBlockState(mutableBlockPos.set(x, 69, z)).block
                 val type = when (block) {
                     Blocks.COAL_BLOCK -> DoorType.WITHER
-                    Blocks.RED_TERRACOTTA -> DoorType.BLOOD
+                    Blocks.DYED_TERRACOTTA.red() -> DoorType.BLOOD
                     Blocks.INFESTED_CHISELED_STONE_BRICKS -> DoorType.ENTRANCE
                     else -> DoorType.NORMAL
                 }
@@ -348,9 +348,9 @@ object ScanUtils : EventListener, Shortcuts {
             }
             for (pos in candidates) {
                 val chunk = level.chunkSource.getChunk(pos.x shr 4, pos.z shr 4, false) ?: continue
-                if (!chunk.getBlockState(pos).`is`(Blocks.BLUE_TERRACOTTA)) continue
+                if (!chunk.getBlockState(pos).`is`(Blocks.DYED_TERRACOTTA.blue())) continue
                 if (room.tiles.size > 1 && horizontals.any {
-                        !chunk.getBlockState(pos.relative(it)).block.equalsOneOf(Blocks.AIR, Blocks.BLUE_TERRACOTTA)
+                        !chunk.getBlockState(pos.relative(it)).block.equalsOneOf(Blocks.AIR, Blocks.DYED_TERRACOTTA.blue())
                     }) continue
                 room.clayPos = pos
                 room.rotation = rotation

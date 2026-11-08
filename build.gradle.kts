@@ -12,57 +12,17 @@ val modVersion = providers.gradleProperty("mod_version").get()
 val archivesBaseName = providers.gradleProperty("archives_base_name").get()
 val usesSharedSources = sc.current.isActive
 
-// Keep the complete NanoVG and vanilla GUI implementations in shared sources.
-// Select their files here so source condition blocks aren't needed.
-val rendererSources = when {
-    sc.current.parsed < "26.2" -> listOf(
-        "quoi/utils/ui/rendering/McBackend.kt",
-        "quoi/utils/ui/rendering/McFonts.kt",
-        "quoi/utils/ui/rendering/McImages.kt",
-        "quoi/utils/ui/rendering/RendererBackend.kt",
-        "quoi/utils/ui/rendering/ShelfPacker.kt",
-        "quoi/utils/ui/rendering/UIGeometry.kt",
-        "quoi/utils/ui/rendering/UIRenderer.kt",
-        "quoi/utils/ui/rendering/Image.kt",
-        "quoi/utils/render/WorldRenderContextUtils.kt",
-        "quoi/utils/render/OverlayGeometry.kt",
-        "quoi/module/impl/render/RenderOptimiser.kt",
-    )
-    else -> listOf(
-        "quoi/utils/ui/rendering/NVGRenderer.kt",
-        "quoi/utils/ui/rendering/NVGSpecialRenderer.kt",
-        "quoi/utils/ui/rendering/LegacyImage.kt",
-        "quoi/utils/render/LegacyWorldRenderContextUtils.kt",
-        "quoi/module/impl/render/LegacyRenderOptimiser.kt",
-    )
-}
-kotlin.sourceSets.named("main") {
-    kotlin.exclude(rendererSources)
-}
 sourceSets.named("main") {
     java.exclude(
         when {
-            sc.current.parsed < "26.2" -> listOf(
-                "quoi/mixins/GuiMixin.java",
-                "quoi/mixins/ItemInHandRendererMixin.java",
-                "quoi/mixins/GuiGraphicsMixin.java",
-                "quoi/mixins/HudMixin.java",
-                "quoi/mixins/accessors/GuiGraphicsExtractorAccessor.java",
-                "quoi/mixins/FirstPersonHandsAndItemsMixin.java",
-                "quoi/mixins/OverlayLevelRendererMixin.java",
-                "quoi/mixins/OverlayQuadSortingMixin.java",
-                "quoi/mixins/OverlaySubmitNodeCollectionMixin.java",
-                "quoi/mixins/LevelExtractorMixin.java",
-            )
             sc.current.parsed < "26.3" -> listOf(
-                "quoi/mixins/LegacyGuiMixin.java",
                 "quoi/mixins/FirstPersonHandsAndItemsMixin.java",
                 "quoi/mixins/ItemInHandRendererMixin.java",
                 "quoi/mixins/OverlayLevelRendererMixin.java",
                 "quoi/mixins/OverlayQuadSortingMixin.java",
                 "quoi/mixins/LevelExtractorMixin.java",
             )
-            else -> listOf("quoi/mixins/LegacyGuiMixin.java", "quoi/mixins/LegacyItemInHandRendererMixin.java")
+            else -> listOf("quoi/mixins/LegacyItemInHandRendererMixin.java")
         }
     )
 }
@@ -109,16 +69,6 @@ dependencies {
         implementation("io.github.classgraph:classgraph:$it")
         listOf("classgraph", "classgraph-classpath", "classgraph-vfs", "classgraph-base").forEach { artifact ->
             include("io.github.classgraph:$artifact:$it")
-        }
-    }
-
-    findProperty("minecraft_lwjgl_version")?.let {
-        implementation("org.lwjgl:lwjgl-nanovg:$it")
-        include("org.lwjgl:lwjgl-nanovg:$it")
-
-        listOf("windows", "linux", "macos", "macos-arm64").forEach { v ->
-            implementation("org.lwjgl:lwjgl-nanovg:$it:natives-$v")
-            include("org.lwjgl:lwjgl-nanovg:$it:natives-$v")
         }
     }
 }

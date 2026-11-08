@@ -58,7 +58,7 @@ object EventDispatcher {
         }
         ClientTickEvents.END_CLIENT_TICK.register { if (inGame) TickEvent.End().post() }
 
-        LevelRenderEvents.END_MAIN.register { if (inGame) RenderEvent.World(it).post() }
+        LevelRenderEvents.COLLECT_SUBMITS.register { if (inGame) RenderEvent.World(it).post() }
 
         ClientLifecycleEvents.CLIENT_STARTED.register { GameEvent.Load().post() }
         ClientLifecycleEvents.CLIENT_STOPPING.register { GameEvent.Unload().post() }
@@ -103,7 +103,7 @@ object EventDispatcher {
         }
 
         HudElementRegistry.attachElementBefore(VanillaHudElements.SLEEP, Identifier.fromNamespaceAndPath(QuoiMod.MOD_ID, "quoi_hud")) { ctx, a ->
-            if (mc.options.hideGui || mc.level == null || mc.player == null) return@attachElementBefore
+            if (mc.gui.hud.isHidden || mc.level == null || mc.player == null) return@attachElementBefore
             RenderEvent.Overlay(ctx, a).post()
         }
     }

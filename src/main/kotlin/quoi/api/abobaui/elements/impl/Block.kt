@@ -7,7 +7,7 @@ import quoi.api.abobaui.elements.ElementScope
 import quoi.api.colour.Colour
 import quoi.utils.ui.data.Gradient as GradientType
 import quoi.utils.ui.data.Radii
-import quoi.utils.ui.rendering.NVGRenderer
+import quoi.utils.ui.rendering.UIRenderer
 
 open class Block(
     constraints: Constraints,
@@ -20,11 +20,11 @@ open class Block(
     protected var outline: Colour? = null
     protected var thickness: Constraint.Measurement? = null
 
-    override fun drawNvg() {
-        NVGRenderer.rect(x, y, width, height, colour!!.rgb, radii)
+    override fun drawCustom() {
+        UIRenderer.rect(x, y, width, height, colour!!.rgb, radii)
         if (thickness != null && outline != null) {
             val thickness = this.thickness!!.calculate(this)
-            NVGRenderer.hollowRect(x, y, width, height, thickness, outline!!.rgb, radii)
+            UIRenderer.hollowRect(x, y, width, height, thickness, outline!!.rgb, radii)
         }
     }
 
@@ -47,8 +47,8 @@ open class Block(
         private val direction: GradientType,
         radius: Radii?
     ): Block(constraints, colourStart, radius) {
-        override fun drawNvg() {
-            NVGRenderer.gradientRect(x, y, width, height, colour!!.rgb, colourEnd.rgb, direction, radii)
+        override fun drawCustom() {
+            UIRenderer.gradientRect(x, y, width, height, colour!!.rgb, colourEnd.rgb, direction, radii)
         }
     }
 }

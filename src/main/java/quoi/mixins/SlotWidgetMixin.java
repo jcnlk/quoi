@@ -17,7 +17,7 @@ import quoi.api.events.GuiEvent;
 public class SlotWidgetMixin {
     @Inject(method = "extractWidgetRenderState", at = @At("HEAD"), cancellable = true)
     private void quoi$onDrawSlot(GuiGraphicsExtractor context, CallbackInfo ci) {
-        Screen screen = Minecraft.getInstance().screen;
+        Screen screen = Minecraft.getInstance().gui.screen();
         if (!(screen instanceof AbstractContainerScreen<?>)) return;
         SlotWidget widget = (SlotWidget) (Object) this;
         Slot slot = widget.slot();

@@ -1,4 +1,3 @@
-//~ ui_frame
 
 package quoi.utils.ui.screens
 
@@ -10,7 +9,7 @@ import quoi.api.input.Mouse.mx
 import quoi.api.input.Mouse.my
 import quoi.utils.height
 import quoi.utils.width
-import quoi.utils.ui.rendering.NVGSpecialRenderer
+import quoi.utils.ui.rendering.UIRenderer
 
 class UIOverlay(ui: AbobaUI.Instance) : UIHandler(ui) {
 
@@ -23,7 +22,7 @@ class UIOverlay(ui: AbobaUI.Instance) : UIHandler(ui) {
             ui.ctx = ctx
             mouseMove(mx, my)
             ui.prepareFrame()
-            NVGSpecialRenderer.draw(ctx, 0, 0, ctx.guiWidth(), ctx.guiHeight()) {
+            UIRenderer.frame(ctx) {
                 ui.render(true)
             }
 

@@ -15,7 +15,7 @@ import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.StringUtils.width
 import quoi.utils.render.DrawContextUtils.drawText
 import quoi.utils.ui.rendering.Font
-import quoi.utils.ui.rendering.NVGRenderer
+import quoi.utils.ui.rendering.UIRenderer
 
 open class Text(
     string: String,
@@ -77,25 +77,25 @@ open class Text(
     }
 
     protected fun drawText(string: String, x: Float = this.x, y: Float = this.y, colour: Int) {
-        if (font.name == "Minecraft" && !ui.nvgPass) {
+        if (font.name == "Minecraft" && !ui.customPass) {
             val fontScale = height / mc.font.lineHeight
             val string = string.replace(FORMATTING_CODE_PATTERN) { "§${it.value[1]}" }
             withScale {
                 ctx.drawText(string, 0, 0, colour, fontScale, shadow)
             }
-        } else if (font.name != "Minecraft" && ui.nvgPass) {
+        } else if (font.name != "Minecraft" && ui.customPass) {
             if (shadow) {
                 val offset = height / 25f
-                NVGRenderer.formattedText(string, x + offset, y + offset, height, colour, font, shadow = true)
+                UIRenderer.formattedText(string, x + offset, y + offset, height, colour, font, shadow = true)
             }
-            NVGRenderer.formattedText(string, x, y, height, colour, font)
+            UIRenderer.formattedText(string, x, y, height, colour, font)
         }
     }
 
     open fun getTextWidth(): Float = textWidth(text)
 
     protected fun textWidth(string: String) =
-        if (font.name == "Minecraft") text.width(height / mc.font.lineHeight) else NVGRenderer.textWidth(string.noControlCodes, height, font)
+        if (font.name == "Minecraft") text.width(height / mc.font.lineHeight) else UIRenderer.textWidth(string.noControlCodes, height, font)
 
     companion object {
         var <E : Text> ElementScope<E>.string
@@ -113,7 +113,7 @@ open class Text(
          */
         inline fun ElementScope<*>.textSupplied(
             crossinline supplier: () -> Any?,
-            font: Font = NVGRenderer.defaultFont,
+            font: Font = UIRenderer.defaultFont,
             colour: Colour = Colour.WHITE,
             pos: Positions = at(),
             size: Constraint.Size = 50.percent

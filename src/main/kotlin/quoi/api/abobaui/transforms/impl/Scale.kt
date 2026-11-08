@@ -2,7 +2,7 @@ package quoi.api.abobaui.transforms.impl
 
 import quoi.api.abobaui.elements.Element
 import quoi.api.abobaui.transforms.Transform
-import quoi.utils.ui.rendering.NVGRenderer
+import quoi.utils.ui.rendering.UIRenderer
 
 /**
  * # Scale
@@ -49,14 +49,14 @@ private fun scale(element: Element, amountX: Float, amountY: Float, centered: Bo
         x += element.width / 2f
         y += element.height / 2f
     }
-    if (!element.ui.nvgPass) {
+    if (!element.ui.customPass) {
         element.ctx.pose().translate(x, y)
         element.ctx.pose().scale(amountX, amountY)
         element.ctx.pose().translate(-x, -y)
     } else {
-        NVGRenderer.translate(x, y)
-        NVGRenderer.scale(amountX, amountY)
-        NVGRenderer.translate(-x, -y)
+        UIRenderer.translate(x, y)
+        UIRenderer.scale(amountX, amountY)
+        UIRenderer.translate(-x, -y)
     }
     element.scaleX = amountX
     element.scaleY = amountY
