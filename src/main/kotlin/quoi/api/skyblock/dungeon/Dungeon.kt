@@ -22,6 +22,8 @@ import quoi.api.skyblock.dungeon.enums.*
 import quoi.api.skyblock.dungeon.odonscanning.ScanUtils
 import quoi.api.skyblock.dungeon.odonscanning.tiles.OdonRoom
 import quoi.api.skyblock.dungeon.odonscanning.tiles.RoomType
+import quoi.api.skyblock.dungeon.terminals.TerminalType
+import quoi.api.skyblock.dungeon.terminals.TerminalUtils
 import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.location.Location
 import quoi.api.skyblock.location.Location.onAlpha
@@ -59,8 +61,9 @@ object Dungeon : EventListener, Shortcuts {
     inline val inBoss: Boolean
         get() = inGame && getBoss()
 
-    var inTerminal: Boolean = false
-        private set
+    @Deprecated("dead", ReplaceWith("TerminalUtils.inTerminal", "quoi.api.skyblock.dungeon.terminals.TerminalUtils"))
+    val inTerminal: Boolean
+        get() = TerminalUtils.inTerminal
 
     inline val secretCount: Int
         get() = dungeonStats.secretsFound
@@ -288,17 +291,6 @@ object Dungeon : EventListener, Shortcuts {
 
                 }
             }
-        }
-
-        on<PacketEvent.Received> {
-            when (val packet = packet) {
-                is ClientboundOpenScreenPacket -> inTerminal = terminalTitles.any { packet.title.string.contains(it) }
-                is ClientboundContainerClosePacket -> inTerminal = false
-            }
-        }
-
-        on<PacketEvent.Sent> {
-            if (packet is ServerboundContainerClosePacket) inTerminal = false
         }
     }
 
@@ -529,7 +521,8 @@ object Dungeon : EventListener, Shortcuts {
         Blocks.LEVER, Blocks.STONE_BUTTON, Blocks.DISPENSER, Blocks.HOPPER, Blocks.DROPPER
     )
 
-    val terminalTitles = setOf("Correct all the panes!", "Change all to same color!", "Click in order!", "What starts with:", "Select all the", "Click the button on time!")
+    @Deprecated("bad")
+    val terminalTitles = TerminalType.entries.mapTo(linkedSetOf()) { it.title }
 
     val BLOOD_START_REGEX = Regex("^\\[BOSS] The Watcher: (Congratulations, you made it through the Entrance\\.|Ah, you've finally arrived\\.|Ah, we meet again\\.\\.\\.|So you made it this far\\.\\.\\. interesting\\.|You've managed to scratch and claw your way here, eh\\?|I'm starting to get tired of seeing you around here\\.\\.\\.|Oh\\.\\. hello\\?|Things feel a little more roomy now, eh\\?)$")
 
