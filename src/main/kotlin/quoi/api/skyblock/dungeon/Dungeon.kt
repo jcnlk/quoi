@@ -24,6 +24,7 @@ import quoi.api.skyblock.dungeon.odonscanning.tiles.OdonRoom
 import quoi.api.skyblock.dungeon.odonscanning.tiles.RoomType
 import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.location.Location
+import quoi.api.skyblock.location.Location.onAlpha
 import quoi.module.impl.dungeon.LeapMenu
 import quoi.module.impl.render.clickgui.ClickGui
 import quoi.utils.*
@@ -179,7 +180,7 @@ object Dungeon : EventListener, Shortcuts {
             Puzzle.entries.forEach { it.status = null }
             puzzles.clear()
             floor = if (ClickGui.forceDungeons) ClickGui.dungeonFloor.selected
-            else if (Location.onZapto) Floor.F7
+            else if (Location.onP3Sim) Floor.F7
             else null
         }
 
@@ -247,7 +248,7 @@ object Dungeon : EventListener, Shortcuts {
                         if (overlay()) return@on
                         val message = content.string.noControlCodes
                         if (expectingBloodRegex.matches(message)) expectingBloodUpdate = true
-                        if (enterRegex.matches(message) && warpCooldown == 0L) enterTime = System.currentTimeMillis() + 30_000L
+                        if (enterRegex.matches(message) && warpCooldown == 0L) enterTime = System.currentTimeMillis() + if (onAlpha) 5_000L else 30_000L
                         doorOpenRegex.matchEntire(message)?.let { match ->
                             val opener = match.groupValues[1]
                             dungeonStats.doorOpener = opener

@@ -36,8 +36,9 @@ import quoi.module.impl.dungeon.autoclear.MobClusterer
 import quoi.module.impl.render.clickgui.ClickGui
 import quoi.module.settings.group.ToggleableGroup
 import quoi.module.settings.impl.MapSetting
-import quoi.utils.*
+import quoi.utils.ChatUtils
 import quoi.utils.ChatUtils.modMessage
+import quoi.utils.EntityUtils
 import quoi.utils.Scheduler.scheduleTask
 import quoi.utils.StringUtils.formatTime
 import quoi.utils.StringUtils.toFixed
@@ -45,6 +46,8 @@ import quoi.utils.WorldUtils.blocksAtFeet
 import quoi.utils.WorldUtils.nearbyBlocks
 import quoi.utils.WorldUtils.solid
 import quoi.utils.WorldUtils.state
+import quoi.utils.aabb
+import quoi.utils.center
 import quoi.utils.render.drawFilledBox
 import quoi.utils.render.drawLine
 import quoi.utils.skyblock.player.MovementUtils.moveTo
@@ -59,7 +62,6 @@ import quoi.utils.skyblock.player.interact.AuraManager
 import quoi.utils.ui.textPair
 
 object Test : Module("Test", desc = "Dev module for testing.") {
-
     private val testGroup = TestGroup(this)
     private val testGroup2 = TestGroup2(testGroup)
     val auraDebug by switch("Aura debug")
@@ -90,8 +92,7 @@ object Test : Module("Test", desc = "Dev module for testing.") {
                 )
             }
         }
-    }.withSettings(::showX, ::showY, ::showZ)
-    .setting()
+    }.withSettings(::showX, ::showY, ::showZ).setting()
 
     private val resizableTest by resizableHud("resizable2", 75f, 7f, outline = Colour.RED) {
         block(
@@ -102,7 +103,8 @@ object Test : Module("Test", desc = "Dev module for testing.") {
     }.setting()
 
     private val hypixel by switch("Hypixel", true)
-    private val zapto by switch("Zapto", true)
+    private val p3sim by switch("P3Sim", true)
+    private val inAlpha by switch("Alpha", true)
     private val inSB by switch("In skyblock", true)
     private val lobby by switch("Lobby", true)
     private val area_ by switch("Area", true)
@@ -137,7 +139,8 @@ object Test : Module("Test", desc = "Dev module for testing.") {
                 }
             }
         }
-    }.withSettings(::hypixel, ::inSB, ::lobby, ::area_, ::subarea_, ::boss, ::floor, ::p3Stage, ::p3Players, ::container
+    }.withSettings(
+        ::hypixel, ::inSB, ::lobby, ::area_, ::subarea_, ::boss, ::floor, ::p3Stage, ::p3Players, ::container
     ).setting()
 
     private val collectData by switch("Collect mob data")
@@ -262,6 +265,7 @@ object Test : Module("Test", desc = "Dev module for testing.") {
 
     private val collectedMobs = mutableMapOf<Int, DungeonMob>()
     private val currRooms = mutableSetOf<String>()
+
     // missing cobble wall pillar, knight // nvm need all again..
     fun collectMobs() {
         if (!enabled || !collectData) return
@@ -315,14 +319,15 @@ object Test : Module("Test", desc = "Dev module for testing.") {
 
     private val debugData = setOf(
         Data("Hypixel", { Location.onHypixel }, { hypixel }),
-        Data("Zapto", { Location.onZapto }, { zapto }),
+        Data("P3Sim", { Location.onP3Sim }, { p3sim }),
+        Data("Alpha", { Location.onAlpha }, { inAlpha }),
         Data("Skyblock", { Location.inSkyblock }, { inSB }),
         Data("Lobby", { Location.currentServer ?: "None" }, { lobby }),
         Data("Area", { Location.currentArea }, { area_ }),
         Data("Subarea", { Location.subarea ?: "None" }, { subarea_ }),
         Data("Boss", { Dungeon.inBoss }, { boss }),
         Data("Floor", { Dungeon.floor ?: "None" }, { floor }),
-        Data("P3 Section", { "${Floor7.getStage().name} || ${Floor7.getStageAt().name} }" }, { p3Stage }),
+        Data("P3 Section", { "${Floor7.getStage().name} || ${Floor7.getStageAt().name}" }, { p3Stage }),
         Data("   Duration", { "${formatTime(Floor7.getStage().getDuration())} | " + formatTime(Floor7.getStage().getDurationTicks() * 50) }, { p3Stage }),
         Data("   Terminals", { "${Floor7.getStage().terminals}/${Floor7.getStage().reqTerminals}" }, { p3Stage }),
         Data("   Levers", { "${Floor7.getStage().levers}/2" }, { p3Stage }),
@@ -330,6 +335,7 @@ object Test : Module("Test", desc = "Dev module for testing.") {
         Data("   Gate", { Floor7.getStage().gate }, { p3Stage }),
         Data("Container", { "${mc.gui.screen() != null} | ${ContainerUtils.containerId}" }, { container })
     )
+
     private data class Data(val name: String, val value: () -> Any?, val enabled: () -> Boolean)
 
     private class DungeonMob(val name: String, var starred: Boolean, val pos: IntArray)

@@ -5,7 +5,7 @@ import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
 import quoi.api.events.core.on
 import quoi.api.skyblock.location.Island
-import quoi.api.skyblock.location.Location.onZapto
+import quoi.api.skyblock.location.Location.onP3Sim
 import quoi.module.Module
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.skyblock.player.PlayerUtils.NickResult
@@ -28,7 +28,7 @@ object AntiNick : Module(
         on<WorldEvent.Load.Start> { reset() }
 
         on<TickEvent.End> {
-            if (onZapto) return@on
+            if (onP3Sim) return@on
             if (++scanTicks < 20) return@on
             scanTicks = 0
 

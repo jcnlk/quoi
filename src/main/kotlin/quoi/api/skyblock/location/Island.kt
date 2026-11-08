@@ -65,7 +65,7 @@ enum class Island(val displayName: String, val command: String? = null) : Area {
 
     override fun inBase(): Boolean {
         if (Location.currentArea == SinglePlayer) return true
-        if (this == Dungeon && (ClickGui.forceDungeons || Location.onZapto)) return true
+        if (this == Dungeon && (ClickGui.forceDungeons || Location.onP3Sim)) return true
         return Location.currentArea == this
     }
 
@@ -73,7 +73,7 @@ enum class Island(val displayName: String, val command: String? = null) : Area {
 
     fun isArea(area: Island): Boolean {
         if (this == SinglePlayer) return true
-        if (area == Dungeon && (ClickGui.forceDungeons || Location.onZapto)) return true
+        if (area == Dungeon && (ClickGui.forceDungeons || Location.onP3Sim)) return true
         return this == area
     }
 

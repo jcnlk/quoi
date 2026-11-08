@@ -26,7 +26,9 @@ import quoi.utils.equalsOneOf
 object Location : EventListener {
     var onHypixel: Boolean = false
         private set
-    var onZapto: Boolean = false
+    var onP3Sim: Boolean = false
+        private set
+    var onAlpha: Boolean = false
         private set
     var inSkyblock: Boolean = false
         private set
@@ -51,10 +53,7 @@ object Location : EventListener {
                             .none { it.equalsOneOf(ClientboundPlayerInfoUpdatePacket.Action.UPDATE_DISPLAY_NAME) }
                     ) return@on
                     val area = packet.entries().find {
-                        it.displayName?.string?.startsWithOneOf(
-                            "Area: ",
-                            "Dungeon: "
-                        ) == true
+                        it.displayName?.string?.startsWithOneOf("Area: ", "Dungeon: ") == true
                     }?.displayName?.string ?: return@on
                     val newArea = Island.entries
                         .filter { area.contains(it.displayName, true) }
@@ -67,7 +66,7 @@ object Location : EventListener {
                 }
 
                 is ClientboundSetObjectivePacket ->
-                    if (!inSkyblock) inSkyblock = onHypixel && packet.objectiveName == "SBScoreboard" || ClickGui.forceSkyblock || onZapto
+                    if (!inSkyblock) inSkyblock = onHypixel && packet.objectiveName == "SBScoreboard" || ClickGui.forceSkyblock || onP3Sim
 
                 is ClientboundSetPlayerTeamPacket -> {
                     val team = packet.parameters.orElse(null) ?: return@on
@@ -79,10 +78,9 @@ object Location : EventListener {
                     }
 
                     if (currentArea == Island.Unknown) serverIdRegex.find(text)?.groupValues?.getOrNull(1)?.let {
-                        if (currentServer != it) {
-                            previousServer = currentServer
-                            currentServer = it
-                        }
+                        if (currentServer == it) return@let
+                        previousServer = currentServer
+                        currentServer = it
                     }
                 }
             }
@@ -93,10 +91,9 @@ object Location : EventListener {
             inSkyblock = ClickGui.forceSkyblock
             AreaEvent.Main(currentArea).post()
 
-            if (subarea !== null) {
-                AreaEvent.Sub(null).post()
-                subarea = null
-            }
+            if (subarea == null) return@on
+            AreaEvent.Sub(null).post()
+            subarea = null
         }
 
         on<ServerEvent.Connect> {
@@ -104,8 +101,9 @@ object Location : EventListener {
                 currentArea = Island.SinglePlayer
                 return@on
             }
-            onZapto = mc.runCatching { ip.contains("p3sim", true) }.getOrDefault(false)
-            onHypixel = mc.runCatching { ip.contains("hypixel", true) }.getOrDefault(false) || onZapto
+            onP3Sim = mc.runCatching { ip.contains("p3sim", true) }.getOrDefault(false)
+            onHypixel = mc.runCatching { ip.contains("hypixel", true) }.getOrDefault(false) || onP3Sim
+            onAlpha = mc.runCatching { ip == "alpha.hypixel.net" }.getOrDefault(false)
         }
 
         on<ServerEvent.Disconnect> {
