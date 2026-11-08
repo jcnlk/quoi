@@ -48,7 +48,7 @@ object Crystals : Module(
     }
 
     private fun findTarget(): Entity? {
-        if (player.inventory.getItem(8).displayName.string.noControlCodes == "Energy Crystal") return null
+        if (player.inventory.getItem(8).displayName.string.noControlCodes == "Energy Crystal") return null // TODO: make this a util
 
         val eyePosition = player.eyePosition
         val maxDistanceSquared = range * range

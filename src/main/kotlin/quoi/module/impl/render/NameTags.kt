@@ -23,6 +23,11 @@ import quoi.utils.StringUtils.toFixed
 import quoi.utils.render.drawText
 import kotlin.math.sqrt
 
+/**
+ * TODO:
+ *  - make this this less ugly or smth
+ */
+
 @Suppress("UNNECESSARY_SAFE_CALL")
 object NameTags : Module(
     "Name Tags",
@@ -67,9 +72,10 @@ object NameTags : Module(
                 if (distanceText) { // fixme
                     val distance = entity.distanceToCamera
                     (name as MutableComponent)
-                        .append(literal(" ${distance.toFixed(1)}")
-                            .withColor((if (customCol) distanceColour else colourFromDistance(distance)).rgb)
-                    )
+                        .append(
+                            literal(" ${distance.toFixed(1)}")
+                                .withColor((if (customCol) distanceColour else colourFromDistance(distance)).rgb)
+                        )
                 }
                 val scale = (0.5 + sqrt(dist) / 10.0).toFloat()
 
@@ -80,10 +86,10 @@ object NameTags : Module(
 
     private val Component.simple: Component // fixme
         get() = SIMPLE_TAG_REGEX.find(string)?.groupValues?.get(1)?.let { name -> // "[145] aboba ♲" "[67] aloba"
-        literal(name)
-            .withStyle { it.withColor(style.color) }
-            .append(if (string.contains("♲")) literal(" &7♲") else Component.empty())
-    } ?: this
+            literal(name)
+                .withStyle { it.withColor(style.color) }
+                .append(if (string.contains("♲")) literal(" &7♲") else Component.empty())
+        } ?: this
 
     @JvmStatic
     val shouldCancelTag get() = this.enabled && customTag && (!dungeonsOnly || inDungeons)

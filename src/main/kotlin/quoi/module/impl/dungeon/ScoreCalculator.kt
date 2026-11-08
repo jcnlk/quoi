@@ -2,7 +2,8 @@ package quoi.module.impl.dungeon
 
 import quoi.api.abobaui.elements.impl.Text.Companion.shadow
 import quoi.api.abobaui.elements.impl.Text.Companion.textSupplied
-import quoi.api.skyblock.dungeon.Dungeon
+import quoi.api.skyblock.dungeon.Dungeon.hasStarted
+import quoi.api.skyblock.dungeon.Dungeon.score
 import quoi.api.skyblock.dungeon.ScoreCalculation
 import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.location.invoke
@@ -18,11 +19,11 @@ object ScoreCalculator : Module(
 
     @Suppress("unused")
     private val hud by textHud("Dungeon score", toggleable = false) {
-        visibleIf { preview || Dungeon.hasStarted }
+        visibleIf { preview || hasStarted }
         textSupplied(
             supplier = {
-                val score = if (preview) 300 else Dungeon.score
-                "§eScore: ${ScoreCalculation.colour(score)}$score"
+                val s = if (preview) 300 else score
+                "§eScore: ${ScoreCalculation.colour(s)}$s"
             },
             font = font,
             colour = colour,

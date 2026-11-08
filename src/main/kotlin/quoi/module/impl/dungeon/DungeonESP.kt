@@ -18,6 +18,7 @@ import quoi.api.events.WorldEvent
 import quoi.api.events.core.Priority
 import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.Dungeon
+import quoi.api.skyblock.dungeon.Dungeon.inClear
 import quoi.api.skyblock.dungeon.Floor7.inF7Boss
 import quoi.api.skyblock.dungeon.odonscanning.ScanUtils
 import quoi.api.skyblock.dungeon.odonscanning.tiles.OdonRoom
@@ -37,6 +38,11 @@ import quoi.utils.Scheduler.scheduleLoop
 import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.equalsOneOf
 import quoi.utils.removeIf
+
+/**
+ * TODO:
+ *  - better default colors or whatever
+ */
 
 @AlwaysActive
 object DungeonESP : Module(
@@ -77,7 +83,7 @@ object DungeonESP : Module(
 
     init {
         scheduleLoop(10) {
-            if (!Dungeon.inClear) return@scheduleLoop
+            if (!inClear) return@scheduleLoop
             updateEntities()
             Test.collectMobs()
         }
@@ -99,7 +105,7 @@ object DungeonESP : Module(
             currentEntities.removeIf { _, mob ->
                 val entity = mob.entity
 
-                if (!Dungeon.inClear || entity.isDeadOrDying || entity.isRemoved) return@removeIf true
+                if (!inClear || entity.isDeadOrDying || entity.isRemoved) return@removeIf true
                 if (!enabled || !starEsp) return@removeIf false
 
                 starHighlight.draw(
@@ -126,7 +132,7 @@ object DungeonESP : Module(
                 }
             }
 
-            if (starEsp && Dungeon.inClear) {
+            if (starEsp && inClear) {
                 getColour(entity)?.let {
                     starHighlight.draw(this, overrideColour = it.first)
                     return@on

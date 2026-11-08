@@ -11,7 +11,6 @@ import quoi.api.events.*
 import quoi.api.events.core.Priority
 import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.Dungeon
-import quoi.api.skyblock.dungeon.Floor7
 import quoi.api.skyblock.dungeon.enums.Floor
 import quoi.api.skyblock.dungeon.enums.Phase
 import quoi.api.skyblock.location.Island
@@ -40,7 +39,7 @@ import kotlin.math.sin
 object Relics : Module(
     "Relics",
     desc = "Relic pickup, placement and movement helpers for M7.",
-    area = Island.Dungeon(7, inBoss = true)
+    area = Island.Dungeon(7, inBoss = true, phase = Phase.P5)
 ) {
     private val relicLook by switch("Relic look", desc = "Turns toward the cauldron when you pick up a red or orange relic.")
     private val relicLookTime by slider("Relic look time", 150, 10, 300, 1, unit = "ms").childOf(::relicLook)
@@ -54,7 +53,6 @@ object Relics : Module(
     private var runningRelic: Relic? = null
     private var runTicks = 0
 
-    private val inP5: Boolean get() = Dungeon.floor == Floor.M7 && Floor7.inPhase(Phase.P5)
     private val carriedRelic: Relic? get() = Relic.fromItem(player.inventory.getItem(8))
     private val redRunSpot = AABB(22.3, 6.0, 58.0, 23.0, 6.02, 58.7)
     private val orangeRunSpot = AABB(90.0, 6.0, 55.0, 90.7, 6.02, 55.7)
@@ -63,7 +61,7 @@ object Relics : Module(
         on<WorldEvent.Change> { reset() }
 
         on<RenderEvent.World> {
-            if (!inP5 || !relicLook || !relicRun) return@on
+            if (Dungeon.floor != Floor.M7 || !relicLook || !relicRun) return@on
             listOf(redRunSpot, orangeRunSpot).forEach { spot ->
                 val colour = if (atRunSpot(spot)) Colour.GREEN else Colour.RED
                 val center = spot.center
@@ -76,7 +74,7 @@ object Relics : Module(
         }
 
         on<TickEvent.Start> {
-            if (!inP5 || Dungeon.isDead || mc.screen != null) {
+            if (Dungeon.floor != Floor.M7 || Dungeon.isDead || mc.screen != null) {
                 runningRelic = null
                 return@on
             }
@@ -110,7 +108,7 @@ object Relics : Module(
 
         on<KeyEvent.Input>(Priority.LOWEST - 1) {
             val relic = runningRelic ?: return@on
-            if (!inP5 || !relicLook || !relicRun || Dungeon.isDead || mc.screen != null || carriedRelic != relic || reachedCauldron(relic)) {
+            if (Dungeon.floor != Floor.M7 || !relicLook || !relicRun || Dungeon.isDead || mc.screen != null || carriedRelic != relic || reachedCauldron(relic)) {
                 runningRelic = null
                 return@on
             }

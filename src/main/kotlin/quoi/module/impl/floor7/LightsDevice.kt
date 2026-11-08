@@ -21,13 +21,18 @@ import quoi.api.skyblock.location.invoke
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf
 
+/**
+ * TODO:
+ *  - make this less shit
+ */
+
 object LightsDevice : Module(
     "Lights Device",
-    area = Island.Dungeon(7, inBoss = true),
-    desc = "Adds triggerbot and hides useless levers for the lights device."
+    desc = "Adds triggerbot and hides useless levers for the lights device.",
+    area = Island.Dungeon(7, inBoss = true)
 ) {
-    private val triggerBot by switch("Triggerbot", desc = "Automatically toggles the correct levers when you look at them.")
-    private val delay by slider("Delay", 200L, 70L, 500L, 10L, unit = "ms", desc = "Delay between triggerbot clicks.").childOf(::triggerBot)
+    private val triggerbot by switch("Triggerbot", desc = "Automatically toggles the correct levers when you look at them.")
+    private val delay by slider("Delay", 200L, 70L, 500L, 10L, unit = "ms", desc = "Delay between triggerbot clicks.").childOf(::triggerbot)
     private val hideUselessLevers by switch("Hide useless levers", desc = "Turns useless lights device levers into ghost blocks.")
 
     private var lastTriggerAt = 0L
@@ -90,13 +95,12 @@ object LightsDevice : Module(
 
             if (hideUselessLevers) {
                 uselessLevers.forEach { pos ->
-                    if (!level.getBlockState(pos).isAir) {
-                        level.setBlock(pos, Blocks.AIR.defaultBlockState(), 0)
-                    }
+                    if (level.getBlockState(pos).isAir) return@forEach
+                    level.setBlock(pos, Blocks.AIR.defaultBlockState(), 0)
                 }
             }
 
-            if (!triggerBot) return@on
+            if (!triggerbot) return@on
 
             val hitResult = mc.hitResult as? BlockHitResult ?: return@on
             if (hitResult.type != HitResult.Type.BLOCK) return@on
@@ -109,7 +113,7 @@ object LightsDevice : Module(
 
             if (now - lastTriggerAt < delay) return@on
 
-            val result = mc.gameMode?.useItemOn(player, InteractionHand.MAIN_HAND, hitResult) ?: return@on
+            val result = gameMode.useItemOn(player, InteractionHand.MAIN_HAND, hitResult)
             if (!result.consumesAction()) return@on
 
             player.swing(InteractionHand.MAIN_HAND)
@@ -124,20 +128,14 @@ object LightsDevice : Module(
         on<PacketEvent.Received> {
             when (packet) {
                 is ClientboundBlockUpdatePacket -> {
-                    if (shouldGhostLever(packet.pos)) {
-                        cancel()
-                    }
+                    if (shouldGhostLever(packet.pos)) cancel()
                 }
                 is ClientboundSectionBlocksUpdatePacket -> {
                     var cancelPacket = false
                     packet.runUpdates { pos, _ ->
-                        if (shouldGhostLever(pos.immutable())) {
-                            cancelPacket = true
-                        }
+                        if (shouldGhostLever(pos.immutable())) cancelPacket = true
                     }
-                    if (cancelPacket) {
-                        cancel()
-                    }
+                    if (cancelPacket) cancel()
                 }
             }
         }

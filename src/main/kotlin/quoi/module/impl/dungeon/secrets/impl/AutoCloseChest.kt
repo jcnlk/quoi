@@ -5,6 +5,7 @@ import net.minecraft.network.protocol.game.ServerboundContainerClosePacket
 import net.minecraft.world.inventory.MenuType
 import quoi.api.events.PacketEvent
 import quoi.api.events.core.on
+import quoi.api.skyblock.location.Island
 import quoi.module.impl.dungeon.secrets.Secrets
 import quoi.module.settings.group.ToggleableGroup
 
@@ -12,7 +13,8 @@ import quoi.module.settings.group.ToggleableGroup
 object AutoCloseChest : ToggleableGroup(
     Secrets,
     "Auto close chest",
-    desc = "Automatically closes secret chests."
+    desc = "Automatically closes secret chests.",
+    area = Island.Skyblock
 ) {
 
     private val secretChestTitles = setOf("Chest", "Large Chest", "Trapped Chest")

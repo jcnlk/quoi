@@ -10,7 +10,7 @@ import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.location.invoke
 import quoi.module.Module
 
-object P4PlatformHighlight : Module(
+object P4PlatformHighlight : Module( // This is essentially useless now but whatever :D
     "P4 Platform Highlight",
     desc = "Highlights 3x3 area to mine after Goldor dies.",
     area = Island.Dungeon(7, inBoss = true, stage = Stage.S5)

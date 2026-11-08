@@ -1,6 +1,5 @@
 package quoi.utils
 
-import kotlin.math.floor
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource
 import net.fabricmc.fabric.impl.command.client.ClientCommandInternals
 import net.minecraft.client.gui.components.ChatComponent
@@ -10,12 +9,11 @@ import net.minecraft.client.multiplayer.chat.GuiMessageTag
 import net.minecraft.network.chat.*
 import net.minecraft.world.entity.player.ChatVisiblity
 import quoi.QuoiMod.mc
+import quoi.api.colour.Colour
 import quoi.mixininterfaces.IChatComponent
 import quoi.mixininterfaces.IGuiMessage
-import quoi.module.impl.render.clickgui.impl.PrefixSettings.bracketsColour
-import quoi.module.impl.render.clickgui.impl.PrefixSettings.prefixColour
-import quoi.module.impl.render.clickgui.impl.PrefixSettings.prefixText
 import quoi.utils.StringUtils.noControlCodes
+import kotlin.math.floor
 
 object ChatUtils {
 
@@ -46,10 +44,11 @@ object ChatUtils {
         idx.takeIf { it in trimmedMessages.indices } ?: -1
     }
 
-    fun prefix(text: String = prefixText): Component
-        = literal("[").withColor(bracketsColour.rgb)
-            .append(literal(text).withColor(prefixColour.rgb))
-            .append("]").withColor(bracketsColour.rgb)
+    fun prefix(): Component {
+        return literal("[").withColor(Colour.WHITE.rgb)
+            .append(literal("quoi!").withColor(Colour.GREEN.rgb))
+            .append("]").withColor(Colour.WHITE.rgb)
+    }
 
     fun literal(string: String): MutableComponent {
         return Component.literal(string.replace("&", "§"))
@@ -151,6 +150,7 @@ object ChatUtils {
         return literal
     }
 
+    // TODO: drop support for custom prefix?
     fun modMessage(message: Any?, id: Int? = null, prefix: Any = this.prefix(), chatStyle: Style? = null) {
         val p: MutableComponent = when (prefix) {
             is Component -> Component.empty().append(prefix).append(" ")

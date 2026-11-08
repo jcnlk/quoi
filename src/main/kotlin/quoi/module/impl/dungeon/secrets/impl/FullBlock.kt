@@ -1,5 +1,6 @@
 package quoi.module.impl.dungeon.secrets.impl
 
+import quoi.api.skyblock.location.Island
 import quoi.module.impl.dungeon.secrets.Secrets
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.module.settings.group.ToggleableGroup
@@ -8,7 +9,8 @@ import quoi.module.settings.group.ToggleableGroup
 object FullBlock : ToggleableGroup(
     Secrets,
     "Full block",
-    desc = "Expands the hitboxes of buttons, chests, levers, mushrooms, and skulls."
+    desc = "Expands the hitboxes of buttons, chests, levers, mushrooms, and skulls.",
+    area = Island.Skyblock
 ) {
     private val buttons by switch("Buttons")
     private val buttonHitbox by selector(

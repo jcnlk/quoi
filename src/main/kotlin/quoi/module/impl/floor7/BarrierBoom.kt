@@ -16,7 +16,7 @@ import quoi.utils.skyblock.player.SwapManager
 import quoi.utils.skyblock.player.SwapResult
 
 // Kyleen
-object BarrierBoom : Module( // todo move to triggerbot module
+object BarrierBoom : Module(
     "Barrier Boom",
     desc = "Automatically blows up Goldor fight gates.",
     area = Island.Dungeon(7, inBoss = true, phase = Phase.P3)

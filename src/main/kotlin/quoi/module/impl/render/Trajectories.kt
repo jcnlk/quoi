@@ -1,7 +1,5 @@
 package quoi.module.impl.render
 
-import quoi.api.events.core.on
-
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext
 import net.minecraft.core.Direction
 import net.minecraft.world.entity.decoration.ArmorStand
@@ -17,6 +15,7 @@ import quoi.api.colour.Colour
 import quoi.api.colour.multiplyAlpha
 import quoi.api.events.RenderEvent
 import quoi.api.events.TickEvent
+import quoi.api.events.core.on
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.utils.EntityUtils.renderPos
@@ -141,17 +140,16 @@ object Trajectories : Module(
             )
 
             if (hit.type == HitResult.Type.BLOCK) {
-                val blockHit = hit
-                points += blockHit.location
+                points += hit.location
 
                 if (boxes) {
                     val impactBox = AABB(
-                        blockHit.location.x - 0.15 * boxSize,
-                        blockHit.location.y - 0.15 * boxSize,
-                        blockHit.location.z - 0.15 * boxSize,
-                        blockHit.location.x + 0.15 * boxSize,
-                        blockHit.location.y + 0.15 * boxSize,
-                        blockHit.location.z + 0.15 * boxSize
+                        hit.location.x - 0.15 * boxSize,
+                        hit.location.y - 0.15 * boxSize,
+                        hit.location.z - 0.15 * boxSize,
+                        hit.location.x + 0.15 * boxSize,
+                        hit.location.y + 0.15 * boxSize,
+                        hit.location.z + 0.15 * boxSize
                     )
 
                     if (isPearl) {
@@ -161,7 +159,7 @@ object Trajectories : Module(
                     }
                 }
 
-                return points to blockHit
+                return points to hit
             }
 
             position = nextPosition
@@ -179,13 +177,13 @@ object Trajectories : Module(
         val (from, to) = when (hit.direction) {
             Direction.DOWN, Direction.UP ->
                 hit.location.addVec(-0.15 * planeSize, -0.02, -0.15 * planeSize) to
-                    hit.location.addVec(0.15 * planeSize, 0.02, 0.15 * planeSize)
+                        hit.location.addVec(0.15 * planeSize, 0.02, 0.15 * planeSize)
             Direction.NORTH, Direction.SOUTH ->
                 hit.location.addVec(-0.15 * planeSize, -0.15 * planeSize, -0.02) to
-                    hit.location.addVec(0.15 * planeSize, 0.15 * planeSize, 0.02)
+                        hit.location.addVec(0.15 * planeSize, 0.15 * planeSize, 0.02)
             Direction.WEST, Direction.EAST ->
                 hit.location.addVec(-0.02, -0.15 * planeSize, -0.15 * planeSize) to
-                    hit.location.addVec(0.02, 0.15 * planeSize, 0.15 * planeSize)
+                        hit.location.addVec(0.02, 0.15 * planeSize, 0.15 * planeSize)
         }
 
         drawFilledBox(

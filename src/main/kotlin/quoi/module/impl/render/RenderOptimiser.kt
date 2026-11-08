@@ -5,6 +5,7 @@ import net.minecraft.network.protocol.game.ClientboundAddEntityPacket
 import net.minecraft.network.protocol.game.ClientboundLevelParticlesPacket
 import net.minecraft.network.protocol.game.ClientboundUpdateMobEffectPacket
 import net.minecraft.world.effect.MobEffects
+import net.minecraft.world.entity.EntityType.getKey
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.decoration.ArmorStand
 import quoi.api.events.PacketEvent
@@ -18,7 +19,6 @@ import quoi.api.skyblock.location.Location.currentArea
 import quoi.module.Module
 import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.skyblock.item.ItemUtils.texture
-import net.minecraft.world.entity.EntityType.getKey
 
 object RenderOptimiser : Module(
     "Render Optimiser",
@@ -53,20 +53,17 @@ object RenderOptimiser : Module(
 
     init {
         on<PacketEvent.Received> {
-            when(packet) {
+            when (packet) {
                 is ClientboundAddEntityPacket -> {
                     val entityPath = getKey(packet.type).path
-                    if (hideFallingBlocks && entityPath == "falling_block" ||
-                        hideLightning && entityPath == "lightning_bolt") cancel()
+                    if (hideFallingBlocks && entityPath == "falling_block" || hideLightning && entityPath == "lightning_bolt") cancel()
                 }
 
                 is ClientboundUpdateMobEffectPacket -> {
-                    if (hideBlindness &&
-                        packet.entityId == player.id &&
-                        packet.effect == MobEffects.BLINDNESS) cancel()
+                    if (hideBlindness && packet.entityId == player.id && packet.effect == MobEffects.BLINDNESS) cancel()
                 }
 
-                is ClientboundLevelParticlesPacket -> { // TODO: exclude some more particles ig
+                is ClientboundLevelParticlesPacket -> { // TODO: only visually cancel particles?
                     if (hideParticles && !currentArea.isArea(Island.Garden) && !Floor7.inPhaseAt(Phase.P5)) cancel()
                     else if (hidePotionBubbles && packet.particle.type == ParticleTypes.ENTITY_EFFECT) cancel()
                 }
@@ -89,7 +86,8 @@ object RenderOptimiser : Module(
             if (hideHealerOrbs || hideWeaver) {
                 val headTexture = armorStand.getItemBySlot(EquipmentSlot.HEAD).texture
                 if ((hideHealerOrbs && headTexture in HEALER_ORB_TEXTURES) ||
-                    (hideWeaver && headTexture == SOUL_WEAVER_TEXTURE)) {
+                    (hideWeaver && headTexture == SOUL_WEAVER_TEXTURE)
+                ) {
                     cancel()
                     return@on
                 }

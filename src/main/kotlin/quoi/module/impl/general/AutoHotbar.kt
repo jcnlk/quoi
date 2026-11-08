@@ -36,7 +36,8 @@ import kotlin.random.Random
 
 /*
  * TODO:
- *  integrate into custom triggers
+ *  - integrate into custom triggers
+ *  - redo idk
  */
 
 object AutoHotbar : Module(

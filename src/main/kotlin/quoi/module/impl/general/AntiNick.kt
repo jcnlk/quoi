@@ -4,7 +4,7 @@ import com.mojang.authlib.properties.Property
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
 import quoi.api.events.core.on
-import quoi.api.skyblock.location.Location.onHypixel
+import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.location.Location.onZapto
 import quoi.module.Module
 import quoi.utils.ChatUtils.modMessage
@@ -16,7 +16,8 @@ import java.util.*
 
 object AntiNick : Module(
     "AntiNick",
-    desc = "Detects nicked players."
+    desc = "Detects nicked players.",
+    area = Island.Skyblock
 ) {
     private data class ProfileKey(val id: UUID, val name: String)
     private data class ProfileState(val textureProperty: Property?, val result: NickResult)
@@ -28,16 +29,15 @@ object AntiNick : Module(
         on<WorldEvent.Load.Start> { reset() }
 
         on<TickEvent.End> {
-            if (!onHypixel || onZapto) return@on
+            if (onZapto) return@on
             if (++scanTicks < 20) return@on
             scanTicks = 0
 
-            val localPlayerId = mc.player?.uuid ?: return@on
-            val onlinePlayers = mc.connection?.listedOnlinePlayers ?: return@on
+            val onlinePlayers = connection.listedOnlinePlayers
             val activeProfiles = HashSet<ProfileKey>(onlinePlayers.size)
             for (playerInfo in onlinePlayers) {
                 val profile = playerInfo.profile
-                if (profile.id == localPlayerId || profile.id.version() == 2) continue
+                if (profile.id == player.uuid || profile.id.version() == 2) continue
 
                 val key = ProfileKey(profile.id, profile.name)
                 activeProfiles += key
@@ -55,7 +55,7 @@ object AntiNick : Module(
                     NickResult.Nicked -> "&e${profile.name} &7is nicked."
                     NickResult.NotNicked -> continue
                 }
-                modMessage(message, prefix = prefix("AntiNick"))
+                modMessage(message, prefix = prefix())
             }
 
             profiles.keys.retainAll(activeProfiles)

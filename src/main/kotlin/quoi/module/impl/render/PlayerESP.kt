@@ -17,11 +17,8 @@ object PlayerESP : Module(
     "Player ESP",
     desc = "Highlights players through walls."
 ) {
-    private val ironmenOnly by switch("Ir*nmen only")
-
     private var specific by switch("Specific player")
-    private var specificName by textInput("Name", length = 16, placeholder = "Player name").childOf(::specific)
-        .suggests { WorldUtils.players.map { it.profile.name } }
+    private var specificName by textInput("Name", length = 16, placeholder = "Player name").childOf(::specific).suggests { WorldUtils.players.map { it.profile.name } }
 
     private val tracer = tracer(customColour = true)
     private val highlight = highlight(customColour = true, customFillColour = true, aabbOffset = true)
@@ -30,14 +27,12 @@ object PlayerESP : Module(
         get() = specificName.trim()
 
     private fun matchesFilters(entityName: String?, displayName: String?): Boolean {
-        if (ironmenOnly && displayName?.contains("♲") == false) return false
         if (!specific) return true
 
         val target = targetedPlayerName
         if (target.isBlank()) return false
 
-        return entityName.noControlCodes.trim().equals(target, true) ||
-            displayName.noControlCodes.trim().equals(target, true)
+        return listOfNotNull(entityName, displayName).any { it.noControlCodes.trim().equals(target, ignoreCase = true) }
     }
 
     init {
@@ -51,8 +46,8 @@ object PlayerESP : Module(
         }
 
         on<EntityEvent.ForceGlow> {
-            if (entity !is Player || entity == mc.player || entity.uuid.version() != 4) return@on
-            if (mc.level?.players()?.contains(entity) != true) return@on
+            if (entity !is Player || entity == player || entity.uuid.version() != 4) return@on
+            if (!level.players().contains(entity)) return@on
             if (!matchesFilters(entity.name?.string, entity.displayName?.string)) return@on
             highlight.draw(this, entity.colourFromDistance)
         }

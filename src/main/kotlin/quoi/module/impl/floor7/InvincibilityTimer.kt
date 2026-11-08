@@ -8,7 +8,7 @@ import quoi.api.colour.Colour
 import quoi.api.colour.colour
 import quoi.api.events.ChatEvent
 import quoi.api.events.core.on
-import quoi.api.skyblock.SkyblockPlayer
+import quoi.api.skyblock.SkyblockPlayer.InvincibilityType
 import quoi.api.skyblock.dungeon.Dungeon.inBoss
 import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.location.Location.inSkyblock
@@ -28,7 +28,7 @@ object InvincibilityTimer : Module(
     private val hud by textHud("Invincibility timer", Colour.PINK, toggleable = false) {
         visibleIf { inSkyblock && (!bossOnly || inBoss) }
         column {
-            SkyblockPlayer.InvincibilityType.entries.forEach { type ->
+            InvincibilityType.entries.forEach { type ->
                 val displayTime = {
                     type.getTime().let { if (font.name == "Minecraft" || !it.endsWith("✔")) it else "${it.dropLast(1)}√" }
                 }
@@ -54,11 +54,11 @@ object InvincibilityTimer : Module(
         on<ChatEvent.Packet> {
             if (bossOnly && !inBoss) return@on
 
-            val type = SkyblockPlayer.InvincibilityType.entries.firstOrNull { unformatted.matches(it.regex) } ?: return@on
+            val type = InvincibilityType.entries.firstOrNull { unformatted.matches(it.regex) } ?: return@on
             type.proc()
 
-            val used = SkyblockPlayer.InvincibilityType.entries.count { it.currentCooldown > 0 }
-            if (invincibilityAnnounce) sendCommand("pc ${type.displayName} Procced! ($used/${SkyblockPlayer.InvincibilityType.entries.size})")
+            val used = InvincibilityType.entries.count { it.currentCooldown > 0 }
+            if (invincibilityAnnounce) sendCommand("pc ${type.displayName} Procced! ($used/${InvincibilityType.entries.size})")
         }
     }
 }

@@ -5,7 +5,7 @@ import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.Items
 import quoi.api.events.TickEvent
 import quoi.api.events.core.on
-import quoi.api.skyblock.location.Location
+import quoi.api.skyblock.location.Island
 import quoi.module.Module
 import quoi.module.settings.Setting.Companion.json
 import quoi.utils.ChatUtils.modMessage
@@ -18,7 +18,8 @@ import quoi.utils.skyblock.player.container.task.menu
 
 object AutoBookCombine : Module(
     "Auto Book Combine",
-    desc = "Automatically combines matching enchanted books in the Hypixel Anvil."
+    desc = "Automatically combines matching enchanted books in the Hypixel Anvil.",
+    area = Island.Skyblock
 ) {
     private val containerSettings = ContainerSettings(this, showProgress = false)
     private val resultDelay by slider("Result delay", 10, 2, 40, 1, desc = "Delay before taking the combined book.", unit = " ticks").json("Result delay ticks")
@@ -36,10 +37,7 @@ object AutoBookCombine : Module(
             if (finishedForCurrentAnvil || combineTask != null) return@on
 
             val pair = findBookPair(screen) ?: return@on finish(screen)
-
-            val isCurrentAnvil = {
-                currentAnvil()?.menu === screen.menu && mc.player?.containerMenu === screen.menu
-            }
+            val isCurrentAnvil = { currentAnvil()?.menu === screen.menu && player.containerMenu === screen.menu }
 
             val task = containerTask(
                 name = name,
@@ -118,7 +116,7 @@ object AutoBookCombine : Module(
         combinedInCurrentAnvil = false
     }
 
-    private fun currentAnvil() = (mc.screen as? AbstractContainerScreen<*>)?.takeIf { Location.inSkyblock && it.title.string == "Anvil" }
+    private fun currentAnvil() = (mc.screen as? AbstractContainerScreen<*>)?.takeIf { it.title.string == "Anvil" }
 
     private data class Enchantment(val id: String, val level: Int)
 }

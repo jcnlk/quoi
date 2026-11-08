@@ -1,6 +1,5 @@
 package quoi.module.impl.misc
 
-import kotlin.math.max
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.network.protocol.game.ClientboundSoundPacket
 import net.minecraft.world.entity.EquipmentSlot
@@ -9,12 +8,7 @@ import net.minecraft.world.inventory.ContainerInput
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.phys.Vec3
 import quoi.api.colour.Colour
-import quoi.api.events.ChatEvent
-import quoi.api.events.EntityEvent
-import quoi.api.events.PacketEvent
-import quoi.api.events.RenderEvent
-import quoi.api.events.TickEvent
-import quoi.api.events.WorldEvent
+import quoi.api.events.*
 import quoi.api.events.core.on
 import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.location.Location
@@ -28,6 +22,12 @@ import quoi.utils.romanToInt
 import quoi.utils.skyblock.item.ItemUtils.cleanName
 import quoi.utils.skyblock.item.ItemUtils.getCleanLore
 import quoi.utils.skyblock.item.ItemUtils.texture
+import kotlin.math.max
+
+/**
+ * TODO:
+ *  - make this less shit
+ */
 
 /**
  * modified OdinLegacy (BSD 3-Clause)
@@ -335,8 +335,8 @@ object ChocolateFactory : Module(
         pendingEggs.keys.toList().forEach { type ->
             val replacement = eggCandidates.values.firstOrNull { candidate ->
                 candidate.texture == type.texture &&
-                    candidate.entity.id !in assignedEntityIds &&
-                    candidate.entity.id != pendingEggs[type]
+                        candidate.entity.id !in assignedEntityIds &&
+                        candidate.entity.id != pendingEggs[type]
             } ?: return@forEach
 
             eggs.add(Egg(replacement.entity, type))

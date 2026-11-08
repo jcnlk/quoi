@@ -34,9 +34,7 @@ import quoi.module.ModuleManager
 import quoi.module.impl.misc.Test
 import quoi.module.impl.render.clickgui.impl.Data
 import quoi.module.impl.render.clickgui.impl.PathSettings
-import quoi.module.impl.render.clickgui.impl.PrefixSettings
 import quoi.module.impl.render.clickgui.impl.VisualsSettings
-import quoi.module.impl.render.clickgui.impl.VisualsSettings.moduleSorting
 import quoi.module.settings.UIComponent
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.module.settings.impl.SelectorComponent
@@ -70,7 +68,6 @@ object ClickGui : Module(
     @Suppress("unused")
     private val sett = listOf(
         VisualsSettings,
-        PrefixSettings,
         PathSettings,
         Data
     )
@@ -339,7 +336,13 @@ object ClickGui : Module(
     }
 
     private fun modulesFor(category: Category): List<Module> =
-        ModuleManager.modules.filter { it.category == category }.sortedWith(moduleSorting.selected.comparator)
+        ModuleManager.modules
+            .filter { it.category == category }
+            .sortedWith(
+                compareByDescending<Module> {
+                    NVGRenderer.textWidth(it.name, MODULE_TEXT_SIZE, defaultFont)
+                }.thenBy(String.CASE_INSENSITIVE_ORDER) { it.name }
+            )
 
     fun reopen() {
         mc.setScreen(null)

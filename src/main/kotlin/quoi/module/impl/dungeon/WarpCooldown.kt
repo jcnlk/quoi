@@ -2,23 +2,25 @@ package quoi.module.impl.dungeon
 
 import quoi.api.events.ChatEvent
 import quoi.api.events.core.on
-import quoi.api.skyblock.dungeon.Dungeon
+import quoi.api.skyblock.dungeon.Dungeon.warpCooldown
+import quoi.api.skyblock.location.Island
 import quoi.module.Module
 import quoi.utils.ChatUtils.modMessage
-import quoi.utils.StringUtils
+import quoi.utils.StringUtils.formatTime
 import quoi.utils.ui.textPair
 
 object WarpCooldown : Module(
     "Warp Cooldown",
-    desc = "Dungeon warp cooldown display"
+    desc = "Dungeon warp cooldown display",
+    area = Island.Skyblock
 ) {
     @Suppress("unused")
     private val hud by textHud("Warp cooldown", toggleable = false) {
-        visibleIf { Dungeon.warpCooldown != 0L }
+        visibleIf { warpCooldown != 0L }
 
         textPair(
             string = "Warp:",
-            supplier = { StringUtils.formatTime(Dungeon.warpCooldown) },
+            supplier = { formatTime(warpCooldown) },
             labelColour = colour,
             shadow = shadow,
             font = font
@@ -29,18 +31,13 @@ object WarpCooldown : Module(
 
     init {
         on<ChatEvent.Sent> {
-            if (!blockInstanceCommands || !isCommand) return@on
-            if (Dungeon.warpCooldown <= 0L) return@on
+            if (!blockInstanceCommands || !isCommand || warpCooldown <= 0L) return@on
 
-            val commandName = message
-                .trimStart()
-                .removePrefix("/")
-                .substringBefore(" ")
-
+            val commandName = message.substringBefore(" ")
             if (!commandName.equals("joininstance", ignoreCase = true)) return@on
 
             cancel()
-            modMessage("&cYou are still on warp cooldown for &e${StringUtils.formatTime(Dungeon.warpCooldown)}")
+            modMessage("&cYou are still on warp cooldown for &e${formatTime(warpCooldown)}")
         }
     }
 }

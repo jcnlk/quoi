@@ -8,7 +8,7 @@ import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
 import quoi.api.events.TickEvent
 import quoi.api.events.core.on
-import quoi.api.skyblock.dungeon.Dungeon
+import quoi.api.skyblock.dungeon.Dungeon.isDead
 import quoi.api.skyblock.dungeon.odonscanning.ScanUtils
 import quoi.api.skyblock.dungeon.odonscanning.tiles.DoorType
 import quoi.api.skyblock.dungeon.odonscanning.tiles.OdonDoor
@@ -36,7 +36,7 @@ object AutoDoorOpener : Module(
 
     init {
         on<TickEvent.End> {
-            if (Dungeon.isDead || mc.screen != null && !inMenus && !InteractiveMap.mapOpen) return@on
+            if (isDead || mc.screen != null && !inMenus && !InteractiveMap.mapOpen) return@on
 
             val now = System.currentTimeMillis()
             if (now - lastClick < retryDelay) return@on

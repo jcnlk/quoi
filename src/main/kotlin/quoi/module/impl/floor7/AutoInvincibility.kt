@@ -25,6 +25,11 @@ import quoi.utils.skyblock.player.PlayerUtils.rightClick
 import quoi.utils.skyblock.player.SwapManager
 import quoi.utils.skyblock.player.container.ContainerSettings
 
+/**
+ * TODO:
+ *  - make this les shit
+ */
+
 object AutoInvincibility : Module(
     "Auto Invincibility",
     desc = "Automatically swaps to invincibility items.",
@@ -33,7 +38,7 @@ object AutoInvincibility : Module(
     private val useSpiritMask by switch("Spirit Mask", desc = "Equips Spirit Mask after proccing.")
     private val useBonzoMask by switch("Bonzo's Mask", desc = "Equips Bonzo's Mask after proccing.")
     private val usePhoenixPet by switch("Phoenix Pet", desc = "Swaps to Phoenix pet after proccing.")
-    private val priority by selector("Priority", Priority.SpiritPhoenixBonzo, desc = "Invincibility priority from first to last.")
+    private val priority by selector("Priority", Priority.PhoenixFirst, desc = "Invincibility priority from first to last.")
     private val swapDelay by slider("Swap delay", 0, 0, 40, 1, desc = "Ticks to wait before swapping after an invincibility proc.", unit = "t")
     private val phoenixSwapMethod by selector("Swap method", PhoenixSwapMethod.RodSwap, desc = "Method used to swap to the Phoenix pet. Rod Swap ignores input blocking.").childOf(::usePhoenixPet)
     private val bossOnly by switch("Boss only", desc = "Only triggers while being in boss room.")
@@ -48,8 +53,8 @@ object AutoInvincibility : Module(
     private val rodSwapBlacklist = setOf("SOUL_WHIP", "FLAMING_FLAY", "GRAPPLING_HOOK")
     private val invincibilityPriority
         get() = when (priority.selected) {
-            Priority.SpiritBonzoPhoenix -> listOf(InvincibilityType.SPIRIT, InvincibilityType.BONZO, InvincibilityType.PHOENIX)
-            Priority.SpiritPhoenixBonzo -> listOf(InvincibilityType.SPIRIT, InvincibilityType.PHOENIX, InvincibilityType.BONZO)
+            Priority.MaskFirst -> listOf(InvincibilityType.SPIRIT, InvincibilityType.BONZO, InvincibilityType.PHOENIX)
+            Priority.PhoenixFirst -> listOf(InvincibilityType.SPIRIT, InvincibilityType.PHOENIX, InvincibilityType.BONZO)
         }
 
     override fun onDisable() {
@@ -248,12 +253,10 @@ object AutoInvincibility : Module(
     }
 
     private enum class PhoenixSwapMethod {
-        RodSwap,
-        PetMenu
+        RodSwap, PetMenu;
     }
 
     private enum class Priority {
-        SpiritBonzoPhoenix,
-        SpiritPhoenixBonzo
+        MaskFirst, PhoenixFirst;
     }
 }

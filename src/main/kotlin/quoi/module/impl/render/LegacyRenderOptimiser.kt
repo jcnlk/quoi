@@ -20,6 +20,11 @@ import quoi.module.Module
 import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.skyblock.item.ItemUtils.texture
 
+/**
+ * TODO:
+ *  - replace RenderOptimiser with this on 26.1 deprecation
+ */
+
 object RenderOptimiser : Module(
     "Render Optimiser",
     desc = "Various render optimisation features."
@@ -52,16 +57,18 @@ object RenderOptimiser : Module(
 
     init {
         on<PacketEvent.Received> {
-            when(packet) {
+            when (packet) {
                 is ClientboundAddEntityPacket -> {
                     if (hideFallingBlocks && packet.type == EntityType.FALLING_BLOCK ||
-                        hideLightning && packet.type == EntityType.LIGHTNING_BOLT) cancel()
+                        hideLightning && packet.type == EntityType.LIGHTNING_BOLT
+                    ) cancel()
                 }
 
                 is ClientboundUpdateMobEffectPacket -> {
                     if (hideBlindness &&
                         packet.entityId == player.id &&
-                        packet.effect == MobEffects.BLINDNESS) cancel()
+                        packet.effect == MobEffects.BLINDNESS
+                    ) cancel()
                 }
 
                 is ClientboundLevelParticlesPacket -> { // TODO: exclude some more particles ig
@@ -88,7 +95,8 @@ object RenderOptimiser : Module(
             if (hideHealerOrbs || hideWeaver) {
                 val headTexture = armorStand.getItemBySlot(EquipmentSlot.HEAD).texture
                 if ((hideHealerOrbs && headTexture in HEALER_ORB_TEXTURES) ||
-                    (hideWeaver && headTexture == SOUL_WEAVER_TEXTURE)) {
+                    (hideWeaver && headTexture == SOUL_WEAVER_TEXTURE)
+                ) {
                     cancel()
                     return@on
                 }

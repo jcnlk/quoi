@@ -34,8 +34,8 @@ import quoi.utils.ui.screens.UIContainer
 
 object LeapMenu : Module(
     "Leap Menu",
-    area = Island.Dungeon,
-    desc = "Adds a custom leap menu."
+    desc = "Adds a custom leap menu.",
+    area = Island.Dungeon
 ) {
     val sorting by selector("Sorting", "Class", arrayListOf("Class", "Name", "Custom", "No sorting"))
     val fillEmpty by switch("Fill empty slots", desc = "Fills empty slots with remaining teammates if possible.").childOf(::sorting) { it.selected == "Custom" }
@@ -68,10 +68,10 @@ object LeapMenu : Module(
                 chatStyle = Style.EMPTY.withClickEvent(ClickEvent.CopyToClipboard(customOrder.joinToString(" ")))
             )
         }.description("Sets custom leap order.")
-        .suggests("p1") { allTeammatesNoSelf }
-        .suggests("p2") { allTeammatesNoSelf }
-        .suggests("p3") { allTeammatesNoSelf }
-        .suggests("p4") { allTeammatesNoSelf }
+            .suggests("p1") { allTeammatesNoSelf }
+            .suggests("p2") { allTeammatesNoSelf }
+            .suggests("p3") { allTeammatesNoSelf }
+            .suggests("p4") { allTeammatesNoSelf }
 
         on<GuiEvent.Open.Post> {
             val chest = (screen as? AbstractContainerScreen<*>) ?: return@on

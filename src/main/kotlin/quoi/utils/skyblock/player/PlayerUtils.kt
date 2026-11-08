@@ -3,7 +3,6 @@ package quoi.utils.skyblock.player
 import com.google.gson.JsonParser
 import com.mojang.authlib.GameProfile
 import com.mojang.authlib.properties.Property
-import java.util.*
 import net.minecraft.client.KeyMapping
 import net.minecraft.client.player.LocalPlayer
 import net.minecraft.core.BlockPos
@@ -17,13 +16,17 @@ import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
 import quoi.QuoiMod.mc
 import quoi.api.world.Direction
-import quoi.utils.*
+import quoi.utils.ChatUtils
 import quoi.utils.ChatUtils.literal
+import quoi.utils.SoundUtils
 import quoi.utils.WorldUtils.startPrediction
+import quoi.utils.blockPos
+import quoi.utils.floorPos
 import quoi.utils.skyblock.item.ItemUtils.getBreakerCharges
 import quoi.utils.skyblock.item.ItemUtils.skyblockId
 import quoi.utils.skyblock.player.RotationUtils.pitch
 import quoi.utils.skyblock.player.RotationUtils.yaw
+import java.util.*
 
 object PlayerUtils {
 
@@ -57,12 +60,9 @@ object PlayerUtils {
         if (swing) player.swing(hand)
     }
 
-    fun getEyeHeight(sneak: Boolean = false): Float {
-        return if (sneak) 1.27f else 1.62f
-    }
+    fun getEyeHeight(sneak: Boolean = false): Float = if (sneak) 1.27f else 1.62f
 
-    fun LocalPlayer.eyeHeight(forceSneak: Boolean = false): Float =
-        getEyeHeight(isCrouching || forceSneak)
+    fun LocalPlayer.eyeHeight(forceSneak: Boolean = false): Float = getEyeHeight(isCrouching || forceSneak)
 
     fun LocalPlayer.eyePosition(forceSneak: Boolean = false) = Vec3(x, y + eyeHeight(forceSneak), z)
 
@@ -87,13 +87,14 @@ object PlayerUtils {
         KeyMapping.click(key)
     }
 
-    val LocalPlayer.isLookingAtBreakable: Boolean get() {
-        val hit = mc.hitResult as? BlockHitResult ?: return false
-        if (hit.type != HitResult.Type.BLOCK) return false
+    val LocalPlayer.isLookingAtBreakable: Boolean
+        get() {
+            val hit = mc.hitResult as? BlockHitResult ?: return false
+            if (hit.type != HitResult.Type.BLOCK) return false
 
-        val state = mc.level?.getBlockState(hit.blockPos) ?: return false
-        return !state.isAir && state.fluidState.isEmpty
-    }
+            val state = mc.level?.getBlockState(hit.blockPos) ?: return false
+            return !state.isAir && state.fluidState.isEmpty
+        }
 
     fun LocalPlayer.at(pos: BlockPos) = this.position().floorPos == pos
     fun LocalPlayer.at(pos: Vec3) = this.at(pos.blockPos)

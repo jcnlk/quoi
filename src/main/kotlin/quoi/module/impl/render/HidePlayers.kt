@@ -8,12 +8,12 @@ import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.Floor7
 import quoi.api.skyblock.dungeon.enums.Phase
 import quoi.api.skyblock.location.Island
-import quoi.api.skyblock.location.Location
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.visibleIf
 
 object HidePlayers : Module(
     "Hide Players",
+    area = Island.Skyblock
 ) {
     private val hideAll by switch("Hide all", desc = "Hides all players, regardless of distance.")
     private val distance by slider("Distance", 3.0, 0.0, 32.0, 0.5, desc = "The number of blocks away to hide players.", unit = " blocks").visibleIf { !hideAll }
@@ -37,7 +37,6 @@ object HidePlayers : Module(
     }
 
     private fun shouldHide(target: Player): Boolean {
-        if (Location.currentArea.isArea(Island.SinglePlayer)) return false
         if (dungeonOnly && !Dungeon.inDungeons) return false
         if (bossOnly && !Dungeon.inBoss) return false
         if (onlyDevs && !isAtDevs()) return false
@@ -51,6 +50,6 @@ object HidePlayers : Module(
         if (!Floor7.inPhaseAt(Phase.P3)) return false
 
         return player.distanceToSqr(108.63, 120.0, 94.0) <= 1.8 * 1.8 ||
-            player.distanceToSqr(63.5, 127.0, 35.5) <= 1.8 * 1.8
+                player.distanceToSqr(63.5, 127.0, 35.5) <= 1.8 * 1.8
     }
 }

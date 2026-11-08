@@ -10,6 +10,7 @@ import quoi.api.events.RenderEvent
 import quoi.api.events.WorldEvent
 import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.Dungeon.dungeonItemDrops
+import quoi.api.skyblock.location.Island
 import quoi.module.impl.dungeon.secrets.Secrets
 import quoi.module.settings.Setting.Companion.json
 import quoi.module.settings.UIComponent.Companion.childOf
@@ -25,7 +26,8 @@ import quoi.utils.render.drawWireFrameBox
 object SecretHighlights : ToggleableGroup(
     Secrets,
     "Highlights",
-    desc = "Highlights collected secrets."
+    desc = "Highlights collected secrets.",
+    area = Island.Dungeon
 ) {
     private val secretClicks by switch("Clicks", desc = "Highlights the secret on click.")
     private val outline by switch("Outline", desc = "Draws the outline.").childOf(::secretClicks)
@@ -43,6 +45,7 @@ object SecretHighlights : ToggleableGroup(
     private val itemSound = sound("Item sound").childOf(::playSound)
 
     private data class Secret(val blockPos: BlockPos, var isLocked: Boolean = false)
+
     private val clickedSecrets = mutableListOf<Secret>()
     private val itemEntities = mutableSetOf<ItemEntity>()
 

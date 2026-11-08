@@ -18,6 +18,11 @@ import quoi.utils.equalsOneOf
 // Kyleen
 
 /**
+ * TODO:
+ *  - optimise ts or whatever
+ */
+
+/**
  * modified Odin (BSD 3-Clause)
  * copyright (c) 2026 odtheking
  * original: https://github.com/odtheking/Odin/blob/main/odinclient/src/main/kotlin/me/odinclient/features/impl/floor7/FuckDiorite.kt
@@ -104,7 +109,8 @@ object FuckDiorite : Module(
         on<WorldEvent.Chunk.Load> {
             pillars.forEachIndexed { index, pillar ->
                 if (chunk.pos.x in ((pillar.x - 3) shr 4)..((pillar.x + 3) shr 4) &&
-                    chunk.pos.z in ((pillar.z - 3) shr 4)..((pillar.z + 3) shr 4)) {
+                    chunk.pos.z in ((pillar.z - 3) shr 4)..((pillar.z + 3) shr 4)
+                ) {
                     dirtyPillars[index] = true
                 }
             }
