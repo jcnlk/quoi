@@ -53,18 +53,31 @@ internal object IceFillPathfinder {
     }
 
     private class Puzzle(private val spaces: Set<BlockPos>, private val start: BlockPos, private val end: BlockPos) {
-        private val graph = spaces.associateWith { pos -> directions.filter { pos.relative(it) in spaces } }
+        private val graph = spaces.associateWith { pos ->
+            directions.mapNotNull { dir ->
+                val next = pos.relative(dir)
+                if (next in spaces) dir to next else null
+            }
+        }
+        private val seen = HashSet<BlockPos>(spaces.size)
+        private val stack = ArrayDeque<BlockPos>(spaces.size)
 
         private fun remainingConnected(current: BlockPos, visited: Set<BlockPos>): Boolean {
             val remaining = spaces.size - visited.size + 1
-            val seen = hashSetOf(current)
-            val stack = ArrayDeque<BlockPos>().apply { add(current) }
+            seen.clear()
+            stack.clear()
+            seen.add(current)
+            stack.add(current)
             while (stack.isNotEmpty()) {
                 val pos = stack.removeLast()
-                for (dir in graph.getValue(pos)) {
-                    val next = pos.relative(dir)
-                    if ((next == current || next !in visited) && seen.add(next)) stack.add(next)
+                var degree = 0
+                for ((_, next) in graph.getValue(pos)) {
+                    if (next == current || next !in visited) {
+                        degree++
+                        if (seen.add(next)) stack.add(next)
+                    }
                 }
+                if (pos != current && pos != end && degree < 2) return false
             }
             return seen.size == remaining
         }
@@ -90,10 +103,10 @@ internal object IceFillPathfinder {
                     if (current == end) return false
 
                     val candidates = graph.getValue(current)
-                        .map { it to current.relative(it) }
                         .filter { (_, pos) -> pos !in visited }
-                        .sortedWith(compareBy(
-                            { (_, pos) -> graph.getValue(pos).count { pos.relative(it) !in visited } },
+                        .sortedWith(
+                            compareBy(
+                            { (_, pos) -> graph.getValue(pos).count { (_, next) -> next !in visited } },
                             { (dir, _) -> if (dir == lastDir) 0 else 1 }
                         ))
 

@@ -10,16 +10,8 @@ import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.Vec3
 import quoi.QuoiMod.scope
 import quoi.api.colour.Colour
-import quoi.api.events.DungeonEvent
-import quoi.api.events.PacketEvent
-import quoi.api.events.RenderEvent
-import quoi.api.events.TickEvent
-import quoi.api.events.WorldEvent
-import quoi.api.events.core.Event
-import quoi.api.events.core.await
-import quoi.api.events.core.on
-import quoi.api.events.core.onAsync
-import quoi.api.events.core.removeAsyncScope
+import quoi.api.events.*
+import quoi.api.events.core.*
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.odonscanning.tiles.OdonRoom
 import quoi.module.impl.dungeon.autoclear.executor.ClearExecutor
@@ -27,6 +19,7 @@ import quoi.module.impl.dungeon.puzzlesolvers.PuzzleSolvers
 import quoi.module.impl.dungeon.puzzlesolvers.Repositionable
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.module.settings.group.SettingGroup
+import quoi.utils.ChatUtils.modMessage
 import quoi.utils.Ticker
 import quoi.utils.WorldUtils.state
 import quoi.utils.blockPos
@@ -36,6 +29,8 @@ import quoi.utils.render.drawLine
 import quoi.utils.skyblock.item.ItemUtils.skyblockId
 import quoi.utils.skyblock.player.MovementUtils.isMoving
 import quoi.utils.skyblock.player.PlayerUtils.useItem
+import kotlin.time.DurationUnit
+import kotlin.time.measureTimedValue
 
 object IceFillSolver : SettingGroup(PuzzleSolvers, "Ice fill"), Repositionable {
     private val solver by switch("Solver", desc = "Shows the solution for the ice fill puzzle.")
@@ -74,9 +69,14 @@ object IceFillSolver : SettingGroup(PuzzleSolvers, "Ice fill"), Repositionable {
                     floor.equalsOneOf(Blocks.ICE, Blocks.PACKED_ICE) && chunk.getBlockState(realPos).isAir
                 } ?: return@on
                 if (spaces.isNotEmpty()) solveJob = scope.launch(Dispatchers.Default) {
-                    val path = IceFillPathfinder.solve(spaces) ?: return@launch
+                    val (path, duration) = measureTimedValue {
+                        IceFillPathfinder.solve(spaces) ?: return@launch
+                    }
                     mc.submit {
-                        if (isActive && patternRoom === room) currentPatterns = path.map { room.getRealCoords(it) }
+                        if (isActive && patternRoom === room) {
+                            currentPatterns = path.map { room.getRealCoords(it) }
+                            modMessage("Ice Fill solved in &e${duration.toString(DurationUnit.MILLISECONDS, decimals = 1)}&r.")
+                        }
                     }.join()
                 }
             }
@@ -94,7 +94,7 @@ object IceFillSolver : SettingGroup(PuzzleSolvers, "Ice fill"), Repositionable {
                     return@onAsync
                 }
 
-                if (reposition && player.y !in (69.5..72.5) ) { // untested
+                if (reposition && player.y !in (69.5..72.5)) { // untested
                     if (player.isMoving) return@onAsync
                     val spot = getBlock()
                     if (spot != null) {
