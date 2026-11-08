@@ -1,8 +1,5 @@
 package quoi.utils.ui.hud
 
-import kotlin.collections.forEach
-import kotlin.math.abs
-import kotlin.math.roundToInt
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import quoi.QuoiMod.mc
 import quoi.api.abobaui.constraints.Constraint
@@ -43,6 +40,8 @@ import quoi.utils.ui.rendering.NVGRenderer
 import quoi.utils.ui.screens.UIContainer
 import quoi.utils.ui.screens.UIOverlay
 import quoi.utils.ui.screens.UIScreen.Companion.open
+import kotlin.math.abs
+import kotlin.math.roundToInt
 
 object HudManager : EventListener {
     val huds = arrayListOf<Hud>()
@@ -199,8 +198,6 @@ object HudManager : EventListener {
                     true
                 }
 
-//                draggable(moves = element)
-
                 onRemove {
                     if (element.hasPixelPosition()) hud.savePosition(element, ui.main.width, ui.main.height)
                 }
@@ -275,7 +272,6 @@ object HudManager : EventListener {
                     element.scaleTransformation = hud.scale.value
                     element.clampToParent()
                 }
-
             }
         }
     }
@@ -590,10 +586,6 @@ object HudManager : EventListener {
                                     scheduleTask { thickness.animate(0.25.seconds, style = Animation.Style.EaseInOutQuint) }
                                 }
 
-//                                hudElement?.let { element ->
-//                                    element.constraints.x.pixels = 0.0f
-//                                    element.constraints.y.pixels = 0.0f
-//                                }
                                 true
                             }
                         }

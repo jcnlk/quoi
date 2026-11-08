@@ -1,7 +1,5 @@
 package quoi.utils.ui.elements
 
-import kotlin.math.roundToInt
-import kotlin.reflect.KMutableProperty0
 import quoi.api.abobaui.constraints.Constraint
 import quoi.api.abobaui.constraints.Positions
 import quoi.api.abobaui.constraints.Sizes
@@ -34,6 +32,8 @@ import quoi.utils.ui.popupY
 import quoi.utils.ui.rendering.Font
 import quoi.utils.ui.rendering.NVGRenderer
 import quoi.utils.ui.watch
+import kotlin.math.roundToInt
+import kotlin.reflect.KMutableProperty0
 
 @Suppress("UNCHECKED_CAST")
 fun <T : Number> ElementScope<*>.numberInput(
@@ -52,8 +52,8 @@ fun <T : Number> ElementScope<*>.numberInput(
 ): ElementScope<TextInput> {
     val value by ref
     val normalisedDegrees = unit == "°" && ref.get().toDouble() in 0.0..1.0 &&
-        (min?.toDouble() == null || min.toDouble() >= 0.0) &&
-        (max?.toDouble() == null || max.toDouble() <= 1.0)
+            (min?.toDouble() == null || min.toDouble() >= 0.0) &&
+            (max?.toDouble() == null || max.toDouble() <= 1.0)
 
     fun format(n: T) = when (unit) {
         "%" if (n.toDouble() <= 1.0f) -> "${(n.toDouble() * 100).roundToInt()}%"
@@ -93,7 +93,7 @@ fun <T : Number> ElementScope<*>.numberInput(
             var num = string
                 .filter { it.isDigit() || it == '.' || it == '-' }
                 .toDoubleOrNull()
-                ?: run { string = "$value$unit";return@onFocusLost }
+                ?: run { string = "$value$unit"; return@onFocusLost }
 
             num = when (unit) {
                 "%" -> (num.coerceIn(0.0, 100.0) / 100.0)
@@ -200,7 +200,6 @@ fun ElementScope<*>.themedInput(
         radius = radius
     ) {
         outline(outlineCol, thickness = thickness)
-//        hoverEffect(factor = 1.15f)
         tonalHover()
 
         input = content().apply {
@@ -360,9 +359,7 @@ fun ElementScope<*>.suggestionInput( // todo move it to selectors
                         column {
                             suggestions().forEach { suggestion ->
                                 items[suggestion] = block(size(w = Fill, h = 25.px), colour = theme.surfaceContainerHighest, radius = 3.radius()) {
-//                                    hoverEffect(1.1f)
                                     tonalHover()
-//                                    cursor(CursorShape.HAND)
                                     text(
                                         string = suggestion,
                                         colour = theme.onSurface,

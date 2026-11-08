@@ -10,26 +10,16 @@ import quoi.api.abobaui.dsl.*
 import quoi.api.abobaui.elements.ElementScope
 import quoi.api.abobaui.elements.impl.Block.Companion.outline
 import quoi.api.animations.Animation
-import quoi.api.colour.Colour
-import quoi.api.colour.alpha
-import quoi.api.colour.blue
-import quoi.api.colour.colour
-import quoi.api.colour.getRGBA
-import quoi.api.colour.green
-import quoi.api.colour.multiply
-import quoi.api.colour.red
-import quoi.api.colour.withAlpha
-import quoi.api.input.Keybinds
+import quoi.api.colour.*
 import quoi.api.input.CursorShape
+import quoi.api.input.Keybinds
 import quoi.utils.ThemeManager.theme
 import quoi.utils.clean
 import quoi.utils.ui.cursor
 import quoi.utils.ui.watch
-import kotlin.getValue
 import kotlin.math.abs
 import kotlin.math.round
 import kotlin.reflect.KMutableProperty0
-import kotlin.setValue
 
 @Suppress("UNCHECKED_CAST")
 fun <T : Number> ElementScope<*>.slider(
@@ -52,6 +42,7 @@ fun <T : Number> ElementScope<*>.slider(
         val n = (round((new.toDouble() / increment)) * increment).coerceIn(min, max).clean()
         value = n as T
     }
+
     fun getPercent(): Float = ((value.toDouble() - min) / (max - min)).toFloat()
 
     val height = size.height.calculateSize(element, horizontal = true)
@@ -154,7 +145,7 @@ fun <T : Number> ElementScope<*>.slider(
         }
 
         onKeyPressed { (key) ->
-            when(key) {
+            when (key) {
                 Keybinds.KEY_LEFT -> {
                     set(value.toDouble() - increment)
                     animate = true
@@ -198,6 +189,7 @@ fun <T : Number> ElementScope<*>.rangeSlider(
             else
                 v1 as T to v2 as T
     }
+
     fun getPercent(v: Number): Float = ((v.toDouble() - min) / (max - min)).toFloat()
 
     val height = size.height.calculateSize(element, horizontal = true)
@@ -362,5 +354,4 @@ fun <T : Number> ElementScope<*>.rangeSlider(
             true
         }
     }
-
 }

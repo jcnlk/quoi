@@ -58,7 +58,6 @@ inline fun <T> ElementScope<*>.selector(
                         colour = colour { if (i in selectedIndices()) theme.primaryContainer.rgb else colour.rgb },
                         3.5.radius()
                     ) {
-//                        hoverEffect(1.1f)
                         tonalHover()
 
                         text(

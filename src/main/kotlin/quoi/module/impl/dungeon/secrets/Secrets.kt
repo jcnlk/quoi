@@ -4,6 +4,7 @@ import quoi.api.skyblock.location.Island
 import quoi.module.Module
 import quoi.module.impl.dungeon.secrets.impl.*
 
+@Suppress("UnusedExpression")
 object Secrets : Module(
     "Secrets",
     Island.Dungeon,

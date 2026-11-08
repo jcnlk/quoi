@@ -17,8 +17,9 @@ import quoi.api.events.RenderEvent
 import quoi.api.events.WorldEvent
 import quoi.api.events.core.Priority
 import quoi.api.events.core.on
-import quoi.api.skyblock.dungeon.Dungeon
+import quoi.api.skyblock.dungeon.Dungeon.dungeonTeammates
 import quoi.api.skyblock.dungeon.Dungeon.inClear
+import quoi.api.skyblock.dungeon.Dungeon.inDungeons
 import quoi.api.skyblock.dungeon.Floor7.inF7Boss
 import quoi.api.skyblock.dungeon.odonscanning.ScanUtils
 import quoi.api.skyblock.dungeon.odonscanning.tiles.OdonRoom
@@ -208,8 +209,8 @@ object DungeonESP : Module(
     }
 
     private fun getDungeonPlayerColour(entity: Entity): Colour? {
-        if (!teammateEsp || !Dungeon.inDungeons || entity !is Player) return null
-        return Dungeon.dungeonTeammates.find { it.name == entity.name.string }?.clazz?.colour
+        if (!teammateEsp || !inDungeons || entity !is Player) return null
+        return dungeonTeammates.find { it.name == entity.name.string }?.clazz?.colour
     }
 
     val OdonRoom.starredMobs: List<LivingEntity>

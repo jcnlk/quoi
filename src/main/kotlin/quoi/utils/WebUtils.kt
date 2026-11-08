@@ -7,10 +7,10 @@ import java.net.URI
 object WebUtils {
     fun setupConnection(url: String, timeout: Int = 5000, useCaches: Boolean = true): InputStream {
         val connection = URI(url).toURL().openConnection() as HttpURLConnection
-        connection.setRequestMethod("GET")
+        connection.requestMethod = "GET"
         connection.setUseCaches(useCaches)
-        connection.setReadTimeout(timeout)
-        connection.setConnectTimeout(timeout)
+        connection.readTimeout = timeout
+        connection.connectTimeout = timeout
         connection.setDoOutput(true)
         return connection.inputStream
     }

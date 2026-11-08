@@ -3,15 +3,13 @@ package quoi.utils
 import net.minecraft.core.BlockPos
 
 object CachedSphere {
-
     const val RADIUS = 50
     const val RADIUS_SQ = RADIUS * RADIUS
 
     val table: LongArray
-    val indices: IntArray
+    val indices: IntArray = IntArray(RADIUS_SQ + 2)
 
     init {
-        indices = IntArray(RADIUS_SQ + 2)
         for (x in -RADIUS..RADIUS) {
             for (y in -RADIUS..RADIUS) {
                 for (z in -RADIUS..RADIUS) {

@@ -2,9 +2,6 @@
 
 package quoi.utils
 
-import java.util.*
-import kotlin.math.max
-import kotlin.math.min
 import net.minecraft.ChatFormatting
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.MutableComponent
@@ -12,6 +9,9 @@ import net.minecraft.network.chat.Style
 import net.minecraft.network.chat.TextColor
 import net.minecraft.network.chat.contents.PlainTextContents
 import quoi.QuoiMod.mc
+import java.util.*
+import kotlin.math.max
+import kotlin.math.min
 
 object StringUtils {
 
@@ -22,22 +22,23 @@ object StringUtils {
 
     private val rgbMap by lazy {
         ChatFormatting.entries
-            .mapNotNull { formatting -> TextColor.fromLegacyFormat(formatting)?.getValue()?.let { it to formatting } }
+            .mapNotNull { formatting -> TextColor.fromLegacyFormat(formatting)?.value?.let { it to formatting } }
             .toMap()
     }
 
-    val Component.formattedString: String get() = buildString {
-        visit<Unit>({ style, content ->
-            style.getColor()?.value?.let { rgbMap[it]?.let(::append) }
-            if (style.isBold) append(ChatFormatting.BOLD)
-            if (style.isItalic) append(ChatFormatting.ITALIC)
-            if (style.isUnderlined) append(ChatFormatting.UNDERLINE)
-            if (style.isStrikethrough) append(ChatFormatting.STRIKETHROUGH)
-            if (style.isObfuscated) append(ChatFormatting.OBFUSCATED)
-            append(content)
-            Optional.empty()
-        }, Style.EMPTY)
-    }
+    val Component.formattedString: String
+        get() = buildString {
+            visit<Unit>({ style, content ->
+                style.color?.value?.let { rgbMap[it]?.let(::append) }
+                if (style.isBold) append(ChatFormatting.BOLD)
+                if (style.isItalic) append(ChatFormatting.ITALIC)
+                if (style.isUnderlined) append(ChatFormatting.UNDERLINE)
+                if (style.isStrikethrough) append(ChatFormatting.STRIKETHROUGH)
+                if (style.isObfuscated) append(ChatFormatting.OBFUSCATED)
+                append(content)
+                Optional.empty()
+            }, Style.EMPTY)
+        }
 
     fun MutableComponent.trim(): MutableComponent {
         val sibs = siblings
@@ -148,9 +149,9 @@ object StringUtils {
 
         return when {
             secondsVal > 0f -> "${secondsVal.toFixed(decimalPlaces)}s"
-            minutesVal > 0  -> "${minutesVal}m"
-            hoursVal > 0    -> "${hoursVal}h"
-            daysVal > 0     -> "${daysVal}d"
+            minutesVal > 0 -> "${minutesVal}m"
+            hoursVal > 0 -> "${hoursVal}h"
+            daysVal > 0 -> "${daysVal}d"
             else -> "0s"
         }
     }

@@ -8,7 +8,6 @@ import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.location.Location.onZapto
 import quoi.module.Module
 import quoi.utils.ChatUtils.modMessage
-import quoi.utils.ChatUtils.prefix
 import quoi.utils.skyblock.player.PlayerUtils.NickResult
 import quoi.utils.skyblock.player.PlayerUtils.nickResult
 import quoi.utils.skyblock.player.PlayerUtils.textureProperty
@@ -55,7 +54,7 @@ object AntiNick : Module(
                     NickResult.Nicked -> "&e${profile.name} &7is nicked."
                     NickResult.NotNicked -> continue
                 }
-                modMessage(message, prefix = prefix())
+                modMessage(message)
             }
 
             profiles.keys.retainAll(activeProfiles)

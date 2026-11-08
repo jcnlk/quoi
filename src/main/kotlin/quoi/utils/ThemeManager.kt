@@ -46,11 +46,12 @@ object ThemeManager {
     private val neutralVariantPalette = TonalPalette(chromaOverride = 8.0)
     private val errorPalette = TonalPalette(hueOverride = 25.0, chromaOverride = 84.0)
 
-    val theme get() = when(VisualsSettings.selectedTheme) {
-        "Dark" -> DarkTheme
-        "Light" -> LightTheme
-        else -> OnyxTheme
-    }
+    val theme
+        get() = when (VisualsSettings.selectedTheme) {
+            "Dark" -> DarkTheme
+            "Light" -> LightTheme
+            else -> OnyxTheme
+        }
 
     val DarkTheme = Theme(
         name = "Dark",
@@ -211,11 +212,6 @@ object ThemeManager {
 
         val textSize: Pixel = 16.px
     ) {
-        @Deprecated("use material")
-        val panel: Colour get() = surfaceContainerLow
-        @Deprecated("use material")
-        val border: Colour get() = outlineVariant
-
         val isDark get() = background.toHSB().brightness < 0.5f
 
         val closeImage get() = "close.svg".image()

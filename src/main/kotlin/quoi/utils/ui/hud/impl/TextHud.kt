@@ -1,9 +1,7 @@
 package quoi.utils.ui.hud.impl
 
-import kotlin.math.roundToInt
 import quoi.api.abobaui.constraints.impl.positions.Alignment
 import quoi.api.abobaui.dsl.percent
-import quoi.api.abobaui.elements.Element as AbobaElement
 import quoi.api.abobaui.elements.impl.Group
 import quoi.api.abobaui.elements.impl.layout.Column
 import quoi.api.colour.Colour
@@ -19,6 +17,8 @@ import quoi.utils.ui.hud.ScopedHud
 import quoi.utils.ui.rendering.Font
 import quoi.utils.ui.rendering.NVGRenderer.customFont
 import quoi.utils.ui.rendering.NVGRenderer.minecraftFont
+import kotlin.math.roundToInt
+import quoi.api.abobaui.elements.Element as AbobaElement
 
 class TextHud(
     name: String,
@@ -38,13 +38,12 @@ class TextHud(
 
     private var alignmentParent: AbobaElement? = null
 
-    class Scope(parent: Hud.Scope, val font: Font, private val colourSupplier: () -> Colour, val shadow: Boolean)
-        : Hud.Scope(parent.element, parent.preview) {
+    class Scope(parent: Hud.Scope, val font: Font, private val colourSupplier: () -> Colour, val shadow: Boolean) : Hud.Scope(parent.element, parent.preview) {
         val colour: Colour get() = colourSupplier()
     }
 
     override fun createScope(base: Hud.Scope): Scope {
-        val anchor = /*anchorSetting.selected*/ anchor
+        val anchor = anchor
         val element = base.element
 
         anchorSetting?.onValueChanged { _, _ ->
@@ -92,7 +91,7 @@ class TextHud(
     }
 
     override fun savePosition(element: Element, screenWidth: Float, screenHeight: Float) {
-        val anchor = /*anchorSetting.selected*/ anchor
+        val anchor = anchor
 
         val elementX = ((element.constraints.x as? quoi.api.abobaui.constraints.impl.measurements.Pixel)?.pixels ?: element.internalX).roundToInt().toFloat()
         val elementY = ((element.constraints.y as? quoi.api.abobaui.constraints.impl.measurements.Pixel)?.pixels ?: element.internalY).roundToInt().toFloat()
@@ -104,8 +103,7 @@ class TextHud(
     }
 
     enum class HudFont {
-        Minecraft,
-        Custom;
+        Minecraft, Custom;
 
         fun get() = if (this == Minecraft) minecraftFont else customFont
     }

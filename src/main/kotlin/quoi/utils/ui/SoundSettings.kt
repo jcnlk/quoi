@@ -26,14 +26,17 @@ class SoundSettings(
 
     private val pitch by slider("Pitch", 1.0f, 0.1f, 2.0f, 0.01f, desc = "Pitch of the sound to play.")
 
-    private val test by button("Test sound") { play() }
+    init {
+        +button("Test sound") { play() }
+    }
 
-    private val soundEvent get() =
-        if (sound == SoundUtils.SoundSetting.Custom)
-            BuiltInRegistries.SOUND_EVENT.getOptional(Identifier.parse(custom)).orElse(null)
-                ?: SoundEvent.createVariableRangeEvent(Identifier.parse(custom))
-        else
-            sound.sound
+    private val soundEvent
+        get() =
+            if (sound == SoundUtils.SoundSetting.Custom)
+                BuiltInRegistries.SOUND_EVENT.getOptional(Identifier.parse(custom)).orElse(null)
+                    ?: SoundEvent.createVariableRangeEvent(Identifier.parse(custom))
+            else
+                sound.sound
 
     private var lastPlayed = 0L
 

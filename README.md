@@ -22,7 +22,6 @@ Download the JAR for your Minecraft version from [Releases](https://github.com/j
 - `/quoi equip <item>` - Equips items from your inventory.
 - `/quoi leap <name|class>` - Leaps to a dungeon teammate.
 - `/quoi order [p1] [p2] [p3] [p4]` - Shows or sets the Leap Menu order.
-- `/quoi clearaura` - Clears Secret Aura state.
 - `/quoi ct` - Opens the Custom Triggers editor.
 - `/quoi autocroesus <go|forcego|api|reset|copylog|loot|alwaysbuy|worthless> ...` - Controls Auto Croesus.
 - `/quoi autosell <add|remove|clear|list> [item]` - Manages the Auto Sell list.

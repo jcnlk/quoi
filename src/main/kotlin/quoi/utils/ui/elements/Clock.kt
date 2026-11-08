@@ -1,14 +1,7 @@
 package quoi.utils.ui.elements
 
 import quoi.api.abobaui.constraints.impl.size.Bounding
-import quoi.api.abobaui.dsl.constrain
-import quoi.api.abobaui.dsl.copies
-import quoi.api.abobaui.dsl.plus
-import quoi.api.abobaui.dsl.px
-import quoi.api.abobaui.dsl.radius
-import quoi.api.abobaui.dsl.rotation
-import quoi.api.abobaui.dsl.seconds
-import quoi.api.abobaui.dsl.size
+import quoi.api.abobaui.dsl.*
 import quoi.api.abobaui.elements.ElementScope
 import quoi.api.abobaui.elements.Layout.Companion.divider
 import quoi.api.abobaui.elements.impl.Block.Companion.outline
@@ -68,11 +61,6 @@ private fun ElementScope<*>.cell(char: Char): Cell {
         group(copies()) {
             block(constrain(12.px, 11.px, 11.5.px, 1.5.px), theme.primary)
         }.rotation { h2.rotation }
-
-//            block(
-//                constrain(11.px, 11.px, 2.px, 1.5.px),
-//                Colour.BLUE,
-//            )
     }
     return Cell(h1, h2)
 }

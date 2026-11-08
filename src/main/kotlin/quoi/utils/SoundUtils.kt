@@ -4,6 +4,7 @@ import net.minecraft.sounds.SoundEvent
 import net.minecraft.sounds.SoundEvents
 import quoi.QuoiMod.mc
 
+// TODO: allow more sounds or whatever
 object SoundUtils {
 
     fun play(sound: SoundEvent, volume: Float = 1.0f, pitch: Float = 1.0f) = mc.execute {
@@ -15,6 +16,7 @@ object SoundUtils {
         play(sound, volume, pitch)
     }
 
+    @Suppress("unused")
     enum class SoundSetting(val sound: SoundEvent) {
         BlazeHurt(SoundEvents.BLAZE_HURT),
         Pling(SoundEvents.NOTE_BLOCK_PLING.value()),

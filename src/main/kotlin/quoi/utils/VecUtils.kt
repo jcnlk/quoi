@@ -331,7 +331,6 @@ fun getArrowDirection(from: Vec3, to: BlockPos, isTerminator: Boolean = false): 
         var good = false
 
         for (tick in 0..100) {
-
             val hit = rayCast(px, py, pz, mx, my, mz)
 
             if (hit.pos != null) {
@@ -537,6 +536,5 @@ private fun Vec3.intermediateWithZValue(goal: Vec3, z: Double): Vec3? {
     ) else null
 }
 
-fun dot(x0: Double, y0: Double, z0: Double, x1: Double, y1: Double, z1: Double): Double {
-    return (x0 * x1) + (y0 * y1) + (z0 * z1)
-}
+fun dot(x0: Double, y0: Double, z0: Double, x1: Double, y1: Double, z1: Double): Double =
+    (x0 * x1) + (y0 * y1) + (z0 * z1)

@@ -570,5 +570,4 @@ object LegacyIdMapper {
         QuoiMod.logger.warn("[LegacyID] Unmatched state: ${state.block} → ${state.values}")
         return -1
     }
-
 }
