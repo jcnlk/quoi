@@ -69,4 +69,44 @@ class CollectionSettingTest {
         assertSame(backing, setting.value)
         assertEquals(emptyMap(), backing)
     }
+
+    @Test
+    fun `list reset restores construction contents after repeated edits and reads`() {
+        val expected = listOf("default", "second", "default")
+        val backing = expected.toMutableList()
+        val setting = ListSetting("Values", backing)
+
+        repeat(2) {
+            backing.add("edited")
+            setting.reset()
+            assertSame(backing, setting.value)
+            assertEquals(expected, backing)
+
+            setting.read(JsonParser.parseString("[\"changed\"]"))
+            setting.reset()
+            assertSame(backing, setting.value)
+            assertEquals(expected, backing)
+        }
+    }
+
+    @Test
+    fun `map reset restores construction entries after repeated edits and reads`() {
+        val expected = linkedMapOf("default" to "value", "second" to "other")
+        val backing = expected.toMutableMap()
+        val setting = MapSetting("Values", backing)
+
+        repeat(2) {
+            backing.entries.first().setValue("edited")
+            backing.remove("second")
+            setting.reset()
+            assertSame(backing, setting.value)
+            assertEquals(expected, backing)
+            assertEquals(expected.keys.toList(), backing.keys.toList())
+
+            setting.read(JsonParser.parseString("{\"changed\":\"value\"}"))
+            setting.reset()
+            assertSame(backing, setting.value)
+            assertEquals(expected, backing)
+        }
+    }
 }

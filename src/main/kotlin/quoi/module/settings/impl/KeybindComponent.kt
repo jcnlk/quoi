@@ -34,6 +34,9 @@ class KeybindComponent(
 
     constructor(name: String, defaultKeyCode: Int, desc: String = "") : this(name, Keybinding(defaultKeyCode), desc)
 
+    private val initialKey = default.key
+    private val initialModifiers = default.modifiers.toSet()
+
     override var value: Keybinding = default
 
     private var key: Int
@@ -76,7 +79,9 @@ class KeybindComponent(
     }
 
     override fun reset() {
-        value = default
+        value.key = initialKey
+        value.modifiers.clear()
+        value.modifiers.addAll(initialModifiers)
     }
 
     fun getKeyName(): String {

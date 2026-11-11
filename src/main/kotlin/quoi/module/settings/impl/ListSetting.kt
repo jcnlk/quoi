@@ -9,6 +9,8 @@ import java.lang.reflect.Type
 /**
  * This setting is only designed to store values as a list.
  *
+ * Reset restores a shallow snapshot of the construction-time contents in the current collection.
+ *
  * @author Stivais
  */
 class ListSetting<E, T : MutableCollection<E>>(
@@ -17,7 +19,14 @@ class ListSetting<E, T : MutableCollection<E>>(
     private val type: Type
 ) : Setting<T>(name, ""), Saving {
 
+    private val initialContents = default.toList()
+
     override var value: T = default
+
+    override fun reset() {
+        value.clear()
+        value.addAll(initialContents)
+    }
 
     override fun write(): JsonElement = gson.toJsonTree(value)
 
