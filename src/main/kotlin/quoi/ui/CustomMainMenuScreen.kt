@@ -18,6 +18,11 @@ import net.minecraft.client.input.InputWithModifiers
 import net.minecraft.client.multiplayer.ServerData
 import net.minecraft.client.multiplayer.resolver.ServerAddress
 import net.minecraft.client.renderer.texture.DynamicTexture
+//? if >=26.4 {
+/*import net.minecraft.client.renderer.texture.TextureContents
+import net.minecraft.client.renderer.texture.TextureProvider2d
+import net.minecraft.server.packs.resources.ResourceManager
+*///? }
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.Identifier
 import quoi.QuoiMod
@@ -124,6 +129,18 @@ class CustomMainMenuScreen(
         sampledMenuColour = null
         loadedImage = file?.let {
             runCatching {
+                //? if >=26.4 {
+                /*minecraft.textureManager.registerProvider(BACKGROUND_ID, object : TextureProvider2d() {
+                    override fun prepareState(resourceManager: ResourceManager, id: Identifier): TextureContents {
+                        val image = loadNativeImage(file)
+                        loadedImageWidth = image.width
+                        loadedImageHeight = image.height
+                        sampledMenuColour = sampleColour(image)
+                        return TextureContents(image, null)
+                    }
+                })
+                minecraft.textureManager.getTexture(BACKGROUND_ID) as TextureResources
+                *///? } else {
                 val image = loadNativeImage(file)
                 loadedImageWidth = image.width
                 loadedImageHeight = image.height
@@ -131,6 +148,7 @@ class CustomMainMenuScreen(
                 DynamicTexture({ "quoi custom main menu background" }, image).also {
                     minecraft.textureManager.register(BACKGROUND_ID, it)
                 }
+                //? }
             }.onFailure { error ->
                 QuoiMod.logger.error("Failed to load custom main menu background: ${file.absolutePath}", error)
             }.getOrNull()

@@ -61,6 +61,7 @@ stonecutter parameters {
     }
 
     replacements.string(v26_4) {
+        replace("net.minecraft.commands.SharedSuggestionProvider", "net.minecraft.commands.suggestions.SuggestionContext as SharedSuggestionProvider")
         replace("mc.mouseHandler.xpos()", "mc.mouseHandler.xpos")
         replace("mc.mouseHandler.ypos()", "mc.mouseHandler.ypos")
         replace("isHoveredOrFocused", "(isHovered || isFocused)")
