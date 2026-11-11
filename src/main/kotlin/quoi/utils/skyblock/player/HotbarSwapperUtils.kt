@@ -112,8 +112,7 @@ data class HotbarItem(
 
     fun matches(stack: ItemStack?): Boolean {
         if (stack == null || stack.isEmpty) return false
-        val stackUuid = stack.skyblockUuid
-        if (uuid != null && stackUuid != null && uuid == stackUuid && name.equals(stack.displayName.string, true)) return true
+        if (uuid != null) return uuid == stack.skyblockUuid
 
         val stackId = stack.skyblockId
         return id != null && stackId != null && id.equals(stackId, true)
