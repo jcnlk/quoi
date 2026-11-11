@@ -90,10 +90,10 @@ object SkyblockPlayer : EventListener, Shortcuts {
             HP_REGEX.find(message)?.destructured?.let { (abs, max) ->
                 maxHealth = max.toInt()
                 absorption = (abs.toInt() - max.toInt()).coerceAtLeast(0)
-                effectiveHealth = maxHealth * (1 + defence / 100)
             }
 
             defence = DEF_REGEX.find(message)?.groupValues?.get(1)?.toIntOrNull() ?: defence
+            effectiveHealth = (maxHealth * (1 + defence / 100.0)).roundToInt()
 
             MANA_REGEX.find(message)?.destructured?.let { (mana, maxMana) ->
                 this@SkyblockPlayer.mana = mana.toInt()
