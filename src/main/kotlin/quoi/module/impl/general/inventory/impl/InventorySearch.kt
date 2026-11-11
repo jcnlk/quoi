@@ -156,7 +156,7 @@ object InventorySearch : SettingGroup(Inventory, HudComponent("Search Bar", Hud(
         }
 
         listOf("\\^", "[*x/%]", "[+\\-]").forEach { operators ->
-            val eqRegex = Regex("""(?<!\d)([+-]?[\d.]+)\s*($operators)\s*([+-]?[\d.]+)""")
+            val eqRegex = Regex("""(?<!\d)([+-]?[\d.]+(?:[eE][+-]?\d+)?)\s*($operators)\s*([+-]?[\d.]+(?:[eE][+-]?\d+)?)""")
 
             var match = eqRegex.find(s)
             while (match != null) {
