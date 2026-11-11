@@ -32,7 +32,7 @@ object WardrobeKeybinds : Module(
         Keybinds.KEY_7, Keybinds.KEY_8, Keybinds.KEY_9,
     ).mapIndexed { index, key ->
         val i = index + 1
-        KeybindComponent("Slot $i", key, "Slot $i on the menu.").childOf(::advanced).value
+        register(KeybindComponent("Slot $i", key, "Slot $i on the menu.").childOf(::advanced)).value
     }
 
     private val wardrobeRegex = Regex("""^\((\d+)/(\d+)\) Armor Sets$""")

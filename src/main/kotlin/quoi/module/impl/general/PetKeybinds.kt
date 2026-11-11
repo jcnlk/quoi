@@ -53,7 +53,7 @@ object PetKeybinds : Module(
         Keybinds.KEY_7, Keybinds.KEY_8, Keybinds.KEY_9,
     ).mapIndexed { index, key ->
         val i = index + 1
-        KeybindComponent("Pet $i", key, "Pet $i on the list.").childOf(::advanced).value
+        register(KeybindComponent("Pet $i", key, "Pet $i on the list.").childOf(::advanced)).value
     }
 
     private val petsRegex = Regex("""^(?:\((\d+)/(\d+)\) )?Pets(?: \((\d+)/(\d+)\))?$""", RegexOption.IGNORE_CASE)
