@@ -115,8 +115,9 @@ object SecretAura : ToggleableGroup(
             val fullCircleFov = auraFov >= 360
 
             val sqEssence = skullRange.sq
-            val sqRange = if (inBoss && Dungeon.inBoss) bossRange.sq else range.sq
-            val maxRange = maxOf(range, skullRange)
+            val interactionRange = if (inBoss && Dungeon.inBoss) bossRange else range
+            val sqRange = interactionRange.sq
+            val maxRange = maxOf(interactionRange, skullRange)
 
             val searchBox = AABB(eyePos, eyePos).inflate(maxRange)
             val minPos = BlockPos.containing(searchBox.minX, searchBox.minY, searchBox.minZ)
