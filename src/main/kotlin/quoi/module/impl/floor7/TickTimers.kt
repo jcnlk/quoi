@@ -2,6 +2,7 @@ package quoi.module.impl.floor7
 
 import quoi.api.abobaui.elements.impl.Text.Companion.shadow
 import quoi.api.abobaui.elements.impl.Text.Companion.textSupplied
+import quoi.api.events.ChatEvent
 import quoi.api.events.DungeonEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
@@ -9,6 +10,7 @@ import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.Dungeon.deathTick
 import quoi.api.skyblock.dungeon.Dungeon.inBoss
 import quoi.api.skyblock.dungeon.Dungeon.inClear
+import quoi.api.skyblock.dungeon.Floor7
 import quoi.api.skyblock.dungeon.enums.Phase
 import quoi.api.skyblock.dungeon.enums.Stage
 import quoi.api.skyblock.location.Island
@@ -23,6 +25,8 @@ object TickTimers : Module(
     desc = "Displays death tick, pad, and Goldor timers.",
     area = Island.Dungeon
 ) {
+    private const val GOLDOR_START_TICKS = 64
+
     private val showInTicks by switch("Show in ticks")
 
     private val padHud by textHud("Pad tick") {
@@ -36,9 +40,9 @@ object TickTimers : Module(
     }.setting()
 
     private val goldorHud: Hud by textHud("Goldor death tick") {
-        visibleIf { goldorStart >= 0 || goldorTick >= 0 }
+        visibleIf { (goldorStart >= 0 && startTimer) || goldorTick >= 0 }
         textSupplied(
-            supplier = { if (goldorStart >= 0 && startTimer) formatTime(goldorStart, 104) else formatTime(if (preview) 40 else goldorTick, 60) },
+            supplier = { if (goldorStart >= 0 && startTimer) formatTime(goldorStart, GOLDOR_START_TICKS) else formatTime(if (preview) 40 else goldorTick, 60) },
             size = theme.textSize,
             font = font,
             colour = colour
@@ -60,13 +64,12 @@ object TickTimers : Module(
 
     private var goldorTick = -1
     private var goldorStart = -1
+    private var goldorStartTriggered = false
     private var padTick = -1
 
     init {
         on<WorldEvent.Change> {
-            goldorTick = -1
-            goldorStart = -1
-            padTick = -1
+            reset()
         }
 
         on<TickEvent.Server> {
@@ -78,8 +81,16 @@ object TickTimers : Module(
             if (padTick >= 0 && padHud.enabled) padTick--
         }
 
+        on<ChatEvent.Packet> {
+            if (!Floor7.inF7Boss || !goldorHud.enabled || goldorStartTriggered) return@on
+            if (unformatted == "[BOSS] Storm: I should have known that I stood no chance.") {
+                goldorStart = GOLDOR_START_TICKS
+                goldorStartTriggered = true
+            }
+        }
+
         on<DungeonEvent.PhaseComplete> {
-            if (goldorHud.enabled && phase == Phase.P2) goldorTick = 60
+            if (goldorHud.enabled && phase == Phase.P2 && Floor7.inPhase(Phase.P3)) goldorTick = 60
             if (padHud.enabled && phase == Phase.P1) padTick = 20
         }
 
@@ -88,6 +99,15 @@ object TickTimers : Module(
             goldorStart = -1
             goldorTick = -1
         }
+    }
+
+    override fun onDisable() = reset()
+
+    private fun reset() {
+        goldorTick = -1
+        goldorStart = -1
+        goldorStartTriggered = false
+        padTick = -1
     }
 
     private fun formatTime(time: Int, max: Int): String {
