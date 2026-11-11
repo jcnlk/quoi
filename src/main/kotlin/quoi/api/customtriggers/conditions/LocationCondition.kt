@@ -10,7 +10,7 @@ import quoi.api.skyblock.location.Location
 @TypeName("location")
 class LocationCondition(var island: Island = Island.Hub, var subarea: String = "") : TriggerCondition() {
     override fun matches(ctx: TriggerContext) = Location.currentArea == island &&
-        (subarea.isBlank() || Location.subarea?.trim()?.equals(subarea.trim(), true) == true)
+        (subarea.isBlank() || Location.subarea?.subareaName()?.equals(subarea.subareaName(), true) == true)
     override fun displayString() = "In ${island.displayName}${if (subarea.isBlank()) "" else ": $subarea"}"
     override fun ElementScope<*>.draw() = settingRow(
         { choiceField("Island", { island }, Island.entries, { it.displayName }) { island = it } },
