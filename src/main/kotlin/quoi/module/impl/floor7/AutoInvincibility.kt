@@ -6,6 +6,7 @@ import quoi.api.events.ChatEvent
 import quoi.api.events.WorldEvent
 import quoi.api.events.core.asyncScope
 import quoi.api.events.core.on
+import quoi.api.events.core.removeAsyncScope
 import quoi.api.events.core.wait
 import quoi.api.skyblock.SkyblockPlayer
 import quoi.api.skyblock.SkyblockPlayer.InvincibilityType
@@ -66,6 +67,7 @@ object AutoInvincibility : Module(
 
     init {
         on<WorldEvent.Change> {
+            removeAsyncScope()
             resetAllState()
         }
 
