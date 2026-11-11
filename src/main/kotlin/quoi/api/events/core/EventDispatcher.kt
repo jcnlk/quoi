@@ -25,6 +25,7 @@ import net.minecraft.world.entity.item.ItemEntity
 import net.minecraft.world.phys.Vec3
 import quoi.QuoiMod
 import quoi.QuoiMod.mc
+import quoi.annotations.Init
 import quoi.api.events.*
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.Dungeon.dungeonItemDrops
@@ -37,6 +38,7 @@ import quoi.utils.inGame
 /**
  * Bridges fabric's own event hooks and packet handling.
  */
+@Init
 object EventDispatcher {
     var totalTicks = 0
         private set
