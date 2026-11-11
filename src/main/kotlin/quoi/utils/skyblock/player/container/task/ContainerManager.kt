@@ -182,13 +182,15 @@ object ContainerManager : EventListener {
                     result = ContainerTaskResult.Failure("Container changed before click")
                     break
                 }
-                val success = with(action) { execute() }
+                val actionResult = with(action) { execute() }
                 coroutineContext.ensureActive()
-                if (!success) {
-                    result = ContainerTaskResult.Failure(action.failureReason)
-                    break
+                when (actionResult) {
+                    ContainerActionResult.SUCCESS -> task.completedActions++
+                    ContainerActionResult.FAILURE -> {
+                        result = ContainerTaskResult.Failure(action.failureReason)
+                        break
+                    }
                 }
-                task.completedActions++
             }
             wait(task.settings.endDelay.sample())
         } catch (_: CancellationException) {
@@ -211,6 +213,7 @@ object ContainerManager : EventListener {
     internal fun closeOwnedMenu(task: ContainerTask) {
         val player = mc.player ?: return
         if (task.ownedMenu != null && player.containerMenu === task.ownedMenu) player.closeContainer()
+        task.ownedMenu = null
         restoreMovementIfAllowed()
     }
 
@@ -228,7 +231,7 @@ object ContainerManager : EventListener {
     /**
      * Restores held movement keys after the task stops blocking them
      */
-    internal fun restoreMovementIfAllowed() {
+    private fun restoreMovementIfAllowed() {
         if (!movementKeysSuppressed || activeTask?.stopsMovement == true) return
         movementKeysSuppressed = false
         KeyMapping.setAll()

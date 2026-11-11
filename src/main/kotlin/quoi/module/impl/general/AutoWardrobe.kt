@@ -4,8 +4,10 @@ import quoi.api.input.Keybinds
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.module.settings.impl.KeybindComponent
-import quoi.utils.skyblock.player.WardrobeUtils
+import quoi.utils.ChatUtils.modMessage
 import quoi.utils.skyblock.player.container.ContainerSettings
+import quoi.utils.skyblock.player.container.task.containerTask
+import quoi.utils.skyblock.player.container.task.presets.equipWardrobe
 
 object AutoWardrobe : Module(
     "Auto Wardrobe",
@@ -26,10 +28,9 @@ object AutoWardrobe : Module(
 
     private fun onWardrobeKey(slot: Int) {
         if (!enabled || mc.gui.screen() != null) return
-        WardrobeUtils.equip(
-            slot,
-            settings = containerSettings,
-            disableUnequip = disableUnequip,
-        )
+        containerTask(name = "Wardrobe $slot", settings = containerSettings) {
+            equipWardrobe(slot, toggle = !disableUnequip)
+            onComplete { modMessage("&aWardrobe slot &f$slot &equipped.") }
+        }.run()
     }
 }

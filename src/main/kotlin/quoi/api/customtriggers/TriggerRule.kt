@@ -2,6 +2,7 @@ package quoi.api.customtriggers
 
 import quoi.api.customtriggers.actions.TriggerAction
 import quoi.api.customtriggers.actions.DelayAction
+import quoi.api.customtriggers.actions.ContainerTaskAction
 import quoi.api.customtriggers.conditions.TriggerCondition
 import quoi.api.customtriggers.triggers.Trigger
 import quoi.api.customtriggers.triggers.ChatTrigger
@@ -34,8 +35,8 @@ data class TriggerRule(
         actions.forEach {
             it.validationError()?.let { error -> return error }
             if (!it.supports(trigger)) return "This action requires a ${it.requiredEvent} trigger."
-            if (delayed && !it.allowsDelay) return "Event-editing actions must precede delays."
-            if (it is DelayAction && it.ticks > 0) delayed = true
+            if (delayed && !it.allowsDelay) return "Event-editing actions must precede delays and container actions."
+            if (it is ContainerTaskAction || it is DelayAction && it.ticks > 0) delayed = true
         }
         return null
     }

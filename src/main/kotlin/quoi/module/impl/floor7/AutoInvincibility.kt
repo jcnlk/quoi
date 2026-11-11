@@ -18,12 +18,14 @@ import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.skyblock.item.ItemUtils.skyblockId
-import quoi.utils.skyblock.player.EquipmentSwapper
-import quoi.utils.skyblock.player.PetSwitcher
 import quoi.utils.skyblock.player.PetUtils
 import quoi.utils.skyblock.player.PlayerUtils.rightClick
 import quoi.utils.skyblock.player.SwapManager
 import quoi.utils.skyblock.player.container.ContainerSettings
+import quoi.utils.skyblock.player.container.task.ContainerTaskResult
+import quoi.utils.skyblock.player.container.task.containerTask
+import quoi.utils.skyblock.player.container.task.presets.equipItem
+import quoi.utils.skyblock.player.container.task.presets.equipPet
 
 /**
  * TODO:
@@ -127,9 +129,9 @@ object AutoInvincibility : Module(
 
                 modMessage("§eEquipping $maskName.")
 
-                if (!EquipmentSwapper.equip(maskName, settings = containerSettings)) {
-                    modMessage("§cFailed to equip $maskName.")
-                }
+                containerTask(name = "Equip $maskName", settings = containerSettings) {
+                    equipItem(maskName)
+                }.await()
             } finally {
                 resetSwapState()
             }
@@ -157,14 +159,10 @@ object AutoInvincibility : Module(
                     PhoenixSwapMethod.PetMenu -> {
                         modMessage("§eSwapping to Phoenix.")
 
-                        if (!PetSwitcher.switchPet("Phoenix", settings = containerSettings)) {
-                            modMessage("§cFailed to queue Phoenix swap.")
-                            return@launch
-                        }
-
-                        while (PetSwitcher.isBusy()) {
-                            wait(1)
-                        }
+                        val result = containerTask(name = "Pet: Phoenix", settings = containerSettings) {
+                            equipPet("Phoenix")
+                        }.await()
+                        if (result != ContainerTaskResult.Success) return@launch
                     }
                 }
             } finally {
@@ -207,23 +205,26 @@ object AutoInvincibility : Module(
         val watchId = phoenixWatchId
 
         asyncScope.launch {
-            while (swapping || PetSwitcher.isBusy()) {
-                wait(1)
-            }
+            while (swapping) wait(1)
 
             if (swapId != phoenixSwapId || watchId != phoenixWatchId) return@launch
             if (Dungeon.isDead) return@launch
             if (!isPhoenixEquipped()) return@launch
             if (!waitUntilNotInTerminal()) return@launch
 
-            modMessage(message)
-            when (phoenixSwapMethod.selected) {
-                PhoenixSwapMethod.RodSwap -> triggerRodSwap()
-                PhoenixSwapMethod.PetMenu -> {
-                    if (!PetSwitcher.switchPet(pet, settings = containerSettings)) {
-                        modMessage("§cFailed to switch previous pet switch.")
+            swapping = true
+            try {
+                modMessage(message)
+                when (phoenixSwapMethod.selected) {
+                    PhoenixSwapMethod.RodSwap -> triggerRodSwap()
+                    PhoenixSwapMethod.PetMenu -> {
+                        containerTask(name = "Pet: $pet", settings = containerSettings) {
+                            equipPet(pet)
+                        }.await()
                     }
                 }
+            } finally {
+                resetSwapState()
             }
         }
     }

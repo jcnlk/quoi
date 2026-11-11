@@ -7,7 +7,8 @@ import quoi.api.customtriggers.triggers.Trigger
 
 /**
  * An action in a rule's ordered sequence.
- * [DelayAction] is handled by the engine; other actions run through [execute].
+ * The engine handles [DelayAction] and waits for [ContainerTaskAction] tasks
+ * Other actions run through [execute]
  */
 sealed interface TriggerAction : TypeNamed, Abobable {
     /**
@@ -15,7 +16,7 @@ sealed interface TriggerAction : TypeNamed, Abobable {
      */
     val requiredEvent: TriggerContext.Kind? get() = null
     /**
-     * Whether this action can run after a delay.
+     * Whether this action can run after a delay or a container task.
      * Event edits must finish before the originating event returns.
      */
     val allowsDelay: Boolean get() = true

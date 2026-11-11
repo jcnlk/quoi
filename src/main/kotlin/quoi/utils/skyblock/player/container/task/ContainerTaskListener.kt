@@ -20,6 +20,7 @@ class ContainerTaskListener internal constructor(
     private val name: String?,
     private val force: Boolean,
     private val settings: IContainerSettings,
+    private val reportErrors: Boolean,
     private val builder: ContainerTaskBuilder.() -> Unit,
 ) : EventListener {
     private var task: ContainerTask? = null
@@ -27,7 +28,7 @@ class ContainerTaskListener internal constructor(
         // Run before ContainerUtils handles silent menus, so it sees the normal AwaitContainer action.
         on<PacketEvent.Received, ClientboundOpenScreenPacket>(Priority.LOWEST) {
             if (!owner.running || !owner.shouldHandle(event) || ContainerManager.active || !menu(packet)) return@on
-            val next = containerTask(name = name, force = force, settings = settings) {
+            val next = containerTask(name = name, force = force, settings = settings, reportErrors = reportErrors) {
                 builder()
                 if (actions.isEmpty()) return@containerTask
                 actions.add(0, ContainerAction.AwaitContainer(Regex("^${Regex.escape(packet.title.string)}$"), 20, true))
@@ -69,11 +70,13 @@ class ContainerTaskListener internal constructor(
  * [menu] matches packet metadata, such as the title or menu type. Empty tasks are ignored.
  * The task awaits the matching container and its items before executing the builder's actions.
  * Openings while another task owns the manager are left to that task.
+ * @param reportErrors prints failures and busy rejections for each task created by this listener
  */
 fun EventListener.containerTask(
     menu: (ClientboundOpenScreenPacket) -> Boolean,
     name: String? = null,
     force: Boolean = false,
     settings: IContainerSettings = CONTAINER_ZERO,
+    reportErrors: Boolean = true,
     builder: ContainerTaskBuilder.() -> Unit,
-): ContainerTaskListener = ContainerTaskListener(this, menu, name, force, settings, builder)
+): ContainerTaskListener = ContainerTaskListener(this, menu, name, force, settings, reportErrors, builder)

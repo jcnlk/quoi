@@ -161,6 +161,7 @@ object LeapManager : EventListener {
         val newTask = containerTask(
             name = "Leap to ${leap.target.name}",
             settings = leap.settings,
+            reportErrors = false,
         ) {
             if (!preOpened) {
                 check("could not select a Spirit Leap before use. Try again.") {

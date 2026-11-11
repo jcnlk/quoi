@@ -3,25 +3,32 @@ package quoi.api.customtriggers.actions
 import quoi.api.abobaui.elements.ElementScope
 import quoi.api.customtriggers.*
 import quoi.config.TypeName
-import quoi.utils.skyblock.player.EquipmentSwapper
 import quoi.utils.skyblock.player.container.CONTAINER_MENU
 import quoi.utils.skyblock.player.container.IContainerSettings
+import quoi.utils.skyblock.player.container.task.containerTask
+import quoi.utils.skyblock.player.container.task.presets.equipItem
 
 @TypeName("equip")
 class EquipAction(
     var name: String = "",
     var blockInput: Boolean = false,
-) : TriggerAction {
+) : TriggerAction, ContainerTaskAction {
     override fun validationError() = if (name.isBlank()) "Enter an equipment name." else null
 
     override fun execute(ctx: TriggerContext) {
-        check(EquipmentSwapper.equip(
-            ctx.expand(name).trim(),
+        createTask(ctx).run()
+    }
+
+    override fun createTask(ctx: TriggerContext) =
+        containerTask(
+            name = "Equipment",
+            reportErrors = false,
             settings = object : IContainerSettings by CONTAINER_MENU {
                 override val blockInput = this@EquipAction.blockInput
             },
-        )) { "Could not start equipment swap" }
-    }
+        ) {
+            equipItem(ctx.expand(name).trim())
+        }
 
     override fun displayString() = "Equip: $name"
 

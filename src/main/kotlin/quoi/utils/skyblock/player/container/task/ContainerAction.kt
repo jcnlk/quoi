@@ -14,12 +14,18 @@ import quoi.api.events.core.wait
 import quoi.utils.gameMode
 import quoi.utils.player
 import quoi.utils.skyblock.player.container.ContainerUtils
+import quoi.utils.skyblock.player.container.task.ContainerActionResult.FAILURE
+import quoi.utils.skyblock.player.container.task.ContainerActionResult.SUCCESS
+
+@Internal
+enum class ContainerActionResult { SUCCESS, FAILURE }
 
 /**
  * An action that interacts with items or slots
  */
 abstract class ItemAction : ContainerAction {
     var skipIf: ((ItemStack) -> Boolean)? = null
+    var condition: (() -> Boolean)? = null
 }
 
 @OptIn(Internal::class)
@@ -28,22 +34,26 @@ interface ContainerAction {
 
     /**
      * Executes the action
-     * @return `true` if the action succeeded, `false` to abort the entire task
+     * @return [SUCCESS] to continue, [FAILURE] to abort the entire task
      */
-    suspend fun ContainerManager.execute(): Boolean
+    suspend fun ContainerManager.execute(): ContainerActionResult
 
     /**
      * Clicks on a specific slot or searches for an item to click
      */
     class Click(
         val target: MenuSlot,
-        val button: Int,
-        val input: ContainerInput,
-        val timeout: Int = 20,
+        private val button: Int,
+        private val input: ContainerInput,
+        private val timeout: Int = 20,
         override val failureReason: String = "Timed out finding item",
     ) : ItemAction() {
-        override suspend fun ContainerManager.execute(): Boolean {
-            val task = activeTask ?: return false
+        override suspend fun ContainerManager.execute(): ContainerActionResult {
+            val task = activeTask ?: return FAILURE
+            if (condition?.invoke() == false) {
+                task.skippedLast = true
+                return SUCCESS
+            }
             val menu = player.containerMenu
             var slot = target.resolve(menu, player.inventory)
             // check immediately, then wait for the item if it hasn't arrived yet
@@ -53,67 +63,67 @@ interface ContainerAction {
                     player.containerMenu !== menu || slot != null
                 }
             }
-            if (player.containerMenu !== menu) return false
-            val resolved = slot ?: return false
+            if (player.containerMenu !== menu) return FAILURE
+            val resolved = slot ?: return FAILURE
             val skipped = skipIf?.invoke(resolved.item) == true
             task.skippedLast = skipped
             if (!skipped) {
                 gameMode.handleContainerInput(menu.containerId, resolved.index, button, input, player)
                 task.ticksSinceLastClick = 0
             }
-            return true
+            return SUCCESS
         }
     }
 
     /**
      * Executes custom block of code
      */
-    class Other(val block: () -> Unit) : ContainerAction {
-        override suspend fun ContainerManager.execute(): Boolean {
+    class Other(private val block: () -> Unit) : ContainerAction {
+        override suspend fun ContainerManager.execute(): ContainerActionResult {
             activeTask?.skippedLast = false
             block()
-            return true
+            return SUCCESS
         }
     }
 
-    class Check(override val failureReason: String, val predicate: () -> Boolean) : ContainerAction {
-        override suspend fun ContainerManager.execute(): Boolean = predicate()
+    class Check(override val failureReason: String, private val predicate: () -> Boolean) : ContainerAction {
+        override suspend fun ContainerManager.execute(): ContainerActionResult = if (predicate()) SUCCESS else FAILURE
     }
 
     /**
      * Closes the task's container without clearing the previous click's skip state
      */
     class Close : ContainerAction {
-        override suspend fun ContainerManager.execute(): Boolean {
+        override suspend fun ContainerManager.execute(): ContainerActionResult {
             activeTask?.let { closeOwnedMenu(it) }
-            return true
+            return SUCCESS
         }
     }
 
     /**
      * Registers a container reopen catch without waiting for the container
      */
-    class CatchContainer(val containerName: Regex, val timeout: Int) : ContainerAction {
+    class CatchContainer(private val containerName: Regex, private val timeout: Int) : ContainerAction {
         init {
             require(timeout >= 0) { "Container catch timeout must not be negative" }
         }
 
-        override suspend fun ContainerManager.execute(): Boolean {
-            val task = activeTask ?: return false
+        override suspend fun ContainerManager.execute(): ContainerActionResult {
+            val task = activeTask ?: return FAILURE
             val skipped = task.skippedLast
             task.skippedLast = false
             if (!skipped) ContainerUtils.catchContainer(task, containerName, timeout)
-            return true
+            return SUCCESS
         }
     }
 
     /**
      * Suspends execution for [ticks]
      */
-    class Wait(val ticks: Int) : ContainerAction {
-        override suspend fun ContainerManager.execute(): Boolean {
+    class Wait(private val ticks: Int) : ContainerAction {
+        override suspend fun ContainerManager.execute(): ContainerActionResult {
             wait(ticks)
-            return true
+            return SUCCESS
         }
     }
 
@@ -122,32 +132,32 @@ interface ContainerAction {
      */
     class AwaitContainer(
         val containerName: Regex,
-        val timeout: Int,
-        val waitForItems: Boolean,
+        private val timeout: Int,
+        private val waitForItems: Boolean,
         failureMessage: String? = null,
     ) : ContainerAction {
         override var failureReason = failureMessage ?: "Timed out waiting for container matching ${containerName.pattern}"
             private set
 
-        override suspend fun ContainerManager.execute(): Boolean {
-            val task = activeTask ?: return false
+        override suspend fun ContainerManager.execute(): ContainerActionResult {
+            val task = activeTask ?: return FAILURE
             // a skipped click won't trigger a reopen, so skip this wait too
             val skipped = task.skippedLast
             task.skippedLast = false
-            if (skipped) return true
+            if (skipped) return SUCCESS
 
             // the container may have opened while another action was waiting
             val open = ContainerUtils.current?.takeIf { it.revision > task.containerRevision }
                 ?: await<ContainerEvent.Open>(timeout = timeout, serverTicks = true)?.container
-                ?: return false
+                ?: return FAILURE
             task.containerRevision = open.revision
             if (!containerName.containsMatchIn(open.title)) {
                 failureReason = "Wrong container name. Got ${open.title}, needed ${containerName.pattern}"
-                return false
+                return FAILURE
             }
             task.ownedMenu = open.menu
-            if (player.containerMenu !== open.menu) return false
-            if (!waitForItems || open.itemsLoaded) return true
+            if (player.containerMenu !== open.menu) return FAILURE
+            if (!waitForItems || open.itemsLoaded) return SUCCESS
 
             failureReason = "Timed out waiting for items in ${open.title}"
             return coroutineScope {
@@ -164,8 +174,8 @@ interface ContainerAction {
                     }
                     if (player.containerMenu !== open.menu) {
                         failureReason = "Container changed while waiting for items in ${open.title}"
-                        false
-                    } else loaded
+                        FAILURE
+                    } else if (loaded) SUCCESS else FAILURE
                 } finally {
                     items.cancel()
                     changed.cancel()

@@ -39,6 +39,7 @@ class ContainerTask(
     val settings: IContainerSettings,
     private val onComplete: (() -> Unit)?,
     private val onFinished: ((ContainerTaskResult) -> Unit)? = null,
+    private val reportErrors: Boolean = true,
 ) {
     private val completion = CompletableDeferred<ContainerTaskResult>()
     var result: ContainerTaskResult? = null
@@ -94,15 +95,24 @@ class ContainerTask(
 
     /**
      * Completes the task once and resumes callers waiting in [await]
+     * Error reporting is independent of callbacks, which may only perform cleanup
      */
     @Internal
     internal fun finish(result: ContainerTaskResult) {
         if (this.result != null) return
         this.result = result
         try {
+            val error = when (result) {
+                is ContainerTaskResult.Failure -> result.message
+                ContainerTaskResult.Busy -> "Another container action is already in progress"
+                else -> null
+            }
+            if (reportErrors && error != null) {
+                ChatUtils.modMessage("&c${name?.takeIf(String::isNotBlank) ?: "Container task"}: $error")
+            }
             if (result == ContainerTaskResult.Success) onComplete?.invoke()
         } catch (e: Exception) {
-            logger.error("Container completion callback failed", e)
+            logger.error("Container task completion failed", e)
         } finally {
             try {
                 onFinished?.invoke(result)
@@ -249,6 +259,14 @@ class ContainerTaskBuilder(val force: Boolean) {
         return this
     }
 
+    /**
+     * Skips the click before searching for its target if [predicate] is false
+     */
+    fun <T : ItemAction> T.onlyIf(predicate: () -> Boolean): T {
+        condition = predicate
+        return this
+    }
+
     fun <T : ItemAction> T.unlessName(text: String): T = unless { it.displayName.string.contains(text) }
 
     fun <T : ItemAction> T.unlessLore(text: String): T = unless { it.loreString?.contains(text) == true }
@@ -258,12 +276,14 @@ class ContainerTaskBuilder(val force: Boolean) {
  * @param name optional task name. if not null it will be rendered in the middle of the screen
  * @param force if `true`, bypasses [IContainerSettings.clickDelay] delay
  * @param settings settings shared with the caller, or [CONTAINER_ZERO] for tasks without a settings group
+ * @param reportErrors prints failures and busy rejections once in chat, independently of completion callbacks
  */
 fun containerTask(
     name: String? = null,
     force: Boolean = false,
     settings: IContainerSettings = CONTAINER_ZERO,
+    reportErrors: Boolean = true,
     builder: ContainerTaskBuilder.() -> Unit
 ): ContainerTask = ContainerTaskBuilder(force).apply(builder).run {
-    ContainerTask(name, actions.toList(), force, settings, onComplete, onFinished)
+    ContainerTask(name, actions.toList(), force, settings, onComplete, onFinished, reportErrors)
 }

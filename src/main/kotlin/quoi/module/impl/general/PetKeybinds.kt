@@ -217,7 +217,6 @@ object PetKeybinds : Module(
         val result = task.await()
 
         if (result != ContainerTaskResult.Success) {
-            if (result is ContainerTaskResult.Failure) modMessage("&c${result.message}.")
             return emptyList()
         }
 
