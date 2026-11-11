@@ -130,7 +130,7 @@ object PetKeybinds : Module(
         }.description("Removes the pet from the pet list.").suggests { petMap.entries.map { (uuid, name) -> "$uuid $name" } }
 
         on<GuiEvent.Click> {
-            if (screen is AbstractContainerScreen<*> && onClick(screen, button)) cancel()
+            if (state && screen is AbstractContainerScreen<*> && onClick(screen, button - 100)) cancel()
         }
 
         on<GuiEvent.Key.Press> {
