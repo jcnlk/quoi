@@ -323,6 +323,7 @@ fun ElementScope<*>.colourPicker(
                                             unit = unit,
                                             min = if (isHSB) null else 0,
                                             max = if (isHSB) null else 255,
+                                            normalisedPercent = true,
                                             pos = at(Centre, Centre)
                                         )
                                     }
@@ -340,7 +341,7 @@ fun ElementScope<*>.colourPicker(
                         }
 
                         if (allowAlpha) cell(25.percent, radius(tr = 6, br = 6)) {
-                            numberInput(value::alpha, unit = "%", pos = at(Centre, Centre))
+                            numberInput(value::alpha, unit = "%", normalisedPercent = true, pos = at(Centre, Centre))
                         }
                     }
                 }

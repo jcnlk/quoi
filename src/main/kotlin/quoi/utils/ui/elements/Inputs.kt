@@ -49,6 +49,7 @@ fun <T : Number> ElementScope<*>.numberInput(
     pos: Positions = at(),
     maxWidth: Constraint.Size? = null,
     size: Constraint.Size = 50.percent,
+    normalisedPercent: Boolean = false,
 ): ElementScope<TextInput> {
     val value by ref
     val normalisedDegrees = unit == "°" && ref.get().toDouble() in 0.0..1.0 &&
@@ -56,7 +57,7 @@ fun <T : Number> ElementScope<*>.numberInput(
             (max?.toDouble() == null || max.toDouble() <= 1.0)
 
     fun format(n: T) = when (unit) {
-        "%" if (n.toDouble() <= 1.0f) -> "${(n.toDouble() * 100).roundToInt()}%"
+        "%" if (normalisedPercent) -> "${(n.toDouble() * 100).roundToInt()}%"
         "°" if (normalisedDegrees) -> "${(n.toDouble() * 360).roundToInt()}°"
         else -> "$n$unit"
     }
@@ -93,10 +94,10 @@ fun <T : Number> ElementScope<*>.numberInput(
             var num = string
                 .filter { it.isDigit() || it == '.' || it == '-' }
                 .toDoubleOrNull()
-                ?: run { string = "$value$unit"; return@onFocusLost }
+                ?: run { string = format(value); return@onFocusLost }
 
             num = when (unit) {
-                "%" -> (num.coerceIn(0.0, 100.0) / 100.0)
+                "%" -> num.coerceIn(0.0, 100.0) / if (normalisedPercent) 100.0 else 1.0
                 "°" if (normalisedDegrees) -> (num.coerceIn(0.0, 360.0) / 360.0)
                 else -> num.coerceIn(min?.toDouble() ?: Double.MIN_VALUE, max?.toDouble() ?: Double.MAX_VALUE)
             }
