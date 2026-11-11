@@ -2,7 +2,9 @@
 package quoi.utils.ui.screens
 
 import net.minecraft.client.gui.GuiGraphicsExtractor
+import net.minecraft.client.gui.screens.Screen
 import net.minecraft.network.protocol.game.ClientboundContainerClosePacket
+import quoi.QuoiMod.mc
 import quoi.api.abobaui.AbobaUI
 import quoi.api.events.GuiEvent
 import quoi.api.events.PacketEvent
@@ -21,9 +23,11 @@ class UIContainer(ui: AbobaUI.Instance, val cancelling: Boolean = true) : UIHand
     constructor(ui: AbobaUI, cancelling: Boolean = true) : this(AbobaUI.Instance(ui), cancelling)
 
     private var open = false
+    private var ownerScreen: Screen? = null
 
     override fun open() {
         if (open) return
+        ownerScreen = mc.gui.screen() ?: return
         open = true
         super.open()
     }
@@ -31,6 +35,7 @@ class UIContainer(ui: AbobaUI.Instance, val cancelling: Boolean = true) : UIHand
     override fun close() {
         if (!open) return
         open = false
+        ownerScreen = null
         super.close()
     }
 
@@ -82,8 +87,8 @@ class UIContainer(ui: AbobaUI.Instance, val cancelling: Boolean = true) : UIHand
             charTyped(char)
         },
 
-        on<GuiEvent.Close>(register = false) {
-            close()
+        on<GuiEvent.Removed>(register = false) {
+            if (screen === ownerScreen) close()
         },
 
         on<PacketEvent.Received>(register = false) {

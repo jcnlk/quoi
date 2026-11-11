@@ -13,6 +13,8 @@ abstract class GuiEvent {
 
     class Close(val screen: Screen) : CancellableEvent()
 
+    class Removed(val screen: Screen) : Event()
+
     class Click(val screen: Screen, val mx: Double, val my: Double, val button: Int, val state: Boolean) : CancellableEvent()
     abstract class Key {
         class Press(val screen: Screen, val key: Int) : CancellableEvent()

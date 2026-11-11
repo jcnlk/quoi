@@ -12,7 +12,6 @@ import quoi.QuoiMod.mc
 import quoi.api.abobaui.AbobaUI
 import quoi.api.input.Keyboard.Modifier.isCtrlDown
 import quoi.api.input.Keybinds
-import quoi.utils.Scheduler.scheduleTask
 import quoi.utils.sf
 import quoi.utils.ui.rendering.UIRenderer
 
@@ -83,6 +82,8 @@ class UIScreen(val instance: AbobaUI.Instance, val background: Boolean = true ) 
     }
 
     companion object {
-        fun open(ui: AbobaUI.Instance, background: Boolean = true) = scheduleTask { mc.gui.setScreen(UIScreen(ui, background)) }
+        fun open(ui: AbobaUI.Instance, background: Boolean = true) = mc.schedule {
+            mc.gui.setScreen(UIScreen(ui, background))
+        }
     }
 }

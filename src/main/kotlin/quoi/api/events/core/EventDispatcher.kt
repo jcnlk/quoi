@@ -91,6 +91,10 @@ object EventDispatcher {
         }
 
         ScreenEvents.BEFORE_INIT.register { _, screen, _, _ ->
+            ScreenEvents.remove(screen).register {
+                GuiEvent.Removed(it).post()
+            }
+
             ScreenMouseEvents.allowMouseClick(screen).register { _, click ->
                 val event = GuiEvent.Click(screen, click.x, click.y, click.button(), true)
                 event.post()
