@@ -8,7 +8,6 @@ import net.minecraft.world.entity.monster.zombie.ZombifiedPiglin
 import quoi.api.colour.Colour
 import quoi.api.events.ChatEvent
 import quoi.api.events.TickEvent
-import quoi.api.events.core.Event
 import quoi.api.events.core.on
 import quoi.api.events.core.trackedBy
 import quoi.api.skyblock.location.Island
@@ -46,8 +45,8 @@ object BlazeSlayer : SettingGroup(Slayers, "Blaze", area = Island.CrimsonIsle, s
     }.withSettings(::gummyRemaining).setting(desc = "Re-heated gummy polar bear timer").asParent()
 
     init {
-        on<ChatEvent.Packet> {
-            if (unformatted == "You ate a Re-heated Gummy Polar Bear!")
+        Slayers.on<ChatEvent.Packet> {
+            if (inArea() && unformatted == "You ate a Re-heated Gummy Polar Bear!")
                 gummyRemaining = 3_600_000L
         }
 
@@ -108,14 +107,6 @@ object BlazeSlayer : SettingGroup(Slayers, "Blaze", area = Island.CrimsonIsle, s
 
         val name = stand?.customName?.string?.noControlCodes ?: return null
         return Attunement.entries.firstOrNull { name.contains(it.name, true) }
-    }
-
-    override fun shouldHandle(event: Event): Boolean {
-        if (event is ChatEvent.Packet) {
-            return inArea() //&& inSubarea()
-        }
-
-        return super.shouldHandle(event)
     }
 
     override val entitiesForRender: List<Pair<LivingEntity, Colour?>>
