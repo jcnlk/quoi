@@ -9,7 +9,6 @@ import net.minecraft.world.item.component.CustomData
 import quoi.utils.StringUtils.noControlCodes
 
 object ItemUtils {
-    private val chargesRegex = Regex("Charges: (\\d+)/(\\d+)⸕")
     private val stackSizeRegex = Regex("^(?:[1-9]|[1-5]\\d|6[0-4])(?:\\s*[xX×])?\\s+|\\s+(?:[xX×]\\s*(?:[1-9]|[1-5]\\d|6[0-4])|(?:[1-9]|[1-5]\\d|6[0-4])\\s*[xX×])$")
     private val whitespaceRegex = Regex("\\s+")
     private val upgradeRegex = Regex("[✪➊➋➌➍➎⚚◆]")
@@ -74,12 +73,4 @@ object ItemUtils {
             }
             return false
         }
-
-    fun getBreakerCharges(stack: ItemStack): Int {
-        if (stack.isEmpty || stack.skyblockId != "DUNGEONBREAKER") return 0
-
-        return stack.lore?.firstNotNullOfOrNull { line ->
-            chargesRegex.find(line.noControlCodes)?.groupValues?.get(1)?.toIntOrNull()
-        } ?: 0
-    }
 }

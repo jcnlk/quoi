@@ -13,7 +13,7 @@ import quoi.utils.WorldUtils.state
 import quoi.utils.aabb
 import quoi.utils.render.drawFilledBox
 import quoi.utils.render.drawWireFrameBox
-import quoi.utils.skyblock.item.ItemUtils.getBreakerCharges
+import quoi.utils.skyblock.item.BreakerUtils.getBreakerCharges
 import quoi.utils.skyblock.item.ItemUtils.skyblockId
 import quoi.utils.skyblock.player.PlayerUtils
 import quoi.utils.skyblock.player.SwapManager

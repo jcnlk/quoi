@@ -21,7 +21,6 @@ import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.enums.*
 import quoi.api.skyblock.dungeon.odonscanning.ScanUtils
 import quoi.api.skyblock.dungeon.odonscanning.tiles.OdonRoom
-import quoi.api.skyblock.dungeon.odonscanning.tiles.RoomType
 import quoi.api.skyblock.dungeon.terminals.TerminalType
 import quoi.api.skyblock.dungeon.terminals.TerminalUtils
 import quoi.api.skyblock.location.Island
@@ -379,12 +378,6 @@ object Dungeon : EventListener, Shortcuts {
         }
 
         return state.block in blacklistedDBBlocks
-    }
-
-    fun canInstaMine(pos: BlockPos): Boolean {
-        if (currentRoom?.data?.type.equalsOneOf(RoomType.PUZZLE, RoomType.FAIRY)) return false
-        val block = level.getBlockState(pos).block
-        return block !in blacklistedDBBlocks && block != Blocks.OBSIDIAN
     }
 
     fun getBoss(): Boolean = with(player) {

@@ -22,7 +22,7 @@ import quoi.utils.SoundUtils
 import quoi.utils.WorldUtils.startPrediction
 import quoi.utils.blockPos
 import quoi.utils.floorPos
-import quoi.utils.skyblock.item.ItemUtils.getBreakerCharges
+import quoi.utils.skyblock.item.BreakerUtils.getBreakerCharges
 import quoi.utils.skyblock.item.ItemUtils.skyblockId
 import quoi.utils.skyblock.player.RotationUtils.pitch
 import quoi.utils.skyblock.player.RotationUtils.yaw

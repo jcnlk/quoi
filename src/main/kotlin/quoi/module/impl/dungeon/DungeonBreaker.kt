@@ -1,21 +1,16 @@
 package quoi.module.impl.dungeon
 
 import net.minecraft.core.BlockPos
-import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket
-import net.minecraft.world.level.ClipContext
-import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
 import quoi.api.colour.Colour
 import quoi.api.colour.withAlpha
 import quoi.api.events.BlockEvent
-import quoi.api.events.PacketEvent
 import quoi.api.events.RenderEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.core.on
 import quoi.api.input.Keybinds
-import quoi.api.skyblock.dungeon.Dungeon.canInstaMine
 import quoi.api.skyblock.dungeon.Dungeon.isProtectedBlock
 import quoi.api.skyblock.dungeon.Floor7.inF7Boss
 import quoi.api.skyblock.location.Island
@@ -31,7 +26,8 @@ import quoi.utils.aabb
 import quoi.utils.isWithinFov
 import quoi.utils.minFovDot
 import quoi.utils.render.drawStyledBox
-import quoi.utils.skyblock.item.ItemUtils.getBreakerCharges
+import quoi.utils.skyblock.item.BreakerUtils
+import quoi.utils.skyblock.item.BreakerUtils.getBreakerCharges
 import quoi.utils.skyblock.item.ItemUtils.skyblockId
 import quoi.utils.skyblock.player.PlayerUtils
 import quoi.utils.skyblock.player.PlayerUtils.eyePosition
@@ -51,7 +47,7 @@ object DungeonBreaker : Module(
 ) {
     @Suppress("unused")
     private val chargesHud by textHud("Charges display") {
-        visibleIf { getBreakerCharges(player.mainHandItem) > 0 }
+        visibleIf { player.mainHandItem.skyblockId == "DUNGEONBREAKER" }
         textPair(
             string = "Charges:",
             supplier = { getBreakerCharges(player.mainHandItem) },
@@ -61,9 +57,9 @@ object DungeonBreaker : Module(
         )
     }.setting()
 
-    private val zeroPing by switch("Zero ping", desc = "Insta-mine blocks.")
     private val disableInInventory by switch("Disable in inventory", desc = "Prevents dungeon breaker from working while inside of an inventory.")
     private val preventMineSecrets by switch("Prevent mine secrets", desc = "Prevents Dungeon Breaker from mining protected blocks, except Redstone Keys and boss levers or stone buttons.")
+    private val preventMineWithoutCharges by switch("Prevent mine without charges", desc = "Prevents mining blocks with Dungeon Breaker while it has no charges left.")
     private val autoSwap by switch("Auto swap", true, desc = "Automatically switches to Dungeon Breaker before mining preset blocks.")
 
     private val triggerbot by switch("Triggerbot", desc = "Mines preset blocks when looking at them.")
@@ -111,33 +107,10 @@ object DungeonBreaker : Module(
             if (isProtectedBlock(pos, allowInteractions = true)) cancel()
         }
 
-        on<PacketEvent.Sent, ServerboundPlayerActionPacket> {
-            if (packet.action != ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK) return@on
-
-            val packetPos = packet.pos
-            if (!zeroPing) return@on
-            if (disableInGUI()) return@on
-
-            mc.execute {
-                val heldItem = player.mainHandItem
-                if (getBreakerCharges(heldItem) <= 0) return@execute
-
-                if (!canInstaMine(packetPos)) return@execute
-
-                val clipResult = level.clip(
-                    ClipContext(
-                        player.eyePosition,
-                        Vec3.atCenterOf(packetPos),
-                        ClipContext.Block.OUTLINE,
-                        ClipContext.Fluid.NONE,
-                        player
-                    )
-                )
-
-                if (clipResult.type == HitResult.Type.BLOCK && clipResult.blockPos == packetPos) {
-                    level.setBlock(packetPos, Blocks.AIR.defaultBlockState(), 3)
-                }
-            }
+        on<BlockEvent.Destroy.Start> {
+            if (!preventMineWithoutCharges || player.mainHandItem.skyblockId != "DUNGEONBREAKER") return@on
+            if (isProtectedBlock(pos)) return@on
+            if (BreakerUtils.charges <= 0) cancel()
         }
 
         on<RenderEvent.World> {
