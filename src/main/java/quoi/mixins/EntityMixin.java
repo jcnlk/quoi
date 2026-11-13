@@ -2,51 +2,14 @@ package quoi.mixins;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import net.minecraft.client.Minecraft;
-import quoi.api.events.EntityEvent;
 import quoi.api.world.Direction;
 import net.minecraft.world.entity.Entity;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import quoi.utils.skyblock.player.RotationUtils;
 
 @Mixin(Entity.class)
 public class EntityMixin {
-
-    @Unique
-    private int glowColour = 0xFFFFFF;
-    @Unique
-    private boolean forceGlow = false;
-
-    @Inject(
-            method = "isCurrentlyGlowing",
-            at = @At("HEAD"),
-            cancellable = true
-    )
-    private void onIsCurrentlyGlowing(CallbackInfoReturnable<Boolean> cir) {
-        Entity entity = (Entity)(Object)this;
-
-        EntityEvent.ForceGlow event = new EntityEvent.ForceGlow(entity);
-        boolean suppressGlow = event.post();
-        forceGlow = !suppressGlow && event.isGlowing();
-        glowColour = event.getGlowColour().getRgb();
-        if (suppressGlow) {
-            cir.setReturnValue(false);
-            return;
-        }
-        if (forceGlow) cir.setReturnValue(true);
-    }
-
-    @Inject(
-            method = "getTeamColor",
-            at = @At("HEAD"),
-            cancellable = true
-    )
-    public void onGetTeamColor(CallbackInfoReturnable<Integer> cir) {
-        if (forceGlow) cir.setReturnValue(glowColour);
-    }
 
     @ModifyExpressionValue(
             method = "moveRelative",

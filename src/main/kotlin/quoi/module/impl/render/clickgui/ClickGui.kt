@@ -31,7 +31,6 @@ import quoi.config.Config
 import quoi.module.Category
 import quoi.module.Module
 import quoi.module.ModuleManager
-import quoi.module.impl.misc.Test
 import quoi.module.impl.render.clickgui.impl.Data
 import quoi.module.impl.render.clickgui.impl.PathSettings
 import quoi.module.impl.render.clickgui.impl.VisualsSettings
@@ -90,7 +89,6 @@ object ClickGui : Module(
 
     private fun clickGui() = aboba("Quoi! Click Gui") {
         val moduleScopes = arrayListOf<Pair<Module, ElementScope<*>>>()
-        ui.debug = Test.uiDebug
         onRemove {
             Config.save()
         }
@@ -242,7 +240,6 @@ object ClickGui : Module(
                 val img = when (module.tag) {
                     Tag.LEGACY -> theme.refreshImage
                     Tag.BETA -> theme.bugImage
-                    Tag.NONE -> theme.chevronImage
                 }
 
                 image(

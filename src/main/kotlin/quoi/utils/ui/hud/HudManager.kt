@@ -27,7 +27,6 @@ import quoi.api.events.core.EventListener
 import quoi.api.events.core.on
 import quoi.api.input.Keybinds
 import quoi.config.Config
-import quoi.module.impl.misc.Test
 import quoi.module.impl.render.clickgui.ClickGui.clickGui
 import quoi.module.settings.UIComponent
 import quoi.module.settings.impl.ColourPickerComponent
@@ -125,8 +124,6 @@ object HudManager : EventListener {
     var hudSettings: Popup? = null
 
     fun editor(fromMain: Boolean = false) = aboba("Quoi! hud editor") {
-
-        ui.debug = Test.uiDebug
         var hoverInfo: Popup? = null
 
         object : Element(copies()) {

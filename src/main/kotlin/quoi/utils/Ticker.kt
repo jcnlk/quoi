@@ -1,13 +1,5 @@
 package quoi.utils
 
-import quoi.module.impl.misc.Test
-import quoi.module.impl.dungeon.secrets.impl.SecretTriggerbot
-/**
- * Usage:
- * [Test.tickerExample]
- * [SecretTriggerbot.triggerBotTicker]
- */
-
 class TickerCancelledException : Exception("ticker cancelled") {
     override fun fillInStackTrace(): Throwable = this
 }

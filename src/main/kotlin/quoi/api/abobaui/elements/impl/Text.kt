@@ -119,7 +119,8 @@ open class Text(
             size: Constraint.Size = 50.percent
         ): ElementScope<Text> = object : Text(supplier().toString(), font, colour, pos, size) {
             override fun draw() {
-                text = supplier().toString()
+                // only update in the pass that draws this font
+                if (ui.customPass != (font.name == "Minecraft")) text = supplier().toString()
                 super.draw()
             }
         }.scope { /* no-op */ }

@@ -163,10 +163,15 @@ abstract class Element(
         }
     }
 
+    /**
+     * Limits layout updates to this element and its children.
+     */
+    open val isLayoutBoundary: Boolean get() = false
+
     fun redraw() {
         var p = parent
         while (p != null) {
-            if (!p.constraints.sizeReliesOnChildren()) break
+            if (p.isLayoutBoundary || !p.constraints.sizeReliesOnChildren()) break
             p = p.parent
         }
         (p ?: this).redraw = true
@@ -228,7 +233,7 @@ abstract class Element(
 
         if ((widthRelies || heightRelies) && proceed) {
             size()
-            parent?.positionChildren(false)
+            if (isLayoutBoundary) positionChildren(false) else parent?.positionChildren(false)
         }
     }
 

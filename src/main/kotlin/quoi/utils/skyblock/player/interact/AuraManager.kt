@@ -14,8 +14,6 @@ import quoi.api.colour.withAlpha
 import quoi.api.events.*
 import quoi.api.events.core.EventListener
 import quoi.api.events.core.on
-import quoi.module.impl.misc.Test
-import quoi.utils.Scheduler.scheduleTask
 import quoi.utils.Shortcuts
 import quoi.utils.WorldUtils.shape
 import quoi.utils.WorldUtils.startPrediction
@@ -149,7 +147,6 @@ object AuraManager : EventListener, Shortcuts {
         if (mineTarget?.pos == pos) return
 
         val hitResult = pos.getHitResult() ?: return
-        debugBox(hitResult.location)
 
         if (immediate) {
             gameMode.startPrediction { sequence ->
@@ -165,12 +162,6 @@ object AuraManager : EventListener, Shortcuts {
             return
         }
         mineTarget = MineTarget(pos, hitResult.direction, custom, swing, rotate)
-    }
-
-    fun debugBox(vec3: Vec3) {
-        if (!Test.auraDebug) return
-        recentClicks.add(vec3)
-        scheduleTask(10) { recentClicks.remove(vec3) }
     }
 }
 

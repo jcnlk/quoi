@@ -19,7 +19,10 @@ object NickHider : Module(
     val customName by textInput("Name", "cat", desc = "Player name to display.")
     private val nameColour by colourPicker("Name colour", Colour.ORANGE, desc = "Colour of the displayed name.")
 
-    private fun getUsername() = mc.player?.name?.string?.takeIf { enabled && customName != it }
+    private fun getUsername(): String? {
+        if (!enabled) return null
+        return mc.player?.gameProfile?.name?.takeIf { customName != it }
+    }
 
     @JvmStatic
     fun replaceName(string: String): String {
@@ -41,17 +44,21 @@ object NickHider : Module(
 internal fun replaceOrderedText(original: FormattedCharSequence, target: String, replacement: Component): FormattedCharSequence {
     if (target.isEmpty()) return original
 
-    val characters = mutableListOf<Component>()
+    // only build styled characters if the name is present
     val string = buildString {
-        original.accept { _, style, codePoint ->
-            val character = Character.toString(codePoint)
-            append(character)
-            characters.add(Component.literal(character).setStyle(style))
+        original.accept { _, _, codePoint ->
+            appendCodePoint(codePoint)
             true
         }
     }
     var nextMatch = string.indexOf(target)
     if (nextMatch < 0) return original
+
+    val characters = mutableListOf<Component>()
+    original.accept { _, style, codePoint ->
+        characters.add(Component.literal(Character.toString(codePoint)).setStyle(style))
+        true
+    }
 
     val result = Component.empty()
     var offset = 0

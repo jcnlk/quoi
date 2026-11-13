@@ -6,6 +6,7 @@ import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.component.CustomData
+import quoi.mixins.accessors.CustomDataAccessor
 import quoi.utils.StringUtils.noControlCodes
 
 object ItemUtils {
@@ -16,17 +17,27 @@ object ItemUtils {
     inline val ItemStack?.extraAttributes: CompoundTag?
         get() = this?.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY)?.copyTag()
 
-    inline val ItemStack?.skyblockId: String?
-        get() = this.extraAttributes?.getString("id")?.orElse(null)
+    /**
+     * Returns the custom data tag without copying it. Do not modify it.
+     */
+    val ItemStack?.extraAttributesView: CompoundTag?
+        get() {
+            // cast through Any since the accessor is added at runtime
+            val data: Any = this?.get(DataComponents.CUSTOM_DATA) ?: return null
+            return (data as CustomDataAccessor).`quoi$getTag`()
+        }
 
-    inline val ItemStack?.skyblockUuid: String?
-        get() = this.extraAttributes?.getString("uuid")?.orElse(null)
+    val ItemStack?.skyblockId: String?
+        get() = this.extraAttributesView?.getString("id")?.orElse(null)
+
+    val ItemStack?.skyblockUuid: String?
+        get() = this.extraAttributesView?.getString("uuid")?.orElse(null)
 
     val ItemStack?.cleanName: String
         get() = this?.hoverName?.string.noControlCodes
 
     val ItemStack?.reforgeModifier: String?
-        get() = extraAttributes?.getString("modifier")?.orElse(null)?.takeUnless(String::isBlank)
+        get() = extraAttributesView?.getString("modifier")?.orElse(null)?.takeUnless(String::isBlank)
 
     fun ItemStack?.getCleanLore(): List<String> = lore.orEmpty().map { it.noControlCodes }
 

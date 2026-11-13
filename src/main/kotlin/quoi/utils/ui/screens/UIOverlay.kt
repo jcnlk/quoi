@@ -1,6 +1,6 @@
-
 package quoi.utils.ui.screens
 
+import quoi.QuoiMod.mc
 import quoi.api.abobaui.AbobaUI
 import quoi.api.events.GuiEvent
 import quoi.api.events.RenderEvent
@@ -8,8 +8,8 @@ import quoi.api.events.core.on
 import quoi.api.input.Mouse.mx
 import quoi.api.input.Mouse.my
 import quoi.utils.height
-import quoi.utils.width
 import quoi.utils.ui.rendering.UIRenderer
+import quoi.utils.width
 
 class UIOverlay(ui: AbobaUI.Instance) : UIHandler(ui) {
 
@@ -20,7 +20,7 @@ class UIOverlay(ui: AbobaUI.Instance) : UIHandler(ui) {
         on<RenderEvent.Overlay>(register = false) {
             resize(width, height)
             ui.ctx = ctx
-            mouseMove(mx, my)
+            if (!mc.mouseHandler.isMouseGrabbed) mouseMove(mx, my) // with a grabbed cursor nothing can be hovered
             ui.prepareFrame()
             UIRenderer.frame(ctx) {
                 ui.render(true)

@@ -16,11 +16,9 @@ import quoi.api.events.core.on
 import quoi.api.events.core.trackedBy
 import quoi.api.skyblock.location.Island
 import quoi.module.Module
-import quoi.module.impl.misc.Test
 import quoi.module.impl.misc.slayers.blaze.BlazeSlayer
 import quoi.module.impl.misc.slayers.enderman.BeaconESP
 import quoi.module.impl.misc.slayers.enderman.EndermanSlayer
-import quoi.module.settings.UIComponent.Companion.visibleIf
 import quoi.module.settings.group.SettingGroup.Companion.childOf
 import quoi.module.settings.group.SettingGroup.Companion.json
 import quoi.utils.ChatUtils.modMessage
@@ -59,7 +57,7 @@ object Slayers : Module(
     private var finishedBossId: Int? = null
 
     @Suppress("unused")
-    private val debug by textHud("Debug") {
+    private val debug by textHud("Debug") { // TODO: make proper debugging
         column {
             debugStrings.forEach { (name, str) ->
                 textPair(
@@ -71,7 +69,7 @@ object Slayers : Module(
                 )
             }
         }
-    }.setting().visibleIf { Test.enabled }
+    }.setting()
 
     init {
         on<PacketEvent.ReceivedPost> {

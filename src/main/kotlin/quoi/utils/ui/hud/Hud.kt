@@ -115,6 +115,9 @@ open class Hud(
 
         override var usingCtx: Boolean = true
 
+        // text changes here should not relayout other HUDs
+        override val isLayoutBoundary: Boolean get() = true
+
         var scaleTransformation by Scale(this@Hud.scale.value, centered = false).also {
             addTransform(it)
         }
