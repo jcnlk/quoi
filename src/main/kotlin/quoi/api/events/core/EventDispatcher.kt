@@ -3,6 +3,7 @@
 package quoi.api.events.core
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientEntityEvents
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLevelEvents
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
@@ -49,6 +50,8 @@ object EventDispatcher {
     private val secretBats = hashSetOf<Int>()
 
     init {
+        ClientEntityEvents.ENTITY_UNLOAD.register { entity, _ -> EntityEvent.Despawn(entity).post() }
+
         ClientTickEvents.START_CLIENT_TICK.register {
             val world = mc.level
             if (world != lastWorld) {

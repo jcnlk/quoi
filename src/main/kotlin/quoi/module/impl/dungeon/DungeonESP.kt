@@ -1,27 +1,25 @@
-//~ enderman_type
-
 package quoi.module.impl.dungeon
 
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
 import net.minecraft.world.entity.Entity
-import net.minecraft.world.entity.LivingEntity
+import net.minecraft.world.entity.ExperienceOrb
 import net.minecraft.world.entity.ambient.Bat
 import net.minecraft.world.entity.boss.wither.WitherBoss
 import net.minecraft.world.entity.decoration.ArmorStand
-import net.minecraft.world.entity.monster.EnderMan
 import net.minecraft.world.entity.player.Player
+import net.minecraft.world.entity.projectile.arrow.AbstractArrow
 import quoi.api.colour.Colour
 import quoi.api.colour.withAlpha
-import quoi.api.events.EntityEvent
-import quoi.api.events.PacketEvent
-import quoi.api.events.RenderEvent
-import quoi.api.events.WorldEvent
+import quoi.api.events.*
 import quoi.api.events.core.Priority
 import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.Dungeon.dungeonTeammates
 import quoi.api.skyblock.dungeon.Dungeon.inClear
 import quoi.api.skyblock.dungeon.Dungeon.inDungeons
+import quoi.api.skyblock.dungeon.Floor7.getPhaseAt
 import quoi.api.skyblock.dungeon.Floor7.inF7Boss
+import quoi.api.skyblock.dungeon.enums.Phase
+import quoi.api.skyblock.dungeon.odonscanning.ScanUtils
 import quoi.api.skyblock.location.Island
 import quoi.module.Module
 import quoi.module.settings.Setting.Companion.json
@@ -29,18 +27,11 @@ import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.module.settings.UIComponent.Companion.visibleIf
 import quoi.module.settings.group.SettingGroup.Companion.childOf
 import quoi.module.settings.group.SettingGroup.Companion.json
-import quoi.utils.EntityUtils.getEntities
 import quoi.utils.EntityUtils.getEntity
 import quoi.utils.EntityUtils.interpolatedBox
-import quoi.utils.Scheduler.scheduleLoop
+import quoi.utils.StringUtils.formattedString
 import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.equalsOneOf
-import quoi.utils.removeIf
-
-/**
- * TODO:
- *  - better default colors or whatever
- */
 
 object DungeonESP : Module(
     "Dungeon ESP",
@@ -75,59 +66,81 @@ object DungeonESP : Module(
     private val bossEsp by switch("Wither boss")
     private val bossHighlight = highlight("Style", aabbOffset = true).json("Boss style").childOf(::bossEsp)
 
-    private val currentEntities = mutableMapOf<Int, EspMob>()
+    private val starMobs = hashSetOf<Int>()
+    private val bats = hashSetOf<Int>()
+    private val checkedStands = hashSetOf<Int>()
+    private var currentWither: WitherBoss? = null
+    private val fakeMinibossRooms = setOf(
+        "Duncan", "Balcony", "Wizard", "Pit", "Waterfall", "Atlas", "Chambers", "Layers", "Perch", "Golden Oasis",
+    )
 
     init {
-        scheduleLoop(10) {
-            if (!enabled || !starEsp || !inClear) return@scheduleLoop
-            updateEntities()
-        }
+        on<WorldEvent.Change> { resetEntities() }
+        on<AreaEvent.Main> { resetEntities() }
 
-        on<WorldEvent.Change> { currentEntities.clear() }
-
-        on<EntityEvent.Spawn> {
-            if (starEsp && inClear) updateEntity(entity)
+        on<EntityEvent.Despawn> {
+            starMobs.remove(entity.id)
+            bats.remove(entity.id)
+            checkedStands.remove(entity.id)
+            if (entity == currentWither) currentWither = null
         }
 
         on<PacketEvent.ReceivedPost, ClientboundSetEntityDataPacket> {
+            if (bossEsp && inWitherBoss) {
+                val wither = getEntity(packet.id) as? WitherBoss ?: return@on
+                if (!wither.isInvisible && wither.invulnerableTicks != 800) currentWither = wither
+                return@on
+            }
             if (!starEsp || !inClear) return@on
-            getEntity(packet.id)?.let(::updateEntity)
+            when (val entity = getEntity(packet.id)) {
+                is ArmorStand -> handleStand(entity)
+                is Bat -> bats.add(entity.id)
+                is Player -> {
+                    if (!entity.gameProfile.name.equalsOneOf("Shadow Assassin", "Lost Adventurer", "Diamond Guy", "King Midas")) return@on
+                    val roomName = ScanUtils.getRoomFromPos(entity.x, entity.z)?.name ?: return@on
+                    if (roomName in fakeMinibossRooms || roomName == "Stairs" && entity.y > 80) return@on
+                    starMobs.add(entity.id)
+                }
+            }
         }
 
         on<RenderEvent.World> {
-            if (teammateEsp && teammateHighlight.style != "Glow" && teammateHighlight.style != "Overlay") getEntities<Player>().forEach { entity ->
-                getTeammateColour(entity)?.let { colour ->
+            if (teammateEsp && teammateHighlight.style != "Glow" && teammateHighlight.style != "Overlay") dungeonTeammates.forEach { teammate ->
+                teammate.entity?.takeIf { it != player }?.let { entity ->
                     teammateHighlight.draw(
                         ctx,
                         entity.interpolatedBox.inflate(0.1),
-                        colour = colour,
-                        fillColour = colour,
+                        colour = teammate.clazz.colour,
+                        fillColour = teammate.clazz.colour,
                     )
                 }
             }
 
-            val drawStarBoxes = starHighlight.style != "Glow" && starHighlight.style != "Overlay"
-            currentEntities.removeIf { _, mob ->
-                val entity = mob.entity
-
-                if (!starEsp || !inClear || entity.isDeadOrDying || entity.isRemoved) return@removeIf true
-
-                if (drawStarBoxes) starHighlight.draw(
-                    ctx,
-                    entity.interpolatedBox,
-                    colour = mob.colour,
-                    overrideFillColour = mob.fillColour,
-                )
-                false
+            if (starEsp && inClear && starHighlight.style != "Glow" && starHighlight.style != "Overlay") {
+                starMobs.forEach { id ->
+                    val entity = getEntity(id) ?: return@forEach
+                    if (entity.isAlive) starHighlight.draw(
+                        ctx,
+                        entity.interpolatedBox,
+                        colour = if (entity.isShadowAssassin) colourSA else colourStar,
+                        overrideFillColour = if (entity.isShadowAssassin) colourSAFill else colourStarFill,
+                    )
+                }
+                bats.forEach { id ->
+                    val bat = getEntity(id) as? Bat ?: return@forEach
+                    if (bat.id !in starMobs && bat.isAlive && bat.isDungeonBat) starHighlight.draw(
+                        ctx, bat.interpolatedBox, colour = colourBat, overrideFillColour = colourBatFill,
+                    )
+                }
             }
 
-            if (bossEsp && inF7Boss && bossHighlight.style != "Glow" && bossHighlight.style != "Overlay") getEntities<WitherBoss>()
-                .filter { it.isWitherBoss }
-                .forEach { bossHighlight.draw(ctx, it.interpolatedBox) }
+            if (bossEsp && inWitherBoss && bossHighlight.style != "Glow" && bossHighlight.style != "Overlay") currentWither?.let {
+                bossHighlight.draw(ctx, it.interpolatedBox)
+            }
         }
 
         on<EntityEvent.ForceGlow>(Priority.LOWEST) {
-            if (entity !is LivingEntity || entity is ArmorStand) return@on
+            if (entity is ArmorStand) return@on
             getDungeonPlayerColour(entity)?.let { colour ->
                 if (entity != player) teammateHighlight.draw(this, colour = colour)
                 if (teammateHighlight.style != "Glow" && teammateHideGlow) {
@@ -136,81 +149,51 @@ object DungeonESP : Module(
                 }
             }
 
-            if (starEsp && inClear) {
-                val colour = if (entity is Bat && entity.isDungeonBat) colourBat else currentEntities[entity.id]?.colour
+            if (starEsp && inClear && entity.isAlive && !entity.isRemoved) {
+                val colour = when {
+                    entity.id in starMobs -> if (entity.isShadowAssassin) colourSA else colourStar
+                    entity is Bat && entity.isDungeonBat -> colourBat
+                    else -> null
+                }
                 colour?.let { starHighlight.draw(this, overrideColour = it) }
             }
 
-            if (bossEsp && inF7Boss && entity.isWitherBoss) bossHighlight.draw(this)
+            if (bossEsp && inWitherBoss && entity == currentWither) bossHighlight.draw(this)
         }
     }
 
-    override fun onEnable() {
-        if (starEsp && inClear) updateEntities()
-    }
-
     override fun onDisable() {
-        currentEntities.clear()
+        resetEntities()
     }
 
     private fun handleStand(stand: ArmorStand) {
-        val name = stand.customName?.string ?: return
-        if ("✯" !in name && !name.endsWith("§c❤")) return
+        val name = stand.customName?.formattedString ?: return
+        if ("✯" !in name || !name.endsWith("§c❤")) return
+        if (!checkedStands.add(stand.id)) return
+        val realId = stand.id - if (name.noControlCodes.contains("withermancer", true)) 3 else 1
 
-        val offset = if (name.noControlCodes.contains("withermancer", true)) 3 else 1
-        val realId = stand.id - offset
-
-        if (realId in currentEntities) return
-
-        stand.level().getEntity(realId)?.takeIf { it is LivingEntity && it !is ArmorStand }?.let {
-            addMob(it as LivingEntity, MobType.STAR)
+        val mob = getEntity(realId)
+        if (mob != null && mob !is ArmorStand && realId !in starMobs) {
+            starMobs.add(realId)
             return
         }
 
         stand.level().getEntities(stand, stand.boundingBox.move(0.0, -1.0, 0.0)) {
-            it !is ArmorStand && it is LivingEntity && it != player
-        }.firstOrNull()?.let {
-            addMob(it as LivingEntity, MobType.STAR)
-        }
+            it !is ArmorStand && it !is ExperienceOrb
+        }.firstOrNull {
+            it.id !in starMobs && when (it) {
+                is Player -> !it.isInvisible && it.uuid.version() == 2 && it != player
+                is WitherBoss, is AbstractArrow -> false
+                else -> true
+            }
+        }?.let { starMobs.add(it.id) }
     }
 
-    private fun getMobType(entity: Entity): MobType? = when (entity) {
-        is Bat if entity.isDungeonBat -> MobType.BAT
-        is EnderMan -> {
-            val stand = getEntity(entity.id + 1) as? ArmorStand
-
-            if (stand?.customName?.string?.contains("✯") == true) MobType.STAR
-            else null
-        }
-        is ArmorStand -> {
-            handleStand(entity)
-            null
-        }
-        is Player -> with(entity.name.string) {
-            if (contains("Shadow Assassin")) MobType.SHADOW_ASSASSIN
-            else if (equalsOneOf("Diamond Guy", "Lost Adventurer")) MobType.STAR
-            else null
-        }
-        else -> null
-    }
-
-    private fun updateEntities() {
-        getEntities<LivingEntity>().forEach { entity ->
-            if (entity.id !in currentEntities) updateEntity(entity)
-        }
-    }
-
-    private fun updateEntity(entity: Entity) {
-        if (entity !is LivingEntity || (entity !is Player && entity.id in currentEntities)) return
-        getMobType(entity)?.let { type ->
-            addMob(entity, type)
-        }
-    }
-
-    private fun addMob(entity: LivingEntity, type: MobType) {
-        // keep the shadow assassin colour when found through a name stand
-        val mobType = if (entity is Player) getMobType(entity) ?: type else type
-        currentEntities[entity.id] = EspMob(entity, mobType)
+    private fun resetEntities() {
+        starMobs.clear()
+        bats.clear()
+        checkedStands.clear()
+        currentWither = null
     }
 
     private val Bat.isDungeonBat
@@ -219,10 +202,8 @@ object DungeonESP : Module(
             else -> false
         }
 
-    private fun getTeammateColour(entity: Entity): Colour? {
-        if (entity == player) return null
-        return getDungeonPlayerColour(entity)
-    }
+    private val Entity.isShadowAssassin
+        get() = this is Player && gameProfile.name == "Shadow Assassin"
 
     private fun getDungeonPlayerColour(entity: Entity): Colour? {
         if (entity !is Player || !teammateEsp || !inDungeons) return null
@@ -230,23 +211,5 @@ object DungeonESP : Module(
         return dungeonTeammates.find { it.name == name }?.clazz?.colour
     }
 
-    private enum class MobType { STAR, SHADOW_ASSASSIN, BAT }
-
-    private class EspMob(val entity: LivingEntity, val type: MobType) {
-        val colour: Colour
-            get() = when (type) {
-                MobType.STAR -> colourStar
-                MobType.SHADOW_ASSASSIN -> colourSA
-                MobType.BAT -> colourBat
-            }
-
-        val fillColour: Colour
-            get() = when (type) {
-                MobType.STAR -> colourStarFill
-                MobType.SHADOW_ASSASSIN -> colourSAFill
-                MobType.BAT -> colourBatFill
-            }
-    }
-
-    private val Entity.isWitherBoss get() = this is WitherBoss && !this.isInvisible && this.invulnerableTicks != 800
+    private val inWitherBoss get() = inF7Boss && getPhaseAt() != Phase.P5
 }
