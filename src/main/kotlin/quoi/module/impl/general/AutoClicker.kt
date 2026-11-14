@@ -3,6 +3,7 @@ package quoi.module.impl.general
 import kotlin.random.Random
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.*
+import quoi.api.events.GuiEvent
 import quoi.api.events.MouseEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
@@ -122,6 +123,12 @@ object AutoClicker: Module(
             if (enabled && keybind.key == mouseKey && keybind.isModifierDown() && shouldClick(isLeft)) {
                 cancel()
             }
+        }
+
+        on<GuiEvent.Removed> {
+            reset()
+            leftBlockedUntilRelease = leftClickKeybind.isDown()
+            rightBlockedUntilRelease = rightClickKeybind.isDown()
         }
 
         on<TickEvent.End> {
