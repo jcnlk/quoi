@@ -68,7 +68,7 @@ object Control : ToggleableGroup(Dojo, "Control", subarea = "dojo arena") {
 
         on<RenderEvent.World> { // maybe should render all skeletons since legits won't know which one is closest but idgaf
             if (!highlight || wither == null || position == null) return@on
-            val box = wither!!.interpolatedBox.move(position!!)
+            val box = wither!!.interpolatedBox.move(position!!.subtract(wither!!.position()))
             style.draw(ctx, box)
         }
     }
