@@ -207,6 +207,19 @@ class Keybinding(var key: Int, val modifiers: MutableSet<Int> = mutableSetOf()) 
 
     var onRelease: (() -> Unit)? = null
 
+    private var pressedKey: Int? = null
+
+    internal fun handleInput(key: Int, pressed: Boolean) {
+        if (pressed) {
+            if (this.key != key || !isModifierDown()) return
+            pressedKey = key
+            onPress?.invoke()
+        } else if (pressedKey == key) {
+            pressedKey = null
+            onRelease?.invoke()
+        }
+    }
+
     /**
      * @return `true` if [key] is held down.
      */

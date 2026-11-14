@@ -54,11 +54,7 @@ object ModuleManager : EventListener {
 
         modules.forEach { module ->
             module.settings.filterIsInstance<KeybindComponent>()
-                .filter { it.value.key == key && it.value.isModifierDown() }
-                .forEach { component ->
-                    if (pressed) component.value.onPress?.invoke()
-                    else component.value.onRelease?.invoke()
-                }
+                .forEach { component -> component.value.handleInput(key, pressed) }
         }
     }
 
