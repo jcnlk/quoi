@@ -173,14 +173,14 @@ object PetKeybinds : Module(
                 else return false.also { modMessage("§cYou are already on the first page.") }
 
             unequipKeybind.key ->
-                screen.menu.slots.subList(10, 43)
+                screen.menu.slots.subList(10, 44)
                     .indexOfFirst { it.item.loreString?.contains("Click to despawn!") == true }
                     .takeIf { it != -1 }?.plus(10) ?: return false.also { modMessage("§cCouldn't find equipped pet") }
 
             else -> {
                 val petIndex = petKeys.indexOfFirst { it.key == keyCode }.takeIf { it != -1 } ?: return false
                 petMap.entries.elementAtOrNull(petIndex)?.let { (uuid, _) ->
-                    screen.menu.slots.subList(10, 43).indexOfFirst { it?.item?.skyblockUuid == uuid }
+                    screen.menu.slots.subList(10, 44).indexOfFirst { it?.item?.skyblockUuid == uuid }
                 }?.takeIf { it != -1 }?.plus(10) ?: return false
             }
         }
