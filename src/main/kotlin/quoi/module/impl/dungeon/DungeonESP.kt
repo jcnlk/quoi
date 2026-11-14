@@ -89,8 +89,7 @@ object DungeonESP : Module(
             if (starEsp && inClear) updateEntity(entity)
         }
 
-        on<PacketEvent.ReceivedPost> {
-            val packet = packet as? ClientboundSetEntityDataPacket ?: return@on
+        on<PacketEvent.ReceivedPost, ClientboundSetEntityDataPacket> {
             if (!starEsp || !inClear) return@on
             getEntity(packet.id)?.let(::updateEntity)
         }
@@ -139,14 +138,10 @@ object DungeonESP : Module(
 
             if (starEsp && inClear) {
                 val colour = if (entity is Bat && entity.isDungeonBat) colourBat else currentEntities[entity.id]?.colour
-                colour?.let {
-                    starHighlight.draw(this, overrideColour = it)
-                }
+                colour?.let { starHighlight.draw(this, overrideColour = it) }
             }
 
-            if (bossEsp && inF7Boss && entity.isWitherBoss) {
-                bossHighlight.draw(this)
-            }
+            if (bossEsp && inF7Boss && entity.isWitherBoss) bossHighlight.draw(this)
         }
     }
 
