@@ -148,7 +148,7 @@ object InventorySearch : SettingGroup(Inventory, HudComponent("Search Bar", Hud(
     }
 
     private fun calculate(string: String): Double? {
-        var s = string.replace(",", "")
+        var s = string.replace(",", "").replace(Regex("""(?<=[\d.])\s+(?=[+-])"""), "")
 
         Regex("""\(([^()]+)\)""").find(s)?.let {
             val inner = calculate(it.groupValues[1]) ?: return null
@@ -156,7 +156,7 @@ object InventorySearch : SettingGroup(Inventory, HudComponent("Search Bar", Hud(
         }
 
         listOf("\\^", "[*x/%]", "[+\\-]").forEach { operators ->
-            val eqRegex = Regex("""(?<!\d)([+-]?[\d.]+(?:[eE][+-]?\d+)?)\s*($operators)\s*([+-]?[\d.]+(?:[eE][+-]?\d+)?)""")
+            val eqRegex = Regex("""(?<![\d.])([+-]?[\d.]+(?:[eE][+-]?\d+)?)\s*($operators)\s*([+-]?[\d.]+(?:[eE][+-]?\d+)?)""")
 
             var match = eqRegex.find(s)
             while (match != null) {
