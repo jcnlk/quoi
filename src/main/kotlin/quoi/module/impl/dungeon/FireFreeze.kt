@@ -87,6 +87,7 @@ object FireFreeze : Module(
                 repositionTarget = repositionPositions.minByOrNull { player.position().distanceToSqr(it) } ?: return@on
 
                 val target = repositionTarget ?: return@on
+                repositioning = true
                 val dir = getDirection(player.position(), target)
                 player.rotateSmoothly(yaw = dir.yaw, pitch = player.pitch, duration = 250.ms)
             }
