@@ -6,9 +6,13 @@ import quoi.api.events.WorldEvent
 import quoi.api.events.core.on
 import quoi.api.skyblock.SkyblockPlayer
 import quoi.api.skyblock.dungeon.Dungeon
+import quoi.api.skyblock.dungeon.enums.DungeonClass
+import quoi.api.skyblock.dungeon.enums.Floor
+import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.location.Location
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf
+import quoi.utils.ChatUtils
 import quoi.utils.skyblock.player.PlayerUtils
 
 object AutoGFS : Module( // untested
@@ -22,35 +26,81 @@ object AutoGFS : Module( // untested
     private val booms by switch("Super booms").childOf(::itemsDropdown)
     private val jerries by switch("Inflatable Jerries").childOf(::itemsDropdown)
     private val leaps by switch("Spirit Leaps").childOf(::itemsDropdown)
+    private val twilight by switch("Twilight Arrow Poison").childOf(::itemsDropdown)
+    private val twilightAfterLightning by switch("Refill after lightning", true).childOf(::twilight)
+    private val twilightInCore by switch("Refill in Core").childOf(::twilight)
+    private val twilightAfterRelics by switch("Refill after M7 relics", true).childOf(::twilight)
+    private val twilightAfterBuild by switch("Refill after Kuudra build", true).childOf(::twilight)
+    private val twilightAmount by slider(
+        "Twilight Amount", 8, 4, 32, 1,
+        desc = "Amount to withdraw at each enabled Twilight trigger."
+    ).childOf(::twilight)
 
     private val mode by selector("Mode", "Amount", arrayListOf("Amount", "Time"))
     private val amount by slider("Amount", 50, 5, 95, 5, unit = "%").childOf(::mode) { it.selected == "Amount" }
     private val time by slider("Time", 5, 1, 60, 1, unit = "s").childOf(::mode) { it.selected == "Time" }
 
-    private val dungeonsOnly by switch("Dungeons only", desc = "Only refill items when in dungeons.")
+    private val dungeonsOnly by switch("Dungeons only", desc = "Only refill regular items in dungeons. Twilight can still refill after Kuudra builds.")
 
     private var tickCount = 0
     private var commandCooldown = 0
     private var nextItemIndex = 0
-    private val emptySacks = hashSetOf<RefillItem>()
+    private val emptySacks = hashSetOf<String>()
+    private val emptySackMessage = Regex("^You have no (.+) in your Sacks!$")
+    private var lightningRefilled = false
+    private var pendingTwilightArea: Island? = null
 
     init {
         on<ChatEvent.Packet> {
-            RefillItem.entries.firstOrNull { unformatted == "You have no ${it.itemName} in your Sacks!" }?.let {
-                emptySacks.add(it)
+            emptySackMessage.matchEntire(unformatted)?.let {
+                emptySacks.add(it.groupValues[1])
+            }
+            if (!twilight) return@on
+
+            if (Location.currentArea == Island.Kuudra) {
+                if (twilightAfterBuild && unformatted == "[NPC] Elle: Phew! The Ballista is finally ready! It should be strong enough to tank Kuudra's blows now!") {
+                    pendingTwilightArea = Island.Kuudra
+                }
+                return@on
+            }
+
+            if (!Dungeon.inDungeons || !Dungeon.inBoss || Dungeon.floor != Floor.M7) return@on
+            val clazz = Dungeon.currentDungeonPlayer.clazz
+            if (clazz == DungeonClass.Unknown) return@on
+            val dps = clazz == DungeonClass.Archer || clazz == DungeonClass.Berserk
+
+            // based on: https://github.com/Noamm9/NoammAddons/blob/58975d7df18cba5323c427a31fc8596524ef1a58/src/main/kotlin/com/github/noamm9/features/impl/dungeon/AutoGFS.kt
+            when {
+                twilightInCore && dps && unformatted == "The Core entrance is opening!" -> pendingTwilightArea = Island.Dungeon
+                twilightAfterRelics && !dps && unformatted == "[BOSS] Wither King: I no longer wish to fight, but I know that will not stop you." -> pendingTwilightArea = Island.Dungeon
+                twilightAfterLightning && !lightningRefilled && clazz == DungeonClass.Archer &&
+                    (unformatted == "[BOSS] Storm: ENERGY HEED MY CALL!" || unformatted == "[BOSS] Storm: THUNDER LET ME BE YOUR CATALYST!") -> {
+                    pendingTwilightArea = Island.Dungeon
+                    lightningRefilled = true
+                }
             }
         }
 
         on<WorldEvent.Change> {
-            emptySacks.clear()
+            reset()
         }
 
         on<TickEvent.End> {
             if (commandCooldown > 0) commandCooldown--
 
-            if (dungeonsOnly && !Dungeon.inDungeons) return@on
             if (Dungeon.isDead || !Location.inSkyblock || mc.gui.screen() != null) return@on
             if (!SkyblockPlayer.canUseCommands || commandCooldown > 0) return@on
+
+            pendingTwilightArea?.let { area ->
+                pendingTwilightArea = null
+                if (twilight && Location.currentArea == area && "Twilight Arrow Poison" !in emptySacks) {
+                    ChatUtils.command("gfs twilight_arrow_poison $twilightAmount")
+                    commandCooldown = COMMAND_COOLDOWN_TICKS
+                    return@on
+                }
+            }
+
+            if (dungeonsOnly && !Dungeon.inDungeons) return@on
 
             if (++tickCount < when (mode.selected) {
                     "Amount" -> 20
@@ -66,6 +116,14 @@ object AutoGFS : Module( // untested
         }
     }
 
+    override fun onDisable() = reset()
+
+    private fun reset() {
+        emptySacks.clear()
+        lightningRefilled = false
+        pendingTwilightArea = null
+    }
+
     private fun isBelowPercentage(n: Int, max: Int) = n < (amount / 100.0) * max
 
     private fun refillNextItem(): Boolean {
@@ -75,7 +133,7 @@ object AutoGFS : Module( // untested
             val item = items[nextItemIndex]
             nextItemIndex = (nextItemIndex + 1) % items.size
 
-            if (item in emptySacks) return@repeat
+            if (item.itemName in emptySacks) return@repeat
             if (item.shouldRefill() && item.refill()) return true
         }
 
