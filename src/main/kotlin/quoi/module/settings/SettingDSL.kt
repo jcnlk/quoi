@@ -39,6 +39,24 @@ abstract class SettingsDSL {
     protected fun <E : Enum<E>> segmented(name: String, default: E, desc: String = "") =
         SegmentedComponent(name, default, default.declaringJavaClass.enumConstants.toList(), desc)
 
+    /**
+     * Entries the user can rearrange by dragging. See [OrderComponent].
+     */
+    protected fun <T> order(name: String, default: List<T>, desc: String = "", displayString: ((T) -> String)? = null) =
+        OrderComponent(name, default, desc, displayString)
+
+    /**
+     * Editable list of strings backed by [default]. See [StringListComponent].
+     */
+    protected fun <T : MutableCollection<String>> stringList(
+        name: String,
+        default: T,
+        desc: String = "",
+        placeholder: String = "Add entry...",
+        maxLength: Int = 0,
+        defaults: Collection<String> = emptyList(),
+    ) = StringListComponent(name, default, desc, placeholder, maxLength, defaults = defaults)
+
     protected fun text(value: String, desc: String = "") =
         TextComponent(value, desc)
 

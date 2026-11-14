@@ -42,7 +42,17 @@ object AutoInvincibility : Module(
     private val useSpiritMask by switch("Spirit Mask", desc = "Equips Spirit Mask after proccing.")
     private val useBonzoMask by switch("Bonzo's Mask", desc = "Equips Bonzo's Mask after proccing.")
     private val usePhoenixPet by switch("Phoenix Pet", desc = "Swaps to Phoenix pet after proccing.")
-    private val priority by selector("Priority", Priority.PhoenixFirst, desc = "Invincibility priority from first to last.")
+    private val priority by order(
+        "Priority",
+        listOf(InvincibilityType.SPIRIT, InvincibilityType.PHOENIX, InvincibilityType.BONZO),
+        desc = "Invincibility priority from first to last. Drag to reorder.",
+    ) { type ->
+        when (type) {
+            InvincibilityType.SPIRIT -> "Spirit Mask"
+            InvincibilityType.BONZO -> "Bonzo's Mask"
+            InvincibilityType.PHOENIX -> "Phoenix Pet"
+        }
+    }
     private val swapDelay by slider("Swap delay", 0, 0, 40, 1, desc = "Ticks to wait before swapping after an invincibility proc.", unit = "t")
     private val phoenixSwapMethod by selector("Swap method", PhoenixSwapMethod.RodSwap, desc = "Method used to swap to the Phoenix pet. Rod Swap ignores input blocking.").childOf(::usePhoenixPet)
     private val bossOnly by switch("Boss only", desc = "Only triggers while being in boss room.")
@@ -56,10 +66,7 @@ object AutoInvincibility : Module(
 
     private val rodSwapBlacklist = setOf("SOUL_WHIP", "FLAMING_FLAY", "GRAPPLING_HOOK")
     private val invincibilityPriority
-        get() = when (priority.selected) {
-            Priority.MaskFirst -> listOf(InvincibilityType.SPIRIT, InvincibilityType.BONZO, InvincibilityType.PHOENIX)
-            Priority.PhoenixFirst -> listOf(InvincibilityType.SPIRIT, InvincibilityType.PHOENIX, InvincibilityType.BONZO)
-        }
+        get() = priority.order
 
     override fun onDisable() {
         resetAllState()
@@ -258,9 +265,5 @@ object AutoInvincibility : Module(
 
     private enum class PhoenixSwapMethod {
         RodSwap, PetMenu;
-    }
-
-    private enum class Priority {
-        MaskFirst, PhoenixFirst;
     }
 }

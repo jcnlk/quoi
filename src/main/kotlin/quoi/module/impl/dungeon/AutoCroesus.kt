@@ -26,7 +26,6 @@ import quoi.config.configList
 import quoi.module.Module
 import quoi.module.impl.dungeon.autocroesus.*
 import quoi.module.settings.UIComponent.Companion.childOf
-import quoi.module.settings.impl.ListSetting
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.romanToInt
 import quoi.utils.skyblock.item.ItemUtils.cleanName
@@ -82,22 +81,19 @@ object AutoCroesus : Module(
         .childOf(::useKismets)
 
     @Suppress("unused")
-    private val addDefaultAlwaysBuy by button("Add default always buy", desc = "Adds the original Auto Croesus always-buy defaults.") {
-        addDefaults("Always buy", alwaysBuy, defaultAutoCroesusAlwaysBuy)
-    }
-
-    @Suppress("unused")
-    private val addDefaultWorthless by button("Add default worthless", desc = "Adds the original Auto Croesus worthless defaults.") {
-        addDefaults("Worthless", worthless, defaultAutoCroesusWorthless)
-    }
-
-    @Suppress("unused")
     private val startKey by keybind("Start key", Keybinds.KEY_NONE, desc = "Starts Auto Croesus.").onPress(::startFromKeybind)
     private val killSwitch by keybind("Kill switch", Keybinds.KEY_NONE, desc = "Stops the current Auto Croesus claim.")
     private val kismetFloors by multiSelect("Kismet floors", emptySet(), autoCroesusFloors, desc = "Floors where Auto Croesus may use Kismet Feathers.")
         .childOf(::useKismets)
-    private val alwaysBuy by ListSetting("Always buy", mutableListOf<String>())
-    private val worthless by ListSetting("Worthless", mutableListOf<String>())
+    private val alwaysBuy by stringList(
+        "Always buy", mutableListOf<String>(), desc = "Item ids that are always claimed.",
+        placeholder = "Add item id...", defaults = defaultAutoCroesusAlwaysBuy
+    ).normalises { it.uppercase() }
+    private val worthless by stringList(
+        "Worthless", mutableListOf<String>(), desc = "Item ids counted as worth nothing.",
+        placeholder = "Add item id...", defaults = defaultAutoCroesusWorthless
+    ).normalises { it.uppercase() }
+
     private val runLoot by configList<LoggedRun>("autocroesus_loot.json")
 
     private val croesusRegex = Regex("""^(?:\(\d/\d\) )?Croesus$""") // https://github.com/Noamm9/NoammAddons/blob/771d2702200bcdabf2bdc7d5256ec327b6d5a2c7/src/main/kotlin/com/github/noamm9/features/impl/dungeon/ChestProfit.kt#L46
@@ -245,14 +241,6 @@ object AutoCroesus : Module(
                 modMessage("Added $value to $name.")
             }
         }
-    }
-
-    private fun addDefaults(name: String, list: MutableList<String>, defaults: Set<String>) {
-        val before = list.size
-        defaults.forEach { id ->
-            if (list.none { it.equals(id, true) }) list.add(id)
-        }
-        modMessage("&aAdded ${list.size - before} default $name items.")
     }
 
     private fun showLoot(filters: LootFilters) {

@@ -457,7 +457,7 @@ object Dungeon : EventListener, Shortcuts {
 
         leapTeammates =
             when (LeapMenu.sorting.selected) {
-                "Class" -> dungeonTeammatesNoSelf.sortedWith(compareBy({ it.clazz.ordinal }, { it.name }))
+                "Class" -> dungeonTeammatesNoSelf.sortedWith(LeapMenu.classOrder.comparator<DungeonPlayer> { it.clazz }.thenBy { it.name })
                 "Name" -> dungeonTeammatesNoSelf.sortedBy { it.name }
                 "Custom" -> {
                     if (LeapMenu.fillEmpty) {

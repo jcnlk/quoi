@@ -12,7 +12,6 @@ import quoi.api.events.core.on
 import quoi.api.input.Keybinds
 import quoi.config.Config
 import quoi.module.Module
-import quoi.module.settings.impl.ListSetting
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.skyblock.item.ItemUtils.cleanName
@@ -28,16 +27,23 @@ object AutoSell : Module(
     "Auto Sell",
     desc = "Automatically sell items in trades, cookie and merchant menus. (/quoi autosell)"
 ) {
-    val sellList by ListSetting("Sell list", mutableSetOf<String>())
+    private val defaultItems = setOf(
+        "enchanted ice", "superboom tnt", "rotten", "skeleton master", "skeleton grunt", "cutlass",
+        "skeleton lord", "skeleton soldier", "zombie soldier", "zombie knight", "zombie commander", "zombie lord",
+        "skeletor", "super heavy", "heavy", "sniper helmet", "dreadlord", "earth shard", "zombie commander whip",
+        "machine gun", "sniper bow", "soulstealer bow", "silent death", "training weight", "beating heart",
+        "premium flesh", "mimic fragment", "enchanted rotten flesh", "sign", "enchanted bone", "defuse kit",
+        "optical lens", "tripwire hook", "button", "carpet", "lever", "diamond atom", "healing viii splash potion",
+        "healing 8 splash potion", "candycomb", "earthen blade", "conjuring", "bouncy",
+    )
+
+    val sellList by stringList(
+        "Sell list", mutableSetOf<String>(), desc = "Items containing one of these names are sold.",
+        placeholder = "Add item name...", defaults = defaultItems
+    ).normalises { it.normalizeItemName() }
+
     private val containerSettings = ContainerSettings(this)
     private val inventoryToggleKey by keybind("Toggle hovered item", Keybinds.KEY_NONE, desc = "Adds or removes the hovered item from the auto sell list while an inventory is open.")
-
-    @Suppress("unused")
-    private val addDefaults by button("Add defaults", desc = "Add default dungeon items to the auto sell list.") {
-        sellList.addAll(defaultItems)
-        modMessage("&aAdded default items to auto sell list")
-        Config.save()
-    }
 
     private val normalizedEntries get() = sellList.map { it.normalizeItemName() }.filter(String::isNotEmpty).distinct()
 
@@ -121,16 +127,6 @@ object AutoSell : Module(
         modMessage("${if (add) "Added" else "Removed"} \"$name\" ${if (add) "to" else "from"} the Auto sell list.")
         Config.save()
     }
-
-    private val defaultItems = setOf(
-        "enchanted ice", "superboom tnt", "rotten", "skeleton master", "skeleton grunt", "cutlass",
-        "skeleton lord", "skeleton soldier", "zombie soldier", "zombie knight", "zombie commander", "zombie lord",
-        "skeletor", "super heavy", "heavy", "sniper helmet", "dreadlord", "earth shard", "zombie commander whip",
-        "machine gun", "sniper bow", "soulstealer bow", "silent death", "training weight", "beating heart",
-        "premium flesh", "mimic fragment", "enchanted rotten flesh", "sign", "enchanted bone", "defuse kit",
-        "optical lens", "tripwire hook", "button", "carpet", "lever", "diamond atom", "healing viii splash potion",
-        "healing 8 splash potion", "candycomb", "earthen blade", "conjuring", "bouncy",
-    )
 
     // we love hypixel wiki: https://hypixelskyblock.minecraft.wiki/api.php?action=query&list=embeddedin&eititle=Template%3AShop_UI&eilimit=500&format=json
     private val sellMenus = setOf(

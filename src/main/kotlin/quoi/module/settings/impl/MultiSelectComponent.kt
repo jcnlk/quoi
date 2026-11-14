@@ -54,6 +54,7 @@ class MultiSelectComponent<T>(
     private val selectedName: String
         get() = when (selected.size) {
             0 -> "None"
+            options.size if options.size > 1 -> "All"
             1 -> nameOf(selected.first())
             else -> "${selected.size} selected"
         }
