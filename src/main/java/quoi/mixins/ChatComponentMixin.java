@@ -3,6 +3,7 @@ package quoi.mixins;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.llamalad7.mixinextras.sugar.Local;
 import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.ChatComponent;
@@ -95,15 +96,20 @@ public abstract class ChatComponentMixin implements IChatComponent {
     }
 
     @Inject(
-            method = "addClientSystemMessage(Lnet/minecraft/network/chat/Component;)V",
-            at = @At("HEAD"),
-            cancellable = true
+            method = "addMessage(Lnet/minecraft/network/chat/Component;Lnet/minecraft/network/chat/MessageSignature;Lnet/minecraft/client/multiplayer/chat/GuiMessageSource;Lnet/minecraft/client/multiplayer/chat/GuiMessageTag;)V",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/gui/components/ChatComponent;addMessageToDisplayQueue(Lnet/minecraft/client/multiplayer/chat/GuiMessage;)V"
+            ),
+            cancellable = true,
+            require = 1
     )
-    private void interceptMessage(Component message, CallbackInfo ci) {
+    private void interceptMessage(CallbackInfo ci, @Local GuiMessage queuedMessage) {
         Screen currentScreen = Minecraft.getInstance().gui.screen();
         if (currentScreen instanceof ISearchMode searchScreen) {
             if (searchScreen.quoi$isSearchActive()) {
-                searchScreen.quoi$queueMessage(message);
+                ((IGuiMessage) (Object) queuedMessage).quoi$setId(nextId);
+                searchScreen.quoi$queueMessage(queuedMessage);
                 ci.cancel();
             }
         }

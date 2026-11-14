@@ -35,7 +35,7 @@ public class ChatScreenMixin extends Screen implements ISearchMode {
     @Unique
     private static final List<GuiMessage> messageBackup = new ObjectArrayList<>();
     @Unique
-    private static final List<Component> queuedMessages = new ObjectArrayList<>();
+    private static final List<GuiMessage> queuedMessages = new ObjectArrayList<>();
     @Unique
     private static String textBeforeSearch = "";
 
@@ -101,8 +101,8 @@ public class ChatScreenMixin extends Screen implements ISearchMode {
             chatHud.allMessages.addAll(messageBackup);
             messageBackup.clear();
 
-            for (Component queuedMessage : queuedMessages) {
-                chatHud.addClientSystemMessage(queuedMessage);
+            for (GuiMessage queuedMessage : queuedMessages) {
+                chatHud.addMessageToQueue(queuedMessage);
             }
             queuedMessages.clear();
 
@@ -147,7 +147,7 @@ public class ChatScreenMixin extends Screen implements ISearchMode {
     }
 
     @Override
-    public void quoi$queueMessage(Component message) {
+    public void quoi$queueMessage(GuiMessage message) {
         queuedMessages.add(message);
     }
 }

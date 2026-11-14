@@ -18,6 +18,7 @@ accessible field net/minecraft/client/gui/components/ImageButton sprites Lnet/mi
 accessible field net/minecraft/client/gui/components/ChatComponent allMessages Ljava/util/List;
 accessible field net/minecraft/client/gui/components/ChatComponent trimmedMessages Ljava/util/List;
 accessible field net/minecraft/client/gui/components/ChatComponent chatScrollbarPos I
+accessible method net/minecraft/client/gui/components/ChatComponent addMessageToQueue (Lnet/minecraft/client/multiplayer/chat/GuiMessage;)V
 accessible method net/minecraft/client/gui/components/ChatComponent refreshTrimmedMessages ()V
 accessible method net/minecraft/client/gui/components/ChatComponent getWidth ()I
 accessible method net/minecraft/client/gui/components/ChatComponent getScale ()D
