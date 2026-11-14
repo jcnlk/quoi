@@ -13,6 +13,7 @@ import quoi.api.events.core.asyncScope
 import quoi.api.events.core.on
 import quoi.api.events.core.wait
 import quoi.api.skyblock.dungeon.Dungeon
+import quoi.api.skyblock.dungeon.terminals.TerminalUtils
 import quoi.module.Module
 import quoi.module.settings.impl.ListSetting
 import quoi.utils.ChatUtils.modMessage
@@ -194,7 +195,7 @@ object AutoHotbar : Module(
     }
 
     private suspend fun waitUntilNotInTerminal() {
-        while (Dungeon.inTerminal) {
+        while (TerminalUtils.inTerminal) {
             wait(1)
         }
     }

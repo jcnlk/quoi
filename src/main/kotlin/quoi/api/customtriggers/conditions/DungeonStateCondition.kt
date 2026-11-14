@@ -4,6 +4,7 @@ import quoi.api.abobaui.elements.ElementScope
 import quoi.api.customtriggers.TriggerContext
 import quoi.api.customtriggers.choiceField
 import quoi.api.skyblock.dungeon.Dungeon
+import quoi.api.skyblock.dungeon.terminals.TerminalUtils
 import quoi.config.TypeName
 
 @TypeName("dungeon_state")
@@ -15,7 +16,7 @@ class DungeonStateCondition(var state: State = State.IN_DUNGEON) : TriggerCondit
         State.IN_DUNGEON -> Dungeon.inDungeons
         State.CLEAR -> Dungeon.inClear
         State.BOSS -> Dungeon.inBoss
-        State.TERMINAL -> Dungeon.inTerminal
+        State.TERMINAL -> TerminalUtils.inTerminal
         State.DEAD -> Dungeon.inDungeons && Dungeon.isDead
     }
     override fun displayString() = state.label

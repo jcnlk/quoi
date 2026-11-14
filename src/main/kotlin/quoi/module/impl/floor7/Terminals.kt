@@ -8,6 +8,7 @@ import quoi.api.events.TickEvent
 import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.enums.Phase
+import quoi.api.skyblock.dungeon.terminals.TerminalUtils
 import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.location.invoke
 import quoi.module.Module
@@ -36,7 +37,7 @@ object Terminals : Module(
 
     init {
         on<TickEvent.Start> {
-            if (Dungeon.inTerminal || Dungeon.isDead || mc.gui.screen() != null) return@on
+            if (TerminalUtils.inTerminal || Dungeon.isDead || mc.gui.screen() != null) return@on
             if (System.currentTimeMillis() - lastClick < delay) return@on
 
             if (leapDelayEnabled) {

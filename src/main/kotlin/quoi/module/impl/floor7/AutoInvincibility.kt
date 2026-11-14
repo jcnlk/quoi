@@ -14,6 +14,7 @@ import quoi.api.skyblock.SkyblockPlayer.Mask
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.Floor7
 import quoi.api.skyblock.dungeon.enums.Phase
+import quoi.api.skyblock.dungeon.terminals.TerminalUtils
 import quoi.api.skyblock.location.Island
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf
@@ -232,7 +233,7 @@ object AutoInvincibility : Module(
     }
 
     private suspend fun waitUntilNotInTerminal(): Boolean {
-        while (Dungeon.inTerminal) {
+        while (TerminalUtils.inTerminal) {
             wait(1)
             if (Dungeon.isDead) return false
         }
