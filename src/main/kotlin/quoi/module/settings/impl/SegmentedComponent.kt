@@ -52,6 +52,10 @@ class SegmentedComponent<T>(
     private fun nameOf(item: T) =
         if (item is Enum<*>) item.name.replace(Regex("(?<=[a-z])(?=[A-Z])"), " ") else item.toString()
 
+    override fun reset() {
+        index = options.indexOf(defaultSelected)
+    }
+
     override fun write(): JsonElement = JsonPrimitive(nameOf(selected))
 
     override fun read(element: JsonElement) {

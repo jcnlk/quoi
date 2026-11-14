@@ -55,6 +55,10 @@ class SelectorComponent<T>(
 
     private fun optionIndex(value: T): Int = options.indexOf(value).coerceAtLeast(0)
 
+    override fun reset() {
+        selected = defaultSelected
+    }
+
     override fun write(): JsonElement = JsonPrimitive(selectedName)
 
     override fun read(element: JsonElement) {
