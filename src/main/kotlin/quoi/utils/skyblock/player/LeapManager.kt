@@ -2,10 +2,7 @@ package quoi.utils.skyblock.player
 
 import quoi.QuoiMod.mc
 import quoi.annotations.Init
-import quoi.api.events.ChatEvent
-import quoi.api.events.PlayerEvent
-import quoi.api.events.TickEvent
-import quoi.api.events.WorldEvent
+import quoi.api.events.*
 import quoi.api.events.core.EventListener
 import quoi.api.events.core.Priority
 import quoi.api.events.core.on
@@ -41,9 +38,6 @@ object LeapManager : EventListener {
     private var task: ContainerTask? = null
     private var useInputSuppressed = false
 
-    var lastLeap = 0L // TODO: add SkyblockPlayerEvent.Leap event or smth
-        private set
-
     private val inProgress: Boolean
         get() = activeLeap != null
 
@@ -75,7 +69,6 @@ object LeapManager : EventListener {
             task?.cancel()
             resetActiveLeap()
             cooldowns.clear()
-            lastLeap = 0L
         }
 
         on<TickEvent.Start>(Priority.HIGHEST) {
@@ -217,7 +210,7 @@ object LeapManager : EventListener {
 
         when (result) {
             ContainerTaskResult.Success -> {
-                lastLeap = System.currentTimeMillis()
+                SkyblockPlayerEvent.Leap(leap.target).post()
                 modMessage("&aLeaping to ${formatName(leap.target)}")
             }
             ContainerTaskResult.Busy -> modMessage("&cFailed to leap: another container action is active")
