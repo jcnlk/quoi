@@ -148,6 +148,7 @@ object SkyblockPlayer : EventListener, Shortcuts {
             commandsTick = 80
         }
 
+        // TODO: make this less shit
         scheduleLoop {
             val name = player.inventory.getItem(39).displayName.string
             currentMask = when {
@@ -212,7 +213,7 @@ object SkyblockPlayer : EventListener, Shortcuts {
         }
 
         fun getTime(): String {
-            val highlight = PetUtils.currentPet?.matches("Phoenix") == true && when(this) {
+            val highlight = PetUtils.currentPet?.matches("Phoenix") == true && when (this) {
                 BONZO -> currentMask == Mask.BONZO && PHOENIX.currentCooldown <= 0
                 SPIRIT -> currentMask == Mask.SPIRIT && PHOENIX.currentCooldown <= 0
                 PHOENIX -> (currentMask == Mask.SPIRIT && SPIRIT.currentCooldown <= 0)

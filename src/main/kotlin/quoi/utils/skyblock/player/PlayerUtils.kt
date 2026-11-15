@@ -15,6 +15,7 @@ import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
 import quoi.QuoiMod.mc
+import quoi.api.events.PlayerEvent
 import quoi.api.world.Direction
 import quoi.utils.ChatUtils
 import quoi.utils.ChatUtils.literal
@@ -53,8 +54,10 @@ object PlayerUtils {
     }
 
     fun interact(hitResult: BlockHitResult? = null, swing: Boolean = false) = mc.player?.let { player ->
+        check(mc.isSameThread) { "Player interactions must run on the client thread" }
         val gameMode = mc.gameMode ?: return@let
         val hand = InteractionHand.MAIN_HAND
+        if (PlayerEvent.Interact.RightClick(player.getItemInHand(hand), hand, hitResult).post()) return@let
         if (hitResult == null) gameMode.useItem(player, hand)
         else gameMode.useItemOn(player, hand, hitResult)
         if (swing) player.swing(hand)
@@ -66,13 +69,13 @@ object PlayerUtils {
 
     fun LocalPlayer.eyePosition(forceSneak: Boolean = false) = Vec3(x, y + eyeHeight(forceSneak), z)
 
-    fun LocalPlayer.useItem(yaw: Number = this.yaw, pitch: Number = this.pitch) = mc.gameMode?.startPrediction { sequence ->
-        ServerboundUseItemPacket(
-            InteractionHand.MAIN_HAND,
-            sequence,
-            yaw.toFloat(),
-            pitch.toFloat()
-        )
+    fun LocalPlayer.useItem(yaw: Number = this.yaw, pitch: Number = this.pitch) = mc.gameMode?.let { gameMode ->
+        check(mc.isSameThread) { "Player interactions must run on the client thread" }
+        val hand = InteractionHand.MAIN_HAND
+        if (PlayerEvent.Interact.RightClick(getItemInHand(hand), hand, null).post()) return@let
+        gameMode.startPrediction { sequence ->
+            ServerboundUseItemPacket(hand, sequence, yaw.toFloat(), pitch.toFloat())
+        }
     }
 
     fun LocalPlayer.useItem(dir: Direction) = this.useItem(dir.yaw, dir.pitch)
