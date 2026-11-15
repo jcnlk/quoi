@@ -52,6 +52,8 @@ object AutoInvincibility : Module(
     }
     private val swapDelay by slider("Swap delay", 0, 0, 40, 1, desc = "Ticks to wait before swapping after an invincibility proc.", unit = "t")
     private val phoenixSwapMethod by selector("Swap method", PhoenixSwapMethod.RodSwap, desc = "Method used to swap to the Phoenix pet.").childOf(::items).visibleIf { InvincibilityType.PHOENIX in items }
+    private val swapBackPet by switch("Swap back to previous pet", true, desc = "Swaps back to the previous pet after Phoenix procced or timed out.").childOf(::items).visibleIf { InvincibilityType.PHOENIX in items }
+    private val swapBackItem by switch("Swap back to previous item", true, desc = "Swaps back to the previously held item after a rod swap.").childOf(::items).visibleIf { InvincibilityType.PHOENIX in items && phoenixSwapMethod.selected == PhoenixSwapMethod.RodSwap }
     private val bossOnly by switch("Boss only", desc = "Only triggers while being in boss room.")
     private val p3Only by switch("Phase 3 only", desc = "Only triggers during phase 3.")
     private val containerSettings = ContainerSettings(this)
@@ -163,6 +165,7 @@ object AutoInvincibility : Module(
                 return false
             }
 
+        val previousSlot = player.inventory.selectedSlot
         val swapped = SwapManager.swapToSlot(rodSlot)
         if (!swapped.success) return false
         if (!swapped.already) wait(1)
@@ -176,10 +179,16 @@ object AutoInvincibility : Module(
             wait(4)
             player.rightClick()
         }
+
+        if (swapBackItem && previousSlot != rodSlot) {
+            wait(1)
+            SwapManager.swapToSlot(previousSlot)
+        }
         return true
     }
 
     private fun schedulePetRestore(message: String, delay: Int = 0) {
+        if (!swapBackPet) return
         val pet = previousPet?.takeIf { it.isNotBlank() } ?: return
         phoenixWatchJob?.cancel()
 
