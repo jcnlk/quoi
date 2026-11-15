@@ -17,8 +17,7 @@ object DungeonAbilities : Module(
 ) {
     private val ultTriggers = mapOf(
         "[BOSS] Goldor: You have done it, you destroyed the factory…" to setOf(
-            DungeonClass.Healer,
-            DungeonClass.Tank
+            DungeonClass.Healer
         ),
         "⚠ Maxor is enraged! ⚠" to setOf(
             DungeonClass.Healer,
