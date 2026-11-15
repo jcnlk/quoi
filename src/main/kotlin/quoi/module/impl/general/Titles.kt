@@ -1,10 +1,11 @@
 package quoi.module.impl.general
 
 import net.minecraft.network.protocol.game.ClientboundInitializeBorderPacket
-import quoi.api.events.ChatEvent
+import quoi.api.events.SkyblockPlayerEvent
 import quoi.api.events.PacketEvent
 import quoi.api.events.PetEvent
 import quoi.api.events.core.on
+import quoi.api.skyblock.SkyblockPlayer.InvincibilityType
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf
@@ -26,15 +27,15 @@ object Titles : Module("Titles") {
     private val soundSettings = sound("Title sound").childOf(::titleSettings) { playSound }
 
     init {
-        on<ChatEvent.Packet> {
+        on<SkyblockPlayerEvent.Invincibility.Proc> {
             if (dungeonsOnly && !Dungeon.inDungeons) return@on
             if (bossOnly && !Dungeon.inBoss) return@on
 
             if (!invincibilityProc) return@on
-            when (unformatted) {
-                "Second Wind Activated! Your Spirit Mask saved your life!" -> showTitle("§fSpirit")
-                "Your ⚚ Bonzo's Mask saved your life!", "Your Bonzo's Mask saved your life!" -> showTitle("§cBonzo")
-                "Your Phoenix Pet saved you from certain death!" -> showTitle("§6Phoenix")
+            when (type) {
+                InvincibilityType.SPIRIT -> showTitle("§fSpirit")
+                InvincibilityType.BONZO -> showTitle("§cBonzo")
+                InvincibilityType.PHOENIX -> showTitle("§6Phoenix")
             }
         }
 

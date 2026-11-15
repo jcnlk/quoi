@@ -3,6 +3,7 @@ package quoi.api.skyblock
 import net.minecraft.world.entity.ai.attributes.Attributes
 import quoi.annotations.Init
 import quoi.api.events.ChatEvent
+import quoi.api.events.SkyblockPlayerEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
 import quoi.api.events.core.EventListener
@@ -187,6 +188,7 @@ object SkyblockPlayer : EventListener, Shortcuts {
                 BONZO, SPIRIT -> (customCooldown * multiplier).toInt()
                 PHOENIX -> customCooldown
             }
+            SkyblockPlayerEvent.Invincibility.Proc(this).post()
         }
 
         private fun defaultCooldown(): Int {

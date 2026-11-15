@@ -6,7 +6,7 @@ import quoi.api.abobaui.dsl.minus
 import quoi.api.abobaui.dsl.px
 import quoi.api.colour.Colour
 import quoi.api.colour.colour
-import quoi.api.events.ChatEvent
+import quoi.api.events.SkyblockPlayerEvent
 import quoi.api.events.core.on
 import quoi.api.skyblock.SkyblockPlayer.InvincibilityType
 import quoi.api.skyblock.dungeon.Dungeon.inBoss
@@ -51,11 +51,8 @@ object InvincibilityTimer : Module(
     }.withSettings(::bossOnly).setting()
 
     init {
-        on<ChatEvent.Packet> {
+        on<SkyblockPlayerEvent.Invincibility.Proc> {
             if (bossOnly && !inBoss) return@on
-
-            val type = InvincibilityType.entries.firstOrNull { unformatted.matches(it.regex) } ?: return@on
-            type.proc()
 
             val used = InvincibilityType.entries.count { it.currentCooldown > 0 }
             if (invincibilityAnnounce) sendCommand("pc ${type.displayName} Procced! ($used/${InvincibilityType.entries.size})")
