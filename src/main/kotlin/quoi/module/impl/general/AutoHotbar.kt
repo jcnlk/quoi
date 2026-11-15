@@ -179,7 +179,13 @@ object AutoHotbar : Module(
                 modMessage("&aEquipping preset &e${preset.name}&a.")
 
                 runSwapPasses(preset)
-                modMessage("&aPreset &e${preset.name} &aequipped.")
+                val equipped = (HOTBAR_START..HOTBAR_END).all { slot ->
+                    val item = preset.slots.getOrNull(slot) ?: HotbarItem()
+                    val stack = player.inventory.getItem(slot)
+                    if (item.isEmpty) stack.isEmpty else item.matches(stack)
+                }
+                if (equipped) modMessage("&aPreset &e${preset.name} &aequipped.")
+                else modMessage("&cPreset &e${preset.name} &ccould not be fully equipped.")
             } finally {
                 endSwap(preset.name)
                 if (swapJob == this.coroutineContext[Job]) swapJob = null
@@ -250,11 +256,12 @@ object AutoHotbar : Module(
             return clearSlot(slot, interacted)
         }
 
+        if (includeHotbar && item.matches(player.inventory.getItem(slot))) interacted.add(slot)
         val itemSlot = findMatchingInventorySlot(item, slot, interacted, includeHotbar)
         if (itemSlot == NOT_FOUND || slot in interacted) return false
         if (includeHotbar && itemSlot !in HOTBAR_START..HOTBAR_END) return false
 
-        interacted.add(itemSlot)
+        interacted.add(if (includeHotbar) slot else itemSlot)
         return swapWithHotbar(itemSlot, slot)
     }
 
