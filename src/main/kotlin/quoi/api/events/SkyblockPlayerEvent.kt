@@ -10,5 +10,5 @@ abstract class SkyblockPlayerEvent { // TODO: add more sb player related events 
         class Proc(val type: InvincibilityType) : Event()
     }
 
-    class Leap(val target: DungeonPlayer) : Event()
+    class Leap(val target: DungeonPlayer) : Event() // TODO: fix it not firing when manually leaping
 }

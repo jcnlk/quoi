@@ -28,11 +28,16 @@ class AutoLeap(parent: Module) : LeapSettings(parent, "Auto Leap", automatic = t
     private val stormEnrage = LeapTarget(
         this, "Storm enrage leap", "Leap when Storm becomes enraged while P2 is active."
     ) { Floor7.inPhase(Phase.P2) }
+    private val firstDragonDeathLeap = LeapTarget(
+        this,
+        "First dragon death leap", "Leap when first dragon dies."
+    ) { Floor7.inPhase(Phase.P5) }
     private val whenBlown by switch("Only when gate blown", desc = "Also waits for the gate, or the Core entrance in section 4.").childOf(p3)
     private var crystalCount = 0
     private var crushCount = 0
     private var p4Leaped = false
     private var pickedUpRelic = false
+    private var firstDragonDied = false
     private val relicIds = setOf("GREEN_KING_RELIC", "PURPLE_KING_RELIC", "BLUE_KING_RELIC", "ORANGE_KING_RELIC", "RED_KING_RELIC")
 
     init {
@@ -74,6 +79,12 @@ class AutoLeap(parent: Module) : LeapSettings(parent, "Auto Leap", automatic = t
         on<DungeonEvent.DoorOpen> {
             if (!Dungeon.inBoss) leapToDoorOpener(opener)
         }
+
+        on<DungeonEvent.Dragon.Death> {
+            if (firstDragonDied || reason == DungeonEvent.Dragon.Death.Reason.SpawnTimeout) return@on
+            firstDragonDied = true
+            firstDragonDeathLeap.leap()
+        }
     }
 
     private fun completeSection(stage: Stage) {
@@ -85,5 +96,6 @@ class AutoLeap(parent: Module) : LeapSettings(parent, "Auto Leap", automatic = t
         crushCount = 0
         p4Leaped = false
         pickedUpRelic = false
+        firstDragonDied = false
     }
 }
