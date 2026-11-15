@@ -22,7 +22,6 @@ import quoi.api.skyblock.dungeon.enums.*
 import quoi.api.skyblock.dungeon.odonscanning.ScanUtils
 import quoi.api.skyblock.dungeon.odonscanning.tiles.OdonRoom
 import quoi.api.skyblock.dungeon.terminals.TerminalType
-import quoi.api.skyblock.dungeon.terminals.TerminalUtils
 import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.location.Location
 import quoi.api.skyblock.location.Location.onAlpha
@@ -44,7 +43,6 @@ import kotlin.math.floor
 @Init
 @Suppress("unused")
 object Dungeon : EventListener, Shortcuts {
-
     inline val inDungeons: Boolean
         get() = Location.currentArea.isArea(Island.Dungeon)
 
@@ -59,10 +57,6 @@ object Dungeon : EventListener, Shortcuts {
 
     inline val inBoss: Boolean
         get() = inGame && getBoss()
-
-    @Deprecated("dead", ReplaceWith("TerminalUtils.inTerminal", "quoi.api.skyblock.dungeon.terminals.TerminalUtils"))
-    val inTerminal: Boolean
-        get() = TerminalUtils.inTerminal
 
     inline val secretCount: Int
         get() = dungeonStats.secretsFound
