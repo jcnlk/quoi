@@ -45,6 +45,7 @@ object LeapManager : EventListener {
         on<PlayerEvent.Interact.RightClick>(Priority.LOWEST) {
             if (!inDungeons) return@on
             val skyblockId = item.skyblockId
+            if ((cooldowns[skyblockId] ?: 0) > 0) return@on
             val baseTicks = when (skyblockId) {
                 "SPIRIT_LEAP" -> 107 // 5s cd but 7 ticks for lag and other bs
                 "INFINITE_SPIRIT_LEAP" -> 47 // 2s cd but 7 ticks for lag and other bs
