@@ -4,9 +4,6 @@
   "forkProcessing": "enabled",
   "baseBranchPatterns": ["multiversion"],
   "enabledManagers": ["gradle", "gradle-wrapper", "github-actions", "custom.regex"],
-  "dependencyDashboard": {
-    "enabled": true
-  },
   "schedule": ["* 0-11 * * 1"],
   "prConcurrentLimit": 5,
   "prHourlyLimit": 2,
