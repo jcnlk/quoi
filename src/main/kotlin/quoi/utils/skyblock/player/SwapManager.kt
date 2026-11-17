@@ -13,6 +13,7 @@ import quoi.api.events.core.on
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.Shortcuts
 import quoi.utils.StringUtils.noControlCodes
+import quoi.utils.skyblock.item.ItemUtils.cleanName
 import quoi.utils.skyblock.item.ItemUtils.loreString
 import quoi.utils.skyblock.item.ItemUtils.skyblockId
 
@@ -65,6 +66,8 @@ object SwapManager : EventListener, Shortcuts {
     }
 
     fun swapByLore(lore: String) = findAndSwap(lore) { it.loreString.noControlCodes.contains(lore, true) }
+
+    fun swapByName(name: String) = findAndSwap(name) { it.cleanName.contains(name, true) }
 
     fun swapById(vararg skyblockIds: String) = findAndSwap(*skyblockIds) { stack ->
         val id = stack.skyblockId
