@@ -89,6 +89,37 @@ object StringUtils {
     fun String.containsOneOf(options: Collection<String>, ignoreCase: Boolean = false): Boolean =
         options.any { this.contains(it, ignoreCase) }
 
+    fun String.endsWithOneOf(vararg options: String, ignoreCase: Boolean = false): Boolean =
+        options.any { this.endsWith(it, ignoreCase) }
+
+    fun String.equalsOneOf(vararg options: String, ignoreCase: Boolean = false): Boolean =
+        options.any { this.equals(it, ignoreCase) }
+
+    fun String.matchesOneOf(vararg patterns: Regex): Boolean =
+        patterns.any { it.matches(this) }
+
+    fun String.remove(vararg parts: String): String =
+        parts.fold(this) { acc, part -> acc.replace(part, "") }
+
+    fun String.remove(vararg patterns: Regex): String =
+        patterns.fold(this) { acc, pattern -> acc.replace(pattern, "") }
+
+    /**
+     * HYPERION_ULTIMATE -> Hyperion Ultimate
+     */
+    fun String.capitaliseWords(): String =
+        split(' ', '_').filter { it.isNotEmpty() }.joinToString(" ") { it.capitaliseFirst() }
+
+    fun String.truncate(maxLength: Int, ellipsis: String = "..."): String {
+        require(maxLength >= 0) { "maxLength must be non-negative" }
+        if (length <= maxLength) return this
+        if (maxLength <= ellipsis.length) return take(maxLength)
+        return take(maxLength - ellipsis.length) + ellipsis
+    }
+
+    fun Number.pluralise(singular: String, plural: String = singular + "s"): String =
+        "$this ${if (toDouble() == 1.0) singular else plural}"
+
     fun Number.toFixed(decimals: Int = 2): String =
         "%.${decimals}f".format(Locale.US, this)
 

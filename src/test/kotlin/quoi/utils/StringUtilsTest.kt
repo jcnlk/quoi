@@ -3,13 +3,20 @@ package quoi.utils
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
+import quoi.utils.StringUtils.capitaliseWords
 import quoi.utils.StringUtils.containsOneOf
 import quoi.utils.StringUtils.dropAt
+import quoi.utils.StringUtils.endsWithOneOf
+import quoi.utils.StringUtils.equalsOneOf
+import quoi.utils.StringUtils.matchesOneOf
 import quoi.utils.StringUtils.noControlCodes
+import quoi.utils.StringUtils.pluralise
+import quoi.utils.StringUtils.remove
 import quoi.utils.StringUtils.removeRangeSafe
 import quoi.utils.StringUtils.startsWithOneOf
 import quoi.utils.StringUtils.substringSafe
 import quoi.utils.StringUtils.toFixed
+import quoi.utils.StringUtils.truncate
 import java.util.Locale
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -128,5 +135,32 @@ class StringUtilsTest {
         assertEquals("", absent.noControlCodes)
         assertEquals("猫 😺", "§a猫 &l😺§r".noControlCodes)
         assertEquals("Fish & chips", "Fish & chips".noControlCodes)
+    }
+
+    @Test
+    fun `one-of checks cover suffixes, equality and patterns`() {
+        assertTrue("Hyperion.png".endsWithOneOf(".jpg", ".PNG", ignoreCase = true))
+        assertFalse("Hyperion.png".endsWithOneOf(".PNG"))
+        assertTrue("goldor".equalsOneOf("Storm", "GOLDOR", ignoreCase = true))
+        assertFalse("goldor".equalsOneOf("GOLDOR"))
+        assertTrue("F7".matchesOneOf(Regex("M\\d"), Regex("F\\d")))
+        assertFalse("F7 boss".matchesOneOf(Regex("F\\d")))
+    }
+
+    @Test
+    fun `text helpers remove, capitalise, truncate and pluralise`() {
+        assertEquals("Hello", "[VIP] Hello!".remove("[VIP] ", "!"))
+        assertEquals("abc", "a1b22c333".remove(Regex("\\d+")))
+        assertEquals("Hyperion Ultimate Wise", "HYPERION_ULTIMATE__wise".capitaliseWords())
+        assertEquals("", "".capitaliseWords())
+
+        assertEquals("Hello", "Hello".truncate(5))
+        assertEquals("He...", "Hello world".truncate(5))
+        assertEquals("He", "Hello".truncate(2))
+        assertEquals("He--", "Hello".truncate(4, "--"))
+
+        assertEquals("1 secret", 1.pluralise("secret"))
+        assertEquals("3 secrets", 3.pluralise("secret"))
+        assertEquals("2 enemies", 2.pluralise("enemy", "enemies"))
     }
 }
