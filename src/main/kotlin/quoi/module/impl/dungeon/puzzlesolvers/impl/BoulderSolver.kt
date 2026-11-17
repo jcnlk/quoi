@@ -11,9 +11,9 @@ import quoi.QuoiMod.logger
 import quoi.api.colour.Colour
 import quoi.api.colour.withAlpha
 import quoi.api.events.DungeonEvent
+import quoi.api.events.PlayerEvent
 import quoi.api.events.RenderEvent
 import quoi.api.events.TickEvent
-import quoi.api.events.UseItemOnPostEvent
 import quoi.api.events.WorldEvent
 import quoi.api.events.core.Event
 import quoi.api.events.core.on
@@ -70,7 +70,7 @@ object BoulderSolver : SettingGroup(PuzzleSolvers, "Boulder") {
             if (solver) onRenderWorld(ctx, showAll, style.selected, colour)
         }
 
-        on<UseItemOnPostEvent> {
+        on<PlayerEvent.UseBlock.Post> {
             if ((solver || triggerbot) && hand == InteractionHand.MAIN_HAND && interactionResult.consumesAction()) onInteract(hitResult.blockPos)
         }
 

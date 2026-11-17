@@ -8,7 +8,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import quoi.api.events.BlockEvent;
-import quoi.api.events.UseItemOnPostEvent;
+import quoi.api.events.PlayerEvent;
 import quoi.module.impl.general.Tweaks;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -24,7 +24,7 @@ import static quoi.module.impl.general.Tweaks.shouldSb;
 public class MultiPlayerGameModeMixin {
     @Inject(method = "useItemOn(Lnet/minecraft/client/player/LocalPlayer;Lnet/minecraft/world/InteractionHand;Lnet/minecraft/world/phys/BlockHitResult;)Lnet/minecraft/world/InteractionResult;", at = @At("RETURN"))
     private void onUseItemOnReturn(LocalPlayer player, InteractionHand hand, BlockHitResult hitResult, CallbackInfoReturnable<InteractionResult> cir) {
-        new UseItemOnPostEvent(hand, hitResult, cir.getReturnValue()).post();
+        new PlayerEvent.UseBlock.Post(hand, hitResult, cir.getReturnValue()).post();
     }
 
     @WrapOperation(
