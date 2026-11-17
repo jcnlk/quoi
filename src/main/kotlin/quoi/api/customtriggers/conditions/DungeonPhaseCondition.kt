@@ -17,6 +17,7 @@ class DungeonPhaseCondition(var phase: Phase = Phase.P3) : TriggerCondition() {
         DungeonCheckMode.POSITION -> Floor7.inPhaseAt(phase)
     }
     override fun displayString() = "${mode.label}: phase ${phase.name}"
+    override fun invertedString() = "${mode.label}: not phase ${phase.name}"
     override fun ElementScope<*>.draw() = settingRow(
         { choiceField("Check", { mode }, DungeonCheckMode.entries, { it.label }) { mode = it } },
         { choiceField("Phase", { phase }, Phase.entries.filter { it != Phase.Unknown }) { phase = it } }

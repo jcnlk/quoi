@@ -11,5 +11,6 @@ import quoi.config.TypeName
 class DungeonFloorCondition(var floor: Floor = Floor.F7) : TriggerCondition() {
     override fun matches(ctx: TriggerContext) = Dungeon.inDungeons && Dungeon.floor == floor
     override fun displayString() = "Dungeon floor: ${floor.name}"
+    override fun invertedString() = "Not on floor ${floor.name}"
     override fun ElementScope<*>.draw() = choiceField("Floor", { floor }, Floor.entries) { floor = it }
 }

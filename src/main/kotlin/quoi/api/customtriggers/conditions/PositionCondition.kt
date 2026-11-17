@@ -28,6 +28,8 @@ class PositionCondition(var aabb: AABB = AABB(BlockPos(0, 0, 0))) : TriggerCondi
         return "Player at $x,$y,$z [$size]"
     }
 
+    override fun invertedString() = displayString().replaceFirst("Player at", "Player not at")
+
     override fun ElementScope<*>.draw() = column(size(w = Copying), gap = 8.px) {
         val values = doubleArrayOf(aabb.minX, aabb.minY, aabb.minZ, aabb.maxX, aabb.maxY, aabb.maxZ)
         listOf("Min", "Max").forEachIndexed { row, prefix ->

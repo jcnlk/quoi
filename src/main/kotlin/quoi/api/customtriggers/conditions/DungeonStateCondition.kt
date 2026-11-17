@@ -9,8 +9,12 @@ import quoi.config.TypeName
 
 @TypeName("dungeon_state")
 class DungeonStateCondition(var state: State = State.IN_DUNGEON) : TriggerCondition() {
-    enum class State(val label: String) {
-        IN_DUNGEON("In dungeon"), CLEAR("In clear"), BOSS("In boss"), TERMINAL("In terminal"), DEAD("Player is dead")
+    enum class State(val label: String, val inverted: String) {
+        IN_DUNGEON("In dungeon", "Not in a dungeon"),
+        CLEAR("In clear", "Not in clear"),
+        BOSS("In boss", "Not in boss"),
+        TERMINAL("In terminal", "Not in a terminal"),
+        DEAD("Player is dead", "Player is not dead"),
     }
     override fun matches(ctx: TriggerContext) = when (state) {
         State.IN_DUNGEON -> Dungeon.inDungeons
@@ -20,5 +24,6 @@ class DungeonStateCondition(var state: State = State.IN_DUNGEON) : TriggerCondit
         State.DEAD -> Dungeon.inDungeons && Dungeon.isDead
     }
     override fun displayString() = state.label
+    override fun invertedString() = state.inverted
     override fun ElementScope<*>.draw() = choiceField("State", { state }, State.entries, { it.label }) { state = it }
 }

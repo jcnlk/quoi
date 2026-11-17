@@ -15,6 +15,7 @@ class HealthCondition(var comparison: Comparison = Comparison.BELOW, var percent
         return if (comparison == Comparison.BELOW) current <= percent else current >= percent
     }
     override fun displayString() = "Health ${comparison.label.lowercase()} $percent%"
+    override fun invertedString() = "Health ${if (comparison == Comparison.BELOW) "above" else "below"} $percent%"
     override fun ElementScope<*>.draw() = settingRow(
         { choiceField("Compare", { comparison }, Comparison.entries, { it.label }) { comparison = it } },
         { intField("Percent", { percent }, 0, 100) { percent = it } }

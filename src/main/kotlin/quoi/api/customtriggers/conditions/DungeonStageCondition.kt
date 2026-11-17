@@ -17,6 +17,7 @@ class DungeonStageCondition(var stage: Stage = Stage.S1) : TriggerCondition() {
         DungeonCheckMode.POSITION -> Floor7.getStageAt() == stage
     }
     override fun displayString() = "${mode.label}: stage ${stage.name}"
+    override fun invertedString() = "${mode.label}: not stage ${stage.name}"
     override fun ElementScope<*>.draw() = settingRow(
         { choiceField("Check", { mode }, DungeonCheckMode.entries, { it.label }) { mode = it } },
         { choiceField("Stage", { stage }, Stage.entries.filter { it != Stage.Unknown }) { stage = it } }

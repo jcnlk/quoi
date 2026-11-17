@@ -21,6 +21,7 @@ class HoldingItemCondition(
         return !stack.isEmpty && matchesItem(stack.cleanName, stack.skyblockId.orEmpty())
     }
     override fun displayString() = "Holding ${matcher.pattern}"
+    override fun invertedString() = "Not holding ${matcher.pattern}"
     override fun ElementScope<*>.draw() = settingRow(
         { choiceField("Compare", { field }, Field.entries, { it.label }) { field = it } },
         { choiceField("Match", { matcher.mode }, TextMatchMode.entries, { if (it == TextMatchMode.INCLUDES) "Contains" else it.label }) { matcher.mode = it } },

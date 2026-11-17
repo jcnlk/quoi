@@ -12,6 +12,7 @@ import quoi.api.skyblock.dungeon.enums.DungeonClass
 class DungeonClassCondition(var clazz: DungeonClass = DungeonClass.Mage) : TriggerCondition() {
     override fun matches(ctx: TriggerContext) = Dungeon.inDungeons && Dungeon.currentDungeonPlayer.clazz == clazz
     override fun displayString() = "Dungeon class: ${clazz.name}"
+    override fun invertedString() = "Not playing ${clazz.name}"
     override fun ElementScope<*>.draw() = column(size(w = Copying)) {
         choiceField("Class", { clazz }, DungeonClass.entries) { clazz = it }
     }

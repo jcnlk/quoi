@@ -1,7 +1,7 @@
 package quoi.module.impl.misc
 
 import quoi.api.customtriggers.TriggerManager
-import quoi.api.customtriggers.ui.CustomTriggerEditor
+import quoi.api.customtriggers.ui.TriggerEditor
 import quoi.module.Module
 import quoi.utils.ui.screens.UIScreen.Companion.open
 
@@ -11,11 +11,11 @@ object CustomTriggers : Module(
     tag = Tag.BETA
 ) {
     @Suppress("unused")
-    private val editor by button("Open editor") { open(CustomTriggerEditor().build()) }
+    private val editor by button("Open editor") { open(TriggerEditor().build()) }
 
     init {
         TriggerManager.init()
-        command.sub("ct") { open(CustomTriggerEditor().build()) }.description("Opens Custom Triggers editor.")
+        command.sub("ct") { open(TriggerEditor().build()) }.description("Opens Custom Triggers editor.")
     }
 
     override fun onDisable() = TriggerManager.reset()

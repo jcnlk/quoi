@@ -39,8 +39,21 @@ object TriggerManager : EventListener {
         onError = { trigger, error ->
             logger.error("Custom trigger '${trigger.name}' failed", error)
             modMessage("&cCustom trigger '${trigger.name}' stopped: ${error.message}. Reopen the editor to retry.")
-        }
+        },
+        onRun = { trigger -> runs.getOrPut(trigger.id) { RunStats() }.record() }
     )
+
+    /** Action starts in this game session, excluding editor tests. */
+    class RunStats(var count: Int = 0, var lastMillis: Long = 0L) {
+        fun record() {
+            count++
+            lastMillis = System.currentTimeMillis()
+        }
+    }
+
+    private val runs = hashMapOf<String, RunStats>()
+
+    fun runStats(trigger: TriggerRule): RunStats? = runs[trigger.id]
     private var previewTrigger: TriggerRule? = null
     private val previewEngine = TriggerEngine(
         triggers = { listOfNotNull(previewTrigger) },
@@ -136,17 +149,27 @@ object TriggerManager : EventListener {
     }
 
     /**
+     * @return why [test] cannot run, or `null` if it can start
+     */
+    fun testError(trigger: TriggerRule): String? {
+        if (!CustomTriggers.enabled) return "Turn on the Custom Triggers module first."
+        if (!editing || mc.player == null || mc.level == null) return "Join a world to run actions."
+        if (!Location.inSkyblock) return "Actions only run in SkyBlock."
+        trigger.validationError()?.let { return it }
+        if (trigger.actions.any { it.requiredEvent != null }) return "Hide and replace actions need a real chat message."
+        return null
+    }
+
+    fun testRunning(trigger: TriggerRule) = previewTrigger?.id == trigger.id && previewEngine.busy
+
+    /**
      * Tests the actions of a rule while the editor is open.
      * Event-editing actions require a real event and cannot be previewed.
      *
      * @return an error message if the preview cannot start, otherwise `null`
      */
     fun test(trigger: TriggerRule): String? {
-        if (!CustomTriggers.enabled) return "Enable Custom Triggers before testing actions."
-        if (!editing || mc.player == null || mc.level == null) return "Open the editor in a world to test actions."
-        if (!Location.inSkyblock) return "Custom Triggers only run in SkyBlock."
-        trigger.validationError()?.let { return it }
-        if (trigger.actions.any { it.requiredEvent != null }) return "Hide/replace actions need a real incoming event and cannot be previewed."
+        testError(trigger)?.let { return it }
         val snapshot = ConfigSystem.gson.fromJson(ConfigSystem.gson.toJson(trigger), TriggerRule::class.java)
             .copy(enabled = true)
         reset()

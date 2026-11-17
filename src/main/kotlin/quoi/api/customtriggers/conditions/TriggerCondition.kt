@@ -12,4 +12,10 @@ sealed class TriggerCondition : TypeNamed, Abobable {
     var expected: Boolean = true
 
     abstract fun matches(ctx: TriggerContext): Boolean
+
+    /** Display text for the inverted check. */
+    protected open fun invertedString(): String = "Not: ${displayString()}"
+
+    /** Display text accounting for [expected]. */
+    fun summary(): String = if (expected) displayString() else invertedString()
 }

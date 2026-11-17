@@ -15,6 +15,11 @@ class PartyCondition(var state: State = State.IN_PARTY, var member: String = "")
         State.HAS_MEMBER -> PartyUtils.members.any { it.equals(member.trim(), true) }
     }
     override fun displayString() = if (state == State.HAS_MEMBER) "Party has $member" else state.label
+    override fun invertedString() = when (state) {
+        State.IN_PARTY -> "Not in a party"
+        State.LEADER -> "Not party leader"
+        State.HAS_MEMBER -> "Party does not have $member"
+    }
     override fun ElementScope<*>.draw() = settingRow(
         { choiceField("State", { state }, State.entries, { it.label }) { state = it } },
         { textField("Member", member) { member = it } }

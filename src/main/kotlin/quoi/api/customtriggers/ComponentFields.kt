@@ -14,6 +14,7 @@ import quoi.api.input.CursorShape
 import quoi.utils.StringUtils.toFixed
 import quoi.utils.ThemeManager.theme
 import quoi.utils.ui.cursor
+import quoi.api.customtriggers.ui.escapeLeavesField
 import quoi.api.customtriggers.ui.triggerDropdown
 import quoi.utils.ui.elements.slider
 import quoi.utils.ui.elements.switch
@@ -26,6 +27,7 @@ fun ElementScope<*>.textField(label: String, value: String, update: (String) -> 
         textInput(string = value, pos = at(x = 8.px, y = Centre), size = 14.px,
             colour = theme.onSurface, caretColour = theme.primary) {
             maxWidth(Copying - 16.px)
+            escapeLeavesField()
             onTextChanged { update(it.string) }
         }
     }
@@ -61,6 +63,7 @@ fun ElementScope<*>.numberField(label: String, value: () -> Double, min: Double 
         textInput(string = value().toString(), pos = at(x = 8.px, y = Centre), size = 14.px,
             colour = theme.onSurface, caretColour = theme.primary) {
             maxWidth(Copying - 16.px)
+            escapeLeavesField()
             onTextChanged { event ->
                 event.string.toDoubleOrNull()?.takeIf { it.isFinite() && it in min..max }?.let(update)
             }
@@ -112,6 +115,7 @@ fun ElementScope<*>.intField(label: String, value: () -> Int, min: Int, max: Int
         textInput(string = value().toString(), pos = at(x = 8.px, y = Centre), size = 14.px,
             colour = theme.onSurface, caretColour = theme.primary) {
             maxWidth(Copying - 16.px)
+            escapeLeavesField()
             onTextChanged { event ->
                 if (event.string.isNotEmpty() && event.string.toIntOrNull()?.let { it in min..max } != true) event.cancel()
                 else event.string.toIntOrNull()?.let(update)

@@ -17,11 +17,15 @@ class TriggerEngine(
     private val matches: (TriggerCondition, TriggerContext) -> Boolean = { condition, context -> condition.matches(context) },
     private val isActive: () -> Boolean = { true },
     private val onError: (TriggerRule, Exception) -> Unit = { _, _ -> },
+    private val onRun: (TriggerRule) -> Unit = {},
 ) {
     private val failed = mutableSetOf<String>()
     private val pending = mutableListOf<PendingSequence>()
     private var dispatching = false
     private var generation = 0L
+
+    /** A sequence is waiting for a delay or container task. */
+    val busy get() = pending.isNotEmpty()
 
     private data class PendingSequence(
         val trigger: TriggerRule,
@@ -52,6 +56,7 @@ class TriggerEngine(
                 if (trigger.validationError() != null) return@safely
                 val local = trigger.trigger.createContext(context) ?: return@safely
                 if (!trigger.conditions.all { matches(it, local) == it.expected }) return@safely
+                onRun(trigger)
                 if (!resume(trigger, trigger.actions.toList(), 0, local, started)) return@safely
                 when (context) {
                     is TriggerContext.Chat if local is TriggerContext.Chat -> context.cancelled = context.cancelled || local.cancelled
