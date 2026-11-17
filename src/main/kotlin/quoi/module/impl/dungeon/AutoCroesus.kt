@@ -1,6 +1,12 @@
 package quoi.module.impl.dungeon
 
+import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents
+import net.fabricmc.fabric.api.client.screen.v1.Screens
+import net.minecraft.client.gui.components.Button
+import net.minecraft.client.gui.components.Tooltip
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
+import net.minecraft.client.gui.screens.inventory.ContainerScreen
+import net.minecraft.network.chat.Component
 import net.minecraft.network.protocol.game.ServerboundContainerClosePacket
 import net.minecraft.network.protocol.game.ServerboundInteractPacket
 import net.minecraft.world.InteractionHand
@@ -103,6 +109,7 @@ object AutoCroesus : Module(
     private val failedIndexes = mutableSetOf<Int>()
     private val loggedIndexes = mutableSetOf<Int>()
     private val log = mutableListOf<String>()
+    private var pendingStart: Any? = null
     private var claiming = false
     private var waitingForCroesus = false
     private var waitingForRunToOpen = false
@@ -119,8 +126,24 @@ object AutoCroesus : Module(
     init {
         registerCommands()
 
+        ScreenEvents.AFTER_INIT.register { _, screen, width, height ->
+            if (!active || screen !is ContainerScreen || !screen.title.string.matches(croesusRegex)) return@register
+
+            val chestRight = (width + 176) / 2
+            val chestTop = (height - 114 - 18 * screen.menu.rowCount) / 2
+            val buttonWidth = 64
+            val button = Button.builder(Component.literal("Start Auto")) { startWithPriceUpdate(screen) }
+                .bounds(chestRight - buttonWidth - 6, chestTop + 2, buttonWidth, 14)
+                .tooltip(Tooltip.create(Component.literal("Start Auto Croesus")))
+                .build()
+
+            button.active = canStartFrom(screen)
+            Screens.getWidgets(screen).add(button)
+            ScreenEvents.afterTick(screen).register { button.active = canStartFrom(screen) }
+        }
+
         on<TickEvent.Start> {
-            if (claiming && killSwitch.key != Keybinds.KEY_NONE && Keyboard.isKeyDown(killSwitch.key)) {
+            if ((claiming || pendingStart != null) && killSwitch.key != Keybinds.KEY_NONE && Keyboard.isKeyDown(killSwitch.key)) {
                 reset()
                 modMessage("&cAuto Croesus stopped.")
                 return@on
@@ -213,10 +236,18 @@ object AutoCroesus : Module(
         startWithPriceUpdate()
     }
 
-    private fun startWithPriceUpdate() {
+    private fun canStartFrom(screen: ContainerScreen?): Boolean =
+        enabled && !claiming && pendingStart == null && (screen == null || active && mc.gui.screen() === screen)
+
+    private fun startWithPriceUpdate(screen: ContainerScreen? = null) {
+        if (!canStartFrom(screen)) return
+        val request = Any()
+        pendingStart = request
         log.clear()
         SkyblockPrices.ensureFresh { success ->
-            if (!enabled) return@ensureFresh
+            if (pendingStart !== request) return@ensureFresh
+            pendingStart = null
+            if (!canStartFrom(screen)) return@ensureFresh
             if (!success) return@ensureFresh modMessage("&cAuto Croesus could not update prices.")
             claiming = true
             modMessage("&aAuto Croesus activated.")
@@ -589,6 +620,7 @@ object AutoCroesus : Module(
     }
 
     private fun reset() {
+        pendingStart = null
         claiming = false
         waitingForCroesus = false
         waitingForRunToOpen = false
