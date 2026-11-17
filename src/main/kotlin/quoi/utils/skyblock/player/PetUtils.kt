@@ -41,7 +41,7 @@ import quoi.utils.skyblock.item.ItemUtils.loreString
 @Init
 @OptIn(Internal::class)
 object PetUtils : EventListener, Shortcuts {
-    private val summonPattern = Regex("^You (summoned|despawned) your (.+?)(?: ✦)?!$")
+    private val summonPattern = Regex("^You (summoned|despawned) your \\[Lvl (\\d+)] (.+?)(?: ✦)?!$")
     private val autopetPattern = Regex("^Autopet equipped your \\[Lvl (\\d+)] (.+?)! VIEW RULE$")
     private val levelUpPattern = Regex("^Your (.+?) leveled up to level (\\d+)!$")
     private val petMenuPattern = Regex("""^(?:\(\d+/\d+\) )?Pets$""")
@@ -81,13 +81,14 @@ object PetUtils : EventListener, Shortcuts {
         on<ChatEvent.Packet> {
             if (!Location.inSkyblock) return@on
 
-            summonPattern.matchEntire(unformatted)?.destructured?.let { (action, name) ->
+            summonPattern.matchEntire(unformatted)?.destructured?.let { (action, levelText, name) ->
                 val pet = if (action == "summoned") {
+                    val level = levelText.toIntOrNull()
                     val rarity = text.petRarity(name)
                     clickedPet
                         ?.takeIf { it.matches(name) }
-                        ?.merge(Pet(Pet.cleanName(name), rarity = rarity))
-                        ?: resolvePet(name, rarity = rarity)
+                        ?.merge(Pet(Pet.cleanName(name), level = level, rarity = rarity))
+                        ?: resolvePet(name, level, rarity)
                 } else {
                     null
                 }
