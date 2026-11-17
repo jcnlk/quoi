@@ -73,7 +73,7 @@ object ChatReplacements : ToggleableGroup(
             return ReplaceMessage(replacedMessage, "§dDungeon§f >")
         }
 
-        if (message in hiddenDungeonRareDrops) return HideMessage
+        if (hiddenDungeonRareDropRegex.matches(message)) return HideMessage
         if (hiddenDungeonMessagePatterns.any { it.containsMatchIn(message) }) return HideMessage
         return null
     }
@@ -107,12 +107,8 @@ object ChatReplacements : ToggleableGroup(
         return null
     }
 
-    private val hiddenDungeonRareDrops = setOf(
-        "RARE DROP! Machine Gun Shortbow",
-        "RARE DROP! Beating Heart",
-        "RARE DROP! Zombie Commander Boots",
-        "RARE DROP! Skeleton Lord Chestplate",
-        "RARE DROP! Earth Shard"
+    private val hiddenDungeonRareDropRegex = Regex(
+        """^RARE DROP! (?:\d+x )?(?:Machine Gun Shortbow|Beating Heart|Zombie Commander Boots|Skeleton Lord Chestplate|Earth Shard)(?: x\d+)?(?: \(.+\))?$"""
     )
 
     private val hiddenDungeonMessagePatterns = listOf(
