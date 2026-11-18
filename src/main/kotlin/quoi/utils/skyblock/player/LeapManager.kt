@@ -1,5 +1,7 @@
 package quoi.utils.skyblock.player
 
+import net.minecraft.network.protocol.game.ServerboundContainerClickPacket
+import net.minecraft.world.inventory.ContainerInput
 import quoi.QuoiMod.mc
 import quoi.annotations.Init
 import quoi.api.events.*
@@ -42,11 +44,13 @@ object LeapManager : EventListener {
         get() = activeLeap != null
 
     init {
-        on<PlayerEvent.Interact.RightClick>(Priority.LOWEST) {
-            if (!inDungeons) return@on
-            val skyblockId = item.skyblockId
+        on<PacketEvent.Sent, ServerboundContainerClickPacket>(Priority.LOWEST) {
+            if (ContainerUtils.current?.takeIf { it.title == "Spirit Leap" }?.menu?.containerId != packet.containerId ||
+                packet.containerInput() != ContainerInput.PICKUP || packet.slotNum !in 11..15
+            ) return@on
+            val skyblockId = mc.player?.mainHandItem?.skyblockId ?: return@on
             if ((cooldowns[skyblockId] ?: 0) > 0) return@on
-            val baseTicks = when (skyblockId) {
+            val baseTicks = when (skyblockId) { // TODO: retest extra ticks
                 "SPIRIT_LEAP" -> 107 // 5s cd but 7 ticks for lag and other bs
                 "INFINITE_SPIRIT_LEAP" -> 47 // 2s cd but 7 ticks for lag and other bs
                 else -> return@on
