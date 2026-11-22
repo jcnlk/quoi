@@ -127,6 +127,7 @@ object LeapManager : EventListener {
         swapBack: Boolean,
     ) {
         teammate ?: return modMessage("&cFailed to leap! $formattedTarget &cnot found")
+        if (activeLeap?.target?.name == teammate.name || pendingLeap?.target?.name == teammate.name) return
 
         val request = LeapRequest(teammate, settings, swapBack)
         val openLeapMenu = ContainerUtils.current?.takeIf {

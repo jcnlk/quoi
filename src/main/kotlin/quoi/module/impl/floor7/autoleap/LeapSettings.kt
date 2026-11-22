@@ -16,11 +16,11 @@ abstract class LeapSettings(parent: Module, name: String, val automatic: Boolean
     protected val crystal = LeapTarget(
         this, "Crystal leap", "Leap from either P1 crystal platform.", "Leap on Energy Crystal pickup."
     ) { Floor7.inPhase(Phase.P1) && crystalPlatforms.any { at(it) } }
-    protected val p1 = LeapTarget(
+    protected val p1 = LeapTarget( // TODO: split auto and fast leap
         this, "P1 leap", "Leap from P1. Enabled Crystal leap takes priority on crystal platforms.", "Leap on the second Energy Laser charge in P1.",
         defaultName = "P1"
     ) { Floor7.inPhase(Phase.P1) && Floor7.inPhaseAt(Phase.P1) && (!crystal.enabled || !crystal.matches()) }
-    protected val predev = LeapTarget(
+    protected val predev = LeapTarget( // TODO: split auto and fast leap
         this, "Predev leap", "Leap from P3 while Maxor or Storm is still active.", "Leap on Storm's lightning dialogue while in P3."
     ) { Floor7.inPhaseAt(Phase.P3) && Floor7.inPhase(Phase.P1, Phase.P2) }
     protected val i4: LeapTarget = LeapTarget(

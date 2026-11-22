@@ -24,7 +24,7 @@ class FastLeap(parent: Module) : LeapSettings(parent, "Fast Leap", automatic = f
     private val stormDeath = LeapTarget(
         this, "Storm death leap", "Leap from P2, outside the pads and the area between them."
     ) { Floor7.inPhase(Phase.P2) && Floor7.inPhaseAt(Phase.P2) && !purple.matches() && !yellow.matches() && !betweenPads.matches() }
-    private var lastClick = 0L
+
     private val spiritLeapIds = setOf("INFINITE_SPIRIT_LEAP", "SPIRIT_LEAP")
     private val targets = listOf(crystal, predev, relic, p1, p4, yellow, purple, betweenPads, stormDeath, middle, i4)
 
@@ -32,13 +32,9 @@ class FastLeap(parent: Module) : LeapSettings(parent, "Fast Leap", automatic = f
         on<MouseEvent.Click> {
             if (button != 0 || !state || player.mainHandItem.skyblockId !in spiritLeapIds) return@on
             cancel()
-            val now = System.currentTimeMillis()
-            if (now - lastClick < 250) return@on
-            if (!attemptLeap()) {
-                if (!p3.value || !Floor7.inF7Boss) return@on
-                leapToSection(Floor7.getStageAt())
-            }
-            lastClick = now
+            if (attemptLeap()) return@on
+            if (!p3.value || !Floor7.inF7Boss) return@on
+            leapToSection(Floor7.getStageAt())
         }
     }
 
