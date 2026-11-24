@@ -43,7 +43,7 @@ object WaterBoardSolver : SettingGroup(PuzzleSolvers, "Water board"), Reposition
     private val tracerSecond by colourPicker("Second", Colour.MINECRAFT_GOLD, true, desc = "Colour for the second tracer.").childOf(::tracer)
     private val optimised by switch("Optimised solutions", desc = "Uses optimised solutions for the water board puzzle.").asParent()
     private val auto by switch("Auto").asParent()
-    private val triggerbot by switch("Triggerbot", desc = "Automatically clicks the next correct water board lever when you look at it.")
+    private val triggerbot by switch("Triggerbot", desc = "Automatically clicks the next correct water board lever when you look at it.").asParent()
 
     private var waterSolutions: JsonObject = PuzzleSolvers.loadSolution("waterSolutions.json", JsonObject())
 
@@ -187,7 +187,7 @@ object WaterBoardSolver : SettingGroup(PuzzleSolvers, "Water board"), Reposition
                 )
             )
 
-    private fun scan(optimized: Boolean) = with (Dungeon.currentRoom) {
+    private fun scan(optimized: Boolean) = with(Dungeon.currentRoom) {
         if (this?.name != "Water Board" || patternIdentifier != -1) return@with
         val extendedSlots = WoolColour.entries.joinToString("") { if (it.isExtended) it.ordinal.toString() else "" }.takeIf { it.length == 3 } ?: return@with
 
@@ -195,7 +195,7 @@ object WaterBoardSolver : SettingGroup(PuzzleSolvers, "Water board"), Reposition
             getRealCoords(BlockPos(14, 77, 27)).state.block == Blocks.TERRACOTTA -> 0 // right block == clay
             getRealCoords(BlockPos(16, 78, 27)).state.block == Blocks.EMERALD_BLOCK -> 1 // left block == emerald
             getRealCoords(BlockPos(14, 78, 27)).state.block == Blocks.DIAMOND_BLOCK -> 2 // right block == diamond
-            getRealCoords(BlockPos(14, 78, 27)).state.block == Blocks.QUARTZ_BLOCK  -> 3 // right block == quartz
+            getRealCoords(BlockPos(14, 78, 27)).state.block == Blocks.QUARTZ_BLOCK -> 3 // right block == quartz
             else -> return@with ChatUtils.modMessage("§cFailed to get Water Board pattern. Was the puzzle already started?")
         }
 
@@ -212,10 +212,10 @@ object WaterBoardSolver : SettingGroup(PuzzleSolvers, "Water board"), Reposition
                     "diamond_block" -> LeverBlock.DIAMOND
                     "emerald_block" -> LeverBlock.EMERALD
                     "hardened_clay" -> LeverBlock.CLAY
-                    "quartz_block"  -> LeverBlock.QUARTZ
-                    "gold_block"    -> LeverBlock.GOLD
-                    "coal_block"    -> LeverBlock.COAL
-                    "water"         -> LeverBlock.WATER
+                    "quartz_block" -> LeverBlock.QUARTZ
+                    "gold_block" -> LeverBlock.GOLD
+                    "coal_block" -> LeverBlock.COAL
+                    "water" -> LeverBlock.WATER
                     else -> LeverBlock.NONE
                 }
             ] = entry.value.asJsonArray.map { it.asDouble }.toTypedArray()
@@ -248,8 +248,9 @@ object WaterBoardSolver : SettingGroup(PuzzleSolvers, "Water board"), Reposition
         GREEN(BlockPos(15, 56, 16)),
         RED(BlockPos(15, 56, 15));
 
-        inline val isExtended: Boolean get() =
-            Dungeon.currentRoom?.getRealCoords(relativePosition)?.state?.isAir == false
+        inline val isExtended: Boolean
+            get() =
+                Dungeon.currentRoom?.getRealCoords(relativePosition)?.state?.isAir == false
     }
 
     private enum class LeverBlock(val relativePosition: BlockPos, var i: Int = 0) {
