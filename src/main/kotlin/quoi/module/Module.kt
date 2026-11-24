@@ -1,6 +1,5 @@
 package quoi.module
 
-import quoi.annotations.AlwaysActive
 import quoi.api.commands.QuoiCommand
 import quoi.api.events.core.AreaBoundListener
 import quoi.api.events.core.removeAsyncScope
@@ -24,7 +23,7 @@ abstract class Module(
 ) : SettingsDSL(), HudDSL, Shortcuts, AreaBoundListener {
 
     override val running: Boolean
-        get() = enabled || alwaysActive
+        get() = enabled
 
     inline val active: Boolean
         get() = running && inEnvironment()
@@ -38,9 +37,6 @@ abstract class Module(
         private set
 
     protected inline val command get() = QuoiCommand.command
-
-    @Transient
-    val alwaysActive = this::class.java.isAnnotationPresent(AlwaysActive::class.java)
 
     val settings: ArrayList<Setting<*>> = ArrayList()
 
