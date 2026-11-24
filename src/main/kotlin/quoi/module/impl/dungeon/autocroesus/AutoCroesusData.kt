@@ -31,14 +31,6 @@ internal val autoCroesusChestSlots = listOf(
     28, 29, 30, 31, 32, 33, 34, 37, 38, 39, 40, 41, 42, 43
 )
 
-internal data class ClaimingChestInfo(
-    val floor: String,
-    val page: Int,
-    val runSlot: Int,
-    var chestSlot: Int = -1,
-    var skipKismet: Boolean = false,
-)
-
 internal data class ChestData(
     val name: String,
     val slot: Int,
@@ -75,27 +67,3 @@ internal data class LootFilters(
 internal data class LootSummaryItem(val id: String, val amount: Long, val unitValue: Double) {
     val totalValue: Double get() = amount * unitValue
 }
-
-internal val previewChestData = listOf(
-    ChestData(
-        name = "Bedrock",
-        slot = 13,
-        items = mutableListOf(
-            ChestItem("NECRON_HANDLE", "Necron's Handle", 1, 812_500_000),
-            ChestItem("ESSENCE_WITHER", "Wither Essence x250", 250, 3_200),
-        ),
-        cost = 35_000_000,
-        value = 813_300_000,
-        profit = 778_300_000,
-    ),
-    ChestData(
-        name = "Obsidian",
-        slot = 12,
-        items = mutableListOf(
-            ChestItem("WITHER_SHIELD_SCROLL", "Wither Shield", 1, 268_000_000),
-        ),
-        cost = 25_000_000,
-        value = 268_000_000,
-        profit = 243_000_000,
-    ),
-)

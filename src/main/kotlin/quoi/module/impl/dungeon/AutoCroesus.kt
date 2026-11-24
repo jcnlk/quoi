@@ -4,22 +4,16 @@ import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents
 import net.fabricmc.fabric.api.client.screen.v1.Screens
 import net.minecraft.client.gui.components.Button
 import net.minecraft.client.gui.components.Tooltip
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.client.gui.screens.inventory.ContainerScreen
 import net.minecraft.network.chat.Component
-import net.minecraft.network.protocol.game.ServerboundContainerClosePacket
 import net.minecraft.network.protocol.game.ServerboundInteractPacket
 import net.minecraft.world.InteractionHand
+import net.minecraft.world.inventory.AbstractContainerMenu
 import net.minecraft.world.item.Items
 import net.minecraft.world.phys.EntityHitResult
 import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
-import quoi.api.abobaui.dsl.px
-import quoi.api.abobaui.elements.impl.Text.Companion.shadow
-import quoi.api.abobaui.elements.impl.Text.Companion.textSupplied
-import quoi.api.colour.Colour
 import quoi.api.commands.internal.GreedyString
-import quoi.api.events.GuiEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
 import quoi.api.events.core.on
@@ -36,7 +30,8 @@ import quoi.utils.ChatUtils.modMessage
 import quoi.utils.romanToInt
 import quoi.utils.skyblock.item.ItemUtils.cleanName
 import quoi.utils.skyblock.item.ItemUtils.getCleanLore
-import quoi.utils.skyblock.player.container.ContainerUtils.clickSlot
+import quoi.utils.skyblock.player.container.IContainerSettings
+import quoi.utils.skyblock.player.container.task.*
 import kotlin.math.roundToLong
 
 /**
@@ -51,34 +46,16 @@ object AutoCroesus : Module(
     desc = "Automatically claims profitable Croesus dungeon chests.",
     area = Island.DungeonHub
 ) {
-    private val clickDelay by slider("Click delay", 500L, 50L, 1_000L, 50L, desc = "Delay between automatic clicks.", unit = "ms")
+    private val clickDelay by rangeSlider("Click delay", 8 to 10, 1, 20, unit = "t")
+    private val containerSettings = object : IContainerSettings {
+        override val startDelay get() = clickDelay
+        override val clickDelay get() = this@AutoCroesus.clickDelay
+        override val invWalk = false
+        override val blockInput = false
+        override val showProgress = false
+    }
 
-    @Suppress("unused")
-    private val profitOverlay by textHud("Auto Croesus profit", Colour.WHITE) {
-        visibleIf { preview || inRunChest() }
-        val data = if (preview) previewChestData else currentChestData
-        column {
-            data.forEach { chest ->
-                textSupplied(
-                    supplier = { "${chest.name} Chest §6(${formatCoins(chest.cost)}) ${profitText(chest.profit)}" },
-                    colour = colour,
-                    font = font,
-                    size = 18.px,
-                ).shadow = shadow
-
-                chest.items.forEach { item ->
-                    textSupplied(
-                        supplier = { "  ${item.displayName} §a+${formatCoins(item.value * item.amount)}" },
-                        colour = colour,
-                        font = font,
-                        size = 18.px,
-                    ).shadow = shadow
-                }
-            }
-        }
-    }.setting()
-
-    private val useChestKeys by switch("Use dungeon chest key", true, desc = "Claims a second profitable chest using a Dungeon Chest Key.")
+    private val useChestKeys by switch("Use dungeon chest key", desc = "Claims a second profitable chest using a Dungeon Chest Key.")
     private val chestKeyMinProfit by slider("Chest key min profit", 0.2, 0.0, 10.0, 0.1, desc = "Minimum profit required to use a Dungeon Chest Key.", unit = "M")
         .childOf(::useChestKeys)
     private val bazaarPriceType by selector("Bazaar price", BazaarPriceType.InstaSell, desc = "Bazaar price used for Auto Croesus profit calculations.")
@@ -92,11 +69,11 @@ object AutoCroesus : Module(
     private val kismetFloors by multiSelect("Kismet floors", emptySet(), autoCroesusFloors, desc = "Floors where Auto Croesus may use Kismet Feathers.")
         .childOf(::useKismets)
     private val alwaysBuy by stringList(
-        "Always buy", mutableListOf<String>(), desc = "Item ids that are always claimed.",
+        "Always buy", mutableListOf(), desc = "Item ids that are always claimed.",
         placeholder = "Add item id...", defaults = defaultAutoCroesusAlwaysBuy
     ).normalises { it.uppercase() }
     private val worthless by stringList(
-        "Worthless", mutableListOf<String>(), desc = "Item ids counted as worth nothing.",
+        "Worthless", mutableListOf(), desc = "Item ids counted as worth nothing.",
         placeholder = "Add item id...", defaults = defaultAutoCroesusWorthless
     ).normalises { it.uppercase() }
 
@@ -104,29 +81,24 @@ object AutoCroesus : Module(
 
     private val croesusRegex = Regex("""^(?:\(\d/\d\) )?Croesus$""") // https://github.com/Noamm9/NoammAddons/blob/771d2702200bcdabf2bdc7d5256ec327b6d5a2c7/src/main/kotlin/com/github/noamm9/features/impl/dungeon/ChestProfit.kt#L46
     private val runChestRegex = Regex("^(Master )?Catacombs - Flo(or (IV|V?I{0,3}))?$") // https://github.com/Noamm9/NoammAddons/blob/771d2702200bcdabf2bdc7d5256ec327b6d5a2c7/src/main/kotlin/com/github/noamm9/features/impl/dungeon/ChestProfit.kt#L45
+    private val rewardChestRegex = Regex("^(?:${autoCroesusChestNames.joinToString("|")})$")
     private val chestParser = AutoCroesusChestParser(worthless) { bazaarPriceType.selected }
 
-    private val failedIndexes = mutableSetOf<Int>()
-    private val loggedIndexes = mutableSetOf<Int>()
     private val log = mutableListOf<String>()
-    private var pendingStart: Any? = null
-    private var claiming = false
-    private var waitingForCroesus = false
-    private var waitingForRunToOpen = false
-    private var waitingForChestToOpen = false
-    private var waitingOnPage = -1
-    private var lastPageOn = -1
-    private var tryingToKismet = false
+    private val failedRuns = mutableSetOf<Int>()
+    private val rerolledRuns = mutableSetOf<Int>()
+    private var keyChest: Pair<Int, Int>? = null
     private var canKismet = true
-    private var lastClick = -1L
-    private var slotToClick = -1
-    private var currentChest: ClaimingChestInfo? = null
-    private var currentChestData: List<ChestData> = emptyList()
+    private var pendingStart: Any? = null
+    private var task: ContainerTask? = null
+    private var activeCycle: Cycle? = null
+
+    private val claiming: Boolean get() = task != null
 
     init {
         registerCommands()
 
-        ScreenEvents.AFTER_INIT.register { _, screen, width, height ->
+        ScreenEvents.AFTER_INIT.register { _, screen, width, height -> // TODO: use a proper event for this or other shit
             if (!active || screen !is ContainerScreen || !screen.title.string.matches(croesusRegex)) return@register
 
             val chestRight = (width + 176) / 2
@@ -143,37 +115,12 @@ object AutoCroesus : Module(
         }
 
         on<TickEvent.Start> {
-            if ((claiming || pendingStart != null) && killSwitch.key != Keybinds.KEY_NONE && Keyboard.isKeyDown(killSwitch.key)) {
-                reset()
-                modMessage("&cAuto Croesus stopped.")
-                return@on
-            }
-
-            onClickTick()
-            onClaimingTick()
-            onCroesusTick()
-            onRunChestTick()
-            onChestTick()
-        }
-
-        on<GuiEvent.Slot.Draw> {
-            if (slot.containerSlot == slotToClick) {
-                ctx.fill(slot.x, slot.y, slot.x + 16, slot.y + 16, -1)
-                return@on
-            }
-
-            if (!inCroesus()) return@on
-            val stack = slot.item
-            if (stack.item != Items.PLAYER_HEAD) return@on
-            val lore = stack.getCleanLore()
-            if (lore.any { it == "No chests opened yet!" }) {
-                ctx.fill(slot.x, slot.y, slot.x + 16, slot.y + 16, 0xAA00FF00.toInt())
-            }
-        }
-
-        on<WorldEvent.Change> {
+            if ((!claiming && pendingStart == null) || killSwitch.key == Keybinds.KEY_NONE || !Keyboard.isKeyDown(killSwitch.key)) return@on
             reset()
+            modMessage("&cAuto Croesus stopped.")
         }
+
+        on<WorldEvent.Change> { reset() }
     }
 
     override fun onDisable() {
@@ -191,8 +138,9 @@ object AutoCroesus : Module(
         }.description("Updates prices if needed and starts claiming.")
 
         ac.sub("forcego") {
+            if (!canStartFrom(null)) return@sub
             log.clear()
-            claiming = true
+            startClaiming()
             modMessage("&aAuto Croesus activated without updating prices.")
         }.description("Starts claiming without updating prices.")
 
@@ -249,10 +197,148 @@ object AutoCroesus : Module(
             pendingStart = null
             if (!canStartFrom(screen)) return@ensureFresh
             if (!success) return@ensureFresh modMessage("&cAuto Croesus could not update prices.")
-            claiming = true
+            startClaiming()
             modMessage("&aAuto Croesus activated.")
         }
     }
+
+    private fun startClaiming() {
+        reset()
+        if (player.containerMenu !== player.inventoryMenu) player.closeContainer()
+        claimNext()
+    }
+
+    private fun claimNext() {
+        val cycle = Cycle()
+        activeCycle = cycle
+        val next = containerTask(name = name, settings = containerSettings, reportErrors = false) {
+            check("Look directly at Croesus and stay in interaction range.") {
+                clickCroesus().also { if (it) task?.ticksSinceLastClick = 0 } // the first menu click waits the click delay too
+            }
+            awaitContainer(croesusRegex, waitForItems = true, failureMessage = "Croesus did not open.")
+            repeat(2) {
+                pickup(53.menu).onlyIf { findRun() == null && player.containerMenu.slots.getOrNull(53)?.item?.item == Items.ARROW }
+                awaitContainer(croesusRegex, waitForItems = true)
+            }
+            check("All chests looted") { cycle.selectRun() }
+            pickup(slot { cycle.run!!.slot })
+            awaitContainer(runChestRegex, waitForItems = true)
+            check("Next run") { cycle.chooseChest() }
+            pickup(slot { cycle.chestSlot })
+            awaitContainer(rewardChestRegex, waitForItems = true)
+            check("Next run") { cycle.chooseAction() }
+            pickup(slot { cycle.finalSlot })
+            onFinished { result -> onCycleFinished(cycle, result) }
+        }
+        task = next
+        next.run()
+    }
+
+    private fun onCycleFinished(cycle: Cycle, result: ContainerTaskResult) {
+        if (activeCycle !== cycle) return // stopped or replaced
+        activeCycle = null
+        task = null
+        when (result) {
+            ContainerTaskResult.Success -> claimNext()
+            ContainerTaskResult.Cancelled -> reset()
+            is ContainerTaskResult.Failure if (result.message == "Next run" || result.message == "All chests looted" && cycle.keyMissing) -> claimNext()
+            is ContainerTaskResult.Failure if result.message == "All chests looted" -> {
+                modMessage("&aAuto Croesus finished. All chests looted.")
+                reset()
+            }
+            else -> {
+                val reason = (result as? ContainerTaskResult.Failure)?.message ?: "another container action is in progress"
+                log.add("stopped: $reason")
+                modMessage("&cAuto Croesus stopped: $reason")
+                reset()
+            }
+        }
+    }
+
+    private fun slot(index: () -> Int) = item { it === player.containerMenu.slots.getOrNull(index())?.item }.menu
+
+    private class Run(val slot: Int, val index: Int, val floor: String)
+
+    private class Cycle {
+        var run: Run? = null
+        var chestSlot = -1
+        var finalSlot = -1
+        var kismet = false
+        var keyMissing = false
+
+        fun selectRun(): Boolean {
+            run = findRun()
+            if (run == null && keyChest != null) {
+                keyChest = null // its run is gone, so continue with the remaining runs
+                keyMissing = true
+            }
+            return run != null
+        }
+
+        fun chooseChest(): Boolean {
+            val run = run ?: return false
+            keyChest?.takeIf { it.first == run.index }?.let { (_, slot) ->
+                keyChest = null
+                chestSlot = slot
+                return true
+            }
+
+            val parsed = chestParser.parseChestData(player.containerMenu)
+            parsed.error?.let { modMessage("&cAuto Croesus skipped this run: $it") }
+            val data = parsed.chests
+            failedRuns.add(run.index)
+            if (parsed.error != null || data.isEmpty()) return false
+
+            val sorted = data.sortedWith(compareByDescending<ChestData> { it.items.any { item -> alwaysBuy.containsId(item.id) } }.thenByDescending { it.profit })
+            val bedrock = data.firstOrNull { it.name == "Bedrock" }
+
+            if (bedrock != null && shouldKismet(run, bedrock)) {
+                failedRuns.remove(run.index)
+                kismet = true
+                chestSlot = bedrock.slot
+                return true
+            }
+
+            val best = sorted.first() // the Wood chest is free, so every run has a chest worth claiming
+            modMessage("Claiming the ${best.name} Chest (${formatCoins(best.profit)} profit).")
+            val second = sorted.getOrNull(1)?.takeIf { useChestKeys && it.profit >= chestKeyMinProfit.coinsFromMillions() }
+            if (second != null) {
+                modMessage("Using a Dungeon Chest Key on the ${second.name} Chest (${formatCoins(second.profit)} profit).")
+                keyChest = run.index to second.slot
+            }
+
+            log.add("loot ${run.floor}: ${data.joinToString { "${it.name}:${it.profit}" }}")
+            logRunLoot(run.floor, data.size, listOfNotNull(best, second))
+            chestSlot = best.slot
+            return true
+        }
+
+        fun chooseAction(): Boolean {
+            if (!kismet) {
+                finalSlot = 31
+                return true
+            }
+            rerolledRuns.add(run!!.index)
+            val kismetItem = player.containerMenu.slots.getOrNull(50)?.item
+            val lore = kismetItem.getCleanLore()
+            if (kismetItem == null || kismetItem.cleanName != "Reroll Chest" || lore.any { it.contains("Bring a Kismet Feather") }) {
+                canKismet = false
+                modMessage("&cNo Kismet Feather found. Auto Croesus skips kismet floors for this session.")
+                return false
+            }
+            if (lore.any { it.contains("You already rerolled a chest") }) return false
+            finalSlot = 50
+            return true
+        }
+    }
+
+    private fun shouldKismet(run: Run, bedrock: ChestData): Boolean =
+        useKismets &&
+                canKismet &&
+                run.index !in rerolledRuns &&
+                kismetFloors.any { it.equals(run.floor, true) } &&
+                bedrock.items.none { alwaysBuy.containsId(it.id) } &&
+                bedrock.profit < kismetMinProfit.coinsFromMillions()
 
     private fun toggleListEntry(name: String, list: MutableList<String>, arg: String?, defaults: Set<String>) {
         val value = arg?.trim()?.uppercase()
@@ -275,7 +361,7 @@ object AutoCroesus : Module(
     }
 
     private fun showLoot(filters: LootFilters) {
-        if (filters.score !in 0..317) {
+        if (filters.score !in 0..317) { // TODO: update max score shit
             modMessage("&cScore must be between 0 and 317.")
             return
         }
@@ -330,203 +416,6 @@ object AutoCroesus : Module(
         modMessage(lines.joinToString("\n"))
     }
 
-    private fun onClickTick() {
-        if (slotToClick == -1 || System.currentTimeMillis() - lastClick < clickDelay) return
-        val container = container() ?: return
-        if (container.menu.slots.size <= slotToClick) return
-
-        log.add("clicking $slotToClick in ${container.title.string}")
-        player.clickSlot(slotToClick, container.menu.containerId)
-        lastClick = System.currentTimeMillis()
-        slotToClick = -1
-    }
-
-    private fun onClaimingTick() {
-        if (!claiming || waitingForCroesus || container() != null) return
-        if (waitingForRunToOpen || waitingForChestToOpen) {
-            modMessage("&cAuto Croesus went out of sync and reset.")
-            log.add("out of sync")
-            reset()
-            return
-        }
-        startClaiming()
-    }
-
-    private fun onCroesusTick() {
-        if (!inCroesus() || !claiming || waitingForRunToOpen) return
-        waitingForCroesus = false
-
-        val container = container() ?: return
-        if (!invLoaded(container)) return
-        val page = page()
-        if (page == -1 || waitingOnPage != -1 && waitingOnPage != page) return
-
-        val chest = currentChest
-        if (chest != null && chest.runSlot != -1) {
-            if (page != chest.page) {
-                if (lastPageOn == page) return
-                lastPageOn = page
-                slotToClick = 53
-                return
-            }
-
-            lastPageOn = -1
-            slotToClick = chest.runSlot
-            waitingForRunToOpen = true
-            return
-        }
-
-        val (slot, floor) = unopenedChest(page)
-        if (slot != null && floor != null) {
-            currentChest = ClaimingChestInfo(floor, page, slot)
-            waitingForRunToOpen = true
-            slotToClick = slot
-            return
-        }
-
-        if (container.menu.slots.getOrNull(53)?.item?.item == Items.ARROW) {
-            if (lastPageOn == page) return
-            lastPageOn = page
-            waitingOnPage = page + 1
-            slotToClick = 53
-            return
-        }
-
-        modMessage("&aAuto Croesus finished. All chests looted.")
-        reset()
-        connection.send(ServerboundContainerClosePacket(container.menu.containerId))
-        mc.gui.setScreen(null)
-    }
-
-    private fun onRunChestTick() {
-        if (!claiming || !inRunChest()) return
-        val container = container() ?: return
-        if (!invLoaded(container) || waitingForChestToOpen) return
-
-        waitingForRunToOpen = false
-        lastPageOn = -1
-        waitingOnPage = -1
-
-        currentChest?.chestSlot?.takeIf { it != -1 }?.let {
-            waitingForChestToOpen = true
-            slotToClick = it
-            currentChest?.chestSlot = -1
-            return
-        }
-
-        val parsed = chestParser.parseChestData(container)
-        if (parsed.error != null) {
-            modMessage("&cAuto Croesus skipped this run: ${parsed.error}")
-            currentChest?.let { failedIndexes.add(it.runSlot + (it.page - 1) * 54) }
-            currentChest = null
-            slotToClick = 30
-            return
-        }
-
-        val data = parsed.chests
-        if (data.isEmpty()) {
-            currentChest?.let { failedIndexes.add(it.runSlot + (it.page - 1) * 54) }
-            currentChest = null
-            slotToClick = 30
-            return
-        }
-
-        currentChestData = data.sortedByDescending { it.profit }
-        val sorted = data.sortedWith(compareByDescending<ChestData> { it.items.any { item -> alwaysBuy.containsId(item.id) } }.thenByDescending { it.profit })
-        val bedrock = data.firstOrNull { it.name == "Bedrock" }
-        val chest = currentChest
-
-        if (chest != null && bedrock != null && shouldKismet(chest, bedrock)) {
-            tryingToKismet = true
-            waitingForChestToOpen = true
-            slotToClick = bedrock.slot
-            return
-        }
-
-        val best = sorted.firstOrNull { it.profit > 0 || it.items.any { item -> alwaysBuy.containsId(item.id) } }
-        if (best == null) {
-            currentChest?.let { failedIndexes.add(it.runSlot + (it.page - 1) * 54) }
-            currentChest = null
-            slotToClick = 30
-            return
-        }
-
-        modMessage("Claiming the ${best.name} Chest (${formatCoins(best.profit)} profit).")
-        val second = sorted.getOrNull(1)
-        if (second != null && useChestKeys && second.profit >= chestKeyMinProfit.coinsFromMillions()) {
-            modMessage("Using a Dungeon Chest Key on the ${second.name} Chest (${formatCoins(second.profit)} profit).")
-            currentChest?.chestSlot = second.slot
-        }
-
-        chest?.let {
-            val runIndex = it.runSlot + (it.page - 1) * 54
-            if (loggedIndexes.add(runIndex)) {
-                log.add("loot ${it.floor}: ${data.joinToString { chestData -> "${chestData.name}:${chestData.profit}" }}")
-                logRunLoot(it.floor, data.size, listOfNotNull(best, second?.takeIf { chest -> useChestKeys && chest.profit >= chestKeyMinProfit.coinsFromMillions() }))
-            }
-            failedIndexes.add(runIndex)
-        }
-
-        waitingForChestToOpen = true
-        slotToClick = best.slot
-    }
-
-    private fun onChestTick() {
-        if (!waitingForChestToOpen) return
-        val container = container() ?: return
-        if (!invLoaded(container) || container.menu.slots.size < 32) return
-        val chestTitle = container.title.string.removeSuffix(" Chest")
-        if (chestTitle !in autoCroesusChestNames) return
-        waitingForChestToOpen = false
-
-        if (tryingToKismet && chestTitle == "Bedrock") {
-            val kismet = container.menu.slots.getOrNull(50)?.item
-            tryingToKismet = false
-
-            val lore = kismet.getCleanLore()
-            if (kismet == null || kismet.cleanName != "Reroll Chest" || lore.any { it.contains("Bring a Kismet Feather") }) {
-                canKismet = false
-                modMessage("&cNo Kismet Feather found. Auto Croesus disabled kismet claims for this session.")
-                currentChest = null
-                connection.send(ServerboundContainerClosePacket(container.menu.containerId))
-                mc.gui.setScreen(null)
-                return
-            }
-
-            if (lore.any { it.contains("You already rerolled a chest") }) {
-                currentChest?.skipKismet = true
-                waitingForRunToOpen = true
-                slotToClick = 49
-                return
-            }
-
-            currentChest?.skipKismet = true
-            slotToClick = 50
-            return
-        }
-
-        slotToClick = 31
-        if (currentChest?.chestSlot == -1) currentChest = null
-    }
-
-    private fun shouldKismet(chest: ClaimingChestInfo, bedrock: ChestData): Boolean =
-        useKismets &&
-                canKismet &&
-                !chest.skipKismet &&
-                kismetFloors.any { it.equals(chest.floor, true) } &&
-                bedrock.items.none { alwaysBuy.containsId(it.id) } &&
-                bedrock.profit < kismetMinProfit.coinsFromMillions()
-
-    private fun startClaiming() {
-        claiming = true
-        if (!clickCroesus()) {
-            modMessage("&cAuto Croesus could not start. Look directly at Croesus and stay in interaction range.")
-            reset()
-            return
-        }
-        waitingForCroesus = true
-    }
-
     private fun clickCroesus(): Boolean {
         val hitResult = mc.hitResult as? EntityHitResult ?: return false.also { log.add("hitResult was not an entity") }
         if (hitResult.type != HitResult.Type.ENTITY) return false
@@ -543,8 +432,8 @@ object AutoCroesus : Module(
         return true
     }
 
-    private fun page(): Int {
-        val slots = container()?.menu?.slots ?: return -1
+    private fun page(menu: AbstractContainerMenu): Int {
+        val slots = menu.slots
         val prev = slots.getOrNull(45)?.item ?: return -1
         val next = slots.getOrNull(53)?.item ?: return -1
         val isNext = next.item == Items.ARROW
@@ -556,32 +445,29 @@ object AutoCroesus : Module(
         return page + if (isNext) -1 else 1
     }
 
-    private fun unopenedChest(page: Int): Pair<Int?, String?> {
-        val slots = container()?.menu?.slots ?: return null to null
+    private fun findRun(): Run? {
+        val menu = player.containerMenu
+        val page = page(menu).takeIf { it != -1 } ?: return null
+        val key = keyChest
         for (slot in autoCroesusChestSlots) {
             val index = slot + (page - 1) * 54
-            if (index in failedIndexes) continue
-            val stack = slots.getOrNull(slot)?.item ?: return null to null
+            if (if (key != null) index != key.first else index in failedRuns) continue
+            val stack = menu.slots.getOrNull(slot)?.item ?: return null
             if (stack.item != Items.PLAYER_HEAD) continue
             val lore = stack.getCleanLore()
-            if (lore.none { it == "No chests opened yet!" }) continue
-            val floorLine = lore.firstOrNull { it.startsWith("Floor ") } ?: run {
-                failedIndexes.add(index)
+            if (key == null && lore.none { it == "No chests opened yet!" }) continue
+            val floorNum = lore.firstOrNull { it.startsWith("Floor ") }?.let { romanToInt(it.removePrefix("Floor ")) } ?: run {
+                failedRuns.add(index)
                 continue
             }
-            val floorNum = romanToInt(floorLine.removePrefix("Floor ")) ?: run {
-                failedIndexes.add(index)
+            val floor = (if (stack.cleanName == "Master Mode The Catacombs") "M" else "F") + floorNum
+            if (key == null && !canKismet && kismetFloors.any { it.equals(floor, true) }) {
+                failedRuns.add(index)
                 continue
             }
-            val prefix = if (stack.cleanName == "Master Mode The Catacombs") "M" else "F"
-            val floor = "$prefix$floorNum"
-            if (!canKismet && kismetFloors.any { it.equals(floor, true) }) {
-                failedIndexes.add(index)
-                continue
-            }
-            return slot to floor
+            return Run(slot, index, floor)
         }
-        return null to null
+        return null
     }
 
     private fun logRunLoot(floor: String, chestCount: Int, claimedChests: List<ChestData>) {
@@ -610,30 +496,15 @@ object AutoCroesus : Module(
         else -> 0
     }
 
-    private fun inCroesus(): Boolean = mc.gui.screen()?.title?.string?.matches(croesusRegex) == true
-    private fun inRunChest(): Boolean = mc.gui.screen()?.title?.string?.matches(runChestRegex) == true
-    private fun container() = mc.gui.screen() as? AbstractContainerScreen<*>
-
-    private fun invLoaded(container: AbstractContainerScreen<*>): Boolean {
-        val slots = container.menu.slots
-        return slots.size > 45 && !slots.getOrNull(slots.size - 45)?.item?.isEmpty.orFalse()
-    }
-
     private fun reset() {
         pendingStart = null
-        claiming = false
-        waitingForCroesus = false
-        waitingForRunToOpen = false
-        waitingForChestToOpen = false
-        waitingOnPage = -1
-        lastPageOn = -1
-        tryingToKismet = false
+        val current = task
+        task = null
+        activeCycle = null
+        current?.cancel()
+        failedRuns.clear()
+        rerolledRuns.clear()
+        keyChest = null
         canKismet = true
-        lastClick = -1L
-        slotToClick = -1
-        currentChest = null
-        currentChestData = emptyList()
-        failedIndexes.clear()
-        loggedIndexes.clear()
     }
 }

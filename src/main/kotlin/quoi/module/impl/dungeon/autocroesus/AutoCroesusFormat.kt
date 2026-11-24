@@ -9,8 +9,6 @@ import kotlin.math.roundToInt
 internal fun ItemStack.formattedLore(): List<String> =
     get(DataComponents.LORE)?.lines?.map { it.formattedString } ?: emptyList()
 
-internal fun Boolean?.orFalse() = this ?: false
-
 internal fun Collection<String>.containsId(id: String): Boolean = any { it.equals(id, true) }
 
 internal fun Double.coinsFromMillions(): Int = (this * 1_000_000).roundToInt()
@@ -25,5 +23,3 @@ internal fun formatCoins(value: Long): String {
     val sign = if (value < 0) "-" else ""
     return if (abs >= 1_000_000) "$sign${(abs / 1_000_000.0).toFixed(2)}M" else "$sign${(abs / 1_000.0).toFixed(1)}K"
 }
-
-internal fun profitText(value: Int): String = if (value <= 0) "§c${formatCoins(value)}" else "§a+${formatCoins(value)}"

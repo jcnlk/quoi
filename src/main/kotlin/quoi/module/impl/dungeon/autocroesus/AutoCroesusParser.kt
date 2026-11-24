@@ -1,6 +1,6 @@
 package quoi.module.impl.dungeon.autocroesus
 
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
+import net.minecraft.world.inventory.AbstractContainerMenu
 import quoi.api.skyblock.SkyblockPrices
 import quoi.api.skyblock.SkyblockPrices.BazaarPriceType
 import quoi.utils.romanToInt
@@ -42,10 +42,10 @@ internal class AutoCroesusChestParser(
         "Spirit Stone" to "SPIRIT_DECOY",
     )
 
-    fun parseChestData(container: AbstractContainerScreen<*>): ChestParseResult {
+    fun parseChestData(menu: AbstractContainerMenu): ChestParseResult {
         val result = mutableListOf<ChestData>()
         for (idx in 0..27) {
-            val stack = container.menu.slots.getOrNull(idx)?.item ?: continue
+            val stack = menu.slots.getOrNull(idx)?.item ?: continue
             val name = stack.cleanName
             if (!chestNameRegex.matches(name)) continue
 
