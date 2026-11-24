@@ -6,13 +6,10 @@ import net.minecraft.client.gui.components.Button
 import net.minecraft.client.gui.components.Tooltip
 import net.minecraft.client.gui.screens.inventory.ContainerScreen
 import net.minecraft.network.chat.Component
-import net.minecraft.network.protocol.game.ServerboundInteractPacket
-import net.minecraft.world.InteractionHand
+import net.minecraft.world.entity.Entity
+import net.minecraft.world.entity.player.Player
 import net.minecraft.world.inventory.AbstractContainerMenu
 import net.minecraft.world.item.Items
-import net.minecraft.world.phys.EntityHitResult
-import net.minecraft.world.phys.HitResult
-import net.minecraft.world.phys.Vec3
 import quoi.api.commands.internal.GreedyString
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
@@ -28,11 +25,14 @@ import quoi.module.impl.dungeon.autocroesus.*
 import quoi.module.settings.Setting.Companion.json
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.utils.ChatUtils.modMessage
+import quoi.utils.EntityUtils.getEntities
 import quoi.utils.romanToInt
 import quoi.utils.skyblock.item.ItemUtils.cleanName
 import quoi.utils.skyblock.item.ItemUtils.getCleanLore
 import quoi.utils.skyblock.player.container.IContainerSettings
 import quoi.utils.skyblock.player.container.task.*
+import quoi.utils.skyblock.player.interact.AuraAction
+import quoi.utils.skyblock.player.interact.AuraManager
 import kotlin.math.roundToLong
 
 /**
@@ -213,7 +213,7 @@ object AutoCroesus : Module(
         val cycle = Cycle()
         activeCycle = cycle
         val next = containerTask(name = name, settings = containerSettings, reportErrors = false) {
-            check("Look directly at Croesus and stay in interaction range.") {
+            check("Croesus is not within 4 blocks.") {
                 clickCroesus().also { if (it) task?.ticksSinceLastClick = 0 } // the first menu click waits the click delay too
             }
             awaitContainer(croesusRegex, waitForItems = true, failureMessage = "Croesus did not open.")
@@ -418,18 +418,9 @@ object AutoCroesus : Module(
     }
 
     private fun clickCroesus(): Boolean {
-        val hitResult = mc.hitResult as? EntityHitResult ?: return false.also { log.add("hitResult was not an entity") }
-        if (hitResult.type != HitResult.Type.ENTITY) return false
-        val entity = hitResult.entity
-        if (entity.uuid.version() != 2) return false
-        val displayEntity = level.getEntities(entity, entity.boundingBox.expandTowards(1.0, 1.0, 1.0))
-            .firstOrNull { it.customName?.string == "Croesus" && it.position() == entity.position() }
-            ?: return false
-        if (displayEntity.customName?.string != "Croesus") return false
-
-        connection.send(
-            ServerboundInteractPacket(entity.id, InteractionHand.MAIN_HAND, Vec3(0.0, 0.0, 0.0), player.isShiftKeyDown)
-        )
+        val nameTag = getEntities<Entity>(4.0) { it.customName?.string == "Croesus" && it.distanceTo(player) <= 4.0 }.firstOrNull() ?: return false
+        val croesus = getEntities<Player>(nameTag.position(), 1.0) { it.uuid.version() == 2 && it.position() == nameTag.position() }.singleOrNull() ?: return false
+        AuraManager.interactEntity(croesus, AuraAction.INTERACT_AT)
         return true
     }
 
