@@ -1,9 +1,11 @@
 package quoi.module.impl.dungeon.puzzlesolvers.impl
 
 import net.minecraft.core.BlockPos
+import net.minecraft.core.Direction.Axis
 import net.minecraft.network.protocol.game.ClientboundPlayerPositionPacket
 import net.minecraft.util.Mth
-import net.minecraft.world.phys.AABB
+import net.minecraft.world.entity.PositionMoveRotation
+import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.Vec3
 import quoi.api.colour.Colour
 import quoi.api.colour.withAlpha
@@ -11,26 +13,24 @@ import quoi.api.events.*
 import quoi.api.events.core.Event
 import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.Dungeon
+import quoi.api.skyblock.dungeon.odonscanning.tiles.OdonRoom
+import quoi.api.skyblock.dungeon.odonscanning.tiles.RoomState
 import quoi.module.impl.dungeon.autoclear.executor.ClearExecutor
 import quoi.module.impl.dungeon.puzzlesolvers.PuzzleSolvers
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.module.settings.group.SettingGroup
 import quoi.utils.*
+import quoi.utils.WorldUtils.collisionShape
 import quoi.utils.render.drawFilledBox
 import quoi.utils.render.drawTracer
+import quoi.utils.skyblock.player.MovementUtils.cancelMovementTask
 import quoi.utils.skyblock.player.MovementUtils.moveTo
-import quoi.utils.skyblock.player.MovementUtils.movementTask
-import quoi.utils.skyblock.player.MovementUtils.resetInput
 import quoi.utils.skyblock.player.RotationUtils.rotate
 import kotlin.math.abs
 import kotlin.math.atan2
 
-/**
- * modified OdinFabric (BSD 3-Clause)
- * copyright (c) 2025-2026 odtheking
- * original: https://github.com/odtheking/Odin/blob/main/src/main/kotlin/com/odtheking/odin/features/impl/dungeon/puzzlesolvers/TPMazeSolver.kt
- */
-object TeleportMazeSolver : SettingGroup(PuzzleSolvers, "Teleport maze") { // todo cleanup/recode auto
+// based on https://github.com/Noamm9/NoammAddons/blob/bf040bdcce6346390ad2989e61b261b58e03402d/src/main/kotlin/com/github/noamm9/features/impl/dungeon/solvers/puzzles/TeleportMazeSolver.kt
+object TeleportMazeSolver : SettingGroup(PuzzleSolvers, "Teleport maze") {
     private val solver by switch("Solver", desc = "Shows the solution for the TP maze puzzle.")
     private val colourOne by colourPicker("Colour for one", Colour.MINECRAFT_GREEN.withAlpha(0.5f), true, desc = "Colour for when there is a single solution.").childOf(::solver)
     private val colourMultiple by colourPicker("Colour for multiple", Colour.MINECRAFT_GOLD.withAlpha(0.5f), true, desc = "Colour for when there are multiple solutions.").childOf(::solver)
@@ -39,240 +39,225 @@ object TeleportMazeSolver : SettingGroup(PuzzleSolvers, "Teleport maze") { // to
     private val tracerColour by colourPicker("Tracer colour", Colour.MINECRAFT_AQUA, true, desc = "Colour for the TP maze tracer.").childOf(::tracer)
     private val auto by switch("Auto").asParent()
 
-    private var tpPads = setOf<BlockPos>()
-    private var correctPortals = setOf<BlockPos>()
-    private val visited = mutableSetOf<BlockPos>()
-    private var best: BlockPos? = null
+    private val start = BlockPos(15, 69, 12)
+    private val exit = BlockPos(15, 69, 14)
+    private val waypoint = BlockPos(15, 69, 16)
+    private val doorway = BlockPos(15, 69, -2)
+    private val neutral = Colour.WHITE.withAlpha(0.5f)
 
-    private var walking = false
-    private var movingToFrame = false
-    private var solutionReached = false
-    private var endWalkStarted = false
-    private var nextMove = false
-    private var realCells = listOf<Set<BlockPos>>()
-    private var endPad: BlockPos? = null
+    private data class Walk(val target: BlockPos, val usesMoveTo: Boolean)
 
-    override fun shouldHandle(event: Event): Boolean {
-        if (event is WorldEvent.Change) return true
-        if (!super.shouldHandle(event)) return false
+    private var maze: TeleportMaze? = null
+    private var exitTarget: BlockPos? = null
+    private var walk: Walk? = null
 
-        if (event is DungeonEvent.Room.Enter) return true
-
-        return Dungeon.currentRoom?.name == "Teleport Maze"
+    override fun shouldHandle(event: Event): Boolean = when (event) {
+        is WorldEvent.Change, is DungeonEvent.Room.Enter -> true
+        is TickEvent.End -> walk != null || (super.shouldHandle(event) && Dungeon.currentRoom?.name == "Teleport Maze")
+        else -> super.shouldHandle(event) && maze != null
     }
 
     init {
-        on<DungeonEvent.Room.Enter> {
-            reset()
-            if (room?.name != "Teleport Maze") return@on
-            realCells = cells.map { set -> set.map { room.getRealCoords(it) }.toSet() }
-            tpPads = endPortalFrameLocations.map { room.getRealCoords(it) }.toSet()
-            endPad = room.getRealCoords(BlockPos(15, 69, 14))
-            if (auto) {
-                movingToFrame = true
-                player.moveTo(room.getRealCoords(BlockPos(15, 69, 12))) { movingToFrame = false }
-            }
-        }
+        on<DungeonEvent.Room.Enter> { reset() }
+        on<WorldEvent.Change> { reset() }
 
         on<PacketEvent.Received, ClientboundPlayerPositionPacket> {
-            if (!auto && !solver) return@on
-            if (tpPads.isEmpty()) return@on
+            val room = Dungeon.currentRoom ?: return@on
+            val maze = maze ?: return@on
+            val source = player.position()
+            val change = PositionMoveRotation.calculateAbsolute(PositionMoveRotation.of(player), packet.change, packet.relatives)
+            val destination = change.position
+            val returning = inCenterLane(room, destination, -1..13) &&
+                    (exitTarget == exit || inCenterLane(room, source, 14..20))
+            val mazeTeleport = destination.y == 69.5 && destination.x % 0.5 == 0.0 && destination.z % 0.5 == 0.0
 
-            if (endWalkStarted) {
-                stop()
-                Scheduler.scheduleTask { nextMove = true }
-                return@on
+            when {
+                returning -> exitTarget = doorway
+                exitTarget != doorway && inCenterLane(room, destination, 14..20) -> {
+                    if (exitTarget != null) return@on
+                    exitTarget = waypoint
+                }
+                mazeTeleport -> if (!maze.recordTeleport(source, destination, change.yRot)) return@on
+                else -> return@on
             }
-
-            val (x, y, z) = packet.change.position
-            val destination = Dungeon.currentRoom?.getRelativeCoords(BlockPos.containing(x, y, z))
-            if (destination != null && destination.x in 12..18 && destination.y in 68..70 && destination.z in 14..20) {
-                solutionReached = true
-                stop()
-                Scheduler.scheduleTask { nextMove = true }
-                return@on
-            }
-
-            if (x % 0.5 != 0.0 || y != 69.5 || z % 0.5 != 0.0) return@on
-
-            visited.addAll(tpPads.filter {
-                AABB.unitCubeFromLowerCorner(Vec3(x, y, z)).inflate(1.0, 0.0, 1.0).intersects(AABB(it)) ||
-                player.boundingBox.inflate(1.0, 0.0, 1.0).intersects(AABB(it))
-            })
-
-            getCorrectPortals(Vec3(x, y, z), packet.change.yRot, packet.change.xRot)
-            best = getBestPad(Vec3(x, y, z), packet.change.yRot)
-
-            stop()
-            Scheduler.scheduleTask {
-                nextMove = true
-            }
+            stopWalking()
         }
 
         on<RenderEvent.World> {
             if (!solver) return@on
-            tpPads.forEach {
-                val aabb = it.bounds?.move(it) ?: it.aabb
-                when (it) {
-                    in correctPortals -> ctx.drawFilledBox(aabb, if (correctPortals.size == 1) colourOne else colourMultiple, false)
-                    in visited -> ctx.drawFilledBox(aabb, colourVisited, true)
-                    else -> ctx.drawFilledBox(aabb, Colour.WHITE.withAlpha(0.5f), true)
+            val maze = maze ?: return@on
+            val leaders = if (exitTarget == null) maze.leadingPads else emptySet()
+            val leaderColour = if (leaders.size == 1) colourOne else colourMultiple
+            for (pad in maze.pads) {
+                val isLeader = pad in leaders
+                val colour = when {
+                    isLeader -> leaderColour
+                    maze.wasVisited(pad) -> colourVisited
+                    else -> neutral
                 }
+                ctx.drawFilledBox(pad.bounds?.move(pad) ?: pad.aabb, colour, depth = !isLeader)
             }
 
-            if (tracer) {
-                val target = best ?: return@on
-                ctx.drawTracer(Vec3(target.x + 0.5, target.y + 0.8, target.z + 0.5), tracerColour, depth = false)
+            if (tracer && exitTarget == null) {
+                val target = maze.nextPad(player.position()) ?: return@on
+                ctx.drawTracer(target.center.add(0.0, 0.3, 0.0), tracerColour, depth = false)
             }
         }
 
         on<TickEvent.End> {
-            if (!auto || ClearExecutor.active) return@on
-            if (PuzzleSolvers.screenBlocksAuto) return@on stop()
+            val room = Dungeon.currentRoom
+            if (room?.name != "Teleport Maze" || !inEnvironment() || Dungeon.isDead) return@on reset()
 
-            if (nextMove) {
-                if (endWalkStarted) {
-                    movementTask { input ->
-                        input.forward = true
-                        false
-                    }
-                    walking = true
-                } else if (solutionReached) {
-                    endPad?.let { target ->
-                        endWalkStarted = true
-                        movingToFrame = true
-                        player.moveTo(target) { movingToFrame = false }
-                    }
-                } else {
-                    val targetPos = getPad(player.position())
+            if (maze == null && (solver || auto)) maze = scan(room)
+            val maze = maze ?: return@on
+            if (!auto || ClearExecutor.active || PuzzleSolvers.screenBlocksAuto) return@on stopWalking()
 
-                    if (targetPos != null) {
-                        val dir = getDirection(player.eyePosition, Vec3.atCenterOf(targetPos))
-                        player.rotate(dir)
-
-                        movementTask { input ->
-                            input.forward = true
-                            false
-                        }
-                        walking = true
+            val position = player.position()
+            if (exitTarget == null && inCenterLane(room, position, 14..20)) exitTarget = waypoint
+            when (exitTarget) {
+                waypoint, exit -> {
+                    val target = room.getRealCoords(waypoint)
+                    val reachedWaypoint = walk?.usesMoveTo != true && position.distanceTo2DSqr(target.center) <= 0.25
+                    if (exitTarget == exit || reachedWaypoint) {
+                        exitTarget = exit
+                        walkTo(maze.exitPad, target)
                     } else {
-                        stop()
+                        walkTo(target)
                     }
                 }
-
-                nextMove = false
-
-            } else if (walking) {
-                movementTask { input ->
-                    input.forward = true
-                    false
+                doorway -> walkForwardTo(room.getRealCoords(doorway))
+                else -> {
+                    if (room.data.state == RoomState.GREEN) return@on stopWalking()
+                    val target = walk?.takeUnless { it.usesMoveTo }?.target ?: maze.nextPad(position)
+                    ?: maze.startPad.takeIf { room.getRelativeCoords(player.blockPosition()).z < start.z && !maze.wasVisited(it) }
+                    when (target) {
+                        maze.startPad -> walkTo(maze.startPad, room.getRealCoords(doorway))
+                        null -> Unit
+                        else -> walkForwardTo(target)
+                    }
                 }
             }
         }
-
-        on<WorldEvent.Change> {
-            reset()
-        }
     }
 
-    private fun getCorrectPortals(pos: Vec3, yaw: Float, pitch: Float) {
-        if (correctPortals.isEmpty()) correctPortals = correctPortals.plus(tpPads)
-
-        correctPortals = correctPortals.filterTo(mutableSetOf()) {
-            it !in visited &&
-            isXZInterceptable(
-                AABB(
-                    it.x.toDouble(),
-                    it.y.toDouble(),
-                    it.z.toDouble(),
-                    it.x + 1.0,
-                    it.y + 4.0,
-                    it.z + 1.0
-                ).inflate(0.75, 0.0, 0.75),
-                32.0, pos, yaw, pitch
-            ) && !it.aabb.inflate(0.5, 0.0, 0.5).intersects(player.boundingBox)
+    private fun scan(room: OdonRoom): TeleportMaze? {
+        val center = room.tiles.singleOrNull()?.blockPos?.atY(69) ?: return null
+        val min = center.offset(-15, 0, -15)
+        val max = center.offset(15, 0, 15)
+        val startPad = room.getRealCoords(start)
+        val exitPad = room.getRealCoords(exit)
+        for (x in (min.x shr 4)..(max.x shr 4)) for (z in (min.z shr 4)..(max.z shr 4)) {
+            if (!level.chunkSource.hasChunk(x, z)) return null
         }
+        if (!level.getBlockState(startPad).`is`(Blocks.END_PORTAL_FRAME)) return null
+
+        val pads = BlockPos.betweenClosed(min, max)
+            .asSequence()
+            .filter { level.getBlockState(it).`is`(Blocks.END_PORTAL_FRAME) }
+            .map { it.immutable() }
+            .toList()
+        return if (exitPad in pads) TeleportMaze(pads, startPad, exitPad) else null
     }
 
-    private fun getPad(pos: Vec3): BlockPos? {
-
-        val currentPad = tpPads.minByOrNull { pos.distanceToSqr(Vec3.atCenterOf(it)) } ?: return null
-        val currentCell = realCells.find { currentPad in it } ?: return null
-        val unvisited = currentCell.filter { it != currentPad && it !in visited }
-        best?.takeIf { it in currentCell && (it !in visited || unvisited.isEmpty()) }?.let { return it }
-
-        if (correctPortals.size == 1) {
-            val correctPad = correctPortals.first()
-            if (correctPad in currentCell) return correctPad
-        }
-
-        val candidates = unvisited.ifEmpty { currentCell.filter { it != currentPad } }
-        return candidates.find { it.x != currentPad.x && it.z != currentPad.z }
-            ?: candidates.maxByOrNull { pos.distanceToSqr(Vec3.atCenterOf(it)) }
+    private fun inCenterLane(room: OdonRoom, position: Vec3, zRange: IntRange): Boolean {
+        val relative = room.getRelativeCoords(BlockPos.containing(position))
+        return relative.x in 12..18 && relative.y in 68..70 && relative.z in zRange
     }
 
-    private fun getBestPad(pos: Vec3, yaw: Float): BlockPos? {
-        val currentPad = tpPads.minByOrNull { pos.distanceToSqr(Vec3.atCenterOf(it)) } ?: return null
-        val currentCell = realCells.find { currentPad in it } ?: return null
+    private fun walkForwardTo(target: BlockPos) {
+        if (walk?.target != target) {
+            stopWalking()
+            player.rotate(getDirection(player.eyePosition, target.center))
+            walk = Walk(target, usesMoveTo = false)
+        }
+        mc.options.keyUp.isDown = true
+    }
 
-        if (currentCell.size == 1) return null
-        val unvisited = currentCell.filter { it != currentPad && it !in visited }
-        val candidates = unvisited.ifEmpty { currentCell.filter { it != currentPad } }
-
-        return candidates.firstOrNull { it in correctPortals }
-            ?: candidates.minByOrNull {
-                val targetYaw = (atan2(it.center.z - pos.z, it.center.x - pos.x) * 180.0 / Math.PI).toFloat() - 90f
-                abs(Mth.wrapDegrees(targetYaw - yaw))
+    private fun walkTo(target: BlockPos, approachFrom: BlockPos? = null) {
+        val center = target.center
+        val destination = if (approachFrom == null) {
+            center
+        } else {
+            val shape = target.collisionShape
+            if (shape.isEmpty) return
+            val padTop = Vec3(center.x, target.y + shape.max(Axis.Y), center.z)
+            val position = player.position()
+            if (player.onGround() && abs(position.y - padTop.y) < 0.01 && position.distanceTo2DSqr(padTop) <= 0.0625) {
+                stopWalking()
+                return
             }
-    }
 
-    private fun stop() {
-        if (walking || movingToFrame) {
-            mc.player?.resetInput()
-            walking = false
-            movingToFrame = false
+            padTop.add(center.subtract(approachFrom.center).normalize().scale(0.375))
         }
+
+        if (walk?.target == target) return
+        stopWalking()
+        walk = Walk(target, usesMoveTo = true)
+        player.moveTo(destination) { walk = null }
     }
 
-    private fun reset() {
-        stop()
-        correctPortals = emptySet()
-        visited.clear()
-        best = null
-        nextMove = false
-        endPad = null
-        solutionReached = false
-        endWalkStarted = false
+    private fun stopWalking() {
+        val current = walk ?: return
+        if (current.usesMoveTo) cancelMovementTask() else mc.options.keyUp.isDown = false
+        walk = null
     }
 
+    internal fun reset() {
+        stopWalking()
+        maze = null
+        exitTarget = null
+    }
+}
 
-    private val endPortalFrameLocations = setOf(
-        BlockPos(4, 69, 14), BlockPos(10, 69, 14), BlockPos(10, 69, 20), BlockPos(4, 69, 20), // emerald
+internal class TeleportMaze(
+    val pads: List<BlockPos>,
+    val startPad: BlockPos,
+    val exitPad: BlockPos,
+) {
+    private val minX = pads.minOf { it.x }
+    private val minZ = pads.minOf { it.z }
+    private val cells = pads.groupBy(::cellAt)
+    private val visited = mutableSetOf<BlockPos>()
+    private val scores = pads.filter { it != startPad && it != exitPad }.associateWith { 0.0 }.toMutableMap()
 
-        BlockPos(4, 69, 12), BlockPos(4, 69, 6), BlockPos(10, 69, 6), BlockPos(10, 69, 12), //
+    var leadingPads: Set<BlockPos> = emptySet()
+        private set
 
-        BlockPos(12, 69, 28), BlockPos(12, 69, 22), BlockPos(18, 69, 22), BlockPos(18, 69, 28), // lapis
+    fun wasVisited(pad: BlockPos): Boolean = pad in visited
 
-        BlockPos(26, 69, 14), BlockPos(20, 69, 20), BlockPos(20, 69, 14), BlockPos(26, 69, 20), // iron
+    fun recordTeleport(from: Vec3, to: Vec3, yaw: Float): Boolean {
+        val source = padNear(from) ?: return false
+        val destination = padNear(to) ?: return false
+        if (destination == source || destination == startPad || destination == exitPad) return false
 
-        BlockPos(26, 69, 28), BlockPos(26, 69, 22), BlockPos(20, 69, 28), BlockPos(20, 69, 22), // coal
+        visited += source
+        visited += destination
+        scores.remove(source)
+        scores.remove(destination)
+        for ((pad, score) in scores) {
+            val dx = pad.x + 0.5 - to.x
+            val dz = pad.z + 0.5 - to.z
+            val targetYaw = Math.toDegrees(atan2(dz, dx)) - 90.0
+            scores[pad] = score + abs(Mth.wrapDegrees(targetYaw - yaw))
+        }
+        val best = scores.values.minOrNull()
+        leadingPads = scores.filterValues { it == best }.keys
+        return true
+    }
 
-        BlockPos(10, 69, 22), BlockPos(10, 69, 28), BlockPos(4, 69, 28), BlockPos(4, 69, 22), // diamond
+    fun nextPad(position: Vec3): BlockPos? =
+        padsInCell(position)
+            .filter { it != exitPad && it !in visited }
+            .minWithOrNull(compareBy<BlockPos> { scores[it] ?: 0.0 }.thenBy { position.distanceToSqr(it.center) })
 
-        BlockPos(20, 69, 6), BlockPos(20, 69, 12), BlockPos(26, 69, 12), BlockPos(26, 69, 6), // gold
+    private fun padNear(position: Vec3): BlockPos? =
+        padsInCell(position).find { abs(position.x - it.x - 0.5) + abs(position.z - it.z - 0.5) <= 3.0 }
 
-        BlockPos(15, 69, 14), // end
-        BlockPos(15, 69, 12), // start
-    )
+    private fun padsInCell(position: Vec3): List<BlockPos> = cells[cellAt(BlockPos.containing(position))].orEmpty()
 
-    private val cells = listOf(
-        setOf(BlockPos(4, 69, 14), BlockPos(10, 69, 14), BlockPos(10, 69, 20), BlockPos(4, 69, 20)),
-        setOf(BlockPos(4, 69, 12), BlockPos(4, 69, 6), BlockPos(10, 69, 6), BlockPos(10, 69, 12)),
-        setOf(BlockPos(12, 69, 28), BlockPos(12, 69, 22), BlockPos(18, 69, 22), BlockPos(18, 69, 28)),
-        setOf(BlockPos(26, 69, 14), BlockPos(20, 69, 20), BlockPos(20, 69, 14), BlockPos(26, 69, 20)),
-        setOf(BlockPos(26, 69, 28), BlockPos(26, 69, 22), BlockPos(20, 69, 28), BlockPos(20, 69, 22)),
-        setOf(BlockPos(10, 69, 22), BlockPos(10, 69, 28), BlockPos(4, 69, 28), BlockPos(4, 69, 22)),
-        setOf(BlockPos(20, 69, 6), BlockPos(20, 69, 12), BlockPos(26, 69, 12), BlockPos(26, 69, 6))
-    )
-
+    private fun cellAt(pos: BlockPos): Int? {
+        val x = pos.x - minX
+        val z = pos.z - minZ
+        return if (x in 0..23 && z in 0..23) (x / 8) * 3 + z / 8 else null
+    }
 }

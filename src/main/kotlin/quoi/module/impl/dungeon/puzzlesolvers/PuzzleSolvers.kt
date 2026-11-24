@@ -52,6 +52,10 @@ object PuzzleSolvers : Module(
     val shootCd by slider("Shoot cooldown", 500L, 250L, 1000L, 50L, unit = "ms").childOf(::bowDropdown)
     val missCd by slider("Miss cooldown", 550L, 300L, 1050L, 50L, unit = "ms").childOf(::bowDropdown)
 
+    override fun onDisable() {
+        TeleportMazeSolver.reset()
+    }
+
     val screenBlocksAuto: Boolean
         get() = mc.gui.screen() != null && !InteractiveMap.mapOpen
 
