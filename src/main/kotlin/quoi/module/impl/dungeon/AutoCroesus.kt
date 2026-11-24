@@ -25,6 +25,7 @@ import quoi.api.skyblock.location.Island
 import quoi.config.configList
 import quoi.module.Module
 import quoi.module.impl.dungeon.autocroesus.*
+import quoi.module.settings.Setting.Companion.json
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.romanToInt
@@ -46,7 +47,7 @@ object AutoCroesus : Module(
     desc = "Automatically claims profitable Croesus dungeon chests.",
     area = Island.DungeonHub
 ) {
-    private val clickDelay by rangeSlider("Click delay", 8 to 10, 1, 20, unit = "t")
+    private val clickDelay by rangeSlider("Click delay", 8 to 10, 1, 20, unit = "t").json("Click delay ticks")
     private val containerSettings = object : IContainerSettings {
         override val startDelay get() = clickDelay
         override val clickDelay get() = this@AutoCroesus.clickDelay
