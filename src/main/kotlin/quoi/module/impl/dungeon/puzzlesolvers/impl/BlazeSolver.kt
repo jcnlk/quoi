@@ -60,6 +60,7 @@ object BlazeSolver : SettingGroup(PuzzleSolvers, "Blaze"), Repositionable { // t
     private val secondColour by colourPicker("Second colour", Colour.MINECRAFT_GOLD.withAlpha(0.75f), desc = "Colour for the second blaze.").childOf(::solver)
     private val thirdColour by colourPicker("Third colour", Colour.MINECRAFT_RED.withAlpha(0.75f), desc = "Colour for the third blaze.").childOf(::solver)
     private val allColour by colourPicker("Other colour", Colour.WHITE.withAlpha(0.3f), desc = "Colour for the other blazes.").childOf(::solver)
+    private val showSpots by switch("Show spots", desc = "Highlights the blocks auto shoots from.").childOf(::solver)
     private val announce by switch("Announce completion", desc = "Sends complete message.").asParent()
     val auto by switch("Auto")
     private val reposition by switch("Auto reposition").childOf(::auto)
@@ -87,7 +88,7 @@ object BlazeSolver : SettingGroup(PuzzleSolvers, "Blaze"), Repositionable { // t
         on<RenderEvent.World> {
             if ((!solver && !auto) || blazes.isEmpty()) return@on
 
-            if (auto && reposition) {
+            if ((solver && showSpots) || (auto && reposition)) {
                 val spots = if (Dungeon.currentRoom?.name == "Higher Blaze") HIGHER_SPOTS else LOWER_SPOTS
                 spots.forEach { spot ->
                     ctx.drawFilledBox(Dungeon.currentRoom!!.getRealCoords(spot).aabb, colour = Colour.CYAN, depth = true)
