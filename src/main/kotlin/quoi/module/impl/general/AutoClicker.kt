@@ -39,11 +39,11 @@ object AutoClicker: Module(
 
     private val leftClick by switch("Enable Left Click", desc = "Toggles the auto clicker for left click.").json("Left Click")
     private val leftCps by rangeSlider("Left CPS", 10 to 12, 1, 20, desc = "The range of clicks per second to perform for left click.").childOf(::leftClick)
-    private val leftClickKeybind by keybind("Left click keybind", Keybinds.MOUSE_LEFT, desc = "The keybind to hold for left click auto clicking.")
+    private val leftClickKeybind by keybind("Left click keybind", Keybinds.MOUSE_LEFT, desc = "The keybind to hold for left click auto clicking.").childOf(::leftClick)
 
     private val rightClick by switch("Enable Right Click", desc = "Toggles the auto clicker for right click.").json("Right Click")
     private val rightCps by rangeSlider("Right CPS", 10 to 12, 1, 20, desc = "The range of clicks per second to perform for right click.").childOf(::rightClick)
-    private val rightClickKeybind by keybind("Right click keybind", Keybinds.MOUSE_RIGHT, desc = "The keybind to hold for right click auto clicking.")
+    private val rightClickKeybind by keybind("Right click keybind", Keybinds.MOUSE_RIGHT, desc = "The keybind to hold for right click auto clicking.").childOf(::rightClick)
 
     private var leftJob: Job? = null
     private var rightJob: Job? = null
