@@ -36,6 +36,7 @@ class OrderComponent<T>(
     name: String,
     defaultOrder: List<T>,
     desc: String = "",
+    collapsible: Boolean = true,
     private val displayString: ((T) -> String)? = null,
 ) : UIComponent<OrderComponent<T>>(name, desc), Saving, Iterable<T> {
 
@@ -48,6 +49,7 @@ class OrderComponent<T>(
 
     private val defaults: List<T> = defaultOrder.toList()
     private val entries: MutableList<T> = defaultOrder.toMutableList()
+    private val editor = CollapsibleEditor(name, collapsible)
 
     /**
      * The current order, from first to last.
@@ -126,13 +128,7 @@ class OrderComponent<T>(
         return name == other.name && defaults == other.defaults
     }
 
-    override fun ElementScope<*>.draw(asSub: Boolean): ElementScope<*> = column(size(w = Copying), gap = 4.px) {
-        text(
-            string = name,
-            size = theme.textSize,
-            colour = theme.onSurfaceVariant,
-        )
-
+    override fun ElementScope<*>.draw(asSub: Boolean): ElementScope<*> = editor.draw(this) {
         var dragging = -1
         val rowHeight = if (asSub) 20.px else 22.px
         val labels = mutableListOf<ElementScope<Text>>()

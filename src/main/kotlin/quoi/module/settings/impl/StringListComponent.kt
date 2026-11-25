@@ -10,6 +10,7 @@ import quoi.api.abobaui.constraints.impl.size.Copying
 import quoi.api.abobaui.dsl.*
 import quoi.api.abobaui.elements.Element
 import quoi.api.abobaui.elements.ElementScope
+import quoi.api.abobaui.elements.impl.Group
 import quoi.api.abobaui.elements.impl.Scrollable
 import quoi.api.abobaui.elements.impl.Scrollable.Companion.scroll
 import quoi.api.abobaui.elements.impl.Text.Companion.string
@@ -26,6 +27,7 @@ import quoi.utils.ui.cursor
 import quoi.utils.ui.elements.suggestionInput
 import quoi.utils.ui.elements.themedInput
 import quoi.utils.ui.rendering.UIRenderer
+import quoi.utils.ui.watch
 
 /**
  * An editable list of strings.
@@ -33,7 +35,7 @@ import quoi.utils.ui.rendering.UIRenderer
  * Entries are added through the input below the list (Enter or the plus button)
  * and removed with the cross next to each entry. Blank entries and duplicates (case-insensitive) are ignored.
  *
- * If [defaults] are given, the header offers a button that adds every default that is missing.
+ * If [defaults] are given, the expanded list's header offers a button that adds every missing default.
  *
  * The backing collection is kept, so it can be passed to other code like a [ListSetting].
  *
@@ -49,9 +51,11 @@ class StringListComponent<T : MutableCollection<String>>(
     val maxLength: Int = 0,
     val visibleRows: Int = 6,
     val defaults: Collection<String> = emptyList(),
+    collapsible: Boolean = true,
 ) : UIComponent<T>(name, desc), Saving {
 
     private val initialContents = default.toList()
+    private val editor = CollapsibleEditor(name, collapsible)
 
     override var value: T = default
 
@@ -114,24 +118,10 @@ class StringListComponent<T : MutableCollection<String>>(
         }
     }
 
-    override fun ElementScope<*>.draw(asSub: Boolean): ElementScope<*> = column(size(w = Copying), gap = 4.px) {
-        val rowHeight = if (asSub) 20f else 22f
-        val inputHeight = if (asSub) 22f else 25f
-        val gap = 3f
-        val scrollbarSpace = 10f
-
-        val header = group(size(w = Copying, h = 18.px))
-
-        val listArea = group(size(w = Copying))
-        val maxHeight = (rowHeight * visibleRows + gap * (visibleRows - 1)).px
-        val scrollable = listArea.scrollable(constrain(x = 0.px, y = 0.px, w = Copying, h = Bounding.coerceAtMost(maxHeight))) {}
-        val list = scrollable.column(size(w = Copying), gap = gap.px) {}
-        val scrollBar = ScrollBar(constrain(x = 0.px.alignOpposite, y = 0.px, w = 4.px, h = 1.px), scrollable.element, list.element)
-        listArea.apply { scrollBar.add() }
-
-        fun rebuildHeader() {
-            header.element.removeAll()
-            header.apply {
+    private fun ElementScope<Group>.drawHeader() {
+        fun rebuild() {
+            element.removeAll()
+            apply {
                 text(
                     string = if (value.isEmpty()) name else "$name (${value.size})",
                     size = theme.textSize,
@@ -139,6 +129,7 @@ class StringListComponent<T : MutableCollection<String>>(
                     pos = at(x = 0.px, y = Centre)
                 )
 
+                if (!editor.expanded) return@apply
                 val missing = missingDefaults.size
                 if (missing == 0) return@apply
 
@@ -163,8 +154,26 @@ class StringListComponent<T : MutableCollection<String>>(
                     }
                 }.description("Adds the recommended entries that aren't in the list yet.")
             }
-            header.element.redraw()
+            element.redraw()
         }
+
+        rebuild()
+        watch({ editor.expanded }) { rebuild() }
+        onValueChanged { rebuild() }
+    }
+
+    override fun ElementScope<*>.draw(asSub: Boolean): ElementScope<*> = editor.draw(this, header = { drawHeader() }) {
+        val rowHeight = if (asSub) 20f else 22f
+        val inputHeight = if (asSub) 22f else 25f
+        val gap = 3f
+        val scrollbarSpace = 10f
+
+        val listArea = group(size(w = Copying))
+        val maxHeight = (rowHeight * visibleRows + gap * (visibleRows - 1)).px
+        val scrollable = listArea.scrollable(constrain(x = 0.px, y = 0.px, w = Copying, h = Bounding.coerceAtMost(maxHeight))) {}
+        val list = scrollable.column(size(w = Copying), gap = gap.px) {}
+        val scrollBar = ScrollBar(constrain(x = 0.px.alignOpposite, y = 0.px, w = 4.px, h = 1.px), scrollable.element, list.element)
+        listArea.apply { scrollBar.add() }
 
         fun rebuild() {
             val overflowing = value.size > visibleRows
@@ -220,7 +229,6 @@ class StringListComponent<T : MutableCollection<String>>(
                     }
                 }
             }
-            rebuildHeader()
             listArea.element.redraw()
         }
 

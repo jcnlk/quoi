@@ -39,8 +39,11 @@ object LeapMenu : Module(
     area = Island.Dungeon
 ) {
     val sorting by selector("Sorting", "Class", arrayListOf("Class", "Name", "Custom", "No sorting"))
-    val classOrder by order("Class order", DungeonClass.entries - DungeonClass.Unknown, desc = "Order of classes in the leap menu. Drag to reorder.")
-        .childOf(::sorting) { it.selected == "Class" }
+    val classOrder by order(
+        "Class order", DungeonClass.entries - DungeonClass.Unknown,
+        desc = "Order of classes in the leap menu. Drag to reorder.",
+        collapsible = false,
+    ).childOf(::sorting) { it.selected == "Class" }
     val fillEmpty by switch("Fill empty slots", desc = "Fills empty slots with remaining teammates if possible.").childOf(::sorting) { it.selected == "Custom" }
     val customOrder by ListSetting("Custom sorting", mutableListOf<String>())
     private val shadow by switch("Shadow")

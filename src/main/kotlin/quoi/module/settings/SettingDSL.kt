@@ -41,12 +41,19 @@ abstract class SettingsDSL {
 
     /**
      * Entries the user can rearrange by dragging. See [OrderComponent].
+     * The editor starts collapsed when [collapsible] is enabled.
      */
-    protected fun <T> order(name: String, default: List<T>, desc: String = "", displayString: ((T) -> String)? = null) =
-        OrderComponent(name, default, desc, displayString)
+    protected fun <T> order(
+        name: String,
+        default: List<T>,
+        desc: String = "",
+        collapsible: Boolean = true,
+        displayString: ((T) -> String)? = null,
+    ) = OrderComponent(name, default, desc, collapsible, displayString)
 
     /**
      * Editable list of strings backed by [default]. See [StringListComponent].
+     * The editor starts collapsed when [collapsible] is enabled.
      */
     protected fun <T : MutableCollection<String>> stringList(
         name: String,
@@ -55,7 +62,11 @@ abstract class SettingsDSL {
         placeholder: String = "Add entry...",
         maxLength: Int = 0,
         defaults: Collection<String> = emptyList(),
-    ) = StringListComponent(name, default, desc, placeholder, maxLength, defaults = defaults)
+        collapsible: Boolean = true,
+    ) = StringListComponent(
+        name, default, desc, placeholder, maxLength,
+        defaults = defaults, collapsible = collapsible,
+    )
 
     protected fun text(value: String, desc: String = "") =
         TextComponent(value, desc)

@@ -1,21 +1,16 @@
 package quoi.module.settings
 
 import quoi.api.abobaui.constraints.impl.measurements.Animatable
-import quoi.api.abobaui.constraints.impl.size.Bounding
 import quoi.api.abobaui.constraints.impl.size.Copying
-import quoi.api.abobaui.constraints.impl.size.Fill
 import quoi.api.abobaui.dsl.*
 import quoi.api.abobaui.elements.ElementScope
 import quoi.api.abobaui.elements.Layout.Companion.divider
 import quoi.api.abobaui.events.AbobaEvent
 import quoi.api.abobaui.transforms.impl.Alpha
 import quoi.api.animations.Animation
-import quoi.api.input.CursorShape
 import quoi.module.impl.render.clickgui.ClickGui
 import quoi.module.impl.render.clickgui.ClickGui.description
 import quoi.module.settings.impl.SelectorComponent
-import quoi.utils.ThemeManager.theme
-import quoi.utils.ui.cursor
 import quoi.utils.ui.settingFromK0
 import quoi.utils.ui.watch
 import kotlin.reflect.KProperty0
@@ -91,9 +86,9 @@ abstract class UIComponent<T>(
             hasVisible = children.any { it.isLocallyVisible }
             val showing = !collapsed && hasVisible
 
-            chevronSpaceAnim = Animatable(from = 0.px, to = 28.px, swapIf = hasVisible)
+            chevronSpaceAnim = Animatable(from = 0.px, to = SETTING_CHEVRON_WIDTH.px, swapIf = hasVisible)
             chevronAlphaAnim = Alpha.Animated(to = 1f, from = 0f)
-            gapAnim = Animatable(from = 0.px, to = 8.px, swapIf = showing)
+            gapAnim = Animatable(from = 0.px, to = SETTING_EXPANSION_GAP.px, swapIf = showing)
 
             if (hasVisible) chevronAlphaAnim.swap()
 
@@ -103,62 +98,41 @@ abstract class UIComponent<T>(
                     this.draw(asSub)
                 }
 
-                chevronImage = image(
-                    image = theme.chevronImage,
-                    colour = theme.onSurfaceVariant,
-                    constraints = constrain(5.px.alignOpposite, w = 16.px, h = 16.px, y = if (this@UIComponent.value is Boolean || this@UIComponent.value is SelectorComponent<*>) 2.px else 0.px),
+                chevronImage = settingChevron(
+                    y = if (this@UIComponent.value is Boolean || this@UIComponent.value is SelectorComponent<*>) 2.px else 0.px,
+                    expanded = { !collapsed },
                 ) {
-                    cursor(CursorShape.HAND)
-
-                    val (from, to) = if (collapsed) 180f to 90f else 90f to 180f
-                    val rotationAnim = rotation(from = from, to = to)
-
-                    watch(::collapsed) {
-                        rotationAnim.animate(0.25.seconds, Animation.Style.EaseInOutQuint)
-                        redraw()
-                    }
-
-                    transform(chevronAlphaAnim)
-
-                    onClick {
-                        if (!hasVisible) return@onClick false
-                        collapsed = !collapsed
-                        true
-                    }
+                    if (!hasVisible) return@settingChevron false
+                    collapsed = !collapsed
+                    true
                 }
 
+                chevronImage.transform(chevronAlphaAnim)
                 chevronImage.element.enabled = hasVisible
 
                 divider(gapAnim)
 
-                row(size(w = Copying, h = Bounding)) {
-                    block(
-                        constrain(w = 2.5.px, h = Copying),
-                        colour = theme.primary,
-                    )
-                    divider(6.px)
-                    column(constrain(w = Fill)) {
-                        children.forEachIndexed { index, child ->
+                indentedSettings {
+                    children.forEachIndexed { index, child ->
 
-                            if (index > 0) { // fixes a bug with a trailing gap. I don't like it.
-                                val prev = children.take(index)
-                                val gapVisible = child.isVisible && prev.any { it.isVisible }
+                        if (index > 0) { // fixes a bug with a trailing gap. I don't like it.
+                            val prev = children.take(index)
+                            val gapVisible = child.isVisible && prev.any { it.isVisible }
 
-                                val gapAnim = Animatable(
-                                    from = 8.px,
-                                    to = 0.px,
-                                    swapIf = !gapVisible
-                                )
+                            val gapAnim = Animatable(
+                                from = SETTING_EXPANSION_GAP.px,
+                                to = 0.px,
+                                swapIf = !gapVisible
+                            )
 
-                                divider(gapAnim)
+                            divider(gapAnim)
 
-                                watch({ child.isVisible && prev.any { it.isVisible } }) {
-                                    gapAnim.animate(0.2.seconds, Animation.Style.EaseInOutQuint)
-                                }
+                            watch({ child.isVisible && prev.any { it.isVisible } }) {
+                                gapAnim.animate(0.2.seconds, Animation.Style.EaseInOutQuint)
                             }
-
-                            child.render(this, !child.isParent.invoke()).description(child.description)
                         }
+
+                        child.render(this, !child.isParent.invoke()).description(child.description)
                     }
                 }
             }
@@ -172,28 +146,7 @@ abstract class UIComponent<T>(
         val element = rendering.element
         var oldValue = value
 
-        val alphaAnimation = Alpha.Animated(to = 0f, from = 1f)
-        val visible = isVisible
-
-        element.addTransform(alphaAnimation)
-
-        if (element.constraints.height !is Animatable) {
-            element.constraints.height = Animatable(
-                from = element.constraints.height,
-                to = 0.px,
-                swapIf = !visible
-            )
-
-            if (!visible) {
-                alphaAnimation.swap()
-            }
-        }
-
-        rendering.watch({ isVisible }) {
-            (element.constraints.height as Animatable).animate(0.2.seconds, Animation.Style.EaseInOutQuint)
-            alphaAnimation.animate(0.2.seconds, Animation.Style.EaseInOutQuint)
-            element.parent?.redraw = true
-        }
+        rendering.animateSettingVisibility { isVisible }
 
         if (chevronImage != null && gapAnim != null && chevronSpaceAnim != null && chevronAlphaAnim != null) {
             rendering.watch({ children.any { it.isLocallyVisible } }) { current ->

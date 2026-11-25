@@ -326,6 +326,8 @@ fun ElementScope<*>.suggestionInput( // todo move it to selectors
             popup?.closePopup()
             items.clear()
             mainBlock = null
+            val availableSuggestions = suggestions()
+            if (availableSuggestions.isEmpty()) return@onFocus
 
             val y = popupY(gap = 10f, corner = true)
             val thickness = 2.px
@@ -358,7 +360,7 @@ fun ElementScope<*>.suggestionInput( // todo move it to selectors
 
                     val scrollable = scrollable(constrain(w = Copying - thickness, h = Bounding.coerceAtMost(112.5.px))) {
                         column {
-                            suggestions().forEach { suggestion ->
+                            availableSuggestions.forEach { suggestion ->
                                 items[suggestion] = block(size(w = Fill, h = 25.px), colour = theme.surfaceContainerHighest, radius = 3.radius()) {
                                     tonalHover()
                                     text(
