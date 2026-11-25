@@ -18,6 +18,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Coerce;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
@@ -27,6 +28,7 @@ import quoi.api.events.ChatEvent;
 import quoi.mixininterfaces.IChatComponent;
 import quoi.mixininterfaces.IGuiMessage;
 import quoi.mixininterfaces.ISearchMode;
+import quoi.module.impl.general.Tweaks;
 import quoi.module.impl.general.chat.impl.ChatPeek;
 import quoi.module.impl.general.chat.impl.NoAutoScroll;
 import quoi.module.impl.general.chat.impl.NoChatLimit;
@@ -123,6 +125,21 @@ public abstract class ChatComponentMixin implements IChatComponent {
     )
     private ChatComponent.DisplayMode renderFocused(ChatComponent.DisplayMode mode) {
         return ChatPeek.displayMode(mode);
+    }
+
+    @WrapOperation(
+            method = "extractRenderState(Lnet/minecraft/client/gui/components/ChatComponent$ChatGraphicsAccess;IILnet/minecraft/client/gui/components/ChatComponent$DisplayMode;)V",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/gui/components/ChatComponent;forEachLine(Lnet/minecraft/client/gui/components/ChatComponent$AlphaCalculator;Lnet/minecraft/client/gui/components/ChatComponent$LineConsumer;)I",
+                    ordinal = 1
+            )
+    )
+    private int renderChatLines(ChatComponent chat, @Coerce Object alpha, @Coerce Object consumer, Operation<Integer> original) {
+        if (Tweaks.should(Tweaks.getFixObfuscatedChat())) {
+            return ScopedValue.where(Tweaks.obfuscatedChatRender, true).call(() -> original.call(chat, alpha, consumer));
+        }
+        return original.call(chat, alpha, consumer);
     }
 
     @ModifyExpressionValue(

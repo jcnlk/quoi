@@ -1,12 +1,19 @@
 package quoi.mixins;
 
-import quoi.module.impl.misc.catmode.CatMode;
-import quoi.module.impl.render.NickHider;
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import com.llamalad7.mixinextras.sugar.Local;
+import com.mojang.blaze3d.font.GlyphInfo;
 import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.font.TextRenderable;
+import net.minecraft.client.gui.font.glyphs.BakedGlyph;
+import net.minecraft.network.chat.Style;
 import net.minecraft.util.FormattedCharSequence;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
+import quoi.module.impl.general.Tweaks;
+import quoi.module.impl.misc.catmode.CatMode;
+import quoi.module.impl.render.NickHider;
 
 @Mixin(Font.class)
 public class FontMixin {
@@ -18,6 +25,29 @@ public class FontMixin {
     )
     public FormattedCharSequence prepareOrderedText(FormattedCharSequence value) {
         return NickHider.replaceName(CatMode.replaceText(value));
+    }
+
+    @ModifyExpressionValue(
+            method = "getGlyph",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/gui/GlyphSource;getRandomGlyph(Lnet/minecraft/util/RandomSource;I)Lnet/minecraft/client/gui/font/glyphs/BakedGlyph;"
+            )
+    )
+    private BakedGlyph stabilizeObfuscatedAdvance(BakedGlyph randomGlyph, @Local BakedGlyph originalGlyph) {
+        if (Tweaks.obfuscatedChatRender.isBound()) {
+            return new GlyphWithOriginalMetrics(randomGlyph, originalGlyph.info());
+        }
+        return randomGlyph;
+    }
+
+    private record GlyphWithOriginalMetrics(BakedGlyph glyph, GlyphInfo info) implements BakedGlyph {
+        @Override
+        public TextRenderable.Styled createGlyph(
+                float x, float y, int color, int shadowColor, Style style, float boldOffset, float shadowOffset
+        ) {
+            return glyph.createGlyph(x, y, color, shadowColor, style, boldOffset, shadowOffset);
+        }
     }
 
     @ModifyVariable(
