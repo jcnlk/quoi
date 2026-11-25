@@ -212,7 +212,7 @@ object MapRenderer {
             if (config.autoClear) {
                 onClick {
                     if (Dungeon.isDead) return@onClick false
-                    pathToDoor(door, InteractiveMap.faceDoorOnArrival)
+                    pathToDoor(door, InteractiveMap.faceDoorOnArrival, mapFeedback = true)
                     true
                 }
                 onMouseEnterExit {

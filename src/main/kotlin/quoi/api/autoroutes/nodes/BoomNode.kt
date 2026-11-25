@@ -49,7 +49,7 @@ class BoomNode : RouteNode() {
         return super.checkAwaits(pos)
     }
 
-    override fun execute(pos: MutableVec3): Boolean {
+    override fun execute(pos: MutableVec3, onMissingItem: ((String) -> Unit)?): Boolean {
         if (this.pos.distanceToSqr(player.position()) > 0.1) return false
         val target = realTarget
         val block = if (target != null) { // rsa convert compat
@@ -59,7 +59,8 @@ class BoomNode : RouteNode() {
         } ?: return true
 
         if (!player.mainHandItem.skyblockId.equalsOneOf("INFINITE_SUPERBOOM_TNT", "SUPERBOOM_TNT")) {
-            val swap = SwapManager.swapById("INFINITE_SUPERBOOM_TNT", "SUPERBOOM_TNT")
+            val swap = SwapManager.swapById("INFINITE_SUPERBOOM_TNT", "SUPERBOOM_TNT", reportMissing = onMissingItem == null)
+            if (swap == SwapResult.NOT_FOUND) onMissingItem?.invoke("Put Superboom TNT in your hotbar.")
             if (!swap.success) return swap == SwapResult.NOT_FOUND
         }
         AuraManager.interactBlock(block)

@@ -25,8 +25,8 @@ import quoi.module.impl.dungeon.autoclear.pathToDoor
 import quoi.module.impl.dungeon.autoclear.pathToRoom
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.module.settings.impl.KeybindComponent
-import quoi.utils.ChatUtils.modMessage
 import quoi.utils.commas
+import quoi.utils.ui.notifications.Notifications
 import quoi.utils.ui.screens.UIScreen.Companion.open
 
 /**
@@ -60,8 +60,9 @@ object InteractiveMap : Module(
     private val lockedKey: KeybindComponent = register(keybind("Locked door key", desc = "Teleports to the closest locked door"))
         .onPress {
             if (!enabled || !Dungeon.inClear || Dungeon.isDead) return@onPress
-            val door = getLockedDoor() ?: return@onPress modMessage("No locked doors found.")
-            pathToDoor(door, faceDoorOnArrival)
+            if (Dungeon.currentRoom == null) return@onPress Notifications.warning(name, "Your current room hasn't been detected yet.")
+            val door = getLockedDoor() ?: return@onPress Notifications.warning(name, "No reachable locked door was found.")
+            pathToDoor(door, faceDoorOnArrival, mapFeedback = true)
         }
 
     private val visuals by text("Visuals")
@@ -80,12 +81,14 @@ object InteractiveMap : Module(
 
     private fun map() = aboba("quoi clear map") {
         onClick {
-            active && !Dungeon.isDead && AutoRoutes.skipNode()
+            if (!active || Dungeon.isDead) return@onClick false
+            AutoRoutes.skipNode { Notifications.warning(name, it) }
         }
         onClick(button = 1) {
             if (!active || Dungeon.isDead) return@onClick false
-            val room = Dungeon.currentRoom ?: return@onClick false
-            pathToRoom(room, type = 1)
+            val room = Dungeon.currentRoom
+            if (room == null) Notifications.warning(name, "Your current room hasn't been detected yet.")
+            else pathToRoom(room, type = 1)
             true
         }
 

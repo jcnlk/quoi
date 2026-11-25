@@ -82,12 +82,13 @@ object AutoRoutes : Module(
     val routeNodes: ConfigMap<String, MutableList<RouteNode>> by configMap("route_nodes.json")
     private var roomNodes: List<RouteNode> = emptyList()
     private data class PendingInteract(val direction: Direction, val slot: Int)
+    private data class ForcedNode(val node: RouteNode, val onMissingItem: ((String) -> Unit)?)
     private var pendingInteract: PendingInteract? = null
     private var position: MutableVec3? = null
     private var interactDelay = 0
 
     private var activeNode: RouteNode? = null
-    private var forcedNode: RouteNode? = null
+    private var forcedNode: ForcedNode? = null
     private var mimicNode: RouteNode? = null
 
     private var lastChainName: String? = null
@@ -183,23 +184,35 @@ object AutoRoutes : Module(
         }
     }
 
-    fun skipNode(): Boolean {
-        if (!active || editMode || breakerRing != null || ClearExecutor.routing || pendingInteract != null) return false
+    fun skipNode(onUnavailable: ((String) -> Unit)? = null): Boolean {
+        val unavailable = when {
+            !active -> "Enable Auto Routes before continuing a route."
+            editMode || breakerRing != null -> "Exit the route editor before continuing a route."
+            ClearExecutor.routing || pendingInteract != null -> "Wait for the current action to finish before continuing the route."
+            else -> null
+        }
+        if (unavailable != null) {
+            onUnavailable?.invoke(unavailable)
+            return false
+        }
         val pausedNode = mimicNode
         val pos = if (pausedNode != null) player.position().mutable() else position ?: player.position().mutable()
 
         val nodes = (if (pausedNode != null) listOf(pausedNode) else roomNodes).filter { it.inside(pos) }.sortedByDescending { it.priority }
-        if (nodes.isEmpty()) return false
+        if (nodes.isEmpty()) {
+            onUnavailable?.invoke("There's no route step at your current position.")
+            return false
+        }
 
-        val next = (nodes.indexOf(forcedNode) + 1) % nodes.size
+        val next = (nodes.indexOf(forcedNode?.node) + 1) % nodes.size
         val node = nodes[next]
         if (activeNode !== node) activeNode?.takeIf { !it.triggered }?.reset()
         mimicNode = null
-        forcedNode = node
+        forcedNode = ForcedNode(node, onUnavailable)
         activeNode = node
 
         executing = true
-        if (node.execute(pos)) {
+        if (node.execute(pos, onUnavailable)) {
             node.triggered = true
             node.chain?.let {
                 lastChainName = it.name
@@ -217,9 +230,9 @@ object AutoRoutes : Module(
     fun handleQueue(playerPos: MutableVec3) {
         if (mimicNode != null) return
 
-        if (forcedNode?.inside(playerPos) == false) forcedNode = null
-        val forced = forcedNode?.takeIf { !it.triggered && it.inside(playerPos) }
-        val node = forced ?: roomNodes.asSequence()
+        if (forcedNode?.node?.inside(playerPos) == false) forcedNode = null
+        val forced = forcedNode?.takeIf { !it.node.triggered }
+        val node = forced?.node ?: roomNodes.asSequence()
             .filter { !it.triggered && it.inside(playerPos) }
             .filter { n ->
                 val c = n.chain ?: return@filter true
@@ -249,7 +262,7 @@ object AutoRoutes : Module(
         if (forced == null && !executing && !node.checkAwaits(playerPos)) return
 
         executing = true
-        if (node.execute(playerPos)) {
+        if (node.execute(playerPos, forced?.onMissingItem)) {
             node.triggered = true
             node.chain?.let {
                 lastChainName = it.name

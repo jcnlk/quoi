@@ -48,7 +48,7 @@ abstract class RouteNode(
         player.boundingBox.intersects(aabb)
 
     abstract val colour: Colour
-    abstract fun execute(pos: MutableVec3): Boolean
+    abstract fun execute(pos: MutableVec3, onMissingItem: ((String) -> Unit)? = null): Boolean
 
     open val priority: Int
         get() = 0

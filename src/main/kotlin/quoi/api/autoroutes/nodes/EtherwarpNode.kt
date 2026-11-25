@@ -55,7 +55,7 @@ class EtherwarpNode : RouteNode() {
         realTarget = room.getRealCoords(target)
     }
 
-    override fun execute(pos: MutableVec3): Boolean {
+    override fun execute(pos: MutableVec3, onMissingItem: ((String) -> Unit)?): Boolean {
         if (!player.lastSentInput.shift) return false
 
         val from = pos.add(y = getEyeHeight(true)).immutable()
@@ -64,7 +64,8 @@ class EtherwarpNode : RouteNode() {
         if (!ether.succeeded || ether.pos == null) return false
 
         if (player.mainHandItem.skyblockId != "ASPECT_OF_THE_VOID") {
-            val swap = SwapManager.swapById("ASPECT_OF_THE_VOID")
+            val swap = SwapManager.swapById("ASPECT_OF_THE_VOID", reportMissing = onMissingItem == null)
+            if (swap == SwapResult.NOT_FOUND) onMissingItem?.invoke("Put an Etherwarp item in your hotbar.")
             if (!swap.success) return swap == SwapResult.NOT_FOUND
         }
 

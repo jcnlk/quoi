@@ -2,6 +2,7 @@ package quoi.module.impl.dungeon.autoclear.executor
 
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext
 import net.minecraft.world.phys.Vec3
+import quoi.QuoiMod.logger
 import quoi.api.colour.Colour
 import quoi.api.colour.withAlpha
 import quoi.api.vec.MutableVec3
@@ -16,6 +17,7 @@ import quoi.utils.render.drawLine
 import quoi.utils.skyblock.item.ItemUtils.skyblockId
 import quoi.utils.skyblock.player.PlayerUtils.getEyeHeight
 import quoi.utils.skyblock.player.SwapManager
+import quoi.utils.skyblock.player.SwapResult
 
 abstract class ClearNode(
     val pos: Vec3,
@@ -39,11 +41,6 @@ abstract class ClearNode(
         ctx.drawLine(points, colour = colour, depth = true)
     }
 
-    fun cancel(): Boolean {
-        ClearExecutor.cancel()
-        return false
-    }
-
     protected fun doTeleport(
         playerPos: MutableVec3,
         items: Array<String> = arrayOf("ASPECT_OF_THE_VOID"),
@@ -54,22 +51,28 @@ abstract class ClearNode(
         if (player.lastSentInput.shift != sneak) return false
 
         if (!player.mainHandItem.skyblockId.equalsOneOf(*items)) {
-            if (!SwapManager.swapById(*items).success) return cancel()
+            val swap = SwapManager.swapById(*items, reportMissing = !ClearExecutor.hasFailureHandler)
+            if (swap == SwapResult.NOT_FOUND) return ClearExecutor.fail("Put an Etherwarp item in your hotbar.")
+            if (!swap.success) return ClearExecutor.fail("Couldn't select the Etherwarp item. Try again.")
         }
 
         val from = Vec3(playerPos.x, playerPos.y + getEyeHeight(sneak), playerPos.z)
         val res = block(from)
 
         if (!res.succeeded || res.pos == null) {
-            modMessage("""
-                    &cFailed
-                    &eFrom&7:&f $from
-                    &eTo&7:&r $.{next?.pos}
-                    &eYaw&7:&r $yaw
-                    &ePitch&7:&r $pitch
-                    &eResult&7:&r $res
-                """.trimIndent(), prefix = "[&cAutoClear&r]")
-            return cancel()
+            if (ClearExecutor.hasFailureHandler) {
+                logger.debug("Etherwarp raycast failed from {} (yaw {}, pitch {}): {}", from, yaw, pitch, res)
+            } else {
+                modMessage("""
+                        &cFailed
+                        &eFrom&7:&f $from
+                        &eTo&7:&r $.{next?.pos}
+                        &eYaw&7:&r $yaw
+                        &ePitch&7:&r $pitch
+                        &eResult&7:&r $res
+                    """.trimIndent(), prefix = "[&cAutoClear&r]")
+            }
+            return ClearExecutor.fail("The next Etherwarp landing spot is blocked or out of range.")
         }
 
         ClearExecutor.queueInteract(yaw, pitch)

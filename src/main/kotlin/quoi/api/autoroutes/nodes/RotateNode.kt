@@ -25,7 +25,7 @@ class RotateNode : RouteNode() {
         realYaw = room.getRealYaw(yaw)
     }
 
-    override fun execute(pos: MutableVec3): Boolean {
+    override fun execute(pos: MutableVec3, onMissingItem: ((String) -> Unit)?): Boolean {
         player.rotate(realYaw, pitch)
         return true
     }

@@ -35,7 +35,7 @@ class UseItemNode : RouteNode() {
         realYaw = room.getRealYaw(yaw)
     }
 
-    override fun execute(pos: MutableVec3): Boolean {
+    override fun execute(pos: MutableVec3, onMissingItem: ((String) -> Unit)?): Boolean {
         fun matches(slot: Int): Boolean {
             val stack = player.inventory.getItem(slot)
             return item.equalsOneOf(stack.skyblockId, stack.registryPath)
@@ -43,7 +43,8 @@ class UseItemNode : RouteNode() {
         val slot = player.inventory.selectedSlot.takeIf { matches(it) } ?: (0..8).find { matches(it) }
 
         if (slot == null) {
-            modMessage("&cItem &e$item&c not found!")
+            if (onMissingItem != null) onMissingItem("Put $item in your hotbar.")
+            else modMessage("&cItem &e$item&c not found!")
             return true
         }
 

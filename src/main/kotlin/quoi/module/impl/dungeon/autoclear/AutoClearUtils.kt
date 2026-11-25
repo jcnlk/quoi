@@ -3,6 +3,7 @@ package quoi.module.impl.dungeon.autoclear
 import net.minecraft.core.BlockPos
 import net.minecraft.world.phys.Vec3
 import quoi.api.colour.Colour
+import quoi.api.pathfinding.PathConfig
 import quoi.api.pathfinding.TeleportPathNode
 import quoi.api.pathfinding.impl.DungeonMapPathfinder
 import quoi.api.skyblock.dungeon.Dungeon
@@ -15,6 +16,7 @@ import quoi.api.skyblock.dungeon.odonscanning.tiles.Rotations
 import quoi.module.impl.dungeon.autoclear.executor.ClearExecutor
 import quoi.module.impl.dungeon.autoclear.executor.nodes.ClearEtherNode
 import quoi.module.impl.dungeon.autoclear.impl.AutoRoutes.routeNodes
+import quoi.module.impl.dungeon.autoclear.impl.InteractiveMap
 import quoi.utils.ChatUtils.modMessage
 import quoi.utils.StringUtils.containsOneOf
 import quoi.utils.WorldUtils.etherwarpable
@@ -29,7 +31,7 @@ import quoi.utils.player
 import quoi.utils.rayCastVec
 import quoi.utils.skyblock.player.PlayerUtils.getEyeHeight
 import quoi.utils.skyblock.player.RotationUtils.rotate
-import quoi.utils.center
+import quoi.utils.ui.notifications.Notifications
 
 const val HYPE_AOE = 6.0
 
@@ -67,14 +69,14 @@ private val coreOverrides = mapOf(
     )
 )
 
-private val canPath: Boolean
-    get() {
-        if (!player.onGround()) return false
-        val room = Dungeon.currentRoom ?: return true
-        if (room.name.containsOneOf("Maze", "Boulder")) return false
-        if (room.name.contains("Trap") && room.getRelativeCoords(player.blockPosition()).z >= 0) return false
-        return true
-    }
+private fun pathBlockedReason(): String? {
+    if (!player.onGround()) return "Land on the ground before travelling."
+    val room = Dungeon.currentRoom ?: return null
+    if (room.name.containsOneOf("Maze", "Boulder") ||
+        room.name.contains("Trap") && room.getRelativeCoords(player.blockPosition()).z >= 0
+    ) return "Move out of ${room.name} before travelling."
+    return null
+}
 
 /**
  * Searches for the nearest locked Wither or Blood door in the dungeon.
@@ -98,11 +100,18 @@ fun getLockedDoor(): OdonDoor? {
  *
  * @param door Destination door
  */
-fun pathToDoor(door: OdonDoor, faceOnArrival: Boolean = false, owner: Any? = null) {
-    if (!canPath) return
-    val room = Dungeon.currentRoom ?: return
+fun pathToDoor(door: OdonDoor, faceOnArrival: Boolean = false, owner: Any? = null, mapFeedback: Boolean = false) {
+    pathBlockedReason()?.let {
+        if (mapFeedback) Notifications.warning(InteractiveMap.name, it)
+        return
+    }
+    val room = Dungeon.currentRoom ?: run {
+        if (mapFeedback) Notifications.warning(InteractiveMap.name, "Your current room hasn't been detected yet.")
+        return
+    }
     val goal = DungeonMapPathfinder.getDoorPos(room, door) ?: run {
-        modMessage("Could not find door coordinates")
+        if (mapFeedback) Notifications.error(InteractiveMap.name, "Couldn't find a way to the selected door.")
+        else modMessage("Could not find door coordinates")
         return
     }
 
@@ -113,7 +122,8 @@ fun pathToDoor(door: OdonDoor, faceOnArrival: Boolean = false, owner: Any? = nul
         }
     } else null
 
-    ClearExecutor.etherPath(to = goal, owner = owner, onComplete = onArrival)
+    if (mapFeedback) pathToMapTarget(goal, "the selected door", onArrival = onArrival)
+    else ClearExecutor.etherPath(to = goal, owner = owner, onComplete = onArrival)
 }
 
 /**
@@ -123,46 +133,52 @@ fun pathToDoor(door: OdonDoor, faceOnArrival: Boolean = false, owner: Any? = nul
  * @param tile Specific room tile.
  * @param type Navigation type: 0 for room entry, 1 for an autoroute start, 2 for room entry followed by an autoroute start.
  */
-fun pathToRoom(room: OdonRoom, tile: RoomTile = room.tiles.first(), type: Int) {
-    if (!canPath || type !in 0..2) return
+fun pathToRoom(room: OdonRoom, tile: RoomTile? = null, type: Int) {
+    if (type !in 0..2) return
+    pathBlockedReason()?.let { return Notifications.warning(InteractiveMap.name, it) }
+    val targetTile = tile ?: room.tiles.firstOrNull()
+        ?: return Notifications.warning(InteractiveMap.name, "${room.name} hasn't been mapped yet.")
 
     val enterRoomFirst = type == 2 && Dungeon.currentRoom != room
-    val goal = when {
-        type == 0 || enterRoomFirst -> {
-            val overridePos = roomOverrides[room.name] ?: coreOverrides[room.name]?.get(tile.core)
+    if (type == 0 || enterRoomFirst) {
+        val overridePos = roomOverrides[room.name] ?: coreOverrides[room.name]?.get(targetTile.core)
+        val goal = if (overridePos != null && room.rotation != Rotations.NONE) {
+            room.getRealCoords(overridePos)
+        } else {
+            targetTile.blockPos.firstNearbyBlock(25f) { it.etherwarpable }
+                ?: return Notifications.error(InteractiveMap.name, "Couldn't find an Etherwarp landing spot in ${room.name}.")
+        }
 
-            if (overridePos != null && room.rotation != Rotations.NONE) {
-                room.getRealCoords(overridePos)
-            } else {
-                tile.blockPos.firstNearbyBlock(25f) { it.etherwarpable }
-                    ?: return modMessage("Couldn't find goal position for tile &e${tile.core}&r in &e${room.name}")
+        val nextLeg: (() -> Unit)? = if (enterRoomFirst) {
+            {
+                if (Dungeon.currentRoom == room) pathToRoom(room, targetTile, type = 1)
+                else Notifications.error(InteractiveMap.name, "Couldn't reach ${room.name}. Travel to the route start was cancelled.")
             }
-        }
-        else -> {
-            if (!room.ready) return modMessage("Room data has not loaded yet. Enter the room before starting its route.")
-            val rings = routeNodes[room.name] ?: return modMessage("No rings found in &e${room.name}")
-
-            val starts = rings
-                .filter { it.start == true }
-                .map { room.getRealCoords(it.relative.floorPos) }
-                .filter { it.etherwarpable }
-
-            val target = starts
-                .find { it.distanceToSqr(tile.blockPos) < 225 } ?: starts.firstOrNull()
-            ?: return modMessage("&cCouldn't find start ring.")
-
-            target
-        }
+        } else null
+        pathToMapTarget(goal, room.name, onArrival = nextLeg)
+        return
     }
 
-    val onArrival = if (enterRoomFirst) {
-        {
-            if (Dungeon.currentRoom == room) pathToRoom(room, tile, type = 1)
-            else modMessage("Couldn't reach &e${room.name}&r. Travel to route start cancelled.")
-        }
-    } else null
+    if (!room.ready) return Notifications.warning(InteractiveMap.name, "Room data for ${room.name} is still loading. Enter the room first.")
+    val rings = routeNodes[room.name].orEmpty()
+    val starts = rings.filter { it.start == true }
+    if (starts.isEmpty()) return Notifications.warning(InteractiveMap.name, "No route start is saved for ${room.name}.")
 
-    ClearExecutor.etherPath(to = goal, onComplete = onArrival)
+    val landingSpots = starts.map { room.getRealCoords(it.relative.floorPos) }.filter { it.etherwarpable }
+    val goal = landingSpots.find { it.distanceToSqr(targetTile.blockPos) < 225 } ?: landingSpots.firstOrNull()
+        ?: return Notifications.error(InteractiveMap.name, "No route start in ${room.name} can be reached with Etherwarp.")
+
+    pathToMapTarget(goal, "the route start in ${room.name}")
+}
+
+private fun pathToMapTarget(goal: BlockPos, target: String, onArrival: (() -> Unit)? = null) {
+    ClearExecutor.etherPath(
+        to = goal,
+        config = PathConfig(feedback = false),
+        onAlreadyThere = { Notifications.info(InteractiveMap.name, "You're already at the destination.", duration = 2000L) },
+        onFailure = { reason -> Notifications.error(InteractiveMap.name, "Couldn't travel to $target. $reason") },
+        onComplete = onArrival,
+    )
 }
 
 fun TeleportPathNode.toEther(): ClearEtherNode {

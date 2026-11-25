@@ -1,11 +1,13 @@
 package quoi.module.impl.dungeon.autoclear.executor
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ClientboundPlayerPositionPacket
+import quoi.QuoiMod.logger
 import quoi.QuoiMod.mc
 import quoi.QuoiMod.scope
 import quoi.annotations.Init
@@ -25,6 +27,8 @@ import quoi.utils.skyblock.player.PlayerUtils.useItem
 
 @Init
 object ClearExecutor : EventListener {
+    private const val STALL_TIMEOUT_TICKS = 100
+
     private var nodes: MutableList<ClearNode>? = null
 
     private var syncDelay = 0
@@ -44,7 +48,12 @@ object ClearExecutor : EventListener {
     private var position: MutableVec3? = null
     private var activeNode: ClearNode? = null
     private var onComplete: (() -> Unit)? = null
+    private var onFailure: ((String) -> Unit)? = null
     private var pendingCompletion: (() -> Unit)? = null
+    private var ticksWithoutProgress = 0
+
+    internal val hasFailureHandler: Boolean
+        get() = onFailure != null
 
     init {
         on<PacketEvent.Received, ClientboundPlayerPositionPacket> {
@@ -55,6 +64,7 @@ object ClearExecutor : EventListener {
             if (syncDelay < 2) return@on
             if (syncDelay++ > 9) {
                 syncDelay = 0
+                onFailure = null
                 val callback = pendingCompletion
                 if (callback != null) mc.submit {
                     if (pendingCompletion === callback) {
@@ -66,6 +76,13 @@ object ClearExecutor : EventListener {
         }
 
         on<TickEvent.Start> {
+            if (onFailure != null && (syncDelay != 0 || !nodes.isNullOrEmpty()) &&
+                ++ticksWithoutProgress >= STALL_TIMEOUT_TICKS
+            ) {
+                fail(if (syncDelay != 0) "Timed out waiting for a response from the server." else "Travel stalled. Stand still and try again.")
+                return@on
+            }
+
             doInteract()
             updateDelays()
 
@@ -95,25 +112,45 @@ object ClearExecutor : EventListener {
         }
     }
 
-    fun etherPath(to: BlockPos, config: PathConfig = PathConfig(), owner: Any? = null, onComplete: (() -> Unit)? = null) {
+    fun etherPath(
+        to: BlockPos,
+        config: PathConfig = PathConfig(),
+        owner: Any? = null,
+        onAlreadyThere: (() -> Unit)? = null,
+        onFailure: ((String) -> Unit)? = null,
+        onComplete: (() -> Unit)? = null,
+    ) {
         cancel()
         if (player.at(to)) {
+            onAlreadyThere?.invoke()
             onComplete?.invoke()
-            return modMessage("Already there")
+            if (onAlreadyThere == null) modMessage("Already there")
+            return
         }
 
         this.owner = owner
+        this.onFailure = onFailure
+        val from = player.position()
         pathJob = scope.launch {
-            val p = EtherwarpPathfinder.findDungeonPath(
-                from = player.position(),
-                to = to,
-                config = config,
-            ) ?: return@launch
-
-            ensureActive()
-            mc.submit {
-                if (isActive) clearPath(p.map { it.toEther() }, owner, onComplete)
-            }.join()
+            try {
+                val path = EtherwarpPathfinder.findDungeonPath(from = from, to = to, config = config)
+                ensureActive()
+                mc.submit {
+                    if (!isActive) return@submit
+                    if (path.isNullOrEmpty()) {
+                        if (onFailure != null) fail("No Etherwarp path was found.")
+                    } else {
+                        clearPath(path.map { it.toEther() }, owner, onComplete)
+                    }
+                }.join()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                logger.error("Failed to prepare Etherwarp path to $to", e)
+                mc.submit {
+                    if (isActive && onFailure != null) fail("An error occurred while preparing the path.")
+                }.join()
+            }
         }
     }
 
@@ -142,7 +179,16 @@ object ClearExecutor : EventListener {
         active = false
         activeNode = null
         onComplete = null
+        onFailure = null
         pendingCompletion = null
+        ticksWithoutProgress = 0
+    }
+
+    fun fail(message: String): Boolean {
+        val callback = onFailure
+        cancel()
+        callback?.invoke(message)
+        return false
     }
 
     private fun handleQueue(playerPos: MutableVec3, clearNodes: MutableList<ClearNode>) {
@@ -155,6 +201,7 @@ object ClearExecutor : EventListener {
         activeNode = node
 
         if (node.execute(playerPos)) {
+            ticksWithoutProgress = 0
             clearNodes.remove(node)
 
             if (clearNodes.isEmpty()) {

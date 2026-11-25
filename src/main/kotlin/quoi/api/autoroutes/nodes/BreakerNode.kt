@@ -58,7 +58,7 @@ class BreakerNode : RouteNode() {
         cooldown = 0
     }
 
-    override fun execute(pos: MutableVec3): Boolean {
+    override fun execute(pos: MutableVec3, onMissingItem: ((String) -> Unit)?): Boolean {
         if (blocks.isEmpty()) return true
         if (realBlocks.none { level.isLoaded(it) && !it.state.isAir }) return true
         if (cooldown > 0) {
