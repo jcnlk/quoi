@@ -43,6 +43,7 @@ import quoi.utils.skyblock.player.PetUtils
 import quoi.utils.skyblock.player.RotationUtils.rotate
 import quoi.utils.ticker
 import quoi.utils.ui.hud.HudManager
+import quoi.utils.ui.notifications.Notifications
 import quoi.utils.ui.screens.UIScreen.Companion.open
 import quoi.utils.center
 
@@ -73,6 +74,14 @@ object QuoiCommand : EventListener {
                 EventDispatcher.onPacketReceived(ClientboundSystemChatPacket(literal(message.string), false))
                 modMessage("simulated: ${message.string}")
             }
+
+            "toast" { title: String, message: String, type: String?, duration: Int? ->
+                val toastType = if (type == null) Notifications.Type.INFO
+                else Notifications.Type.entries.find { it.name.equals(type, true) }
+                    ?: return@invoke modMessage("&cUnknown type. Use info, success, warning or error.")
+                Notifications.send(title, message, toastType, duration?.toLong() ?: 4000L)
+            }.description("Shows a notification.")
+                .suggests("type", Notifications.Type.entries.map { it.name.lowercase() })
 
             "resetinvincibility" {
                 InvincibilityType.entries.forEach { it.reset() }

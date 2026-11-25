@@ -8,9 +8,9 @@ import quoi.api.skyblock.location.Area
 import quoi.module.settings.Setting
 import quoi.module.settings.SettingsDSL
 import quoi.module.settings.impl.Keybinding
-import quoi.utils.ChatUtils.modMessage
 import quoi.utils.Shortcuts
 import quoi.utils.ui.hud.HudDSL
+import quoi.utils.ui.notifications.Notifications
 
 abstract class Module(
     val name: String,
@@ -51,7 +51,8 @@ abstract class Module(
     }
 
     fun toggleMessage() {
-        modMessage("$name ${if (enabled) "§aenabled" else "§cdisabled"}§r.", name.hashCode())
+        if (enabled) Notifications.success(name, "Enabled", duration = 2000L)
+        else Notifications.error(name, "Disabled", duration = 2000L)
     }
 
     fun toggle() {
