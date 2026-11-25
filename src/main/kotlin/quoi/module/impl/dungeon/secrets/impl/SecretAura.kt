@@ -5,8 +5,10 @@ import it.unimi.dsi.fastutil.longs.LongOpenHashSet
 import net.minecraft.core.BlockPos
 import net.minecraft.core.component.DataComponents
 import net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket
+import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
 import net.minecraft.network.protocol.game.ClientboundSectionBlocksUpdatePacket
 import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket
+import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.entity.EquipmentSlot
 import net.minecraft.world.entity.decoration.ArmorStand
@@ -20,6 +22,7 @@ import net.minecraft.world.phys.AABB
 import quoi.api.events.PacketEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.WorldEvent
+import quoi.api.events.core.Priority
 import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.Dungeon
 import quoi.api.skyblock.dungeon.Dungeon.currentRoom
@@ -63,7 +66,7 @@ object SecretAura : ToggleableGroup(
     private val clickedBlocks = Long2LongOpenHashMap()
     val blocksDone = LongOpenHashSet()
     private var previousSlot = -1
-    var lastClickedPos: BlockPos? = null
+    private var pendingChestPos: Long? = null
 
     override fun onDisable() {
         clear()
@@ -186,10 +189,21 @@ object SecretAura : ToggleableGroup(
             }
 
             clickedBlocks[blockCandidate.pos.asLong()] = System.currentTimeMillis() + 500
-
-            lastClickedPos = blockCandidate.pos
             AuraManager.interactBlock(blockCandidate.pos)
             if (swing && !player.isShiftKeyDown) player.swing(InteractionHand.MAIN_HAND)
+        }
+
+        on<PacketEvent.Sent, ServerboundUseItemOnPacket>(Priority.LOWEST) {
+            val pos = packet.hitResult.blockPos
+            pendingChestPos = pos.asLong().takeIf {
+                clickedBlocks.containsKey(it) && pos.state.block.equalsOneOf(Blocks.CHEST, Blocks.TRAPPED_CHEST)
+            }
+        }
+
+        on<PacketEvent.Received, ClientboundOpenScreenPacket>(acceptCancelled = true) {
+            val pos = pendingChestPos ?: return@on
+            pendingChestPos = null
+            if (Dungeon.isSecretChestMenu(packet)) blocksDone.add(pos)
         }
 
         on<PacketEvent.Received> {
@@ -268,6 +282,7 @@ object SecretAura : ToggleableGroup(
         clickedBlocks.clear()
         redstoneKey = false
         previousSlot = -1
+        pendingChestPos = null
     }
 
     private data class BlockDistance(val block: Block, val pos: BlockPos, val distanceSq: Double)

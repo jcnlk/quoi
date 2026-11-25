@@ -4,6 +4,7 @@ import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.*
 import net.minecraft.world.entity.decoration.ArmorStand
 import net.minecraft.world.entity.monster.zombie.Zombie
+import net.minecraft.world.inventory.MenuType
 import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.level.block.LeverBlock
 import net.minecraft.world.level.block.SkullBlock
@@ -351,6 +352,20 @@ object Dungeon : EventListener, Shortcuts {
             else -> false
         }
     }
+
+    private val secretChestTitles = setOf("Chest", "Large Chest", "Trapped Chest")
+    private val secretChestMenuTypes = setOf(
+        MenuType.GENERIC_9x1,
+        MenuType.GENERIC_9x2,
+        MenuType.GENERIC_9x3,
+        MenuType.GENERIC_9x4,
+        MenuType.GENERIC_9x5,
+        MenuType.GENERIC_9x6,
+        MenuType.GENERIC_3x3,
+    )
+
+    internal fun isSecretChestMenu(packet: ClientboundOpenScreenPacket): Boolean =
+        packet.type in secretChestMenuTypes && packet.title.string.trim() in secretChestTitles
 
     fun isBossLever(pos: BlockPos, state: BlockState): Boolean {
         if (state.block != Blocks.LEVER) return false
