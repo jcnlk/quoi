@@ -1,10 +1,11 @@
 package quoi.utils.skyblock.player
 
-import net.minecraft.network.protocol.game.ServerboundContainerClickPacket
+import net.minecraft.network.protocol.game.*
 import net.minecraft.world.inventory.ContainerInput
-import quoi.QuoiMod.mc
+import net.minecraft.world.item.ItemStack
 import quoi.annotations.Init
 import quoi.api.events.*
+import quoi.api.events.core.EventDispatcher.totalTicks
 import quoi.api.events.core.EventListener
 import quoi.api.events.core.Priority
 import quoi.api.events.core.on
@@ -15,6 +16,9 @@ import quoi.api.skyblock.dungeon.Dungeon.inDungeons
 import quoi.api.skyblock.dungeon.enums.DungeonClass
 import quoi.api.skyblock.dungeon.enums.DungeonPlayer
 import quoi.utils.ChatUtils.modMessage
+import quoi.utils.DualTime
+import quoi.utils.Shortcuts
+import quoi.utils.StringUtils.noControlCodes
 import quoi.utils.StringUtils.toFixed
 import quoi.utils.skyblock.item.ItemUtils.skyblockId
 import quoi.utils.skyblock.player.container.CONTAINER_MENU
@@ -25,9 +29,13 @@ import kotlin.math.ceil
 import kotlin.math.roundToInt
 
 @Init
-object LeapManager : EventListener {
+object LeapManager : EventListener, Shortcuts {
     private const val MENU_TIMEOUT_TICKS = 60
-    private val cooldowns = mutableMapOf<String, Int>()
+    private const val LEAP_MENU_TITLE = "Spirit Leap"
+
+    private val baseCooldownTicks = mapOf("INFINITE_SPIRIT_LEAP" to 40, "SPIRIT_LEAP" to 100)
+    private val cooldowns = mutableMapOf<String, DualTime>()
+    private val leapTargets = mutableMapOf<Int, String>()
 
     private data class LeapRequest(
         val target: DungeonPlayer,
@@ -35,28 +43,92 @@ object LeapManager : EventListener {
         val swapBack: Boolean,
     )
 
+    private data class MenuUse(val itemId: String, val expiresAt: Int)
+    private data class LeapClick(
+        val target: String,
+        val itemId: String?,
+        val baseTicks: Long,
+        val expiresAtMs: Long,
+    )
+
     private var activeLeap: LeapRequest? = null
     private var pendingLeap: LeapRequest? = null
     private var task: ContainerTask? = null
     private var useInputSuppressed = false
+    private var menuUse: MenuUse? = null
+    private var menuItemId: String? = null
+    private var lastLeapClick: LeapClick? = null
 
     private val inProgress: Boolean
         get() = activeLeap != null
 
+    private val leapMenu get() = ContainerUtils.current?.takeIf { it.title == LEAP_MENU_TITLE }
+
     init {
-        on<PacketEvent.Sent, ServerboundContainerClickPacket>(Priority.LOWEST) {
-            if (ContainerUtils.current?.takeIf { it.title == "Spirit Leap" }?.menu?.containerId != packet.containerId ||
-                packet.containerInput() != ContainerInput.PICKUP || packet.slotNum !in 11..15
-            ) return@on
-            val skyblockId = mc.player?.mainHandItem?.skyblockId ?: return@on
-            if ((cooldowns[skyblockId] ?: 0) > 0) return@on
-            val baseTicks = when (skyblockId) { // TODO: retest extra ticks
-                "SPIRIT_LEAP" -> 107 // 5s cd but 7 ticks for lag and other bs
-                "INFINITE_SPIRIT_LEAP" -> 47 // 2s cd but 7 ticks for lag and other bs
+        on<PacketEvent.Sent>(Priority.LOWEST) {
+            val hand = when (val sent = packet) {
+                is ServerboundUseItemPacket -> sent.hand
+                is ServerboundUseItemOnPacket -> sent.hand
                 else -> return@on
             }
-            val cooldownPercent = (getMageCooldownMultiplier() * 100).roundToInt()
-            cooldowns[skyblockId] = ceil(baseTicks * cooldownPercent / 100.0).toInt()
+            if (!inDungeons) return@on
+            val itemId = player.getItemInHand(hand).skyblockId ?: return@on
+            if (itemId in baseCooldownTicks) menuUse = MenuUse(itemId, totalTicks + MENU_TIMEOUT_TICKS)
+        }
+
+        on<ContainerEvent.Open> {
+            val use = menuUse
+            menuUse = null
+            menuItemId = null
+            leapTargets.clear()
+            if (container.title != LEAP_MENU_TITLE) return@on
+
+            val itemId = use?.takeIf { totalTicks < it.expiresAt }?.itemId ?: player.mainHandItem.skyblockId
+            menuItemId = itemId?.takeIf(baseCooldownTicks::containsKey)
+        }
+
+        on<PacketEvent.ReceivedPost>(Priority.HIGH) {
+            val menuId = leapMenu?.menu?.containerId ?: return@on
+            when (val update = packet) {
+                is ClientboundContainerSetContentPacket -> if (update.containerId == menuId) {
+                    for (slot in 11..15) cacheLeapTarget(slot, update.items.getOrNull(slot))
+                }
+                is ClientboundContainerSetSlotPacket -> if (update.containerId == menuId && update.slot in 11..15) {
+                    cacheLeapTarget(update.slot, update.item)
+                }
+            }
+        }
+
+        on<PacketEvent.Sent, ServerboundContainerClickPacket>(Priority.LOWEST) {
+            if (leapMenu?.menu?.containerId != packet.containerId || packet.containerInput() != ContainerInput.PICKUP) return@on
+
+            val targetName = leapTargets[packet.slotNum.toInt()] ?: return@on
+            val target = dungeonTeammatesNoSelf.firstOrNull { it.name.equals(targetName, ignoreCase = true) } ?: return@on
+
+            val now = DualTime(totalTicks.toLong())
+            val itemId = menuItemId
+            val baseTicks = itemId?.let { id ->
+                val cooldownPercent = (getMageCooldownMultiplier() * 100).roundToInt()
+                ceil(baseCooldownTicks.getValue(id) * cooldownPercent / 100.0).toLong()
+            } ?: 0L
+            if (itemId != null) cooldowns[itemId] = now.plusTicks(baseTicks)
+            menuItemId = null
+            val previousExpiry = lastLeapClick?.expiresAtMs ?: 0L
+            val confirmedItemId = itemId.takeIf { now.real >= previousExpiry }
+            lastLeapClick = LeapClick(target.name, confirmedItemId, baseTicks, now.real + 2_000L)
+
+            SkyblockPlayerEvent.Leap(target).post()
+        }
+
+        on<ChatEvent.Packet>(Priority.HIGH, acceptCancelled = true) {
+            val click = lastLeapClick ?: return@on
+            val itemId = click.itemId ?: return@on
+            if (!unformatted.startsWith("You have teleported to ${click.target}!", ignoreCase = true)) return@on
+
+            lastLeapClick = null
+            val now = DualTime(totalTicks.toLong())
+            if (now.real >= click.expiresAtMs) return@on
+            cooldowns[itemId] = now.plusTicks((click.baseTicks - 2).coerceAtLeast(0L))
         }
 
         on<ChatEvent.Packet> {
@@ -74,6 +146,10 @@ object LeapManager : EventListener {
             task?.cancel()
             resetActiveLeap()
             cooldowns.clear()
+            lastLeapClick = null
+            menuUse = null
+            menuItemId = null
+            leapTargets.clear()
         }
 
         on<TickEvent.Start>(Priority.HIGHEST) {
@@ -86,14 +162,21 @@ object LeapManager : EventListener {
 
             when (doLeap(pending)) {
                 LeapStartResult.Started,
-                LeapStartResult.Rejected -> if (pendingLeap === pending) {
-                    pendingLeap = null
-                }
+                LeapStartResult.Rejected -> if (pendingLeap === pending) pendingLeap = null
                 LeapStartResult.Retry -> Unit
             }
         }
+    }
 
-        on<TickEvent.Server> { cooldowns.replaceAll { _, ticks -> (ticks - 1).coerceAtLeast(0) } }
+    private fun remainingCooldown(itemId: String?): Long {
+        val deadline = cooldowns[itemId] ?: return 0L
+        val remaining = deadline - DualTime(totalTicks.toLong())
+        return maxOf(0L, remaining.ticks, ceil(remaining.real / 50.0).toLong())
+    }
+
+    private fun cacheLeapTarget(slot: Int, stack: ItemStack?) {
+        if (stack == null || stack.isEmpty) leapTargets.remove(slot)
+        else leapTargets[slot] = stack.hoverName.string.noControlCodes.trim().substringAfterLast(' ')
     }
 
     fun leap(
@@ -130,9 +213,7 @@ object LeapManager : EventListener {
         if (activeLeap?.target?.name == teammate.name || pendingLeap?.target?.name == teammate.name) return
 
         val request = LeapRequest(teammate, settings, swapBack)
-        val openLeapMenu = ContainerUtils.current?.takeIf {
-            it.title == "Spirit Leap" && it.menu === mc.player?.containerMenu
-        }
+        val openLeapMenu = leapMenu?.takeIf { it.menu === player.containerMenu }
 
         if (!inProgress && pendingLeap == null && openLeapMenu != null && ContainerManager.activeTask == null) {
             doLeap(request, preOpened = true)
@@ -150,18 +231,14 @@ object LeapManager : EventListener {
 
     private fun doLeap(leap: LeapRequest, preOpened: Boolean = false): LeapStartResult {
         if (inProgress) return LeapStartResult.Retry
-        val player = mc.player ?: run {
-            modMessage("&cFailed to leap: player unavailable")
-            return LeapStartResult.Rejected
-        }
         val hotbarItems = (0..<8).map { player.inventory.getItem(it).skyblockId }
-        val leapId = if (preOpened) null else listOf("INFINITE_SPIRIT_LEAP", "SPIRIT_LEAP")
+        val leapId = if (preOpened) null else baseCooldownTicks.keys
             .filter { it in hotbarItems }
-            .minByOrNull { cooldowns[it] ?: 0 } ?: run {
+            .minByOrNull(::remainingCooldown) ?: run {
             modMessage("&cFailed to leap: no leap found in hotbar")
             return LeapStartResult.Rejected
         }
-        val remaining = cooldowns[leapId] ?: 0
+        val remaining = remainingCooldown(leapId)
         if (remaining > 0) {
             modMessage("&cFailed to leap! On cooldown: ${(remaining / 20.0).toFixed(1)}s")
             return LeapStartResult.Rejected
@@ -188,11 +265,11 @@ object LeapManager : EventListener {
             if (!preOpened) {
                 check("could not select a Spirit Leap before use. Try again.") {
                     val id = checkNotNull(leapId)
-                    (cooldowns[id] ?: 0) == 0 && SwapManager.swapById(id).success
+                    remainingCooldown(id) == 0L && SwapManager.swapById(id).success
                 }
                 action { PlayerUtils.interact() }
                 awaitContainer(
-                    "Spirit Leap",
+                    LEAP_MENU_TITLE,
                     waitForItems = true,
                     timeout = MENU_TIMEOUT_TICKS,
                     failureMessage = "Spirit Leap menu did not open in time. Try again.",
@@ -215,10 +292,7 @@ object LeapManager : EventListener {
         if (activeLeap !== leap) return
 
         when (result) {
-            ContainerTaskResult.Success -> {
-                SkyblockPlayerEvent.Leap(leap.target).post()
-                modMessage("&aLeaping to ${formatName(leap.target)}")
-            }
+            ContainerTaskResult.Success -> modMessage("&aLeaping to ${formatName(leap.target)}")
             ContainerTaskResult.Busy -> modMessage("&cFailed to leap: another container action is active")
             ContainerTaskResult.Cancelled -> Unit
             is ContainerTaskResult.Failure -> modMessage("&cFailed to leap to ${formatName(leap.target)}&c: ${result.message}")

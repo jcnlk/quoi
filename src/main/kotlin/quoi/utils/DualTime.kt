@@ -7,4 +7,9 @@ package quoi.utils
  */
 data class DualTime(val ticks: Long, val real: Long = System.currentTimeMillis()) {
     operator fun minus(other: DualTime) = DualTime(ticks - other.ticks, real - other.real)
+
+    /**
+     * Advances both clocks by [duration] ticks at 50 ms per tick
+     */
+    fun plusTicks(duration: Long) = DualTime(ticks + duration, real + duration * 50L)
 }
