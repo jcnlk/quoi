@@ -42,6 +42,7 @@ object TeleportMazeSolver : SettingGroup(PuzzleSolvers, "Teleport maze") {
     private val start = BlockPos(15, 69, 12)
     private val exit = BlockPos(15, 69, 14)
     private val waypoint = BlockPos(15, 69, 16)
+    private val chest = BlockPos(15, 70, 20)
     private val doorway = BlockPos(15, 69, -2)
     private val neutral = Colour.WHITE.withAlpha(0.5f)
 
@@ -72,15 +73,21 @@ object TeleportMazeSolver : SettingGroup(PuzzleSolvers, "Teleport maze") {
             val mazeTeleport = destination.y == 69.5 && destination.x % 0.5 == 0.0 && destination.z % 0.5 == 0.0
 
             when {
-                returning -> exitTarget = doorway
-                exitTarget != doorway && inCenterLane(room, destination, 14..20) -> {
-                    if (exitTarget != null) return@on
-                    exitTarget = waypoint
+                returning -> {
+                    if (exitTarget != exit && room.data.state != RoomState.GREEN) return@on reset()
+                    exitTarget = doorway
                 }
+                exitTarget == null && inCenterLane(room, destination, 14..20) -> exitTarget = waypoint
                 mazeTeleport -> if (!maze.recordTeleport(source, destination, change.yRot)) return@on
                 else -> return@on
             }
             stopWalking()
+        }
+
+        on<DungeonEvent.Secret.Interact> {
+            if (exitTarget != waypoint) return@on
+            val room = Dungeon.currentRoom ?: return@on
+            if (blockPos == room.getRealCoords(chest)) exitTarget = exit
         }
 
         on<RenderEvent.World> {
@@ -113,18 +120,16 @@ object TeleportMazeSolver : SettingGroup(PuzzleSolvers, "Teleport maze") {
             if (!auto || ClearExecutor.active || PuzzleSolvers.screenBlocksAuto) return@on stopWalking()
 
             val position = player.position()
-            if (exitTarget == null && inCenterLane(room, position, 14..20)) exitTarget = waypoint
+            val inFinalCell = inCenterLane(room, position, 14..20)
+            if (exitTarget == null && inFinalCell) exitTarget = waypoint
+            if (exitTarget == waypoint && room.data.state == RoomState.GREEN) exitTarget = exit
             when (exitTarget) {
-                waypoint, exit -> {
+                waypoint -> {
                     val target = room.getRealCoords(waypoint)
-                    val reachedWaypoint = walk?.usesMoveTo != true && position.distanceTo2DSqr(target.center) <= 0.25
-                    if (exitTarget == exit || reachedWaypoint) {
-                        exitTarget = exit
-                        walkTo(maze.exitPad, target)
-                    } else {
-                        walkTo(target)
-                    }
+                    if (inFinalCell && position.distanceTo2DSqr(target.center) > 0.25) walkTo(target)
+                    else stopWalking()
                 }
+                exit -> walkTo(maze.exitPad, room.getRealCoords(waypoint))
                 doorway -> walkForwardTo(room.getRealCoords(doorway))
                 else -> {
                     if (room.data.state == RoomState.GREEN) return@on stopWalking()
