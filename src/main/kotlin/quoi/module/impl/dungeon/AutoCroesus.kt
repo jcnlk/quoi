@@ -105,7 +105,7 @@ object AutoCroesus : Module(
             val chestRight = (width + 176) / 2
             val chestTop = (height - 114 - 18 * screen.menu.rowCount) / 2
             val buttonWidth = 64
-            val button = Button.builder(Component.literal("Start Auto")) { startWithPriceUpdate(screen) }
+            val button = Button.builder(Component.literal("Start Auto")) { startWithPriceUpdate(screen) } // TODO: use use apply instead (someday)
                 .bounds(chestRight - buttonWidth - 6, chestTop + 2, buttonWidth, 14)
                 .tooltip(Tooltip.create(Component.literal("Start Auto Croesus")))
                 .build()

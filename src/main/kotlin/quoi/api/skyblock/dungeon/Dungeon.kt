@@ -22,7 +22,6 @@ import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.enums.*
 import quoi.api.skyblock.dungeon.odonscanning.ScanUtils
 import quoi.api.skyblock.dungeon.odonscanning.tiles.OdonRoom
-import quoi.api.skyblock.dungeon.terminals.TerminalType
 import quoi.api.skyblock.location.Island
 import quoi.api.skyblock.location.Location
 import quoi.api.skyblock.location.Location.onAlpha
@@ -522,9 +521,6 @@ object Dungeon : EventListener, Shortcuts {
         Blocks.PISTON, Blocks.PISTON_HEAD, Blocks.STICKY_PISTON, Blocks.MOVING_PISTON,
         Blocks.LEVER, Blocks.STONE_BUTTON, Blocks.DISPENSER, Blocks.HOPPER, Blocks.DROPPER
     )
-
-    @Deprecated("bad")
-    val terminalTitles = TerminalType.entries.mapTo(linkedSetOf()) { it.title }
 
     val BLOOD_START_REGEX = Regex("^\\[BOSS] The Watcher: (Congratulations, you made it through the Entrance\\.|Ah, you've finally arrived\\.|Ah, we meet again\\.\\.\\.|So you made it this far\\.\\.\\. interesting\\.|You've managed to scratch and claw your way here, eh\\?|I'm starting to get tired of seeing you around here\\.\\.\\.|Oh\\.\\. hello\\?|Things feel a little more roomy now, eh\\?)$")
 
