@@ -52,6 +52,7 @@ object AutoCroesus : Module(
         override val startDelay get() = clickDelay
         override val clickDelay get() = this@AutoCroesus.clickDelay
         override val invWalk = false
+        override val silent = false
         override val blockInput = false
         override val showProgress = false
     }
