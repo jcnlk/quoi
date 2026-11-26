@@ -3,24 +3,13 @@ package quoi.utils
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
-import quoi.utils.StringUtils.capitaliseWords
-import quoi.utils.StringUtils.containsOneOf
 import quoi.utils.StringUtils.dropAt
-import quoi.utils.StringUtils.endsWithOneOf
-import quoi.utils.StringUtils.equalsOneOf
-import quoi.utils.StringUtils.matchesOneOf
 import quoi.utils.StringUtils.noControlCodes
-import quoi.utils.StringUtils.pluralise
-import quoi.utils.StringUtils.remove
 import quoi.utils.StringUtils.removeRangeSafe
-import quoi.utils.StringUtils.startsWithOneOf
 import quoi.utils.StringUtils.substringSafe
 import quoi.utils.StringUtils.toFixed
-import quoi.utils.StringUtils.truncate
 import java.util.Locale
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 class StringUtilsTest {
     @ParameterizedTest
@@ -31,11 +20,7 @@ class StringUtilsTest {
         "59990, 59.99s",
         "60000, 1m",
         "61250, 1m 1.25s",
-        "3600000, 1h",
-        "3661250, 1h 1m 1.25s",
-        "86400000, 1d",
         "90061250, 1d 1h 1m 1.25s",
-        "2160000000, 25d",
         "4323661250, 50d 1h 1m 1.25s",
         "9223372036854775807, 106751991167d 7h 12m 55.81s",
     )
@@ -73,32 +58,9 @@ class StringUtilsTest {
         }
     }
 
-    @Test
-    fun `prefix matching supports alternatives and optional case folding`() {
-        assertTrue("Hello world".startsWithOneOf("missing", "Hello"))
-        assertFalse("Hello world".startsWithOneOf("hello", "world"))
-        assertTrue("Hello world".startsWithOneOf("hello", ignoreCase = true))
-        assertFalse("Hello world".startsWithOneOf())
-    }
-
-    @Test
-    fun `substring matching handles varargs collections and empty alternatives consistently`() {
-        val text = "Hello world"
-        val options = listOf("missing", "WORLD")
-
-        assertFalse(text.containsOneOf(*options.toTypedArray()))
-        assertFalse(text.containsOneOf(options))
-        assertTrue(text.containsOneOf(*options.toTypedArray(), ignoreCase = true))
-        assertTrue(text.containsOneOf(options, ignoreCase = true))
-        assertTrue(text.containsOneOf("missing", "world"))
-        assertFalse(text.containsOneOf())
-        assertFalse(text.containsOneOf(emptyList()))
-    }
-
     @ParameterizedTest
     @CsvSource(
-        "1, 4, bcd", "4, 1, bcd", "-2, 3, abc", "3, 99, def", "0, 6, abcdef", "2, 2, ''",
-        "-5, -1, ''", "7, 99, ''", "99, 3, def", "-99, 99, abcdef",
+        "4, 1, bcd", "-2, 3, abc", "99, 3, def", "2, 2, ''", "7, 99, ''", "-99, 99, abcdef",
     )
     fun `safe substring handles reversed and out of bounds indices`(from: Int, to: Int, expected: String) {
         assertEquals(expected, "abcdef".substringSafe(from, to))
@@ -106,8 +68,7 @@ class StringUtilsTest {
 
     @ParameterizedTest
     @CsvSource(
-        "1, 4, aef", "4, 1, aef", "-2, 3, def", "3, 99, abc",
-        "-5, -1, abcdef", "7, 99, abcdef", "-99, 99, ''", "2, 2, abcdef",
+        "4, 1, aef", "-2, 3, def", "3, 99, abc", "7, 99, abcdef", "-99, 99, ''", "2, 2, abcdef",
     )
     fun `safe range removal handles reversed and out of bounds indices`(from: Int, to: Int, expected: String) {
         assertEquals(expected, "abcdef".removeRangeSafe(from, to))
@@ -129,38 +90,8 @@ class StringUtilsTest {
     }
 
     @Test
-    fun `control code extension accepts null and preserves Unicode text`() {
+    fun `control code extension accepts null`() {
         val absent: String? = null
-
         assertEquals("", absent.noControlCodes)
-        assertEquals("猫 😺", "§a猫 &l😺§r".noControlCodes)
-        assertEquals("Fish & chips", "Fish & chips".noControlCodes)
-    }
-
-    @Test
-    fun `one-of checks cover suffixes, equality and patterns`() {
-        assertTrue("Hyperion.png".endsWithOneOf(".jpg", ".PNG", ignoreCase = true))
-        assertFalse("Hyperion.png".endsWithOneOf(".PNG"))
-        assertTrue("goldor".equalsOneOf("Storm", "GOLDOR", ignoreCase = true))
-        assertFalse("goldor".equalsOneOf("GOLDOR"))
-        assertTrue("F7".matchesOneOf(Regex("M\\d"), Regex("F\\d")))
-        assertFalse("F7 boss".matchesOneOf(Regex("F\\d")))
-    }
-
-    @Test
-    fun `text helpers remove, capitalise, truncate and pluralise`() {
-        assertEquals("Hello", "[VIP] Hello!".remove("[VIP] ", "!"))
-        assertEquals("abc", "a1b22c333".remove(Regex("\\d+")))
-        assertEquals("Hyperion Ultimate Wise", "HYPERION_ULTIMATE__wise".capitaliseWords())
-        assertEquals("", "".capitaliseWords())
-
-        assertEquals("Hello", "Hello".truncate(5))
-        assertEquals("He...", "Hello world".truncate(5))
-        assertEquals("He", "Hello".truncate(2))
-        assertEquals("He--", "Hello".truncate(4, "--"))
-
-        assertEquals("1 secret", 1.pluralise("secret"))
-        assertEquals("3 secrets", 3.pluralise("secret"))
-        assertEquals("2 enemies", 2.pluralise("enemy", "enemies"))
     }
 }

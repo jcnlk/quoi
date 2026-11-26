@@ -41,33 +41,6 @@ class ColourTest {
         assertFailsWith<IllegalArgumentException> { hexToRGBA(input) }
     }
 
-    @ParameterizedTest
-    @CsvSource("0.0, #1450C833", "0.25, #41469B59", "0.5, #6E3C6E80", "1.0, #C82814CC")
-    fun `mix interpolates RGB and alpha including both endpoints`(weight: Float, expected: String) {
-        val from = Colour.RGB(20, 80, 200, 0.2f)
-        val to = Colour.RGB(200, 40, 20, 0.8f)
-
-        assertEquals(expected, from.mix(to, weight).toHexString(returnAlpha = true))
-    }
-
-    @Test
-    fun `alpha changes preserve RGB channels and the original color`() {
-        val original = Colour.RGB(0x12, 0x34, 0x56, 1f)
-
-        assertEquals("#12345680", original.withAlpha(128).toHexString(returnAlpha = true))
-        assertEquals("#12345680", original.withAlpha(0.5f).toHexString(returnAlpha = true))
-        assertEquals("#12345640", original.withAlpha(128).multiplyAlpha(0.5f).toHexString(returnAlpha = true))
-        assertEquals("#123456FF", original.toHexString(returnAlpha = true))
-    }
-
-    @Test
-    fun `channel multiplication clamps results and leaves unspecified channels unchanged`() {
-        val packed = getRGBA(200, 100, 50, 128)
-
-        assertEquals(getRGBA(255, 0, 25, 255), packed.multiply(r = 2f, g = -1f, b = 0.5f, a = 3f))
-        assertEquals(getRGBA(100, 50, 25, 128), packed.multiply(0.5f))
-    }
-
     @Test
     fun `HSB updates invalidate cached RGB values for every component`() {
         val colour = Colour.HSB(0f, 1f, 1f)

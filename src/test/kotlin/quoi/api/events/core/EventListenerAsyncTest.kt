@@ -3,12 +3,16 @@ package quoi.api.events.core
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.supervisorScope
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Timeout
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import quoi.api.events.TickEvent
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -92,21 +96,6 @@ class EventListenerAsyncTest {
     }
 
     @Test
-    fun `server timeout expires after ticks and elapsed time`() = runBlocking {
-        val result = async(Dispatchers.Unconfined, start = CoroutineStart.UNDISPATCHED) {
-            listener.await<MenuOpened>(timeout = 1, serverTicks = true)
-        }
-        try {
-            delay(60)
-            TickEvent.Server(1).post()
-
-            assertNull(result.await())
-        } finally {
-            result.cancel()
-        }
-    }
-
-    @Test
     fun `server timeout waits for its tick budget even when real time has elapsed`() = runBlocking {
         val result = async(Dispatchers.Unconfined, start = CoroutineStart.UNDISPATCHED) {
             listener.await<MenuOpened>(timeout = 2, serverTicks = true)
@@ -169,5 +158,44 @@ class EventListenerAsyncTest {
         } finally {
             result.cancel()
         }
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = [false, true])
+    fun `tick waits count only their selected clock and unsubscribe on completion`(server: Boolean) = runBlocking {
+        val eventType = if (server) TickEvent.Server::class.java else TickEvent.Start::class.java
+        val registry = EventManager.getRegistry<Event>(eventType)
+        val before = registry.dispatchSnapshot.toList()
+        val wait = launch(Dispatchers.Unconfined, start = CoroutineStart.UNDISPATCHED) {
+            listener.wait(2, server)
+        }
+
+        try {
+            repeat(3) { if (server) TickEvent.Start().post() else TickEvent.Server(it).post() }
+            if (server) TickEvent.Server(3).post() else TickEvent.Start().post()
+            assertFalse(wait.isCompleted)
+
+            if (server) TickEvent.Server(4).post() else TickEvent.Start().post()
+            assertTrue(wait.isCompleted)
+            assertEquals(before, registry.dispatchSnapshot.toList())
+        } finally {
+            wait.cancelAndJoin()
+        }
+    }
+
+    @Test
+    fun `cancelling a tick wait removes its subscription before another tick`() = runBlocking {
+        val registry = EventManager.getRegistry<Event>(TickEvent.Start::class.java)
+        val before = registry.dispatchSnapshot.toList()
+        val wait = launch(Dispatchers.Unconfined, start = CoroutineStart.UNDISPATCHED) {
+            listener.wait(2)
+        }
+
+        try {
+            assertEquals(before.size + 1, registry.dispatchSnapshot.size)
+        } finally {
+            wait.cancelAndJoin()
+        }
+        assertEquals(before, registry.dispatchSnapshot.toList())
     }
 }

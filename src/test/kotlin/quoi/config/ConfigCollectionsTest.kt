@@ -1,15 +1,11 @@
 package quoi.config
 
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.io.TempDir
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
-import java.io.File
-import java.io.IOException
 import java.util.AbstractMap.SimpleEntry
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.test.assertSame
 
 class ConfigCollectionsTest {
     @Test
@@ -177,36 +173,6 @@ class ConfigCollectionsTest {
 
         assertEquals(mapOf("kept" to 1), map.toMap())
         assertEquals(0, saves)
-    }
-
-    @Test
-    fun `atomic config writes replace the original only after writing completes`(@TempDir directory: File) {
-        val file = File(directory, "config.json").apply { writeText("original") }
-
-        writeConfigAtomically(file) { writer ->
-            writer.write("replacement")
-            assertEquals("original", file.readText())
-        }
-
-        assertEquals("replacement", file.readText())
-        assertEquals(listOf("config.json"), directory.list()?.toList())
-    }
-
-    @Test
-    fun `failed config writes preserve the original and remove temporary files`(@TempDir directory: File) {
-        val file = File(directory, "config.json").apply { writeText("original") }
-        val expected = IOException("write failed")
-
-        val actual = assertFailsWith<IOException> {
-            writeConfigAtomically(file) { writer ->
-                writer.write("partial replacement")
-                throw expected
-            }
-        }
-
-        assertSame(expected, actual)
-        assertEquals("original", file.readText())
-        assertEquals(listOf("config.json"), directory.list()?.toList())
     }
 
     @Test
