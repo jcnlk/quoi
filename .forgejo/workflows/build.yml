@@ -5,8 +5,11 @@ on:
     branches:
       - "multiversion"
     paths:
+      - ".editorconfig"
+      - ".editorconfig-checker.json"
       - ".forgejo/workflows/build.yml"
       - "gradle/**"
+      - "scripts/check-formatting.sh"
       - "src/**"
       - "versions/**"
       - "build.gradle.kts"
@@ -36,6 +39,9 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+
+      - name: Check Formatting
+        run: bash scripts/check-formatting.sh
 
       - name: Set Up Java 25
         uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0

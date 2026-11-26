@@ -1,0 +1,6 @@
+{
+  "Version": "v4.0.2",
+  "Disable": {
+    "MaxLineLength": true
+  }
+}

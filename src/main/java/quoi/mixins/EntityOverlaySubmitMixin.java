@@ -21,12 +21,20 @@ import java.util.List;
 @Mixin(SubmitNodeCollection.class)
 public class EntityOverlaySubmitMixin {
     @Inject(method = "submitItem", at = @At("HEAD"), cancellable = true)
-    private void quoi$overlayItem(PoseStack poseStack, ItemDisplayContext context, int light, int overlay, int outline, int[] tints,
-                                  //? if >=26.3 {
-                                  //ItemQuads quads,
-                                  //?} else
-                                  List<BakedQuad> quads,
-                                  ItemStackRenderState.FoilType foil, CallbackInfo ci) {
+    private void quoi$overlayItem(
+            PoseStack poseStack,
+            ItemDisplayContext context,
+            int light,
+            int overlay,
+            int outline,
+            int[] tints,
+            //? if >=26.3 {
+            //ItemQuads quads,
+            //?} else
+            List<BakedQuad> quads,
+            ItemStackRenderState.FoilType foil,
+            CallbackInfo ci
+    ) {
         //? if >=26.3 {
         //var geometry = quads.all();
         //?} else

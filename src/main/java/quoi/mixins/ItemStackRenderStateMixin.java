@@ -23,8 +23,14 @@ public class ItemStackRenderStateMixin {
     private ItemStackRenderState.LayerRenderState[] layers;
 
     @Inject(method = "submit", at = @At("HEAD"))
-    private void quoi$legacySkullSize(PoseStack poseStack, SubmitNodeCollector submitNodeCollector,
-                                      int lightCoords, int overlayCoords, int outlineColor, CallbackInfo ci) {
+    private void quoi$legacySkullSize(
+            PoseStack poseStack,
+            SubmitNodeCollector submitNodeCollector,
+            int lightCoords,
+            int overlayCoords,
+            int outlineColor,
+            CallbackInfo ci
+    ) {
         for (int i = 0; i < activeLayerCount; i++) {
             var renderer = ((ItemStackLayerRenderStateAccessor) layers[i]).quoi$getSpecialRenderer();
             if (!(renderer instanceof PlayerHeadSpecialRenderer)) continue;
