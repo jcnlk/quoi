@@ -19,6 +19,7 @@ class PartyMessageTrigger(
         ctx.data.putAll(captures)
         return true
     }
+
     override fun displayString() = "Party message: ${message.pattern}"
     override fun ElementScope<*>.draw() = settingRow(
         { textField("Message", message.pattern) { message.pattern = it } },

@@ -38,7 +38,8 @@ class TextHud(
 
     private var alignmentParent: AbobaElement? = null
 
-    class Scope(parent: Hud.Scope, val font: Font, private val colourSupplier: () -> Colour, val shadow: Boolean) : Hud.Scope(parent.element, parent.preview) {
+    class Scope(parent: Hud.Scope, val font: Font, private val colourSupplier: () -> Colour, val shadow: Boolean) :
+        Hud.Scope(parent.element, parent.preview) {
         val colour: Colour get() = colourSupplier()
     }
 
@@ -93,8 +94,10 @@ class TextHud(
     override fun savePosition(element: Element, screenWidth: Float, screenHeight: Float) {
         val anchor = anchor
 
-        val elementX = ((element.constraints.x as? quoi.api.abobaui.constraints.impl.measurements.Pixel)?.pixels ?: element.internalX).roundToInt().toFloat()
-        val elementY = ((element.constraints.y as? quoi.api.abobaui.constraints.impl.measurements.Pixel)?.pixels ?: element.internalY).roundToInt().toFloat()
+        val elementX = ((element.constraints.x as? quoi.api.abobaui.constraints.impl.measurements.Pixel)?.pixels
+            ?: element.internalX).roundToInt().toFloat()
+        val elementY = ((element.constraints.y as? quoi.api.abobaui.constraints.impl.measurements.Pixel)?.pixels
+            ?: element.internalY).roundToInt().toFloat()
         val targetX = elementX + (element.width * anchor.x)
         val targetY = elementY + (element.height * anchor.y)
 

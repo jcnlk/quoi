@@ -24,7 +24,11 @@ object InventoryHud : SettingGroup(Inventory, HudComponent("Inventory", Hud("Inv
 
     private val playerModel by switch("Player model")
 
-    private val hud = resizableHud("Inventory", colour = Colour.RGB(139, 139, 139).withAlpha(155), outline = Colour.RGB(250, 250, 250).withAlpha(155)) {
+    private val hud = resizableHud(
+        "Inventory",
+        colour = Colour.RGB(139, 139, 139).withAlpha(155),
+        outline = Colour.RGB(250, 250, 250).withAlpha(155)
+    ) {
         block(
             size(if (playerModel) 488.px else 400.px, 136.px),
             colour = colour,
@@ -44,7 +48,10 @@ object InventoryHud : SettingGroup(Inventory, HudComponent("Inventory", Hud("Inv
                                     radius = 5.radius()
                                 ) {
                                     object : Element(size(40.px, 40.px)) {
-                                        init { usingCtx = true }
+                                        init {
+                                            usingCtx = true
+                                        }
+
                                         override fun drawCtx() {
                                             val stack = player.inventory.getItem(slotIndex)
                                             if (stack.isEmpty) return
@@ -67,10 +74,21 @@ object InventoryHud : SettingGroup(Inventory, HudComponent("Inventory", Hud("Inv
                 if (playerModel) {
                     divider(4.px)
                     object : Element(size(Fill, Fill)) {
-                        init { usingCtx = true }
+                        init {
+                            usingCtx = true
+                        }
+
                         override fun drawCtx() {
                             withScale {
-                                ctx.drawEntity(player as LivingEntity, 0, 0, width.toInt(), height.toInt(), 30f, yaw = -45f to 45f)
+                                ctx.drawEntity(
+                                    player as LivingEntity,
+                                    0,
+                                    0,
+                                    width.toInt(),
+                                    height.toInt(),
+                                    30f,
+                                    yaw = -45f to 45f
+                                )
                             }
                         }
                     }.add()

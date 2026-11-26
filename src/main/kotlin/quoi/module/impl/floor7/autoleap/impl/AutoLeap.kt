@@ -32,13 +32,17 @@ class AutoLeap(parent: Module) : LeapSettings(parent, "Auto Leap", automatic = t
         this,
         "First dragon death leap", "Leap when first dragon dies."
     ) { Floor7.inPhase(Phase.P5) }
-    private val whenBlown by switch("Only when gate blown", desc = "Also waits for the gate, or the Core entrance in section 4.").childOf(p3)
+    private val whenBlown by switch(
+        "Only when gate blown",
+        desc = "Also waits for the gate, or the Core entrance in section 4."
+    ).childOf(p3)
     private var crystalCount = 0
     private var crushCount = 0
     private var p4Leaped = false
     private var pickedUpRelic = false
     private var firstDragonDied = false
-    private val relicIds = setOf("GREEN_KING_RELIC", "PURPLE_KING_RELIC", "BLUE_KING_RELIC", "ORANGE_KING_RELIC", "RED_KING_RELIC")
+    private val relicIds =
+        setOf("GREEN_KING_RELIC", "PURPLE_KING_RELIC", "BLUE_KING_RELIC", "ORANGE_KING_RELIC", "RED_KING_RELIC")
 
     init {
         on<DungeonEvent.StageComplete> { if (!whenBlown) completeSection(stage) }
@@ -51,13 +55,18 @@ class AutoLeap(parent: Module) : LeapSettings(parent, "Auto Leap", automatic = t
                     1 -> firstCrush.leap()
                     2 -> secondCrush.leap()
                 }
+
                 "The Energy Laser is charging up!" -> if (p1.enabled && ++crystalCount == 2) p1.leap()
                 "⚠ Storm is enraged! ⚠" -> stormEnrage.leap()
                 "[BOSS] Storm: I'd be happy to show you what that's like!" -> predev.leap()
                 "[BOSS] Necron: Goodbye." -> middle.leap()
                 "[BOSS] Storm: I should have known that I stood no chance." -> stormDeath.leap()
                 "${player.name.string} picked up an Energy Crystal!" -> crystal.leap()
-                else -> if (Floor7.inStage(Stage.S1, Stage.S2) && unformatted.startsWith("${player.name.string} completed a device!")) {
+                else -> if (Floor7.inStage(
+                        Stage.S1,
+                        Stage.S2
+                    ) && unformatted.startsWith("${player.name.string} completed a device!")
+                ) {
                     i4.leap()
                 }
             }

@@ -25,7 +25,7 @@ object RouteRegistry {
         SecretAwait::class,
         RaycastAwait::class
     )
-    
+
     val nodeEntries by lazy { getNodeEntries() }
     val nodeTypes by lazy { nodeEntries.map { it.first } }
 

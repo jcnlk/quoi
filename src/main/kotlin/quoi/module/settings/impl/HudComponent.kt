@@ -89,7 +89,7 @@ class HudComponent<T : Hud>(
                     image(
                         image = theme.moveImage, // looks kinda meh
                         colour = theme.onSurfaceVariant,
-                        constraints = constrain(x = 0.px.alignOpposite,w = AspectRatio(1f), h = 20.px),
+                        constraints = constrain(x = 0.px.alignOpposite, w = AspectRatio(1f), h = 20.px),
                     ) {
                         cursor(CursorShape.HAND)
                         onClick(nonSpecific = true) {

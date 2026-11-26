@@ -80,6 +80,7 @@ object WiltedBerberis : ToggleableGroup(DreadFarm, "Wilted berberis") {
 
     private var wand = false
     private var currentSequence: BerberisSequence? = null
+
     // Wait until the next tick so the respawn's block updates have arrived
     private val pendingRespawns = mutableListOf<Vec3>()
 

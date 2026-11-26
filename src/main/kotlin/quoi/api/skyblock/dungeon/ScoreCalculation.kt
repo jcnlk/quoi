@@ -36,11 +36,12 @@ object ScoreCalculation {
         lastElectionCheck = now
         scope.launch(Dispatchers.IO) {
             runCatching {
-                WebUtils.setupConnection("https://api.hypixel.net/v2/resources/skyblock/election", useCaches = false).bufferedReader().use { reader ->
-                    val election = JsonParser.parseReader(reader).asJsonObject
-                    check(election["success"]?.asBoolean == true)
-                    paul = hasPaulBonus(election)
-                }
+                WebUtils.setupConnection("https://api.hypixel.net/v2/resources/skyblock/election", useCaches = false)
+                    .bufferedReader().use { reader ->
+                        val election = JsonParser.parseReader(reader).asJsonObject
+                        check(election["success"]?.asBoolean == true)
+                        paul = hasPaulBonus(election)
+                    }
             }.onFailure { logger.warn("Could not update dungeon mayor bonus", it) }
         }
     }
@@ -49,14 +50,15 @@ object ScoreCalculation {
         val mayor = election.getAsJsonObject("mayor")
         val minister = mayor?.get("minister")?.takeIf { it.isJsonObject }?.asJsonObject
         return mayor?.getAsJsonArray("perks")?.any { it.asJsonObject["name"]?.asString == "EZPZ" } == true ||
-                minister?.getAsJsonObject("perk")?.get("name")?.asString == "EZPZ"
+            minister?.getAsJsonObject("perk")?.get("name")?.asString == "EZPZ"
     }
 
     val totalSecrets: Int
         get() {
             val stats = Dungeon.dungeonStats
             if (stats.secretsFound > 0 && stats.secretsPercent > 0f) {
-                return (stats.secretsFound * 100.0 / stats.secretsPercent).roundToInt().coerceAtLeast(stats.secretsFound)
+                return (stats.secretsFound * 100.0 / stats.secretsPercent).roundToInt()
+                    .coerceAtLeast(stats.secretsFound)
             }
             return ScanUtils.scannedRooms.sumOf { it.data.secrets }.coerceAtLeast(stats.secretsFound)
         }
@@ -81,11 +83,20 @@ object ScoreCalculation {
             val total = Dungeon.totalRooms
             val ratio = if (total > 0) (completed.toDouble() / total).coerceIn(0.0, 1.0) else 0.0
             val secrets = floor(stats.secretsPercent / dungeonFloor.secretPercentage * 0.4).toInt().coerceIn(0, 40)
-            val puzzlePenalty = (maxOf(stats.puzzleCount, Dungeon.puzzles.size) - Dungeon.puzzles.count { it.status == PuzzleStatus.Completed }) * 10
+            val puzzlePenalty = (maxOf(
+                stats.puzzleCount,
+                Dungeon.puzzles.size
+            ) - Dungeon.puzzles.count { it.status == PuzzleStatus.Completed }) * 10
             val deathPenalty = (stats.deaths * 2 - 1).coerceAtLeast(0)
             val skill = (20 + floor(ratio * 80).toInt() - puzzlePenalty - deathPenalty).coerceIn(20, 100)
 
-            return Score(secrets, floor(ratio * 60).toInt(), skill, speedScore(dungeonFloor, stats.secondsElapsed), bonusScore)
+            return Score(
+                secrets,
+                floor(ratio * 60).toInt(),
+                skill,
+                speedScore(dungeonFloor, stats.secondsElapsed),
+                bonusScore
+            )
         }
 
     val secretsUntil300: Int

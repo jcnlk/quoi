@@ -110,7 +110,8 @@ object WorldUtils { // todo cleanup
         return null
     }
 
-    fun worldToMap(n: Number, inMin: Number, inMax: Number, outMin: Number, outMax: Number): Double = (n.toDouble() - inMin.toDouble()) * (outMax.toDouble() - outMin.toDouble()) / (inMax.toDouble() - inMin.toDouble()) + outMin.toDouble()
+    fun worldToMap(n: Number, inMin: Number, inMax: Number, outMin: Number, outMax: Number): Double =
+        (n.toDouble() - inMin.toDouble()) * (outMax.toDouble() - outMin.toDouble()) / (inMax.toDouble() - inMin.toDouble()) + outMin.toDouble()
 
     private val tabListComparator: Comparator<PlayerInfo> = compareBy(
         { it.gameMode == GameType.SPECTATOR },

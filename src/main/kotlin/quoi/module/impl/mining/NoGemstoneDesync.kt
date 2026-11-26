@@ -22,6 +22,7 @@ object NoGemstoneDesync : Module(
         Island.CrimsonIsle,
         Island.Rift,
     )
+
     init {
         on<BlockEvent.Update> {
             if (!active || currentArea !in affectedIslands) return@on

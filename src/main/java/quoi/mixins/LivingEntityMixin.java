@@ -16,6 +16,7 @@ import quoi.api.world.Direction;
 import quoi.module.impl.render.ItemAnimations;
 import quoi.module.impl.render.RenderOptimiser;
 import quoi.utils.skyblock.player.RotationUtils;
+
 import static quoi.module.impl.render.RenderOptimiser.should;
 
 @Mixin(LivingEntity.class)

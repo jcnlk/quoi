@@ -342,10 +342,12 @@ object HudManager : EventListener {
                         newX = centreX
                         lineX = centreX
                     }
+
                     abs(newX + element.screenWidth() / 2 - centreX) <= SNAP_THRESHOLD -> { // centre - centre
                         newX = centreX - element.screenWidth() / 2
                         lineX = centreX
                     }
+
                     abs(newX + element.screenWidth() - centreX) <= SNAP_THRESHOLD -> { // right - centre
                         newX = centreX - element.screenWidth()
                         lineX = centreX
@@ -357,10 +359,12 @@ object HudManager : EventListener {
                         newY = centreY
                         lineY = centreY
                     }
+
                     abs(newY + element.screenHeight() / 2 - centreY) <= SNAP_THRESHOLD -> { // centre - centre
                         newY = centreY - element.screenHeight() / 2
                         lineY = centreY
                     }
+
                     abs(newY + element.screenHeight() - centreY) <= SNAP_THRESHOLD -> { // bot - centre
                         newY = centreY - element.screenHeight()
                         lineY = centreY
@@ -380,14 +384,17 @@ object HudManager : EventListener {
                             newY = otherBottom - element.screenHeight()
                             lineY = otherBottom
                         }
+
                         abs(newY - other.y) <= SNAP_THRESHOLD -> { // top - top
                             newY = other.y
                             lineY = newY
                         }
+
                         abs(thisBot - other.y) <= SNAP_THRESHOLD -> { // bot - top
                             newY = other.y - element.screenHeight()
                             lineY = other.y
                         }
+
                         abs(newY - otherBottom) <= SNAP_THRESHOLD -> { // top - bot
                             newY = otherBottom
                             lineY = newY
@@ -399,14 +406,17 @@ object HudManager : EventListener {
                             newX = otherRight - element.screenWidth()
                             lineX = otherRight
                         }
+
                         abs(newX - other.x) <= SNAP_THRESHOLD -> { // left - left
                             newX = other.x
                             lineX = newX
                         }
+
                         abs(thisRight - other.x) <= SNAP_THRESHOLD -> { // right left
                             newX = other.x - element.screenWidth()
                             lineX = other.x
                         }
+
                         abs(newX - otherRight) <= SNAP_THRESHOLD -> { // left - right
                             newX = otherRight
                             lineX = newX
@@ -490,7 +500,13 @@ object HudManager : EventListener {
         }
     }
 
-    fun ElementScope<*>.settings(pos: Positions, hud: Hud, onClose: () -> Unit, hudElement: Element? = null, onValue: () -> Unit = {}) = popup(copies(), smooth = false) {
+    fun ElementScope<*>.settings(
+        pos: Positions,
+        hud: Hud,
+        onClose: () -> Unit,
+        hudElement: Element? = null,
+        onValue: () -> Unit = {}
+    ) = popup(copies(), smooth = false) {
         if (hud.settings.size == 4) return@popup
 
         onClick {
@@ -543,7 +559,8 @@ object HudManager : EventListener {
                             var wasRainbow = (setting as? ColourPickerComponent)?.rainbow ?: false
 
                             val dummy = hud.settings.first() as UIComponent<*>
-                            val asSub = setting in dummy.children && setting.children.isNotEmpty() && !setting.forceParent
+                            val asSub =
+                                setting in dummy.children && setting.children.isNotEmpty() && !setting.forceParent
                             setting.render(this, asSub).onEvent(setting.valueUpdated) {
                                 val cs = setting as? ColourPickerComponent
                                 val rainbow = cs?.rainbow ?: false
@@ -580,7 +597,12 @@ object HudManager : EventListener {
                                 }
                                 onValue()
                                 thickness.animate(0.25.seconds, style = Animation.Style.EaseInOutQuint)?.onFinish {
-                                    scheduleTask { thickness.animate(0.25.seconds, style = Animation.Style.EaseInOutQuint) }
+                                    scheduleTask {
+                                        thickness.animate(
+                                            0.25.seconds,
+                                            style = Animation.Style.EaseInOutQuint
+                                        )
+                                    }
                                 }
 
                                 true

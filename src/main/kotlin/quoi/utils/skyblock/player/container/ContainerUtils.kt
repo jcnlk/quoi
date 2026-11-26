@@ -57,9 +57,11 @@ object ContainerUtils : EventListener, Shortcuts {
                     lastStateId = 0
                     containerServerSide = false
                 }
+
                 is ClientboundContainerSetSlotPacket -> {
                     if (packet.containerId == containerId) lastStateId = packet.stateId
                 }
+
                 is ClientboundContainerSetContentPacket -> {
                     if (packet.containerId == containerId) lastStateId = packet.stateId
                 }
@@ -92,6 +94,7 @@ object ContainerUtils : EventListener, Shortcuts {
                 is ClientboundOpenScreenPacket -> mc.player?.containerMenu?.let { menu ->
                     if (menu.containerId == p.containerId) opened(p, menu)
                 }
+
                 is ClientboundContainerSetContentPacket -> loaded(p.containerId)
                 is ClientboundContainerSetSlotPacket -> {
                     val container = current ?: return@on
@@ -99,6 +102,7 @@ object ContainerUtils : EventListener, Shortcuts {
                     val lastMenuSlot = container.menu.slots.indexOfLast { it.container !== mc.player?.inventory }
                     if (p.slot == lastMenuSlot) loaded(p.containerId)
                 }
+
                 is ClientboundContainerClosePacket -> {
                     containerId = 0
                     lastStateId = 0
@@ -200,7 +204,12 @@ object ContainerUtils : EventListener, Shortcuts {
             //?}
         }
 
-    fun LocalPlayer.clickSlot(slot: Int, containerId: Int = ContainerUtils.containerId, button: Int = 0, shift: Boolean = false) {
+    fun LocalPlayer.clickSlot(
+        slot: Int,
+        containerId: Int = ContainerUtils.containerId,
+        button: Int = 0,
+        shift: Boolean = false
+    ) {
         if (containerId == 0 || containerMenu.containerId != containerId || slot !in containerMenu.slots.indices) return
 
         val clickType = when {

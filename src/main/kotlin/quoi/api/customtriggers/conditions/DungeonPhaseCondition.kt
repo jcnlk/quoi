@@ -16,6 +16,7 @@ class DungeonPhaseCondition(var phase: Phase = Phase.P3) : TriggerCondition() {
         DungeonCheckMode.STATE -> Floor7.inPhase(phase)
         DungeonCheckMode.POSITION -> Floor7.inPhaseAt(phase)
     }
+
     override fun displayString() = "${mode.label}: phase ${phase.name}"
     override fun invertedString() = "${mode.label}: not phase ${phase.name}"
     override fun ElementScope<*>.draw() = settingRow(

@@ -40,11 +40,21 @@ object TeleportUtils : Shortcuts {
         return getDirection(from, visibleVec)
     }
 
-    fun getEtherwarpDirection(to: BlockPos, dist: Double = 61.0) = getEtherwarpDirection(player.eyePosition(true), to, dist)
+    fun getEtherwarpDirection(to: BlockPos, dist: Double = 61.0) =
+        getEtherwarpDirection(player.eyePosition(true), to, dist)
 
-    fun predictTransmission(x0: Double, y0: Double, z0: Double, dx: Double, dy: Double, dz: Double, distance: Double): RaycastResult {
+    fun predictTransmission(
+        x0: Double,
+        y0: Double,
+        z0: Double,
+        dx: Double,
+        dy: Double,
+        dz: Double,
+        distance: Double
+    ): RaycastResult {
         val world = mc.level ?: return RaycastResult.NONE
-        val landing = TransmissionPredictor.predict(world, Vec3(x0, y0, z0), Vec3(dx, dy, dz), distance) ?: return RaycastResult.NONE
+        val landing = TransmissionPredictor.predict(world, Vec3(x0, y0, z0), Vec3(dx, dy, dz), distance)
+            ?: return RaycastResult.NONE
         val pos = BlockPos.containing(landing)
         return RaycastResult(true, pos, world.getBlockState(pos)).apply { vec = landing }
     }
@@ -131,10 +141,12 @@ object TeleportUtils : Shortcuts {
                     tMaxX += tDeltaX
                     x += stepX
                 }
+
                 tMaxY <= tMaxZ -> {
                     tMaxY += tDeltaY
                     y += stepY
                 }
+
                 else -> {
                     tMaxZ += tDeltaZ
                     z += stepZ

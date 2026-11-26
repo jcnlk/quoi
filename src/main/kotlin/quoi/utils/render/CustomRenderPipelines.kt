@@ -61,6 +61,7 @@ object CustomRenderPipelines {
 
     // Follow vanilla's depth convention, which became reversed Z in 26.2.
     private val testedDepth = DepthStencilState(DepthStencilState.DEFAULT.depthTest(), false)
+
     //$ pipeline_start TRIANGLE_STRIP
     val TRIANGLE_STRIP: RenderPipeline = RenderPipelines.register(
         RenderPipeline.builder(RenderPipelines.DEBUG_FILLED_SNIPPET)
@@ -71,7 +72,7 @@ object CustomRenderPipelines {
             .withDepthStencilState(testedDepth)
             .withColorTargetState(ColorTargetState(BlendFunction.TRANSLUCENT))
             .build()
-    //$ pipeline_end {
+        //$ pipeline_end {
     )
     //$}
 
@@ -85,7 +86,7 @@ object CustomRenderPipelines {
             .withDepthStencilState(DepthStencilState(CompareOp.ALWAYS_PASS, false))
             .withColorTargetState(ColorTargetState(BlendFunction.TRANSLUCENT))
             .build()
-    //$ pipeline_end {
+        //$ pipeline_end {
     )
     //$}
 }

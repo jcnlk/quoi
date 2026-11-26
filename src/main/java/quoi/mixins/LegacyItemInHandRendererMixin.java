@@ -1,4 +1,3 @@
-
 package quoi.mixins;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
@@ -78,7 +77,7 @@ public abstract class LegacyItemInHandRendererMixin {
     private void quoi$applyEquipOffset(PoseStack poseStack, HumanoidArm humanoidArm, float f, CallbackInfo ci) {
         if (ItemAnimations.disableReequip(humanoidArm)) {
             int i = humanoidArm == HumanoidArm.RIGHT ? 1 : -1;
-            poseStack.translate((float)i * 0.56f, -0.52f, -0.72f);
+            poseStack.translate((float) i * 0.56f, -0.52f, -0.72f);
             ci.cancel();
         }
     }

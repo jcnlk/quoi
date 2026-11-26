@@ -17,8 +17,9 @@ import quoi.utils.EntityUtils.interpolatedBox
 
 // sumo shit
 object Force : ToggleableGroup(Dojo, "Force", subarea = "dojo arena") {
-    private val highlight by switch("Highlight negative", /*desc = "Highlights mobs with negative points."*/)
-    private val style = highlight(colour = Colour.RED, fillColour = Colour.RED.withAlpha(67), glow = false).childOf(::highlight)
+    private val highlight by switch("Highlight negative" /*desc = "Highlights mobs with negative points."*/)
+    private val style =
+        highlight(colour = Colour.RED, fillColour = Colour.RED.withAlpha(67), glow = false).childOf(::highlight)
 
     private val block by switch("Block negative", desc = "Blocks attacks on mobs with negative points.")
 

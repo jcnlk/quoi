@@ -71,7 +71,14 @@ class SubCommand(
         } else if (parser.arguments.first().isOptional) {
             node.executes { executeSafe(it) { parser.execute(arrayOfNulls(parser.arguments.size)) } }
         } else if (node.command == null) {
-            node.executes { executeSafe(it) { modMessage("Usage: &7${getUsage(includePath = true)}", id = name.hashCode() + 1) } }
+            node.executes {
+                executeSafe(it) {
+                    modMessage(
+                        "Usage: &7${getUsage(includePath = true)}",
+                        id = name.hashCode() + 1
+                    )
+                }
+            }
         }
 
         if (parser.arguments.isEmpty()) return
@@ -119,7 +126,8 @@ class SubCommand(
                 val list = suggestions(ctx)
                 if (type == GreedyString::class.java) {
                     val lastSpace = builder.remaining.lastIndexOf(' ')
-                    val offsetBuilder = if (lastSpace != -1) builder.createOffset(builder.start + lastSpace + 1) else builder
+                    val offsetBuilder =
+                        if (lastSpace != -1) builder.createOffset(builder.start + lastSpace + 1) else builder
                     SharedSuggestionProvider.suggest(list, offsetBuilder)
                 } else {
                     SharedSuggestionProvider.suggest(list, builder)

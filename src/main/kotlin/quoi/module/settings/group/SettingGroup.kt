@@ -111,7 +111,10 @@ open class SettingGroup(
             }
         }
 
-        fun <T : SettingGroup> T.childOf(parent: UIComponent<*>?, condition: () -> Boolean = { (parent?.value as? Boolean) ?: true }) = apply {
+        fun <T : SettingGroup> T.childOf(
+            parent: UIComponent<*>?,
+            condition: () -> Boolean = { (parent?.value as? Boolean) ?: true }
+        ) = apply {
             component.childOf(parent, condition)
         }
 

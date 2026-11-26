@@ -6,6 +6,7 @@ import net.minecraft.client.renderer.rendertype.RenderSetup
 import net.minecraft.client.renderer.rendertype.RenderType
 import net.minecraft.resources.Identifier
 import net.minecraft.client.renderer.feature.ItemFeatureRenderer
+
 //? if >=26.3
 //import net.minecraft.client.renderer.RenderPipelines
 //? if >=26.4
@@ -27,7 +28,10 @@ object CustomRenderLayer {
 
     @JvmStatic
     fun entityOverlay(texture: Identifier, depth: Boolean): RenderType = entityOverlays.getOrPut(texture to depth) {
-        create("quoi_entity_overlay", if (depth) CustomRenderPipelines.ENTITY_OVERLAY else CustomRenderPipelines.ENTITY_OVERLAY_ESP) {
+        create(
+            "quoi_entity_overlay",
+            if (depth) CustomRenderPipelines.ENTITY_OVERLAY else CustomRenderPipelines.ENTITY_OVERLAY_ESP
+        ) {
             withTexture("Sampler0", texture)
             useLightmap()
             //? if <26.4

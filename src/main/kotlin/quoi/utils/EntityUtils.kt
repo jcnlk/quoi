@@ -34,13 +34,14 @@ object EntityUtils {
     inline val Entity.interpolatedBox: AABB
         get() = boundingBox.move(renderX - x, renderY - y, renderZ - z)
 
-    inline val Entity.distanceToCamera: Double get() {
-        val cameraPos = mc.gameRenderer.mainCamera().position()
-        val dx = cameraPos.x - this.x
-        val dy = cameraPos.y - this.y + this.getEyeHeight(this.pose)
-        val dz = cameraPos.z - this.z
-        return sqrt(dx * dx + dy * dy + dz * dz)
-    }
+    inline val Entity.distanceToCamera: Double
+        get() {
+            val cameraPos = mc.gameRenderer.mainCamera().position()
+            val dx = cameraPos.x - this.x
+            val dy = cameraPos.y - this.y + this.getEyeHeight(this.pose)
+            val dz = cameraPos.z - this.z
+            return sqrt(dx * dx + dy * dy + dz * dz)
+        }
 
     inline val LivingEntity.helmet: ItemStack
         get() = getItemBySlot(EquipmentSlot.HEAD)
@@ -103,7 +104,11 @@ object EntityUtils {
     inline fun <reified E : Entity> getEntities(radius: Double, noinline predicate: (E) -> Boolean = { true }) =
         mc.player?.let { getEntities<E>(it.position(), radius, predicate) }.orEmpty()
 
-    inline fun <reified E : Entity> getEntities(vec: Vec3, radius: Double, noinline predicate: (E) -> Boolean = { true }) =
+    inline fun <reified E : Entity> getEntities(
+        vec: Vec3,
+        radius: Double,
+        noinline predicate: (E) -> Boolean = { true }
+    ) =
         getEntities<E>(vec.aabb(radius), predicate)
 
     inline fun <reified E : Entity> getEntities(aabb: AABB, noinline predicate: (E) -> Boolean = { true }) =

@@ -69,6 +69,7 @@ object Notifications : EventListener {
         var createdAt = 0L
         var exiting = false
         var removed = false
+
         // reset on first draw
         var enter = Animation(ENTER, Animation.Style.EaseOutQuint)
         var exit: Animation? = null
@@ -96,8 +97,12 @@ object Notifications : EventListener {
     }
 
     fun info(title: String, message: String = "", duration: Long = 4000L) = send(title, message, Type.INFO, duration)
-    fun success(title: String, message: String = "", duration: Long = 4000L) = send(title, message, Type.SUCCESS, duration)
-    fun warning(title: String, message: String = "", duration: Long = 4000L) = send(title, message, Type.WARNING, duration)
+    fun success(title: String, message: String = "", duration: Long = 4000L) =
+        send(title, message, Type.SUCCESS, duration)
+
+    fun warning(title: String, message: String = "", duration: Long = 4000L) =
+        send(title, message, Type.WARNING, duration)
+
     fun error(title: String, message: String = "", duration: Long = 4000L) = send(title, message, Type.ERROR, duration)
 
     fun clear() {
@@ -157,8 +162,8 @@ object Notifications : EventListener {
 
         toast.lines = lines
         toast.height = PADDING * 2 + TITLE_SIZE +
-                (if (lines.isEmpty()) 0f else LINE_GAP * 2 + lines.size * TEXT_SIZE + (lines.size - 1) * LINE_GAP) +
-                PROGRESS_HEIGHT
+            (if (lines.isEmpty()) 0f else LINE_GAP * 2 + lines.size * TEXT_SIZE + (lines.size - 1) * LINE_GAP) +
+            PROGRESS_HEIGHT
     }
 
     private fun drawToast(toast: Toast, y: Float) {
@@ -175,7 +180,16 @@ object Notifications : EventListener {
         UIRenderer.push()
         UIRenderer.globalAlpha(alpha)
 
-        UIRenderer.dropShadow(x, y, WIDTH, h, blur = 10f, spread = 3f, radius = RADIUS, colour = Colour.BLACK.withAlpha(0.3f).rgb)
+        UIRenderer.dropShadow(
+            x,
+            y,
+            WIDTH,
+            h,
+            blur = 10f,
+            spread = 3f,
+            radius = RADIUS,
+            colour = Colour.BLACK.withAlpha(0.3f).rgb
+        )
         UIRenderer.rect(x, y, WIDTH, h, theme.surfaceContainer.withAlpha(0.94f).rgb, RADIUS)
         UIRenderer.hollowRect(x, y, WIDTH, h, 1.5f, theme.outlineVariant.rgb, RADIUS)
         UIRenderer.rect(x, y, ACCENT_WIDTH, h, accent.rgb, RADIUS, RADIUS, 0f, 0f)
@@ -196,7 +210,17 @@ object Notifications : EventListener {
         val trackW = WIDTH - ACCENT_WIDTH
         val barY = y + h - PROGRESS_HEIGHT
         UIRenderer.pushScissor(trackX, barY, trackW, PROGRESS_HEIGHT)
-        UIRenderer.rect(trackX, barY, max(0f, trackW * remaining), PROGRESS_HEIGHT, accent.withAlpha(0.8f).rgb, 0f, 0f, 0f, 0f)
+        UIRenderer.rect(
+            trackX,
+            barY,
+            max(0f, trackW * remaining),
+            PROGRESS_HEIGHT,
+            accent.withAlpha(0.8f).rgb,
+            0f,
+            0f,
+            0f,
+            0f
+        )
         UIRenderer.popScissor()
 
         UIRenderer.pop()

@@ -71,20 +71,21 @@ object LavaMaze : ToggleableGroup(MirrorverseSolvers, "Lava maze") {
         current = 0
     }
 
-    private val points = listOf( // https://github.com/hannibal002/SkyHanni-REPO/blob/main/constants/RiftLavaMazeParkour.json
-        BlockPos(-84.0, 51.0, -112.0), BlockPos(-86.0, 51.0, -112.0), BlockPos(-86.0, 51.0, -115.0),
-        BlockPos(-88.0, 51.0, -115.0), BlockPos(-88.0, 51.0, -110.0), BlockPos(-86.0, 51.0, -110.0),
-        BlockPos(-86.0, 51.0, -109.0), BlockPos(-84.0, 51.0, -109.0), BlockPos(-84.0, 51.0, -107.0),
-        BlockPos(-90.0, 51.0, -107.0), BlockPos(-90.0, 51.0, -108.0), BlockPos(-93.0, 51.0, -108.0),
-        BlockPos(-93.0, 51.0, -110.0), BlockPos(-90.0, 51.0, -110.0), BlockPos(-90.0, 51.0, -112.0),
-        BlockPos(-92.0, 51.0, -112.0), BlockPos(-92.0, 51.0, -114.0), BlockPos(-90.0, 51.0, -114.0),
-        BlockPos(-90.0, 51.0, -116.0), BlockPos(-94.0, 51.0, -116.0), BlockPos(-94.0, 51.0, -114.0),
-        BlockPos(-96.0, 51.0, -114.0), BlockPos(-96.0, 51.0, -116.0), BlockPos(-98.0, 51.0, -116.0),
-        BlockPos(-98.0, 51.0, -112.0), BlockPos(-96.0, 51.0, -112.0), BlockPos(-96.0, 51.0, -111.0),
-        BlockPos(-95.0, 51.0, -111.0), BlockPos(-95.0, 51.0, -108.0), BlockPos(-98.0, 51.0, -108.0),
-        BlockPos(-98.0, 51.0, -110.0), BlockPos(-100.0, 51.0, -110.0), BlockPos(-100.0, 51.0, -108.0),
-        BlockPos(-102.0, 51.0, -108.0), BlockPos(-102.0, 51.0, -112.0), BlockPos(-100.0, 51.0, -112.0),
-        BlockPos(-100.0, 51.0, -116.0), BlockPos(-102.0, 51.0, -116.0), BlockPos(-102.0, 51.0, -114.0),
-        BlockPos(-104.0, 51.0, -114.0), BlockPos(-104.0, 51.0, -112.0), BlockPos(-105.0, 51.0, -112.0)
-    )
+    private val points =
+        listOf( // https://github.com/hannibal002/SkyHanni-REPO/blob/main/constants/RiftLavaMazeParkour.json
+            BlockPos(-84.0, 51.0, -112.0), BlockPos(-86.0, 51.0, -112.0), BlockPos(-86.0, 51.0, -115.0),
+            BlockPos(-88.0, 51.0, -115.0), BlockPos(-88.0, 51.0, -110.0), BlockPos(-86.0, 51.0, -110.0),
+            BlockPos(-86.0, 51.0, -109.0), BlockPos(-84.0, 51.0, -109.0), BlockPos(-84.0, 51.0, -107.0),
+            BlockPos(-90.0, 51.0, -107.0), BlockPos(-90.0, 51.0, -108.0), BlockPos(-93.0, 51.0, -108.0),
+            BlockPos(-93.0, 51.0, -110.0), BlockPos(-90.0, 51.0, -110.0), BlockPos(-90.0, 51.0, -112.0),
+            BlockPos(-92.0, 51.0, -112.0), BlockPos(-92.0, 51.0, -114.0), BlockPos(-90.0, 51.0, -114.0),
+            BlockPos(-90.0, 51.0, -116.0), BlockPos(-94.0, 51.0, -116.0), BlockPos(-94.0, 51.0, -114.0),
+            BlockPos(-96.0, 51.0, -114.0), BlockPos(-96.0, 51.0, -116.0), BlockPos(-98.0, 51.0, -116.0),
+            BlockPos(-98.0, 51.0, -112.0), BlockPos(-96.0, 51.0, -112.0), BlockPos(-96.0, 51.0, -111.0),
+            BlockPos(-95.0, 51.0, -111.0), BlockPos(-95.0, 51.0, -108.0), BlockPos(-98.0, 51.0, -108.0),
+            BlockPos(-98.0, 51.0, -110.0), BlockPos(-100.0, 51.0, -110.0), BlockPos(-100.0, 51.0, -108.0),
+            BlockPos(-102.0, 51.0, -108.0), BlockPos(-102.0, 51.0, -112.0), BlockPos(-100.0, 51.0, -112.0),
+            BlockPos(-100.0, 51.0, -116.0), BlockPos(-102.0, 51.0, -116.0), BlockPos(-102.0, 51.0, -114.0),
+            BlockPos(-104.0, 51.0, -114.0), BlockPos(-104.0, 51.0, -112.0), BlockPos(-105.0, 51.0, -112.0)
+        )
 }

@@ -19,7 +19,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(SkullBlock.class)
 public class SkullBlockMixin implements IOriginalCollisionShapeProvider {
 
-    @Shadow @Final private static VoxelShape SHAPE;
+    @Shadow
+    @Final
+    private static VoxelShape SHAPE;
 
     @Inject(method = "getShape", at = @At("HEAD"), cancellable = true)
     private void onGetShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context, CallbackInfoReturnable<VoxelShape> cir) {

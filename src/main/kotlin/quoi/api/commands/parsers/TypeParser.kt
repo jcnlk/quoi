@@ -8,17 +8,17 @@ import java.lang.reflect.Type
 
 @Suppress("platform_class_mapped_to_kotlin")
 object TypeParser {
-fun getBrigadierType(type: Type): ArgumentType<*> {
-    return when (type) {
-        Int::class.java, Integer::class.java -> IntegerArgumentType.integer()
-        Double::class.java, java.lang.Double::class.java -> DoubleArgumentType.doubleArg()
-        Float::class.java, java.lang.Float::class.java -> FloatArgumentType.floatArg()
-        Boolean::class.java, java.lang.Boolean::class.java -> BoolArgumentType.bool()
-        String::class.java -> StringArgumentType.string()
-        GreedyString::class.java -> StringArgumentType.greedyString()
-        else -> throw Exception("no good type $type")
+    fun getBrigadierType(type: Type): ArgumentType<*> {
+        return when (type) {
+            Int::class.java, Integer::class.java -> IntegerArgumentType.integer()
+            Double::class.java, java.lang.Double::class.java -> DoubleArgumentType.doubleArg()
+            Float::class.java, java.lang.Float::class.java -> FloatArgumentType.floatArg()
+            Boolean::class.java, java.lang.Boolean::class.java -> BoolArgumentType.bool()
+            String::class.java -> StringArgumentType.string()
+            GreedyString::class.java -> StringArgumentType.greedyString()
+            else -> throw Exception("no good type $type")
+        }
     }
-}
 
     fun getValue(context: CommandContext<FabricClientCommandSource>, name: String, type: Type): Any {
         return when (type) {

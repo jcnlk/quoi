@@ -36,7 +36,11 @@ import quoi.utils.skyblock.player.PlayerUtils.useItem
 object IcePathSolver : SettingGroup(PuzzleSolvers, "Ice path"), Repositionable {
 
     private val solver by switch("Solver", desc = "Shows the solution for the ice path puzzle.")
-    private val colour by colourPicker("Colour", Colour.MINECRAFT_GREEN, desc = "Colour for the solver.").childOf(::solver)
+    private val colour by colourPicker(
+        "Colour",
+        Colour.MINECRAFT_GREEN,
+        desc = "Colour for the solver."
+    ).childOf(::solver)
     val auto by switch("Auto").asParent()
 
     private const val BOARD_SIZE = 17

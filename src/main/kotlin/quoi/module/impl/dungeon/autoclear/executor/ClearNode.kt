@@ -36,8 +36,16 @@ abstract class ClearNode(
 
     open fun render(ctx: LevelRenderContext) {
         val eye = getEyeHeight(this is ClearEtherNode).toDouble()
-        ctx.drawFilledBox(pos.aabb(0.1).setMinY(pos.y + 0.1).setMaxY(pos.y + eye), colour = colour.withAlpha(100), depth = true)
-        ctx.drawFilledBox(pos.aabb(0.5).setMaxY(pos.y + 0.1).setMinY(pos.y), colour = Colour.GREEN.withAlpha(100), depth = true)
+        ctx.drawFilledBox(
+            pos.aabb(0.1).setMinY(pos.y + 0.1).setMaxY(pos.y + eye),
+            colour = colour.withAlpha(100),
+            depth = true
+        )
+        ctx.drawFilledBox(
+            pos.aabb(0.5).setMaxY(pos.y + 0.1).setMinY(pos.y),
+            colour = Colour.GREEN.withAlpha(100),
+            depth = true
+        )
         ctx.drawLine(points, colour = colour, depth = true)
     }
 
@@ -63,14 +71,16 @@ abstract class ClearNode(
             if (ClearExecutor.hasFailureHandler) {
                 logger.debug("Etherwarp raycast failed from {} (yaw {}, pitch {}): {}", from, yaw, pitch, res)
             } else {
-                modMessage("""
+                modMessage(
+                    """
                         &cFailed
                         &eFrom&7:&f $from
                         &eTo&7:&r $.{next?.pos}
                         &eYaw&7:&r $yaw
                         &ePitch&7:&r $pitch
                         &eResult&7:&r $res
-                    """.trimIndent(), prefix = "[&cAutoClear&r]")
+                    """.trimIndent(), prefix = "[&cAutoClear&r]"
+                )
             }
             return ClearExecutor.fail("The next Etherwarp landing spot is blocked or out of range.")
         }

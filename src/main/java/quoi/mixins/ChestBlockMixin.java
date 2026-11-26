@@ -17,13 +17,18 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
 import java.util.Map;
 
 @Mixin(ChestBlock.class)
 public abstract class ChestBlockMixin implements IOriginalCollisionShapeProvider {
 
-    @Shadow @Final private static VoxelShape SHAPE;
-    @Shadow @Final private static Map<Direction, VoxelShape> HALF_SHAPES;
+    @Shadow
+    @Final
+    private static VoxelShape SHAPE;
+    @Shadow
+    @Final
+    private static Map<Direction, VoxelShape> HALF_SHAPES;
 
     @Shadow
     public static Direction getConnectedDirection(BlockState blockState) {

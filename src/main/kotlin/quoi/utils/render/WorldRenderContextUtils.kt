@@ -81,7 +81,13 @@ private fun legacyDistanceScaledThickness(cameraPos: Vec3, reference: Vec3, thic
     return (thickness / distanceSqr.pow(0.15)).toFloat()
 }
 
-private fun addFilledBox(buffer: VertexConsumer, pose: com.mojang.blaze3d.vertex.PoseStack.Pose, box: AABB, cameraPos: Vec3, colour: Colour) {
+private fun addFilledBox(
+    buffer: VertexConsumer,
+    pose: com.mojang.blaze3d.vertex.PoseStack.Pose,
+    box: AABB,
+    cameraPos: Vec3,
+    colour: Colour
+) {
     val minX = box.minX - cameraPos.x
     val minY = box.minY - cameraPos.y
     val minZ = box.minZ - cameraPos.z
@@ -106,7 +112,12 @@ private fun addFilledBox(buffer: VertexConsumer, pose: com.mojang.blaze3d.vertex
     buffer.addQuad(pose, x0y0z1, x0y0z0, x1y0z0, x1y0z1, colour)
 }
 
-fun LevelRenderContext.drawLine(points: Collection<Vec3>, colour: Colour, depth: Boolean = false, thickness: Float = 3f) {
+fun LevelRenderContext.drawLine(
+    points: Collection<Vec3>,
+    colour: Colour,
+    depth: Boolean = false,
+    thickness: Float = 3f
+) {
     if (points.size < 2) return
     val matrix = poseStack()
     val cameraPos = camera().position()
@@ -163,6 +174,7 @@ fun LevelRenderContext.drawStyledBox(
             drawFilledBox(box, fillColour, depth)
             drawWireFrameBox(box, colour, thickness, depth)
         }
+
         "Filled" -> drawFilledBox(box, fillColour, depth)
     }
 }

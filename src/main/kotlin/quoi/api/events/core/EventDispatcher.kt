@@ -111,7 +111,10 @@ object EventDispatcher {
             }
         }
 
-        HudElementRegistry.attachElementBefore(VanillaHudElements.SLEEP, Identifier.fromNamespaceAndPath(QuoiMod.MOD_ID, "quoi_hud")) { ctx, a ->
+        HudElementRegistry.attachElementBefore(
+            VanillaHudElements.SLEEP,
+            Identifier.fromNamespaceAndPath(QuoiMod.MOD_ID, "quoi_hud")
+        ) { ctx, a ->
             if (mc.gui.hud.isHidden || mc.level == null || mc.player == null) return@attachElementBefore
             RenderEvent.Overlay(ctx, a).post()
         }
@@ -128,26 +131,40 @@ object EventDispatcher {
                 totalTicks++
                 TickEvent.Server(totalTicks).post()
             }
+
             is ClientboundSystemChatPacket -> {
                 val text = packet.content
                 val string = text.string
-                if (packet.overlay) ChatEvent.ActionBar(string, text).post() else ChatEvent.Packet(string, string.noControlCodes, text).post()
+                if (packet.overlay) ChatEvent.ActionBar(string, text).post() else ChatEvent.Packet(
+                    string,
+                    string.noControlCodes,
+                    text
+                ).post()
             }
+
             is ClientboundTakeItemEntityPacket -> {
                 val player = mc.player ?: return false
                 if (!Dungeon.inClear || packet.playerId != player.id) return false
                 val entity = mc.level?.getEntity(packet.itemId) as? ItemEntity ?: return false
-                if (entity.item.hoverName.string.containsOneOf(dungeonItemDrops, true) && entity.distanceTo(player) <= 6 && secretItems.add(entity.id))
+                if (entity.item.hoverName.string.containsOneOf(
+                        dungeonItemDrops,
+                        true
+                    ) && entity.distanceTo(player) <= 6 && secretItems.add(entity.id)
+                )
                     DungeonEvent.Secret.Item(entity).post()
                 else false
             }
+
             is ClientboundSoundPacket -> {
                 if (!Dungeon.inClear) return false
-                if (!packet.sound.value().equalsOneOf(SoundEvents.BAT_HURT, SoundEvents.BAT_DEATH) || packet.volume != 0.1f) return false
+                if (!packet.sound.value()
+                        .equalsOneOf(SoundEvents.BAT_HURT, SoundEvents.BAT_DEATH) || packet.volume != 0.1f
+                ) return false
                 val pos = Vec3(packet.x, packet.y, packet.z)
                 val bat = EntityUtils.getEntities<Bat>(pos, 1.0).minByOrNull { it.distanceToSqr(pos) } ?: return false
                 onSecretBat(bat.id)
             }
+
             else -> false
         }
     }
@@ -165,6 +182,7 @@ object EventDispatcher {
                 if (secretBlocks.add(pos.immutable())) DungeonEvent.Secret.Interact(pos, state).post()
                 false
             }
+
             else -> false
         }
     }

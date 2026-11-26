@@ -5,8 +5,11 @@ package quoi.api.customtriggers
  * Literal comparisons ignore case; regex comparisons use the flags in [pattern].
  */
 data class TextMatcher(var pattern: String = "", var mode: TextMatchMode = TextMatchMode.INCLUDES) {
-    @Transient private var cachedPattern: String? = null
-    @Transient private var cachedRegex: Regex? = null
+    @Transient
+    private var cachedPattern: String? = null
+
+    @Transient
+    private var cachedRegex: Regex? = null
 
     private fun regex(): Regex? {
         if (cachedPattern != pattern) {

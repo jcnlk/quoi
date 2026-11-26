@@ -16,6 +16,7 @@ class DungeonStateCondition(var state: State = State.IN_DUNGEON) : TriggerCondit
         TERMINAL("In terminal", "Not in a terminal"),
         DEAD("Player is dead", "Player is not dead"),
     }
+
     override fun matches(ctx: TriggerContext) = when (state) {
         State.IN_DUNGEON -> Dungeon.inDungeons
         State.CLEAR -> Dungeon.inClear
@@ -23,6 +24,7 @@ class DungeonStateCondition(var state: State = State.IN_DUNGEON) : TriggerCondit
         State.TERMINAL -> TerminalUtils.inTerminal
         State.DEAD -> Dungeon.inDungeons && Dungeon.isDead
     }
+
     override fun displayString() = state.label
     override fun invertedString() = state.inverted
     override fun ElementScope<*>.draw() = choiceField("State", { state }, State.entries, { it.label }) { state = it }

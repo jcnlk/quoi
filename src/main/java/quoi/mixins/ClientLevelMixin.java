@@ -36,7 +36,7 @@ public class ClientLevelMixin {
                 !Location.INSTANCE.getCurrentArea().isArea(Island.Garden) &&
                 Floor7.INSTANCE.getPhaseAt() != Phase.P5 ||
                 RenderOptimiser.should(RenderOptimiser.getHidePotionBubbles()) &&
-                particle.getType() == ParticleTypes.ENTITY_EFFECT) ci.cancel();
+                        particle.getType() == ParticleTypes.ENTITY_EFFECT) ci.cancel();
     }
 
     @Inject(
@@ -47,9 +47,9 @@ public class ClientLevelMixin {
     private void quoi$hideParticle(ParticleOptions particle, boolean overrideLimiter, boolean alwaysShow, double x, double y, double z, double vx, double vy, double vz, CallbackInfo ci) {
         if (RenderOptimiser.should(RenderOptimiser.getHideParticles()) &&
                 !Location.INSTANCE.getCurrentArea().isArea(Island.Garden) &&
-                Floor7.INSTANCE.getPhaseAt() != Phase.P5  ||
+                Floor7.INSTANCE.getPhaseAt() != Phase.P5 ||
                 RenderOptimiser.should(RenderOptimiser.getHidePotionBubbles()) &&
-                particle.getType() == ParticleTypes.ENTITY_EFFECT) ci.cancel();
+                        particle.getType() == ParticleTypes.ENTITY_EFFECT) ci.cancel();
     }
 
     @Inject(
@@ -60,9 +60,9 @@ public class ClientLevelMixin {
     private void quoi$hideAlwaysVisibleParticle(ParticleOptions particle, double x, double y, double z, double vx, double vy, double vz, CallbackInfo ci) {
         if (RenderOptimiser.should(RenderOptimiser.getHideParticles()) &&
                 !Location.INSTANCE.getCurrentArea().isArea(Island.Garden) &&
-                Floor7.INSTANCE.getPhaseAt() != Phase.P5  ||
+                Floor7.INSTANCE.getPhaseAt() != Phase.P5 ||
                 RenderOptimiser.should(RenderOptimiser.getHidePotionBubbles()) &&
-                particle.getType() == ParticleTypes.ENTITY_EFFECT) ci.cancel();
+                        particle.getType() == ParticleTypes.ENTITY_EFFECT) ci.cancel();
     }
 
     @Inject(
@@ -73,8 +73,8 @@ public class ClientLevelMixin {
     private void quoi$hideAlwaysVisibleParticle(ParticleOptions particle, boolean overrideLimiter, double x, double y, double z, double vx, double vy, double vz, CallbackInfo ci) {
         if (RenderOptimiser.should(RenderOptimiser.getHideParticles()) &&
                 !Location.INSTANCE.getCurrentArea().isArea(Island.Garden) &&
-                Floor7.INSTANCE.getPhaseAt() != Phase.P5  ||
+                Floor7.INSTANCE.getPhaseAt() != Phase.P5 ||
                 RenderOptimiser.should(RenderOptimiser.getHidePotionBubbles()) &&
-                particle.getType() == ParticleTypes.ENTITY_EFFECT) ci.cancel();
+                        particle.getType() == ParticleTypes.ENTITY_EFFECT) ci.cancel();
     }
 }

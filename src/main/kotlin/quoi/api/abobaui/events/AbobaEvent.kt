@@ -5,7 +5,7 @@ import quoi.api.input.Keyboard.Modifier
 import quoi.api.input.Keybinds
 
 interface AbobaEvent {
-    interface NonSpecific: AbobaEvent
+    interface NonSpecific : AbobaEvent
 }
 
 sealed interface Mouse : AbobaEvent {

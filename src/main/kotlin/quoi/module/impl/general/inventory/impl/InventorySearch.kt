@@ -135,7 +135,7 @@ object InventorySearch : SettingGroup(Inventory, HudComponent("Search Bar", Hud(
             ctx.rect(slot.x, slot.y, 16, 16, colour)
         }
 
-        on<GuiEvent.Key.Press> (Priority.LOW) {
+        on<GuiEvent.Key.Press>(Priority.LOW) {
             if (focused) cancel()
         }
     }
@@ -156,7 +156,8 @@ object InventorySearch : SettingGroup(Inventory, HudComponent("Search Bar", Hud(
         }
 
         listOf("\\^", "[*x/%]", "[+\\-]").forEach { operators ->
-            val eqRegex = Regex("""(?<![\d.])([+-]?[\d.]+(?:[eE][+-]?\d+)?)\s*($operators)\s*([+-]?[\d.]+(?:[eE][+-]?\d+)?)""")
+            val eqRegex =
+                Regex("""(?<![\d.])([+-]?[\d.]+(?:[eE][+-]?\d+)?)\s*($operators)\s*([+-]?[\d.]+(?:[eE][+-]?\d+)?)""")
 
             var match = eqRegex.find(s)
             while (match != null) {

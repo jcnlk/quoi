@@ -40,17 +40,20 @@ object LegacyConverter {
                         yaw = action.get("yaw")?.asFloat ?: 0f
                         pitch = action.get("pitch")?.asFloat ?: 0f
                     }
+
                     "rotate" -> RotateNode().apply {
                         yaw = action.get("yaw").asFloat
                         pitch = action.get("pitch").asFloat
                     }
+
                     "boom" -> BoomNode().apply {
                         yaw = action.get("yaw").asFloat
                         pitch = action.get("pitch").asFloat
                     }
+
                     "use_item" -> UseItemNode().apply {
                         val old = action.get("itemName").asString
-                        item = when(old) {
+                        item = when (old) {
                             "aspectofthevoid" -> "ASPECT_OF_THE_VOID"
                             "hyperion" -> "HYPERION"
                             "spiritsceptre" -> "BAT_WAND"
@@ -59,11 +62,13 @@ object LegacyConverter {
                         yaw = action.get("yaw").asFloat
                         pitch = action.get("pitch").asFloat
                     }
+
                     "dungeon_breaker" -> BreakerNode().apply {
                         blocks = action.getAsJsonArray("blocks").map {
                             gson.fromJson(it, BlockPos::class.java)
                         }
                     }
+
                     else -> return@forEach
                 }
 

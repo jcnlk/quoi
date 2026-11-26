@@ -32,11 +32,31 @@ import kotlin.math.atan2
 // based on https://github.com/Noamm9/NoammAddons/blob/bf040bdcce6346390ad2989e61b261b58e03402d/src/main/kotlin/com/github/noamm9/features/impl/dungeon/solvers/puzzles/TeleportMazeSolver.kt
 object TeleportMazeSolver : SettingGroup(PuzzleSolvers, "Teleport maze") {
     private val solver by switch("Solver", desc = "Shows the solution for the TP maze puzzle.")
-    private val colourOne by colourPicker("Colour for one", Colour.MINECRAFT_GREEN.withAlpha(0.5f), true, desc = "Colour for when there is a single solution.").childOf(::solver)
-    private val colourMultiple by colourPicker("Colour for multiple", Colour.MINECRAFT_GOLD.withAlpha(0.5f), true, desc = "Colour for when there are multiple solutions.").childOf(::solver)
-    private val colourVisited by colourPicker("Colour for visited", Colour.MINECRAFT_RED.withAlpha(0.5f), true, desc = "Colour for the already used TP pads.").childOf(::solver)
+    private val colourOne by colourPicker(
+        "Colour for one",
+        Colour.MINECRAFT_GREEN.withAlpha(0.5f),
+        true,
+        desc = "Colour for when there is a single solution."
+    ).childOf(::solver)
+    private val colourMultiple by colourPicker(
+        "Colour for multiple",
+        Colour.MINECRAFT_GOLD.withAlpha(0.5f),
+        true,
+        desc = "Colour for when there are multiple solutions."
+    ).childOf(::solver)
+    private val colourVisited by colourPicker(
+        "Colour for visited",
+        Colour.MINECRAFT_RED.withAlpha(0.5f),
+        true,
+        desc = "Colour for the already used TP pads."
+    ).childOf(::solver)
     private val tracer by switch("Tracer", true, desc = "Shows a tracer to the best next TP pad.").childOf(::solver)
-    private val tracerColour by colourPicker("Tracer colour", Colour.MINECRAFT_AQUA, true, desc = "Colour for the TP maze tracer.").childOf(::tracer)
+    private val tracerColour by colourPicker(
+        "Tracer colour",
+        Colour.MINECRAFT_AQUA,
+        true,
+        desc = "Colour for the TP maze tracer."
+    ).childOf(::tracer)
     private val auto by switch("Auto").asParent()
 
     private val start = BlockPos(15, 69, 12)
@@ -66,10 +86,11 @@ object TeleportMazeSolver : SettingGroup(PuzzleSolvers, "Teleport maze") {
             val room = Dungeon.currentRoom ?: return@on
             val maze = maze ?: return@on
             val source = player.position()
-            val change = PositionMoveRotation.calculateAbsolute(PositionMoveRotation.of(player), packet.change, packet.relatives)
+            val change =
+                PositionMoveRotation.calculateAbsolute(PositionMoveRotation.of(player), packet.change, packet.relatives)
             val destination = change.position
             val returning = inCenterLane(room, destination, -1..13) &&
-                    (exitTarget == exit || inCenterLane(room, source, 14..20))
+                (exitTarget == exit || inCenterLane(room, source, 14..20))
             val mazeTeleport = destination.y == 69.5 && destination.x % 0.5 == 0.0 && destination.z % 0.5 == 0.0
 
             when {
@@ -77,6 +98,7 @@ object TeleportMazeSolver : SettingGroup(PuzzleSolvers, "Teleport maze") {
                     if (exitTarget != exit && room.data.state != RoomState.GREEN) return@on reset()
                     exitTarget = doorway
                 }
+
                 exitTarget == null && inCenterLane(room, destination, 14..20) -> exitTarget = waypoint
                 mazeTeleport -> if (!maze.recordTeleport(source, destination, change.yRot)) return@on
                 else -> return@on
@@ -129,12 +151,17 @@ object TeleportMazeSolver : SettingGroup(PuzzleSolvers, "Teleport maze") {
                     if (inFinalCell && position.distanceTo2DSqr(target.center) > 0.25) walkTo(target)
                     else stopWalking()
                 }
+
                 exit -> walkTo(maze.exitPad, room.getRealCoords(waypoint))
                 doorway -> walkForwardTo(room.getRealCoords(doorway))
                 else -> {
                     if (room.data.state == RoomState.GREEN) return@on stopWalking()
                     val target = walk?.takeUnless { it.usesMoveTo }?.target ?: maze.nextPad(position)
-                    ?: maze.startPad.takeIf { room.getRelativeCoords(player.blockPosition()).z < start.z && !maze.wasVisited(it) }
+                    ?: maze.startPad.takeIf {
+                        room.getRelativeCoords(player.blockPosition()).z < start.z && !maze.wasVisited(
+                            it
+                        )
+                    }
                     when (target) {
                         maze.startPad -> walkTo(maze.startPad, room.getRealCoords(doorway))
                         null -> Unit

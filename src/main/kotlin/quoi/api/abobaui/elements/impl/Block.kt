@@ -13,7 +13,7 @@ open class Block(
     constraints: Constraints,
     colour: Colour,
     radii: Radii?
-): Element(constraints, colour) {
+) : Element(constraints, colour) {
 
     protected val radii = radii ?: EMPTY_RADIUS
 
@@ -46,7 +46,7 @@ open class Block(
         private var colourEnd: Colour,
         private val direction: GradientType,
         radius: Radii?
-    ): Block(constraints, colourStart, radius) {
+    ) : Block(constraints, colourStart, radius) {
         override fun drawCustom() {
             UIRenderer.gradientRect(x, y, width, height, colour!!.rgb, colourEnd.rgb, direction, radii)
         }

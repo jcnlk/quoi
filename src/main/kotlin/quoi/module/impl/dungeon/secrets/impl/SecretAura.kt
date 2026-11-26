@@ -47,16 +47,68 @@ object SecretAura : ToggleableGroup(
     desc = "Automatically collects secrets.",
     area = Island.Dungeon
 ) {
-    private val range by slider("Range", 6.2, 2.1, 6.5, 0.1, desc = "Maximum range for secret aura. Both levers and chests.").json("Chest range")
-    private val skullRange by slider("Skull range", 4.7, 2.1, 4.7, 0.1, desc = "Maximum range for secret aura when clicking skulls.")
-    private val bossRange by slider("Boss lever range", 5.7, 2.1, 6.5, 0.1, desc = "Maximum range for levers in boss room.").visibleIf { inBoss }
+    private val range by slider(
+        "Range",
+        6.2,
+        2.1,
+        6.5,
+        0.1,
+        desc = "Maximum range for secret aura. Both levers and chests."
+    ).json("Chest range")
+    private val skullRange by slider(
+        "Skull range",
+        4.7,
+        2.1,
+        4.7,
+        0.1,
+        desc = "Maximum range for secret aura when clicking skulls."
+    )
+    private val bossRange by slider(
+        "Boss lever range",
+        5.7,
+        2.1,
+        6.5,
+        0.1,
+        desc = "Maximum range for levers in boss room."
+    ).visibleIf { inBoss }
 
-    private val clickDelay by slider("Click delay", 150, 100, 4000, 50, desc = "Delay before clicking a block.") // this shit doesn't seem to be making any difference tbh...
-    private val auraFov by slider("Aura FOV", 360, 10, 360, 1, desc = "Only clicks secrets inside this field of view.", unit = "°")
+    private val clickDelay by slider(
+        "Click delay",
+        150,
+        100,
+        4000,
+        50,
+        desc = "Delay before clicking a block."
+    ) // this shit doesn't seem to be making any difference tbh...
+    private val auraFov by slider(
+        "Aura FOV",
+        360,
+        10,
+        360,
+        1,
+        desc = "Only clicks secrets inside this field of view.",
+        unit = "°"
+    )
 
-    private val swapOn by selector("Swap on", "Skulls", arrayListOf("None", "Skulls", "All"), desc = "Makes secret aura swap")
-    private val swapBack by switch("Swap back", true, desc = "Makes secret aura swap back to previous item after swapping.").childOf(::swapOn) { it.index >= 1 }
-    private val swapSlot by slider("Swap item slot", 1, 1, 9, 1, desc = "Slot for secret aura to swap to.").childOf(::swapOn) { it.index >= 1 }
+    private val swapOn by selector(
+        "Swap on",
+        "Skulls",
+        arrayListOf("None", "Skulls", "All"),
+        desc = "Makes secret aura swap"
+    )
+    private val swapBack by switch(
+        "Swap back",
+        true,
+        desc = "Makes secret aura swap back to previous item after swapping."
+    ).childOf(::swapOn) { it.index >= 1 }
+    private val swapSlot by slider(
+        "Swap item slot",
+        1,
+        1,
+        9,
+        1,
+        desc = "Slot for secret aura to swap to."
+    ).childOf(::swapOn) { it.index >= 1 }
 
     private val swing by switch("Swing hand", desc = "Makes secret aura swing hand on click.")
     private val inBoss by switch("In boss", true, desc = "Makes secret aura work in floor 7 boss.")
@@ -101,17 +153,34 @@ object SecretAura : ToggleableGroup(
                 when (room.name) {
                     "Three Weirdos" -> return@on
                     "Ice Path" if (!room.getRealCoords(BlockPos(15, 68, 25)).state.isAir) -> return@on
-                    "Water Board" if ((15..19).any { !room.getRealCoords(BlockPos(15, 57, it)).state.isAir }) -> return@on
+                    "Water Board" if ((15..19).any {
+                        !room.getRealCoords(
+                            BlockPos(
+                                15,
+                                57,
+                                it
+                            )
+                        ).state.isAir
+                    }) -> return@on
+
                     "Teleport Maze" -> {
                         val min = room.getRealCoords(Vec3(12, 68, 14))
                         val max = room.getRealCoords(Vec3(18, 70, 20))
                         if (!AABB(min, max).intersects(player.blockPosition().aabb)) return@on
                     }
-                    "Ice Fill" if (room.getRealCoords(BlockPos(15, 71, 26)).state.block != Blocks.PACKED_ICE) -> return@on
+
+                    "Ice Fill" if (room.getRealCoords(
+                        BlockPos(
+                            15,
+                            71,
+                            26
+                        )
+                    ).state.block != Blocks.PACKED_ICE) -> return@on
                 }
             }
 
-            var blockCandidate = BlockDistance(Blocks.AIR, BlockPos(Int.MAX_VALUE, 69, Int.MIN_VALUE), Double.POSITIVE_INFINITY)
+            var blockCandidate =
+                BlockDistance(Blocks.AIR, BlockPos(Int.MAX_VALUE, 69, Int.MIN_VALUE), Double.POSITIVE_INFINITY)
             val eyePos = player.eyePosition
             val lookVec = player.getViewVector(mc.deltaTracker.getGameTimeDeltaPartialTick(false)).normalize()
             val minFovDot = minFovDot(auraFov)
@@ -162,6 +231,7 @@ object SecretAura : ToggleableGroup(
                         val chest = room.getRealCoords(BlockPos(15, 20, 15))
                         if (chest.x == blockCandidate.pos.x && chest.state.block != Blocks.CHEST) return@on
                     }
+
                     "Higher Blaze" -> {
                         val chest = room.getRealCoords(BlockPos(15, 119, 15))
                         if (chest.x == blockCandidate.pos.x && chest.state.block != Blocks.CHEST) return@on
@@ -183,6 +253,7 @@ object SecretAura : ToggleableGroup(
                         if (handleSwap() == SwapResult.SUCCESS) return@on
                     }
                 }
+
                 "All" -> {
                     if (handleSwap() == SwapResult.SUCCESS) return@on
                 }
@@ -246,9 +317,11 @@ object SecretAura : ToggleableGroup(
             Blocks.CHEST, Blocks.TRAPPED_CHEST, Blocks.LEVER -> true
             Blocks.REDSTONE_BLOCK -> redstoneKey
             is SkullBlock -> {
-                val profileId = (level.getBlockEntity(position) as? SkullBlockEntity)?.ownerProfile?.partialProfile()?.id
+                val profileId =
+                    (level.getBlockEntity(position) as? SkullBlockEntity)?.ownerProfile?.partialProfile()?.id
                 Dungeon.isWitherEssence(profileId) || Dungeon.isRedstoneKey(profileId)
             }
+
             else -> false
         }
     }

@@ -69,6 +69,19 @@ class AutoMixinDiscovery : IMixinConfigPlugin {
     override fun getRefMapperConfig() = null
     override fun shouldApplyMixin(targetClassName: String?, mixinClassName: String?) = true
     override fun acceptTargets(myTargets: MutableSet<String>?, otherTargets: MutableSet<String>?) {}
-    override fun preApply(targetClassName: String?, targetClass: ClassNode?, mixinClassName: String?, info: IMixinInfo?) {}
-    override fun postApply(targetClassName: String?, targetClass: ClassNode?, mixinClassName: String?, info: IMixinInfo?) {}
+    override fun preApply(
+        targetClassName: String?,
+        targetClass: ClassNode?,
+        mixinClassName: String?,
+        info: IMixinInfo?
+    ) {
+    }
+
+    override fun postApply(
+        targetClassName: String?,
+        targetClass: ClassNode?,
+        mixinClassName: String?,
+        info: IMixinInfo?
+    ) {
+    }
 }

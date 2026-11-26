@@ -14,7 +14,15 @@ import quoi.api.customtriggers.settingRow
 @TypeName("player_position")
 class PositionCondition(var aabb: AABB = AABB(BlockPos(0, 0, 0))) : TriggerCondition() {
 
-    override fun validationError() = if (listOf(aabb.minX, aabb.minY, aabb.minZ, aabb.maxX, aabb.maxY, aabb.maxZ).any { !it.isFinite() } || aabb.xsize <= 0 || aabb.ysize <= 0 || aabb.zsize <= 0) "Position bounds need positive size on each axis." else null
+    override fun validationError() = if (listOf(
+            aabb.minX,
+            aabb.minY,
+            aabb.minZ,
+            aabb.maxX,
+            aabb.maxY,
+            aabb.maxZ
+        ).any { !it.isFinite() } || aabb.xsize <= 0 || aabb.ysize <= 0 || aabb.zsize <= 0
+    ) "Position bounds need positive size on each axis." else null
 
     override fun matches(ctx: TriggerContext): Boolean {
         return mc.player?.let { aabb.intersects(it.boundingBox) } == true

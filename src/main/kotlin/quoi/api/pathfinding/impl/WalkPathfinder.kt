@@ -67,7 +67,17 @@ object WalkPathfinder : AbstractPathfinder<PathNode, WalkContext>() { // todo sm
 
             if (ctx.canImprove(neighbour, gCost)) {
                 val hCost = neighbour.distanceTo(ctx.goal) * ctx.hWeight
-                ctx.addNode(PathNode(neighbour.x + 0.5, neighbour.y.toDouble(), neighbour.z + 0.5, neighbour, gCost, hCost, current))
+                ctx.addNode(
+                    PathNode(
+                        neighbour.x + 0.5,
+                        neighbour.y.toDouble(),
+                        neighbour.z + 0.5,
+                        neighbour,
+                        gCost,
+                        hCost,
+                        current
+                    )
+                )
             }
         }
     }

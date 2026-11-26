@@ -41,16 +41,63 @@ object SimonSays : Module(
     area = Island.Dungeon(7, stage = Stage.S1)
 ) {
     private val solver by switch("Solver")
-    private val firstCol by colourPicker("First colour", Colour.GREEN.withAlpha(0.5f), allowAlpha = true).childOf(::solver)
-    private val secondCol by colourPicker("Second colour", Colour.YELLOW.withAlpha(0.5f), allowAlpha = true).childOf(::solver)
-    private val thirdCol by colourPicker("Third colour", Colour.RED.withAlpha(0.5f), allowAlpha = true).childOf(::solver)
+    private val firstCol by colourPicker(
+        "First colour",
+        Colour.GREEN.withAlpha(0.5f),
+        allowAlpha = true
+    ).childOf(::solver)
+    private val secondCol by colourPicker(
+        "Second colour",
+        Colour.YELLOW.withAlpha(0.5f),
+        allowAlpha = true
+    ).childOf(::solver)
+    private val thirdCol by colourPicker(
+        "Third colour",
+        Colour.RED.withAlpha(0.5f),
+        allowAlpha = true
+    ).childOf(::solver)
 
     private val auto by switch("Auto")
-    private val delay by slider("Delay", 200, 50, 500, 10, "Minimum time between clicks. Smooth rotation can run during this cooldown.", unit = "ms").childOf(::auto)
-    private val startClicks by slider("Start Clicks", 3, 1, 10, 1, "Number of clicks sent to start the device.").childOf(::auto)
-    private val startDelay by slider("Start delay", 150, 50, 1250, 10, "Minimum time between start clicks.", unit = "ms").childOf(::auto)
-    private val rotationMode by selector("Rotation mode", RotationAnimation.Mode.None, desc = "None clicks without turning. Natural varies movement; Curve follows a smooth timed turn.").childOf(::auto)
-    private val rotationTime by slider("Rotation time", 180, 50, 500, 10, "Base turn duration. Larger turns take longer; natural movement varies.", unit = "ms").childOf(::rotationMode) { it.selected != RotationAnimation.Mode.None }
+    private val delay by slider(
+        "Delay",
+        200,
+        50,
+        500,
+        10,
+        "Minimum time between clicks. Smooth rotation can run during this cooldown.",
+        unit = "ms"
+    ).childOf(::auto)
+    private val startClicks by slider(
+        "Start Clicks",
+        3,
+        1,
+        10,
+        1,
+        "Number of clicks sent to start the device."
+    ).childOf(::auto)
+    private val startDelay by slider(
+        "Start delay",
+        150,
+        50,
+        1250,
+        10,
+        "Minimum time between start clicks.",
+        unit = "ms"
+    ).childOf(::auto)
+    private val rotationMode by selector(
+        "Rotation mode",
+        RotationAnimation.Mode.None,
+        desc = "None clicks without turning. Natural varies movement; Curve follows a smooth timed turn."
+    ).childOf(::auto)
+    private val rotationTime by slider(
+        "Rotation time",
+        180,
+        50,
+        500,
+        10,
+        "Base turn duration. Larger turns take longer; natural movement varies.",
+        unit = "ms"
+    ).childOf(::rotationMode) { it.selected != RotationAnimation.Mode.None }
     private val announceTime by switch("Announce time", desc = "Announces device completion time in party chat")
 
     private var lastClickTime = 0L
@@ -137,7 +184,9 @@ object SimonSays : Module(
 
             if (pos.x == 110) {
                 if (updated.block == Blocks.STONE_BUTTON && updated.hasProperty(BlockStateProperties.POWERED) && updated.getValue(
-                        BlockStateProperties.POWERED)) {
+                        BlockStateProperties.POWERED
+                    )
+                ) {
                     val i = clicks.indexOf(pos)
                     if (i != -1) {
                         progress = i + 1
@@ -149,7 +198,8 @@ object SimonSays : Module(
         on<TickEvent.Start> {
             if (startActive) {
                 if (Dungeon.isDead || player.distanceToSqr(startButton.center) > 25 ||
-                    (auto && rotationMode.selected != RotationAnimation.Mode.None && startUsesCrosshair && (mc.hitResult as? BlockHitResult)?.blockPos != startButton)) {
+                    (auto && rotationMode.selected != RotationAnimation.Mode.None && startUsesCrosshair && (mc.hitResult as? BlockHitResult)?.blockPos != startButton)
+                ) {
                     fullReset()
                     return@on
                 }
@@ -304,11 +354,13 @@ object SimonSays : Module(
         aim?.let {
             if (it.pos == pos && it.mode == rotationMode.selected && System.currentTimeMillis() - it.startedAt < 2000) return
         }
-        val target = Aim(pos, Vec3(
-            pos.x + 0.9375,
-            pos.y + 0.5 + Random.nextDouble(-0.045, 0.045),
-            pos.z + 0.5 + Random.nextDouble(-0.075, 0.075),
-        ), rotationMode.selected)
+        val target = Aim(
+            pos, Vec3(
+                pos.x + 0.9375,
+                pos.y + 0.5 + Random.nextDouble(-0.045, 0.045),
+                pos.z + 0.5 + Random.nextDouble(-0.075, 0.075),
+            ), rotationMode.selected
+        )
         aim = target
         val currentHit = player.pick(5.0, 1.0f, false) as? BlockHitResult
         if (currentHit?.type == HitResult.Type.BLOCK && currentHit.blockPos == pos) {
@@ -322,9 +374,11 @@ object SimonSays : Module(
         rotationTask {
             if (aim !== target || mc.player !== rotatingPlayer || !active || !auto ||
                 rotationMode.selected == RotationAnimation.Mode.None ||
-                rotationMode.selected != target.mode || !doingSS || Dungeon.isDead || distanceToSqr(pos.center) > 25) return@rotationTask true
+                rotationMode.selected != target.mode || !doingSS || Dungeon.isDead || distanceToSqr(pos.center) > 25
+            ) return@rotationTask true
             val direction = getDirection(target.point)
-            val step = motion.sample(direction.yaw.toDouble(), direction.pitch.toDouble(), mc.options.sensitivity().get())
+            val step =
+                motion.sample(direction.yaw.toDouble(), direction.pitch.toDouble(), mc.options.sensitivity().get())
             rotate(step.yaw, step.pitch)
             target.ready = step.finished
             target.ready

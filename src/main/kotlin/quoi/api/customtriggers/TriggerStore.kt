@@ -23,7 +23,9 @@ class TriggerStore(private val file: File, private val gson: Gson, private val w
 
     val triggers = ConfigMap(groups, ::save, ::load)
 
-    init { load() }
+    init {
+        load()
+    }
 
     fun renameGroup(old: String, new: String) {
         groups[new] = groups.remove(old) ?: return

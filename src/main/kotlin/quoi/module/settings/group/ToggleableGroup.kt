@@ -63,7 +63,9 @@ abstract class ToggleableGroup(
 
     var enabled: Boolean
         get() = switch.value
-        set(value) { switch.value = value }
+        set(value) {
+            switch.value = value
+        }
 
     open fun onEnable() {}
 

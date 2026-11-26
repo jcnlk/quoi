@@ -45,7 +45,10 @@ object AutoGFS : Module( // untested
     private val amount by slider("Amount", 50, 5, 95, 5, unit = "%").childOf(::mode) { it.selected == "Amount" }
     private val time by slider("Time", 5, 1, 60, 1, unit = "s").childOf(::mode) { it.selected == "Time" }
 
-    private val dungeonsOnly by switch("Dungeons only", desc = "Only refill regular items in dungeons. Toxic can still refill after Kuudra builds.")
+    private val dungeonsOnly by switch(
+        "Dungeons only",
+        desc = "Only refill regular items in dungeons. Toxic can still refill after Kuudra builds."
+    )
 
     private var tickCount = 0
     private var commandCooldown = 0
@@ -74,8 +77,12 @@ object AutoGFS : Module( // untested
 
             // based on: https://github.com/Noamm9/NoammAddons/blob/58975d7df18cba5323c427a31fc8596524ef1a58/src/main/kotlin/com/github/noamm9/features/impl/dungeon/AutoGFS.kt
             when {
-                twilightInCore && dps && unformatted == "The Core entrance is opening!" -> pendingPoisonArea = Island.Dungeon
-                twilightAfterRelics && !dps && unformatted == "[BOSS] Wither King: I no longer wish to fight, but I know that will not stop you." -> pendingPoisonArea = Island.Dungeon
+                twilightInCore && dps && unformatted == "The Core entrance is opening!" -> pendingPoisonArea =
+                    Island.Dungeon
+
+                twilightAfterRelics && !dps && unformatted == "[BOSS] Wither King: I no longer wish to fight, but I know that will not stop you." -> pendingPoisonArea =
+                    Island.Dungeon
+
                 twilightAfterLightning && !lightningRefilled && clazz == DungeonClass.Archer &&
                     (unformatted == "[BOSS] Storm: ENERGY HEED MY CALL!" || unformatted == "[BOSS] Storm: THUNDER LET ME BE YOUR CATALYST!") -> {
                     pendingPoisonArea = Island.Dungeon
@@ -159,12 +166,13 @@ object AutoGFS : Module( // untested
         JERRY(64, "INFLATABLE_JERRY", "inflatable_jerry", "Inflatable Jerries"),
         LEAP(16, "SPIRIT_LEAP", "spirit_leap", "Spirit Leaps");
 
-        val enabled get() = when (this) {
-            PEARL -> pearls
-            BOOM -> booms
-            JERRY -> jerries
-            LEAP -> leaps
-        }
+        val enabled
+            get() = when (this) {
+                PEARL -> pearls
+                BOOM -> booms
+                JERRY -> jerries
+                LEAP -> leaps
+            }
 
         fun shouldRefill(): Boolean {
             if (!enabled) return false

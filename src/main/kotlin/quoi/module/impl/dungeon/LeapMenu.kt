@@ -44,17 +44,41 @@ object LeapMenu : Module(
         desc = "Order of classes in the leap menu. Drag to reorder.",
         collapsible = false,
     ).childOf(::sorting) { it.selected == "Class" }
-    val fillEmpty by switch("Fill empty slots", desc = "Fills empty slots with remaining teammates if possible.").childOf(::sorting) { it.selected == "Custom" }
+    val fillEmpty by switch(
+        "Fill empty slots",
+        desc = "Fills empty slots with remaining teammates if possible."
+    ).childOf(::sorting) { it.selected == "Custom" }
     val customOrder by ListSetting("Custom sorting", mutableListOf<String>())
     private val shadow by switch("Shadow")
     private val onlyClass by switch("Only class", desc = "Renders only classes.")
-    private val bgCol by colourPicker("Background colour", Colour.MINECRAFT_DARK_GRAY.withAlpha(150), allowAlpha = true, desc = "Leap menu background colour.")
+    private val bgCol by colourPicker(
+        "Background colour",
+        Colour.MINECRAFT_DARK_GRAY.withAlpha(150),
+        allowAlpha = true,
+        desc = "Leap menu background colour."
+    )
     private val scale by slider("Scale", 5.0f, 0.1f, 15.0f, 0.1f, desc = "Leap menu scale.")
     private val gap by slider("Gap", 50, 0, 500, 10)
-    private val topLeft by keybind("Top left", Keybinds.KEY_1, desc = "Leaps to the first person in the menu.").excluding(Keybinds.KEY_E) // maybe should get inventory open keybind. but idk
-    private val topRight by keybind("Top right", Keybinds.KEY_2, desc = "Leaps to the second person in the menu.").excluding(Keybinds.KEY_E)
-    private val botLeft by keybind("Bottom left", Keybinds.KEY_3, desc = "Leaps to the third person in the menu.").excluding(Keybinds.KEY_E)
-    private val botRight by keybind("Bottom right", Keybinds.KEY_4, desc = "Leaps to the fourth person in the menu.").excluding(Keybinds.KEY_E)
+    private val topLeft by keybind(
+        "Top left",
+        Keybinds.KEY_1,
+        desc = "Leaps to the first person in the menu."
+    ).excluding(Keybinds.KEY_E) // maybe should get inventory open keybind. but idk
+    private val topRight by keybind(
+        "Top right",
+        Keybinds.KEY_2,
+        desc = "Leaps to the second person in the menu."
+    ).excluding(Keybinds.KEY_E)
+    private val botLeft by keybind(
+        "Bottom left",
+        Keybinds.KEY_3,
+        desc = "Leaps to the third person in the menu."
+    ).excluding(Keybinds.KEY_E)
+    private val botRight by keybind(
+        "Bottom right",
+        Keybinds.KEY_4,
+        desc = "Leaps to the fourth person in the menu."
+    ).excluding(Keybinds.KEY_E)
 
     init {
         command.sub("order") { p1: String?, p2: String?, p3: String?, p4: String? ->
@@ -149,7 +173,8 @@ object LeapMenu : Module(
         }
 
         onKeyPressed { (key) ->
-            val index = listOf(topLeft, topRight, botLeft, botRight).indexOfFirst { it.key == key }.takeIf { it != -1 } ?: return@onKeyPressed false
+            val index = listOf(topLeft, topRight, botLeft, botRight).indexOfFirst { it.key == key }.takeIf { it != -1 }
+                ?: return@onKeyPressed false
             if (index >= leapTeammates.size) return@onKeyPressed false
             val player = leapTeammates[index]
             if (player.isDead) {

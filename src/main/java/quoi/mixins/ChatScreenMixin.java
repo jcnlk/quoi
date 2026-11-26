@@ -1,10 +1,12 @@
 package quoi.mixins;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+
 import java.awt.*;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.ChatComponent;
 import net.minecraft.client.gui.components.EditBox;
@@ -28,7 +30,9 @@ import quoi.mixininterfaces.ISearchMode;
 
 @Mixin(ChatScreen.class)
 public class ChatScreenMixin extends Screen implements ISearchMode {
-    protected ChatScreenMixin(Component title) { super(title); }
+    protected ChatScreenMixin(Component title) {
+        super(title);
+    }
 
     @Unique
     private static boolean isSearchActive = false;

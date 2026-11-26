@@ -35,17 +35,26 @@ class NodeCanvas(constraints: Constraints, private val host: Host) : Element(con
         val rule: TriggerRule?
         val selected: Int?
         fun select(index: Int?)
+
         /** Opens the picker at screen coordinates [x], [y] for insertion at [slot]. */
         fun requestAdd(slot: Int, kind: TriggerGraph.Kind, x: Float, y: Float)
         fun reordered()
+
         // runs before canvas drawing
         fun onFrame()
+
         /** Width covered by a floating panel at the right edge, in screen pixels. */
         val coveredRight: Float
     }
 
     // keep fitted until the user pans or zooms
-    private class View(var panX: Float = 0f, var panY: Float = 0f, var zoom: Float = 1f, var auto: Boolean = true, var fittedFor: Any? = null)
+    private class View(
+        var panX: Float = 0f,
+        var panY: Float = 0f,
+        var zoom: Float = 1f,
+        var auto: Boolean = true,
+        var fittedFor: Any? = null
+    )
 
     private val views = hashMapOf<String, View>()
 
@@ -65,6 +74,7 @@ class NodeCanvas(constraints: Constraints, private val host: Host) : Element(con
     private var pressY = 0f
     private var cursor = CursorShape.NORMAL
     private var revealPending: Pair<String, Int>? = null
+
     // screen offset to keep the selected node clear of floating panels
     private var shift = 0f
 
@@ -122,7 +132,8 @@ class NodeCanvas(constraints: Constraints, private val host: Host) : Element(con
     private fun view(rule: TriggerRule) = views.getOrPut(rule.id) { View() }
 
     // stack the columns if fitting them would make the text too small
-    private fun layout(rule: TriggerRule) = FlowLayout(TriggerGraph(rule), width >= (FlowLayout.WIDE_WIDTH + MARGIN * 2) * WIDE_MIN_ZOOM)
+    private fun layout(rule: TriggerRule) =
+        FlowLayout(TriggerGraph(rule), width >= (FlowLayout.WIDE_WIDTH + MARGIN * 2) * WIDE_MIN_ZOOM)
 
     private fun sx(view: View, cx: Float) = x + (cx + view.panX) * view.zoom - shift
     private fun sy(view: View, cy: Float) = y + (cy + view.panY) * view.zoom
@@ -197,7 +208,14 @@ class NodeCanvas(constraints: Constraints, private val host: Host) : Element(con
         var (px, py) = point(link, 0f)
         for (i in 1..steps) {
             val (nx, ny) = point(link, i / steps.toFloat())
-            if (!link.dashed || i % 2 == 0) UIRenderer.line(sx(view, px), sy(view, py), sx(view, nx), sy(view, ny), thickness, colour)
+            if (!link.dashed || i % 2 == 0) UIRenderer.line(
+                sx(view, px),
+                sy(view, py),
+                sx(view, nx),
+                sy(view, ny),
+                thickness,
+                colour
+            )
             px = nx
             py = ny
         }
@@ -213,10 +231,11 @@ class NodeCanvas(constraints: Constraints, private val host: Host) : Element(con
         }
     }
 
-    private fun plusAt(layout: FlowLayout, mx: Float, my: Float, zoom: Float): FlowLayout.Link? = layout.links.firstOrNull { link ->
-        val (px, py) = middle(link)
-        link.slot != null && hypot(mx - px, my - py) <= (plusRadius(zoom) + 4f) / zoom
-    }
+    private fun plusAt(layout: FlowLayout, mx: Float, my: Float, zoom: Float): FlowLayout.Link? =
+        layout.links.firstOrNull { link ->
+            val (px, py) = middle(link)
+            link.slot != null && hypot(mx - px, my - py) <= (plusRadius(zoom) + 4f) / zoom
+        }
 
     private fun nodeAt(layout: FlowLayout, mx: Float, my: Float): Int? =
         layout.nodes.indices.lastOrNull { layout.nodes[it].contains(mx, my) }
@@ -235,11 +254,21 @@ class NodeCanvas(constraints: Constraints, private val host: Host) : Element(con
                 return@onClick true
             }
             if (layout.addAction.contains(mx, my)) {
-                host.requestAdd(layout.graph.size, TriggerGraph.Kind.ACTION, sx(view, layout.addAction.x), sy(view, layout.addAction.bottom) + 6f)
+                host.requestAdd(
+                    layout.graph.size,
+                    TriggerGraph.Kind.ACTION,
+                    sx(view, layout.addAction.x),
+                    sy(view, layout.addAction.bottom) + 6f
+                )
                 return@onClick true
             }
             if (layout.addCondition.contains(mx, my)) {
-                host.requestAdd(layout.graph.boundary, TriggerGraph.Kind.CONDITION, sx(view, layout.addCondition.x), sy(view, layout.addCondition.bottom) + 6f)
+                host.requestAdd(
+                    layout.graph.boundary,
+                    TriggerGraph.Kind.CONDITION,
+                    sx(view, layout.addCondition.x),
+                    sy(view, layout.addCondition.bottom) + 6f
+                )
                 return@onClick true
             }
             val node = nodeAt(layout, mx, my)
@@ -401,14 +430,22 @@ class NodeCanvas(constraints: Constraints, private val host: Host) : Element(con
 
         layout.ands.forEach { (ax, ay) -> drawAnd(view, ax, ay) }
         drawAdd(view, layout.addCondition, "Add condition", hoverAddCondition, emphasise = false)
-        drawAdd(view, layout.addAction, if (graph.rule.actions.isEmpty()) "Add an action" else "Add action", hoverAddAction,
-            emphasise = graph.rule.actions.isEmpty())
+        drawAdd(
+            view, layout.addAction, if (graph.rule.actions.isEmpty()) "Add an action" else "Add action", hoverAddAction,
+            emphasise = graph.rule.actions.isEmpty()
+        )
 
         layout.nodes.forEachIndexed { index, box ->
             if (index != dragging) drawNode(view, graph, index, box, hovered = index == hoverNode)
         }
 
-        if (dragging == null) layout.links.forEach { link -> if (link.slot != null) drawPlus(view, link, link == hoverPlus) }
+        if (dragging == null) layout.links.forEach { link ->
+            if (link.slot != null) drawPlus(
+                view,
+                link,
+                link == hoverPlus
+            )
+        }
 
         if (dragging != null) {
             validSlots(graph, dragging).forEach { slot ->
@@ -455,12 +492,20 @@ class NodeCanvas(constraints: Constraints, private val host: Host) : Element(con
                 2 -> "both are true"
                 else -> "all $conditions are true"
             }
+
             TriggerGraph.Kind.ACTION -> "THEN DO" to if (graph.rule.actions.size > 1) "these in order" else "this"
         }
         val cx = sx(view, caption.x)
         val cy = sy(view, caption.y)
         UIRenderer.text(title, cx, cy, size, accentText(caption.kind).rgb, font)
-        UIRenderer.text(detail, cx + UIRenderer.textWidth(title, size, font) + 7f * z, cy, size, theme.onSurfaceVariant.rgb, font)
+        UIRenderer.text(
+            detail,
+            cx + UIRenderer.textWidth(title, size, font) + 7f * z,
+            cy,
+            size,
+            theme.onSurfaceVariant.rgb,
+            font
+        )
     }
 
     private fun drawConditionGroup(view: View, layout: FlowLayout) {
@@ -483,10 +528,24 @@ class NodeCanvas(constraints: Constraints, private val host: Host) : Element(con
         UIRenderer.line(cx, cy - 18f * z, cx, cy + 18f * z, 1.5f * z, CONDITION_ACCENT.withAlpha(0.35f).rgb)
         UIRenderer.rect(cx - w / 2f, cy - h / 2f, w, h, theme.surfaceContainerHigh.rgb, h / 2f)
         UIRenderer.hollowRect(cx - w / 2f, cy - h / 2f, w, h, 1f, CONDITION_ACCENT.withAlpha(0.45f).rgb, h / 2f)
-        UIRenderer.text("AND", cx - w / 2f + 9f * z, cy - size / 2f, size, accentText(TriggerGraph.Kind.CONDITION).rgb, font)
+        UIRenderer.text(
+            "AND",
+            cx - w / 2f + 9f * z,
+            cy - size / 2f,
+            size,
+            accentText(TriggerGraph.Kind.CONDITION).rgb,
+            font
+        )
     }
 
-    private fun drawNode(view: View, graph: TriggerGraph, index: Int, box: FlowLayout.Box, hovered: Boolean, lifted: Boolean = false) {
+    private fun drawNode(
+        view: View,
+        graph: TriggerGraph,
+        index: Int,
+        box: FlowLayout.Box,
+        hovered: Boolean,
+        lifted: Boolean = false
+    ) {
         val z = view.zoom
         val nx = sx(view, box.x)
         val ny = sy(view, box.y)
@@ -502,8 +561,10 @@ class NodeCanvas(constraints: Constraints, private val host: Host) : Element(con
         val radius = 10f * z
         val headerH = HEADER_H * z
 
-        UIRenderer.dropShadow(nx, ny + 2f * z, w, h, (if (lifted) 28f else 12f) * z, 0f, radius,
-            Colour.RGB(0, 0, 0, if (lifted) 0.45f else 0.25f).rgb)
+        UIRenderer.dropShadow(
+            nx, ny + 2f * z, w, h, (if (lifted) 28f else 12f) * z, 0f, radius,
+            Colour.RGB(0, 0, 0, if (lifted) 0.45f else 0.25f).rgb
+        )
         UIRenderer.rect(nx, ny, w, h, (if (hovered) theme.surfaceContainerHigh else theme.surfaceContainer).rgb, radius)
         UIRenderer.rect(nx, ny, w, headerH, accent.withAlpha(0.12f).rgb, radius, 0f, 0f, radius)
         UIRenderer.rect(nx, ny + headerH - 1f, w, 1f, accent.withAlpha(0.2f).rgb)
@@ -518,19 +579,40 @@ class NodeCanvas(constraints: Constraints, private val host: Host) : Element(con
         val chipX = nx + 10f * z
         val chipY = ny + (headerH - chipH) / 2f
         UIRenderer.rect(chipX, chipY, chipW, chipH, accent.withAlpha(0.22f).rgb, 5f * z)
-        UIRenderer.text(chip, chipX + (chipW - chipTextW) / 2f, chipY + (chipH - chipSize) / 2f, chipSize, accentText(kind).rgb, font)
+        UIRenderer.text(
+            chip,
+            chipX + (chipW - chipTextW) / 2f,
+            chipY + (chipH - chipSize) / 2f,
+            chipSize,
+            accentText(kind).rgb,
+            font
+        )
 
         var titleRight = nx + w - 12f * z
         if (inverted) {
             val tagSize = 11.5f * z
             val tagW = UIRenderer.textWidth(INVERTED_TAG, tagSize, font)
             titleRight -= tagW + 10f * z
-            UIRenderer.text(INVERTED_TAG, nx + w - 12f * z - tagW, ny + (headerH - tagSize) / 2f, tagSize, accentText(kind).withAlpha(0.85f).rgb, font)
+            UIRenderer.text(
+                INVERTED_TAG,
+                nx + w - 12f * z - tagW,
+                ny + (headerH - tagSize) / 2f,
+                tagSize,
+                accentText(kind).withAlpha(0.85f).rgb,
+                font
+            )
         }
         val titleSize = 15f * z
         val titleX = chipX + chipW + 9f * z
         val name = NodeCatalog.info((component as TypeNamed).typeName).name
-        UIRenderer.text(fit(name, titleRight - titleX, titleSize), titleX, ny + (headerH - titleSize) / 2f, titleSize, theme.onSurface.rgb, font)
+        UIRenderer.text(
+            fit(name, titleRight - titleX, titleSize),
+            titleX,
+            ny + (headerH - titleSize) / 2f,
+            titleSize,
+            theme.onSurface.rgb,
+            font
+        )
 
         val bodySize = 13.5f * z
         val bodyX = nx + 12f * z
@@ -546,13 +628,28 @@ class NodeCanvas(constraints: Constraints, private val host: Host) : Element(con
             val dotR = 3f * z
             val errorY = ny + h - 10f * z - bodySize
             UIRenderer.circle(bodyX + dotR, errorY + bodySize / 2f, dotR, theme.error.rgb)
-            UIRenderer.text(fit(error, bodyW - dotR * 2 - 6f * z, bodySize), bodyX + dotR * 2 + 6f * z, errorY, bodySize, theme.error.rgb, font)
+            UIRenderer.text(
+                fit(error, bodyW - dotR * 2 - 6f * z, bodySize),
+                bodyX + dotR * 2 + 6f * z,
+                errorY,
+                bodySize,
+                theme.error.rgb,
+                font
+            )
         }
 
         when {
             selected -> UIRenderer.hollowRect(nx, ny, w, h, 2f, theme.primary.rgb, radius)
             error != null -> UIRenderer.hollowRect(nx, ny, w, h, 1f, theme.error.withAlpha(0.7f).rgb, radius)
-            else -> UIRenderer.hollowRect(nx, ny, w, h, 1f, (if (hovered) theme.outline else theme.outlineVariant).rgb, radius)
+            else -> UIRenderer.hollowRect(
+                nx,
+                ny,
+                w,
+                h,
+                1f,
+                (if (hovered) theme.outline else theme.outlineVariant).rgb,
+                radius
+            )
         }
     }
 
@@ -564,7 +661,14 @@ class NodeCanvas(constraints: Constraints, private val host: Host) : Element(con
         val h = box.h * z
         if (gx > x + width || gy > y + height || gx + w < x || gy + h < y) return
         val colour = if (hovered || emphasise) theme.primary else theme.onSurfaceVariant
-        UIRenderer.rect(gx, gy, w, h, (if (hovered) theme.primary.withAlpha(0.1f) else theme.surface.withAlpha(0.7f)).rgb, 10f * z)
+        UIRenderer.rect(
+            gx,
+            gy,
+            w,
+            h,
+            (if (hovered) theme.primary.withAlpha(0.1f) else theme.surface.withAlpha(0.7f)).rgb,
+            10f * z
+        )
         dashedRect(gx, gy, w, h, colour.withAlpha(if (hovered || emphasise) 0.9f else 0.45f).rgb, z)
         val font = UIRenderer.defaultFont
         val size = 14f * z
@@ -607,8 +711,22 @@ class NodeCanvas(constraints: Constraints, private val host: Host) : Element(con
         val w = UIRenderer.textWidth(text, size, font) + 20f
         val left = if (left + w > x + width - host.coveredRight - 8f) fallbackRight - w else left
         val h = 26f
-        UIRenderer.rect(left, centreY - h / 2f, w, h, (if (filled) theme.primary else theme.surfaceContainerHighest).rgb, 6f)
-        UIRenderer.text(text, left + 10f, centreY - size / 2f, size, (if (filled) theme.onPrimary else theme.onSurface).rgb, font)
+        UIRenderer.rect(
+            left,
+            centreY - h / 2f,
+            w,
+            h,
+            (if (filled) theme.primary else theme.surfaceContainerHighest).rgb,
+            6f
+        )
+        UIRenderer.text(
+            text,
+            left + 10f,
+            centreY - size / 2f,
+            size,
+            (if (filled) theme.onPrimary else theme.onSurface).rgb,
+            font
+        )
     }
 
     private fun dashedRect(x0: Float, y0: Float, w: Float, h: Float, colour: Int, z: Float) {
@@ -638,7 +756,14 @@ class NodeCanvas(constraints: Constraints, private val host: Host) : Element(con
         val visible = width - host.coveredRight
         val shown = fit(help, visible - 48f, 13f)
         // backdrop keeps the hint readable over the flow
-        UIRenderer.rect(x + 8f, y + height - 36f, UIRenderer.textWidth(shown, 13f, font) + 20f, 26f, theme.surface.withAlpha(0.85f).rgb, 6f)
+        UIRenderer.rect(
+            x + 8f,
+            y + height - 36f,
+            UIRenderer.textWidth(shown, 13f, font) + 20f,
+            26f,
+            theme.surface.withAlpha(0.85f).rgb,
+            6f
+        )
         UIRenderer.text(shown, x + 18f, y + height - 29f, 13f, theme.onSurfaceVariant.withAlpha(0.8f).rgb, font)
 
         val message = toast ?: return
@@ -716,7 +841,11 @@ class NodeCanvas(constraints: Constraints, private val host: Host) : Element(con
         fun accentText(kind: TriggerGraph.Kind): Colour {
             val accent = accent(kind)
             if (theme.isDark) return accent
-            return Colour.RGB((accent.red * 0.55f).toInt(), (accent.green * 0.55f).toInt(), (accent.blue * 0.55f).toInt())
+            return Colour.RGB(
+                (accent.red * 0.55f).toInt(),
+                (accent.green * 0.55f).toInt(),
+                (accent.blue * 0.55f).toInt()
+            )
         }
 
         fun chipLabel(kind: TriggerGraph.Kind, step: Int) = when (kind) {

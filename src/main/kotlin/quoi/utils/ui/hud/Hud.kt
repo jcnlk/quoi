@@ -110,8 +110,8 @@ open class Hud(
         override var enabled: Boolean = true
             get() =
                 field &&
-                (if (inHudEditor) this@Hud.module.running else this@Hud.module.active) &&
-                (this@Hud.enabled || !this@Hud.toggleable)
+                    (if (inHudEditor) this@Hud.module.running else this@Hud.module.active) &&
+                    (this@Hud.enabled || !this@Hud.toggleable)
 
         override var usingCtx: Boolean = true
 

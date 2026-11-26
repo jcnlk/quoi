@@ -15,6 +15,7 @@ class ChatTrigger(var matcher: TextMatcher = TextMatcher()) : Trigger {
         ctx.data.putAll(captures)
         return true
     }
+
     override fun displayString() = "Chat: ${matcher.pattern}"
     override fun ElementScope<*>.draw() = settingRow(
         { textField("Message", matcher.pattern) { matcher.pattern = it } },

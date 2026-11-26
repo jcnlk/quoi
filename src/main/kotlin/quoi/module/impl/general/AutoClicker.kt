@@ -24,26 +24,62 @@ import quoi.utils.skyblock.player.PlayerUtils.leftClick
 import quoi.utils.skyblock.player.PlayerUtils.rightClick
 
 // https://github.com/Noamm9/CatgirlAddons/blob/main/src/main/kotlin/catgirlroutes/module/impl/misc/AutoClicker.kt
-object AutoClicker: Module(
+object AutoClicker : Module(
     "Auto Clicker",
     desc = "A simple auto clicker for both left and right click. Activates when the corresponding key is being held down."
 ) {
-    private val breakBlocks by switch("Allow breaking blocks", desc = "Allows the player to break blocks.").json("Break blocks")
+    private val breakBlocks by switch(
+        "Allow breaking blocks",
+        desc = "Allows the player to break blocks."
+    ).json("Break blocks")
     private val stopOnSwap by switch("Stop on item swap", desc = "Stops clicking on item swap.")
     private val stopWhileSneaking by switch("Stop while sneaking", desc = "Pauses auto clicking while sneaking.")
-    private val favouriteItems by switch("Whitelist only", desc = "Only click when holding a whitelisted item.").json("Favourite items only")
+    private val favouriteItems by switch(
+        "Whitelist only",
+        desc = "Only click when holding a whitelisted item."
+    ).json("Favourite items only")
     private val favLeft by ListSetting("FAVOURITE_ITEMS_LEFT", mutableListOf<String>())
     private val favRight by ListSetting("FAVOURITE_ITEMS_RIGHT", mutableListOf<String>())
 
-    private val blockDungeonBreaker by switch("Block dungeon breaker", true, desc = "Prevents auto clicker from working with Dungeon Breaker.")
+    private val blockDungeonBreaker by switch(
+        "Block dungeon breaker",
+        true,
+        desc = "Prevents auto clicker from working with Dungeon Breaker."
+    )
 
-    private val leftClick by switch("Enable Left Click", desc = "Toggles the auto clicker for left click.").json("Left Click")
-    private val leftCps by rangeSlider("Left CPS", 10 to 12, 1, 20, desc = "The range of clicks per second to perform for left click.").childOf(::leftClick)
-    private val leftClickKeybind by keybind("Left click keybind", Keybinds.MOUSE_LEFT, desc = "The keybind to hold for left click auto clicking.").childOf(::leftClick)
+    private val leftClick by switch(
+        "Enable Left Click",
+        desc = "Toggles the auto clicker for left click."
+    ).json("Left Click")
+    private val leftCps by rangeSlider(
+        "Left CPS",
+        10 to 12,
+        1,
+        20,
+        desc = "The range of clicks per second to perform for left click."
+    ).childOf(::leftClick)
+    private val leftClickKeybind by keybind(
+        "Left click keybind",
+        Keybinds.MOUSE_LEFT,
+        desc = "The keybind to hold for left click auto clicking."
+    ).childOf(::leftClick)
 
-    private val rightClick by switch("Enable Right Click", desc = "Toggles the auto clicker for right click.").json("Right Click")
-    private val rightCps by rangeSlider("Right CPS", 10 to 12, 1, 20, desc = "The range of clicks per second to perform for right click.").childOf(::rightClick)
-    private val rightClickKeybind by keybind("Right click keybind", Keybinds.MOUSE_RIGHT, desc = "The keybind to hold for right click auto clicking.").childOf(::rightClick)
+    private val rightClick by switch(
+        "Enable Right Click",
+        desc = "Toggles the auto clicker for right click."
+    ).json("Right Click")
+    private val rightCps by rangeSlider(
+        "Right CPS",
+        10 to 12,
+        1,
+        20,
+        desc = "The range of clicks per second to perform for right click."
+    ).childOf(::rightClick)
+    private val rightClickKeybind by keybind(
+        "Right click keybind",
+        Keybinds.MOUSE_RIGHT,
+        desc = "The keybind to hold for right click auto clicking."
+    ).childOf(::rightClick)
 
     private var leftJob: Job? = null
     private var rightJob: Job? = null

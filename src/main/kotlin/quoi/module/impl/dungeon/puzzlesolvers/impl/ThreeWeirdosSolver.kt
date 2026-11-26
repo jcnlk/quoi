@@ -31,11 +31,29 @@ import kotlin.math.abs
  */
 object ThreeWeirdosSolver : SettingGroup(PuzzleSolvers, "Three weirdos") {
     private val solver by switch("Solver", desc = "Shows the solution for the Weirdos puzzle.")
-    private val colour by colourPicker("Correct colour", Colour.MINECRAFT_GREEN.withAlpha(0.7f), true, desc = "Colour for the Weirdos solver.").childOf(::solver)
-    private val wrongColour by colourPicker("Wrong colour", Colour.MINECRAFT_RED.withAlpha(0.7f), true,  desc = "Colour for the incorrect Weirdos.").childOf(::solver)
-    private val style by selector("Style", "Box", arrayListOf("Box", "Filled box"), desc = "Whether or not the box should be filled.").childOf(::solver)
+    private val colour by colourPicker(
+        "Correct colour",
+        Colour.MINECRAFT_GREEN.withAlpha(0.7f),
+        true,
+        desc = "Colour for the Weirdos solver."
+    ).childOf(::solver)
+    private val wrongColour by colourPicker(
+        "Wrong colour",
+        Colour.MINECRAFT_RED.withAlpha(0.7f),
+        true,
+        desc = "Colour for the incorrect Weirdos."
+    ).childOf(::solver)
+    private val style by selector(
+        "Style",
+        "Box",
+        arrayListOf("Box", "Filled box"),
+        desc = "Whether or not the box should be filled."
+    ).childOf(::solver)
     private val auto by switch("Auto").asParent()
-    private val triggerbot by switch("Triggerbot", desc = "Talks to each NPC and opens the correct chest when you look at them.").asParent()
+    private val triggerbot by switch(
+        "Triggerbot",
+        desc = "Talks to each NPC and opens the correct chest when you look at them."
+    ).asParent()
 
     private var correctPos: BlockPos? = null
     private val wrongPositions = mutableSetOf<BlockPos>()
@@ -59,7 +77,8 @@ object ThreeWeirdosSolver : SettingGroup(PuzzleSolvers, "Three weirdos") {
 
                 val room = Dungeon.currentRoom?.takeIf { it.name == "Three Weirdos" } ?: return@on
                 val correctNPC = getEntities<ArmorStand>().find { it.name.string == npc } ?: return@on
-                val relativePos = room.getRelativeCoords(BlockPos(correctNPC.x.toInt() - 1, 69, correctNPC.z.toInt() - 1))
+                val relativePos =
+                    room.getRelativeCoords(BlockPos(correctNPC.x.toInt() - 1, 69, correctNPC.z.toInt() - 1))
                 val pos = room.getRealCoords(relativePos.offset(1, 0, 0))
 
                 if (solution) {
@@ -121,7 +140,7 @@ object ThreeWeirdosSolver : SettingGroup(PuzzleSolvers, "Three weirdos") {
             }
 
             val pos = correctPos ?: return@on
-            if (wrongPositions.size == 2 &&player.eyePosition.distanceToSqr(pos.vec3) < 30 && currentTime - lastClick >= 150L) {
+            if (wrongPositions.size == 2 && player.eyePosition.distanceToSqr(pos.vec3) < 30 && currentTime - lastClick >= 150L) {
                 AuraManager.interactBlock(pos)
                 clickedChest = true
                 lastClick = currentTime

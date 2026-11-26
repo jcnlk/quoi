@@ -143,7 +143,13 @@ object AuraManager : EventListener, Shortcuts {
         if (interactEntityCd > 0) entityTasks.add(task) else task.execute()
     }
 
-    fun breakBlock(pos: BlockPos, immediate: Boolean = false, custom: Boolean = false, swing: Boolean = true, rotate: Boolean = false) {
+    fun breakBlock(
+        pos: BlockPos,
+        immediate: Boolean = false,
+        custom: Boolean = false,
+        swing: Boolean = true,
+        rotate: Boolean = false
+    ) {
         if (mineTarget?.pos == pos) return
 
         val hitResult = pos.getHitResult() ?: return

@@ -81,10 +81,10 @@ object MovementUtils : EventListener, Shortcuts {
         val accel = speed * 0.98
 
         val baseSq = stepVelSq(vx, vz, 0.0, 0.0)
-        input.forward  = vx < -0.01 && stepVelSq(vx, vz, accel, 0.0) < baseSq
-        input.backward = vx > 0.01  && stepVelSq(vx, vz, -accel, 0.0) < baseSq
-        input.right    = vz > 0.01  && stepVelSq(vx, vz, 0.0, -accel) < baseSq
-        input.left     = vz < -0.01 && stepVelSq(vx, vz, 0.0, accel) < baseSq
+        input.forward = vx < -0.01 && stepVelSq(vx, vz, accel, 0.0) < baseSq
+        input.backward = vx > 0.01 && stepVelSq(vx, vz, -accel, 0.0) < baseSq
+        input.right = vz > 0.01 && stepVelSq(vx, vz, 0.0, -accel) < baseSq
+        input.left = vz < -0.01 && stepVelSq(vx, vz, 0.0, accel) < baseSq
 
         false
     }
@@ -160,16 +160,19 @@ object MovementUtils : EventListener, Shortcuts {
                     input.forward = true
                     input.left = true
                 }
+
                 2 -> input.left = true
                 3 -> {
                     input.backward = true
                     input.left = true
                 }
+
                 4, -4 -> input.backward = true
                 -3 -> {
                     input.backward = true
                     input.right = true
                 }
+
                 -2 -> input.right = true
                 -1 -> {
                     input.forward = true
@@ -236,7 +239,10 @@ object MovementUtils : EventListener, Shortcuts {
             false
         }
     }
-    fun LocalPlayer.moveTo(path: List<BlockPos>, onFinish: (() -> Unit)? = null) = moveTo(path.map { it.center }, onFinish)
+
+    fun LocalPlayer.moveTo(path: List<BlockPos>, onFinish: (() -> Unit)? = null) =
+        moveTo(path.map { it.center }, onFinish)
+
     fun LocalPlayer.moveTo(target: Vec3, onFinish: (() -> Unit)? = null) = moveTo(listOf(target), onFinish)
     fun LocalPlayer.moveTo(target: BlockPos, onFinish: (() -> Unit)? = null) = moveTo(listOf(target.center), onFinish)
 

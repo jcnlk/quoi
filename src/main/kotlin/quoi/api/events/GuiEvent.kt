@@ -15,23 +15,36 @@ abstract class GuiEvent {
 
     class Removed(val screen: Screen) : Event()
 
-    class Click(val screen: Screen, val mx: Double, val my: Double, val button: Int, val state: Boolean) : CancellableEvent()
+    class Click(val screen: Screen, val mx: Double, val my: Double, val button: Int, val state: Boolean) :
+        CancellableEvent()
+
     abstract class Key {
         class Press(val screen: Screen, val key: Int) : CancellableEvent()
         class Release(val screen: Screen, val key: Int) : CancellableEvent()
     }
+
     class Char(val screen: Screen, val char: kotlin.Char) : CancellableEvent()
 
     class Draw(val screen: Screen, val ctx: GuiGraphicsExtractor, val mx: Int, val my: Int) : CancellableEvent()
     class DrawPost(val screen: Screen, val ctx: GuiGraphicsExtractor, val mx: Int, val my: Int) : Event()
-    class DrawBackground(val screen: Screen, val ctx: GuiGraphicsExtractor, val mx: Int, val my: Int) : CancellableEvent() {
+    class DrawBackground(val screen: Screen, val ctx: GuiGraphicsExtractor, val mx: Int, val my: Int) :
+        CancellableEvent() {
         class Post(val screen: Screen, val ctx: GuiGraphicsExtractor) : Event()
     }
 
     abstract class Slot {
-        class Click(val screen: Screen, val slot: net.minecraft.world.inventory.Slot, val slotId: Int, val button: Int, val actionType: ContainerInput) : CancellableEvent()
-        class Draw(val screen: Screen, val ctx: GuiGraphicsExtractor, val slot: net.minecraft.world.inventory.Slot) : CancellableEvent()
+        class Click(
+            val screen: Screen,
+            val slot: net.minecraft.world.inventory.Slot,
+            val slotId: Int,
+            val button: Int,
+            val actionType: ContainerInput
+        ) : CancellableEvent()
+
+        class Draw(val screen: Screen, val ctx: GuiGraphicsExtractor, val slot: net.minecraft.world.inventory.Slot) :
+            CancellableEvent()
     }
 
-    class DrawTooltip(val screen: Screen, val ctx: GuiGraphicsExtractor, val mouseX: Int, val mouseY: Int) : CancellableEvent()
+    class DrawTooltip(val screen: Screen, val ctx: GuiGraphicsExtractor, val mouseX: Int, val mouseY: Int) :
+        CancellableEvent()
 }

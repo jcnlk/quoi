@@ -86,13 +86,15 @@ fun constrain(
  * Creates a [Constraints] instance,
  * where x and y are [0.px][Pixel] and width and height are [Copying].
  */
-fun copies(gap: Constraint.Position = 0.px) = Constraints(0.px - gap, 0.px - gap, Copying + gap * 2.px, Copying + gap * 2.px)
+fun copies(gap: Constraint.Position = 0.px) =
+    Constraints(0.px - gap, 0.px - gap, Copying + gap * 2.px, Copying + gap * 2.px)
 
 /**
  * Creates a [Constraints] instance,
  * where x and y [amount.px][Pixel] and width and height are [Fill] - [amount][Subtractive]
  */
-fun inset( // todo add %
+fun inset(
+    // todo add %
     amount: Float,
 ): Constraints {
     if (amount == 0f) return copies()

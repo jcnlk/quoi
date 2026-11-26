@@ -104,7 +104,8 @@ class McBackend : RendererBackend {
     }
 
     override fun push() {
-        val saved = if (stateDepth < stateStack.size) stateStack[stateDepth] else DrawState().also { stateStack.add(it) }
+        val saved =
+            if (stateDepth < stateStack.size) stateStack[stateDepth] else DrawState().also { stateStack.add(it) }
         saved.set(state)
         stateDepth++
     }
@@ -185,7 +186,18 @@ class McBackend : RendererBackend {
         emitBandFade(inner, outer, color, color and 0xFFFFFF)
     }
 
-    override fun hollowRect(x: Float, y: Float, w: Float, h: Float, thickness: Float, color: Int, tl: Float, bl: Float, br: Float, tr: Float) {
+    override fun hollowRect(
+        x: Float,
+        y: Float,
+        w: Float,
+        h: Float,
+        thickness: Float,
+        color: Int,
+        tl: Float,
+        bl: Float,
+        br: Float,
+        tr: Float
+    ) {
         val half = thickness * 0.5f
         val coreHalf = (half - AA_FRINGE * 0.5f).coerceAtLeast(0f)
         val transparent = color and 0xFFFFFF
@@ -206,7 +218,19 @@ class McBackend : RendererBackend {
         )
     }
 
-    override fun gradientRect(x: Float, y: Float, w: Float, h: Float, color1: Int, color2: Int, direction: Gradient, tl: Float, bl: Float, br: Float, tr: Float) {
+    override fun gradientRect(
+        x: Float,
+        y: Float,
+        w: Float,
+        h: Float,
+        color1: Int,
+        color2: Int,
+        direction: Gradient,
+        tl: Float,
+        bl: Float,
+        br: Float,
+        tr: Float
+    ) {
         val inner = roundedRectContour(x, y, w, h, tl, bl, br, tr, -AA_FRINGE * 0.5f)
         val outer = roundedRectContour(x, y, w, h, tl, bl, br, tr, AA_FRINGE * 0.5f)
         val quads = UIGeometry.fanToQuads(inner)
@@ -222,7 +246,16 @@ class McBackend : RendererBackend {
         emitGradientFringe(inner, outer, x, y, w, h, color1, color2, direction)
     }
 
-    override fun dropShadow(x: Float, y: Float, width: Float, height: Float, blur: Float, spread: Float, radius: Float, colour: Int) {
+    override fun dropShadow(
+        x: Float,
+        y: Float,
+        width: Float,
+        height: Float,
+        blur: Float,
+        spread: Float,
+        radius: Float,
+        colour: Int
+    ) {
         // NanoVG box gradient: linear falloff over [spread - blur/2, spread + blur/2]
         // measured from the base rectangle, solid inside that, hollow under the rectangle.
         // Offset rounded-rect outlines are exact iso-distance curves, so banding between
@@ -325,7 +358,18 @@ class McBackend : RendererBackend {
     override fun textWidth(text: String, size: Float, font: Font): Float =
         fonts.width(font, text, size, textRasterScale())
 
-    override fun image(image: Image, x: Float, y: Float, w: Float, h: Float, tl: Float, bl: Float, br: Float, tr: Float, color: Int?) {
+    override fun image(
+        image: Image,
+        x: Float,
+        y: Float,
+        w: Float,
+        h: Float,
+        tl: Float,
+        bl: Float,
+        br: Float,
+        tr: Float,
+        color: Int?
+    ) {
         val entry = images.entry(image)
         val tint = color ?: -1
 
@@ -492,9 +536,14 @@ class McBackend : RendererBackend {
                 (pendingMinX < clipRect[0] || pendingMinY < clipRect[1] || pendingMaxX > clipRect[2] || pendingMaxY > clipRect[3])
             ) UIGeometry.clipQuads(pendingVerts.elements(), pendingCols.elements(), clipRect, pendingCols.size)
             else pendingVerts.toFloatArray() to pendingCols.toIntArray()
-            if (clipped.first.isEmpty()) { resetBatch(); return }
+            if (clipped.first.isEmpty()) {
+                resetBatch(); return
+            }
             val textureSetup = pendingTexture?.let {
-                TextureSetup.singleTexture(it.textureView, RenderSystem.getSamplerCache().getClampToEdge(FilterMode.LINEAR))
+                TextureSetup.singleTexture(
+                    it.textureView,
+                    RenderSystem.getSamplerCache().getClampToEdge(FilterMode.LINEAR)
+                )
             } ?: TextureSetup.noTexture()
 
             (ctx as GuiGraphicsExtractorAccessor).`quoi$getGuiRenderState`().addGuiElement(
@@ -536,7 +585,8 @@ class McBackend : RendererBackend {
 
     private fun lerpColor(c1: Int, c2: Int, t: Float): Int {
         val a = ((c1 ushr 24) + (((c2 ushr 24) - (c1 ushr 24)) * t)).toInt().coerceIn(0, 255)
-        val r = (((c1 shr 16) and 0xFF) + ((((c2 shr 16) and 0xFF) - ((c1 shr 16) and 0xFF)) * t)).toInt().coerceIn(0, 255)
+        val r =
+            (((c1 shr 16) and 0xFF) + ((((c2 shr 16) and 0xFF) - ((c1 shr 16) and 0xFF)) * t)).toInt().coerceIn(0, 255)
         val g = (((c1 shr 8) and 0xFF) + ((((c2 shr 8) and 0xFF) - ((c1 shr 8) and 0xFF)) * t)).toInt().coerceIn(0, 255)
         val b = ((c1 and 0xFF) + (((c2 and 0xFF) - (c1 and 0xFF)) * t)).toInt().coerceIn(0, 255)
         return (a shl 24) or (r shl 16) or (g shl 8) or b
@@ -572,7 +622,12 @@ class McBackend : RendererBackend {
         // scissor to RenderPass. Negative or completely off-screen rectangles therefore
         // fail RenderPass's strict bounds validation instead of merely clipping content.
         val transformed = toScreenRectOuter(rect[0], rect[1], rect[2], rect[3]) ?: return EMPTY_SCISSOR
-        val screen = ScreenRectangle(0, 0, ceil(mc.window.width * invGuiScale).toInt(), ceil(mc.window.height * invGuiScale).toInt())
+        val screen = ScreenRectangle(
+            0,
+            0,
+            ceil(mc.window.width * invGuiScale).toInt(),
+            ceil(mc.window.height * invGuiScale).toInt()
+        )
         return transformed.intersection(screen) ?: EMPTY_SCISSOR
     }
 
@@ -622,6 +677,7 @@ class McBackend : RendererBackend {
 
     private companion object {
         const val AA_FRINGE = 1f
+
         /** Fully clipped: 0-sized scissors still need an object so content stays hidden. */
         val EMPTY_SCISSOR = ScreenRectangle(0, 0, 0, 0)
     }

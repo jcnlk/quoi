@@ -38,7 +38,14 @@ object Trajectories : Module(
     private val lines by switch("Show lines", true, desc = "Shows the trajectory as a line.")
     private val range by slider("Solver range", 30, 1, 120, 1, desc = "How many ticks are simulated.")
     private val lineWidth by slider("Line width", 1f, 0.1f, 5.0f, 0.1f, desc = "Width of the rendered trajectory.")
-    private val planeSize by slider("Plane size", 2f, 0.1f, 5.0f, 0.1f, desc = "Size of the rendered impact plane.").childOf(::plane)
+    private val planeSize by slider(
+        "Plane size",
+        2f,
+        0.1f,
+        5.0f,
+        0.1f,
+        desc = "Size of the rendered impact plane."
+    ).childOf(::plane)
     private val boxSize by slider("Box size", 0.5f, 0.5f, 3.0f, 0.1f, desc = "Size of the impact box.").childOf(::boxes)
     private val colour by colourPicker("Colour", Colour.MINECRAFT_AQUA, desc = "Colour of the trajectory.")
     private val depth by switch("Depth check", true, desc = "Whether the trajectory should respect depth.")
@@ -177,13 +184,15 @@ object Trajectories : Module(
         val (from, to) = when (hit.direction) {
             Direction.DOWN, Direction.UP ->
                 hit.location.addVec(-0.15 * planeSize, -0.02, -0.15 * planeSize) to
-                        hit.location.addVec(0.15 * planeSize, 0.02, 0.15 * planeSize)
+                    hit.location.addVec(0.15 * planeSize, 0.02, 0.15 * planeSize)
+
             Direction.NORTH, Direction.SOUTH ->
                 hit.location.addVec(-0.15 * planeSize, -0.15 * planeSize, -0.02) to
-                        hit.location.addVec(0.15 * planeSize, 0.15 * planeSize, 0.02)
+                    hit.location.addVec(0.15 * planeSize, 0.15 * planeSize, 0.02)
+
             Direction.WEST, Direction.EAST ->
                 hit.location.addVec(-0.02, -0.15 * planeSize, -0.15 * planeSize) to
-                        hit.location.addVec(0.02, 0.15 * planeSize, 0.15 * planeSize)
+                    hit.location.addVec(0.02, 0.15 * planeSize, 0.15 * planeSize)
         }
 
         drawFilledBox(

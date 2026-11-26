@@ -40,7 +40,11 @@ class LeapAction(
             val targetFields = element
             settingRow(
                 {
-                    choiceField("Target by", { dungeonClass != DungeonClass.Unknown }, listOf(false, true), { if (it) "Class" else "Name" }) { byClass ->
+                    choiceField(
+                        "Target by",
+                        { dungeonClass != DungeonClass.Unknown },
+                        listOf(false, true),
+                        { if (it) "Class" else "Name" }) { byClass ->
                         ui.unfocus()
                         dungeonClass = if (byClass) selectedClass else DungeonClass.Unknown
                         targetFields.refresh()
@@ -50,7 +54,10 @@ class LeapAction(
                     if (dungeonClass == DungeonClass.Unknown) {
                         textField("Player name", name) { name = it }
                     } else {
-                        choiceField("Class", { dungeonClass }, DungeonClass.entries.filter { it != DungeonClass.Unknown }) {
+                        choiceField(
+                            "Class",
+                            { dungeonClass },
+                            DungeonClass.entries.filter { it != DungeonClass.Unknown }) {
                             dungeonClass = it
                             selectedClass = it
                         }

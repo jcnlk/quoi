@@ -7,7 +7,7 @@ abstract class RouteAwait : TypeNamed {
 
     abstract fun check(pos: MutableVec3, node: RouteNode): Boolean
 
-    open fun reset() { }
+    open fun reset() {}
 
-    open fun onSecret() { }
+    open fun onSecret() {}
 }

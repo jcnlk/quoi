@@ -29,12 +29,25 @@ object Terminals : Module(
     desc = "Opens nearby terminals with an aura or triggerbot.",
     area = Island.Dungeon(7, inBoss = true, phase = Phase.P3)
 ) {
-    private val mode by selector("Mode", "Aura", listOf("Aura", "Triggerbot"), desc = "Aura opens nearby terminals automatically. Triggerbot only opens the terminal you are looking at.")
+    private val mode by selector(
+        "Mode",
+        "Aura",
+        listOf("Aura", "Triggerbot"),
+        desc = "Aura opens nearby terminals automatically. Triggerbot only opens the terminal you are looking at."
+    )
     private val distance by slider("Distance", 4.0, 0.0, 4.0, 0.1)
     private val delay by slider("Delay", 750, 0, 2000, 50, unit = "ms")
     private val auraFov by slider("Aura FOV", 360, 10, 360, 1, unit = "°").visibleIf { mode.selected == "Aura" }
     private val groundOnly by switch("Ground only")
-    private val leapDelay by slider("Leap delay", 10, 0, 100, 1, unit = "t", desc = "Delays opening terminals for x ticks after leap").json("Leap delay ticks")
+    private val leapDelay by slider(
+        "Leap delay",
+        10,
+        0,
+        100,
+        1,
+        unit = "t",
+        desc = "Delays opening terminals for x ticks after leap"
+    ).json("Leap delay ticks")
 
     private var lastClick = 0L
     private var lastLeap: DualTime? = null
@@ -71,7 +84,14 @@ object Terminals : Module(
                 val entityCenter = entity.position().add(0.0, entity.bbHeight / 2.0, 0.0)
 
                 if (eyePos.distanceToSqr(entityCenter) > distance * distance) continue
-                if (triggerHit == null && !isWithinFov(eyePos, entityCenter, lookVec, minFovDot, fullCircleFov)) continue
+                if (triggerHit == null && !isWithinFov(
+                        eyePos,
+                        entityCenter,
+                        lookVec,
+                        minFovDot,
+                        fullCircleFov
+                    )
+                ) continue
 
                 val hitVec = if (triggerHit != null) triggerHit.location else {
                     val hitResult = entity.boundingBox.inflate(0.1).clip(eyePos, entityCenter)
@@ -81,7 +101,12 @@ object Terminals : Module(
                     hitResult.get()
                 }
 
-                val packet = ServerboundInteractPacket(entity.id, InteractionHand.MAIN_HAND, hitVec.subtract(entity.position()), player.isShiftKeyDown)
+                val packet = ServerboundInteractPacket(
+                    entity.id,
+                    InteractionHand.MAIN_HAND,
+                    hitVec.subtract(entity.position()),
+                    player.isShiftKeyDown
+                )
 
                 connection.send(packet) // TODO: replace with aura manager
                 player.swing(InteractionHand.MAIN_HAND)

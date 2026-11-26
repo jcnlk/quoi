@@ -26,7 +26,7 @@ import quoi.utils.skyblock.player.RotationUtils.rotateSmoothly
 
 // skeleton shit
 object Control : ToggleableGroup(Dojo, "Control", subarea = "dojo arena") {
-    private val highlight by switch("Highlight correct", /*desc = "Highlights mobs based on held weapon."*/)
+    private val highlight by switch("Highlight correct" /*desc = "Highlights mobs based on held weapon."*/)
     private val style = highlight(glow = false).childOf(::highlight)
 
     private val aim by switch("Auto aim")
@@ -43,7 +43,10 @@ object Control : ToggleableGroup(Dojo, "Control", subarea = "dojo arena") {
                 player.moveTo(centre)
             }
 
-            val skeleton = getEntities<WitherSkeleton>(centre, radius = 25.0) { it.helmet.item != Items.REDSTONE_BLOCK } // todo use entity spawn event
+            val skeleton = getEntities<WitherSkeleton>(
+                centre,
+                radius = 25.0
+            ) { it.helmet.item != Items.REDSTONE_BLOCK } // todo use entity spawn event
                 .minByOrNull { it.distanceToSqr(player.position()) } ?: return@on
             if (skeleton.position() == skeleton.oldPosition()) return@on // if server lags
             val (x, y, z) = skeleton.position()

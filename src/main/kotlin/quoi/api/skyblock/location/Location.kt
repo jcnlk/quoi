@@ -66,7 +66,8 @@ object Location : EventListener {
                 }
 
                 is ClientboundSetObjectivePacket ->
-                    if (!inSkyblock) inSkyblock = onHypixel && packet.objectiveName == "SBScoreboard" || ClickGui.forceSkyblock || onP3Sim
+                    if (!inSkyblock) inSkyblock =
+                        onHypixel && packet.objectiveName == "SBScoreboard" || ClickGui.forceSkyblock || onP3Sim
 
                 is ClientboundSetPlayerTeamPacket -> {
                     val team = packet.parameters.orElse(null) ?: return@on

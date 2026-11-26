@@ -157,6 +157,7 @@ fun <T : Number> ElementScope<*>.slider(
                     animate = true
                     true
                 }
+
                 else -> false
             }
         }
@@ -243,7 +244,11 @@ fun <T : Number> ElementScope<*>.rangeSlider(
                     knob1Pos.animate(to = getPercent(first).coerce(), 0.4.seconds, style = Animation.Style.EaseOutQuint)
                 }
                 if (second != prev2 && draggingKnob != 2) {
-                    knob2Pos.animate(to = getPercent(second).coerce(), 0.4.seconds, style = Animation.Style.EaseOutQuint)
+                    knob2Pos.animate(
+                        to = getPercent(second).coerce(),
+                        0.4.seconds,
+                        style = Animation.Style.EaseOutQuint
+                    )
                 }
                 animate = false
             }

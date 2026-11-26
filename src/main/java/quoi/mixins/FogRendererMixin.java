@@ -9,6 +9,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import quoi.module.impl.general.Tweaks;
 import quoi.module.impl.render.RenderOptimiser;
+
 import static quoi.module.impl.render.RenderOptimiser.should;
 
 @Mixin(FogRenderer.class)

@@ -10,7 +10,8 @@ import quoi.mixins.accessors.CustomDataAccessor
 import quoi.utils.StringUtils.noControlCodes
 
 object ItemUtils {
-    private val stackSizeRegex = Regex("^(?:[1-9]|[1-5]\\d|6[0-4])(?:\\s*[xX×])?\\s+|\\s+(?:[xX×]\\s*(?:[1-9]|[1-5]\\d|6[0-4])|(?:[1-9]|[1-5]\\d|6[0-4])\\s*[xX×])$")
+    private val stackSizeRegex =
+        Regex("^(?:[1-9]|[1-5]\\d|6[0-4])(?:\\s*[xX×])?\\s+|\\s+(?:[xX×]\\s*(?:[1-9]|[1-5]\\d|6[0-4])|(?:[1-9]|[1-5]\\d|6[0-4])\\s*[xX×])$")
     private val whitespaceRegex = Regex("\\s+")
     private val upgradeRegex = Regex("[✪➊➋➌➍➎⚚◆]")
 

@@ -96,7 +96,8 @@ object MapRenderer {
                     val view = roomViews.getOrPut(room) { RoomView(rooms.group(size(Copying, Copying)).element) }
                     val label = buildList {
                         if (room.identified && room.data.type !in unlabelledTypes) {
-                            val secrets = if (room.data.secrets == 0) "0" else "${room.secretsFound ?: 0}/${room.data.secrets}"
+                            val secrets =
+                                if (room.data.secrets == 0) "0" else "${room.secretsFound ?: 0}/${room.data.secrets}"
                             when (overlay.style) {
                                 "Secrets" -> add(secrets)
                                 "Room Name" -> addAll(room.name.split(" "))
@@ -104,8 +105,13 @@ object MapRenderer {
                                     addAll(room.name.split(" "))
                                     if (room.data.secrets > 0) add(secrets)
                                 }
+
                                 "Secrets + Puzzle Name" -> {
-                                    if (room.data.type == RoomType.PUZZLE || room.data.secrets == 0) addAll(room.name.split(" "))
+                                    if (room.data.type == RoomType.PUZZLE || room.data.secrets == 0) addAll(
+                                        room.name.split(
+                                            " "
+                                        )
+                                    )
                                     else add(secrets)
                                 }
                             }
@@ -163,7 +169,8 @@ object MapRenderer {
         else UIRenderer.textWidth(line.noControlCodes, size, font)
 
     private fun infoLines(): List<String> {
-        val secrets = "§6Secrets: §b${Dungeon.secretCount}§f/§b${ScoreCalculation.secretsUntil300}§f/§e${ScoreCalculation.totalSecrets}"
+        val secrets =
+            "§6Secrets: §b${Dungeon.secretCount}§f/§b${ScoreCalculation.secretsUntil300}§f/§e${ScoreCalculation.totalSecrets}"
         val crypts = "${if (Dungeon.cryptCount >= 5) "§a" else "§c"}C${Dungeon.cryptCount}"
         val bats = "${if (Dungeon.batKilled) "§a" else "§c"}B${Dungeon.batCount}"
         val score = Dungeon.score
@@ -231,7 +238,10 @@ object MapRenderer {
 
         val c = {
             val base = room.colour
-            if (autoClear && Dungeon.currentRoom == room) base.mix(InteractiveMap.roomInCol.withAlpha(255), InteractiveMap.roomInCol.alpha).rgb else base.rgb
+            if (autoClear && Dungeon.currentRoom == room) base.mix(
+                InteractiveMap.roomInCol.withAlpha(255),
+                InteractiveMap.roomInCol.alpha
+            ).rgb else base.rgb
         }
 
         val outlineCol = Colour.Animated(
@@ -248,9 +258,9 @@ object MapRenderer {
             val long = (n && s) || (w && e)
             val twoByTwo =
                 (n && e && has(p, 20, -20)) ||
-                        (n && w && has(p, -20, -20)) ||
-                        (s && e && has(p, 20, 20)) ||
-                        (s && w && has(p, -20, 20))
+                    (n && w && has(p, -20, -20)) ||
+                    (s && e && has(p, 20, 20)) ||
+                    (s && w && has(p, -20, 20))
 
             // l corner: 2 connections, not a line, not a part of 2x2
             listOf(n, s, w, e).count { c -> c } == 2 && !long && !twoByTwo
@@ -374,7 +384,13 @@ object MapRenderer {
 
         lines.forEachIndexed { i, line ->
             val width = textWidth(line, textSize, font)
-            text(line, font, colour { room.textColour.rgb }, at((centerX - width / 2f).px, (top + i * textSize).px), textSize.px) {
+            text(
+                line,
+                font,
+                colour { room.textColour.rgb },
+                at((centerX - width / 2f).px, (top + i * textSize).px),
+                textSize.px
+            ) {
                 element.constraints.width = width.px
                 this.shadow = shadow
             }
@@ -393,7 +409,12 @@ object MapRenderer {
         val placement = room.textPlacement
         image(
             "dungeonmap/$texture".image(),
-            constrain(((placement.x + 8f) * config.scale - size / 2f).px, ((placement.z + 8f) * config.scale - size / 2f).px, size.px, size.px)
+            constrain(
+                ((placement.x + 8f) * config.scale - size / 2f).px,
+                ((placement.z + 8f) * config.scale - size / 2f).px,
+                size.px,
+                size.px
+            )
         )
     }
 

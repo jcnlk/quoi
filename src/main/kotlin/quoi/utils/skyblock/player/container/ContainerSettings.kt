@@ -34,8 +34,16 @@ class ContainerSettings(
     override var endDelay by rangeSlider("End delay", endDelay, 0, 10, unit = "t")
     override var invWalk by switch("Inventory walk", invWalk)
     override var silent by switch("Silent GUI", silent)
-    override var blockInput by switch("Block input", blockInput, desc = "Blocks keyboard and mouse input during the task.")
-    override var showProgress by switch("Show progress", showProgress, desc = "Displays the current task and its progress.")
+    override var blockInput by switch(
+        "Block input",
+        blockInput,
+        desc = "Blocks keyboard and mouse input during the task."
+    )
+    override var showProgress by switch(
+        "Show progress",
+        showProgress,
+        desc = "Displays the current task and its progress."
+    )
 }
 
 val CONTAINER_ZERO = object : IContainerSettings {}

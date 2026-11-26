@@ -15,9 +15,12 @@ import quoi.module.impl.general.Tweaks;
 
 @Mixin(ItemStackRenderState.class)
 public class ItemStackRenderStateMixin {
-    @Shadow ItemDisplayContext displayContext;
-    @Shadow private int activeLayerCount;
-    @Shadow private ItemStackRenderState.LayerRenderState[] layers;
+    @Shadow
+    ItemDisplayContext displayContext;
+    @Shadow
+    private int activeLayerCount;
+    @Shadow
+    private ItemStackRenderState.LayerRenderState[] layers;
 
     @Inject(method = "submit", at = @At("HEAD"))
     private void quoi$legacySkullSize(PoseStack poseStack, SubmitNodeCollector submitNodeCollector,

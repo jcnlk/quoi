@@ -34,12 +34,16 @@ object SkyblockPrices {
 
     @Volatile
     private var lastUpdate = 0L
+
     @Volatile
     private var bazaarSellPrices = emptyMap<String, Double>()
+
     @Volatile
     private var bazaarBuyPrices = emptyMap<String, Double>()
+
     @Volatile
     private var lowestBins = emptyMap<String, Double>()
+
     @Volatile
     private var skyblockItems = emptyMap<String, SkyblockItem>()
 

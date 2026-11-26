@@ -24,7 +24,11 @@ class ConfigCollectionsTest {
 
         assertEquals(listOf("updated", "second"), list.toList())
         assertEquals(
-            listOf(listOf("first", "second", "third"), listOf("updated", "second", "third"), listOf("updated", "second")),
+            listOf(
+                listOf("first", "second", "third"),
+                listOf("updated", "second", "third"),
+                listOf("updated", "second")
+            ),
             saved,
         )
     }
@@ -41,7 +45,15 @@ class ConfigCollectionsTest {
         list.retainAll(listOf(1, 3))
         list.clear()
 
-        assertEquals(listOf(listOf(1, 2, 3, 4), listOf(1, 5, 6, 2, 3, 4), listOf(1, 6, 3, 4), listOf(1, 3), emptyList()), saved)
+        assertEquals(
+            listOf(
+                listOf(1, 2, 3, 4),
+                listOf(1, 5, 6, 2, 3, 4),
+                listOf(1, 6, 3, 4),
+                listOf(1, 3),
+                emptyList()
+            ), saved
+        )
         assertEquals(emptyList(), list.toList())
     }
 
@@ -85,7 +97,14 @@ class ConfigCollectionsTest {
         assertEquals(3, map.remove("second"))
         map.clear()
 
-        assertEquals(listOf(mapOf("first" to 2), mapOf("first" to 2, "second" to 3, "third" to 4), mapOf("first" to 2, "third" to 4), emptyMap()), saved)
+        assertEquals(
+            listOf(
+                mapOf("first" to 2),
+                mapOf("first" to 2, "second" to 3, "third" to 4),
+                mapOf("first" to 2, "third" to 4),
+                emptyMap()
+            ), saved
+        )
         assertEquals(emptyMap(), map.toMap())
     }
 

@@ -17,15 +17,23 @@ import quoi.utils.skyblock.item.TeleportUtils.traverseVoxels
 import quoi.utils.skyblock.item.ItemUtils.extraAttributes
 import quoi.utils.skyblock.item.ItemUtils.skyblockId
 
-object EtherwarpOverlay : Module (
+object EtherwarpOverlay : Module(
     "Etherwarp Overlay",
     desc = "Renders a box at the location where the etherwarp is going to be at."
 ) {
     private val validColour by colourPicker("Valid colour", Colour.GREEN.withAlpha(60), true)
     private val invalidColour by colourPicker("Invalid colour", Colour.RED.withAlpha(60), true)
     private val wireframe by switch("Show outline")
-    private val validLineColour by colourPicker("Valid colour", Colour.GREEN.withAlpha(60), true).json("Valid outline colour").childOf(::wireframe)
-    private val invalidLineColour by colourPicker("Invalid colour", Colour.RED.withAlpha(60), true).json("Invalid outline colour").childOf(::wireframe)
+    private val validLineColour by colourPicker(
+        "Valid colour",
+        Colour.GREEN.withAlpha(60),
+        true
+    ).json("Valid outline colour").childOf(::wireframe)
+    private val invalidLineColour by colourPicker(
+        "Invalid colour",
+        Colour.RED.withAlpha(60),
+        true
+    ).json("Invalid outline colour").childOf(::wireframe)
     private val lineWidth by slider("Outline width", 2.0, 0.1, 10.0, 0.1).childOf(::wireframe)
     private val depth by switch("Depth check")
 

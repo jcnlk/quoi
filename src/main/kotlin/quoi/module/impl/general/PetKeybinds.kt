@@ -43,8 +43,14 @@ object PetKeybinds : Module(
     private val unequipKeybind by keybind("Unequip", desc = "Unequips the current pet.")
     private val nextPageKeybind by keybind("Next page", desc = "Goes to the next page.")
     private val previousPageKeybind by keybind("Previous page", desc = "Goes to the previous page.")
-    private val noUnequip by switch("Disable unequip", desc = "Prevents using a pets keybind to unequip a pet. Does not prevent unequip keybind or normal clicking.")
-    private val closeIfAlreadyEquipped by switch("Close if already equipped", desc = "If the pet is already equipped, closes the Pets menu instead.")
+    private val noUnequip by switch(
+        "Disable unequip",
+        desc = "Prevents using a pets keybind to unequip a pet. Does not prevent unequip keybind or normal clicking."
+    )
+    private val closeIfAlreadyEquipped by switch(
+        "Close if already equipped",
+        desc = "If the pet is already equipped, closes the Pets menu instead."
+    )
 
     private val advanced by text("Keybinds")
     private val petKeys = listOf(
@@ -127,7 +133,8 @@ object PetKeybinds : Module(
             petMap.remove(uuid)
             modMessage("&aRemoved &r$name&a from the pet list!")
             Config.save()
-        }.description("Removes the pet from the pet list.").suggests { petMap.entries.map { (uuid, name) -> "$uuid $name" } }
+        }.description("Removes the pet from the pet list.")
+            .suggests { petMap.entries.map { (uuid, name) -> "$uuid $name" } }
 
         on<GuiEvent.Click> {
             if (state && screen is AbstractContainerScreen<*> && onClick(screen, button - 100)) cancel()

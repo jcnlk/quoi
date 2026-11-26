@@ -40,8 +40,10 @@ class KeyTrigger(
 
     override fun ElementScope<*>.draw() = column(size(w = Copying), gap = 8.px) {
         block(size(280.px.coerceAtMost(Copying), 32.px), colour = theme.surfaceContainerHighest, radius = 5.radius()) {
-            textSupplied(supplier = { if (ui.eventManager.focused == element) "Press a key or mouse button..." else keyName() },
-                size = theme.textSize, colour = theme.onSurface)
+            textSupplied(
+                supplier = { if (ui.eventManager.focused == element) "Press a key or mouse button..." else keyName() },
+                size = theme.textSize, colour = theme.onSurface
+            )
             cursor(CursorShape.HAND)
             onClick(nonSpecific = true) { (button) ->
                 if (ui.eventManager.focused == element) {

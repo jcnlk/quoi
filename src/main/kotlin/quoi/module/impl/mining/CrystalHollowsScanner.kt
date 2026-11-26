@@ -48,11 +48,20 @@ object CrystalHollowsScanner : Module(
 ) {
     val structureScanner by switch("Structure scanner")
     val routeScanner by switch("Route scanner")
-    private val style by selector("Style", "Box", arrayListOf("Box", "Filled box"), desc = "Esp render style to be used.").visibleIf { routeScanner }
+    private val style by selector(
+        "Style",
+        "Box",
+        arrayListOf("Box", "Filled box"),
+        desc = "Esp render style to be used."
+    ).visibleIf { routeScanner }
     private val distCols by switch("Distance colours").visibleIf { routeScanner }
     val colour by colourPicker("Colour", Colour.WHITE, allowAlpha = true).visibleIf { routeScanner && !distCols }
     private val fillDistCols by switch("Fill distance colours").visibleIf { style.selected == "Filled box" && routeScanner }
-    private val fillColour by colourPicker("Fill colour", Colour.WHITE.withAlpha(0.33f), allowAlpha = true).visibleIf { style.selected == "Filled box" && routeScanner && !fillDistCols }
+    private val fillColour by colourPicker(
+        "Fill colour",
+        Colour.WHITE.withAlpha(0.33f),
+        allowAlpha = true
+    ).visibleIf { style.selected == "Filled box" && routeScanner && !fillDistCols }
     private val thickness by slider("Thickness", 4f, 1f, 8f, 1f).visibleIf { routeScanner }
 
     val scannedChunks = HashSet<Long>()
@@ -84,7 +93,12 @@ object CrystalHollowsScanner : Module(
                     positions.forEach position@{ realPos ->
                         val pos = realPos.offset(-structure.xOffset, -structure.yOffset, -structure.zOffset)
                         val existing = foundStructures.getOrPut(structure) { mutableListOf() }
-                        if (existing.isNotEmpty() && (!structure.canBeMultiple || existing.any { it.isWithinChunks(pos, 4) })) return@position
+                        if (existing.isNotEmpty() && (!structure.canBeMultiple || existing.any {
+                                it.isWithinChunks(
+                                    pos,
+                                    4
+                                )
+                            })) return@position
                         existing.add(realPos)
                         ChatUtils.modMessage("Found ${structure.displayName} at ${pos.x}, ${pos.y}, ${pos.z}")
                     }
@@ -113,7 +127,8 @@ object CrystalHollowsScanner : Module(
                 }
 
                 val c = if (distCols && currentDistCol != null) currentDistCol else colour
-                val fc = if (fillDistCols && currentDistCol != null) currentDistCol.withAlpha(fillColour.alpha) else fillColour
+                val fc =
+                    if (fillDistCols && currentDistCol != null) currentDistCol.withAlpha(fillColour.alpha) else fillColour
 
                 ctx.drawStyledBox(style.selected, blockPos.aabb, c, fc, thickness, false)
             }
@@ -155,7 +170,12 @@ private fun snapshot(chunk: LevelChunk, scanRoutes: Boolean): (BlockPos) -> Bloc
     }
 }
 
-internal fun scanCrystalHollowsChunk(chunkPos: ChunkPos, scanStructures: Boolean, scanRoutes: Boolean, stateAt: (BlockPos) -> BlockState): CrystalHollowsChunkScan {
+internal fun scanCrystalHollowsChunk(
+    chunkPos: ChunkPos,
+    scanStructures: Boolean,
+    scanRoutes: Boolean,
+    stateAt: (BlockPos) -> BlockState
+): CrystalHollowsChunkScan {
     val structures = mutableMapOf<Structure, MutableList<BlockPos>>()
     val routeBlocks = mutableListOf<BlockPos>()
     val fromY = if (scanStructures && !scanRoutes) 30 else 0

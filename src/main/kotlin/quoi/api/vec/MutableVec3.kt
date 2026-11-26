@@ -16,8 +16,8 @@ data class MutableVec3(var x: Double, var y: Double, var z: Double) {
 
     fun inside(aabb: AABB): Boolean =
         x >= aabb.minX && x <= aabb.maxX &&
-        y >= aabb.minY && y <= aabb.maxY &&
-        z >= aabb.minZ && z <= aabb.maxZ
+            y >= aabb.minY && y <= aabb.maxY &&
+            z >= aabb.minZ && z <= aabb.maxZ
 
     fun distanceToSqr(x: Number, y: Number, z: Number): Double {
         val dx = (this.x - x.toDouble())

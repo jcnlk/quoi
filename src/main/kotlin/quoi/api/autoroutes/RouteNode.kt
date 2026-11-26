@@ -73,7 +73,14 @@ abstract class RouteNode(
         awaits?.forEach { it.reset() }
     }
 
-    open fun render(ctx: LevelRenderContext, style: String, colour: Colour, fillColour: Colour, activeColour: Colour, thickness: Float) {
+    open fun render(
+        ctx: LevelRenderContext,
+        style: String,
+        colour: Colour,
+        fillColour: Colour,
+        activeColour: Colour,
+        thickness: Float
+    ) {
         val start = start ?: false
         val depth = !start
         when (style) {
@@ -81,11 +88,20 @@ abstract class RouteNode(
                 if (start) ctx.drawFilledBox(aabb, fillColour, false)
                 ctx.drawWireFrameBox(aabb, colour, thickness, depth)
             }
+
             "Filled box" -> {
                 ctx.drawFilledBox(aabb, fillColour, depth)
                 ctx.drawWireFrameBox(aabb, colour, thickness, depth)
             }
-            "Cylinder" -> ctx.drawCylinder(pos, radius ?: 0.5f, height ?: 0.1f, colour, thickness = thickness, depth = depth)
+
+            "Cylinder" -> ctx.drawCylinder(
+                pos,
+                radius ?: 0.5f,
+                height ?: 0.1f,
+                colour,
+                thickness = thickness,
+                depth = depth
+            )
         }
 
         if (AutoRoutes.editMode && chain != null) {

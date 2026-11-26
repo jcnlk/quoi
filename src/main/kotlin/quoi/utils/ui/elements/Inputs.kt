@@ -53,8 +53,8 @@ fun <T : Number> ElementScope<*>.numberInput(
 ): ElementScope<TextInput> {
     val value by ref
     val normalisedDegrees = unit == "°" && ref.get().toDouble() in 0.0..1.0 &&
-            (min?.toDouble() == null || min.toDouble() >= 0.0) &&
-            (max?.toDouble() == null || max.toDouble() <= 1.0)
+        (min?.toDouble() == null || min.toDouble() >= 0.0) &&
+        (max?.toDouble() == null || max.toDouble() <= 1.0)
 
     fun format(n: T) = when (unit) {
         "%" if (normalisedPercent) -> "${(n.toDouble() * 100).roundToInt()}%"
@@ -150,7 +150,7 @@ fun ElementScope<*>.hexInput(
         val str = event.string.trimStart('#')
 
         val isValid = str.length <= hexLength &&
-                str.all { it.isDigit() || it.lowercaseChar() in 'a'..'f' }
+            str.all { it.isDigit() || it.lowercaseChar() in 'a'..'f' }
 
         if (!isValid) {
             event.cancel()
@@ -358,29 +358,34 @@ fun ElementScope<*>.suggestionInput( // todo move it to selectors
                     )
                     onClick { true }
 
-                    val scrollable = scrollable(constrain(w = Copying - thickness, h = Bounding.coerceAtMost(112.5.px))) {
-                        column {
-                            availableSuggestions.forEach { suggestion ->
-                                items[suggestion] = block(size(w = Fill, h = 25.px), colour = theme.surfaceContainerHighest, radius = 3.radius()) {
-                                    tonalHover()
-                                    text(
-                                        string = suggestion,
-                                        colour = theme.onSurface,
-                                        size = 14.px,
-                                        pos = at(x = 5.px, y = Centre)
-                                    )
+                    val scrollable =
+                        scrollable(constrain(w = Copying - thickness, h = Bounding.coerceAtMost(112.5.px))) {
+                            column {
+                                availableSuggestions.forEach { suggestion ->
+                                    items[suggestion] = block(
+                                        size(w = Fill, h = 25.px),
+                                        colour = theme.surfaceContainerHighest,
+                                        radius = 3.radius()
+                                    ) {
+                                        tonalHover()
+                                        text(
+                                            string = suggestion,
+                                            colour = theme.onSurface,
+                                            size = 14.px,
+                                            pos = at(x = 5.px, y = Centre)
+                                        )
 
-                                    onClick {
-                                        string = suggestion
-                                        ui.unfocus()
-                                        mainBlock = null
-                                        closePopup()
-                                        true
+                                        onClick {
+                                            string = suggestion
+                                            ui.unfocus()
+                                            mainBlock = null
+                                            closePopup()
+                                            true
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
                     onScroll { (amount) -> scrollable.scroll(amount * -50f) }
                 }
             }

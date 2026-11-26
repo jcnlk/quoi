@@ -73,8 +73,8 @@ class Scrollable(
     override fun position(element: Element, newX: Float, newY: Float) {
         element.internalX = element.constraints.x.calculatePos(element, true)
         element.internalY = element.constraints.y.calculatePos(element, false) - offsetY
-        element.x =  element.internalX + newX
-        element.y =  element.internalY + newY
+        element.x = element.internalX + newX
+        element.y = element.internalY + newY
     }
 
 

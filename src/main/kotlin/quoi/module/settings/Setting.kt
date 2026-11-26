@@ -6,7 +6,7 @@ import kotlin.properties.PropertyDelegateProvider
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
-abstract class Setting<T> (
+abstract class Setting<T>(
     val name: String,
     var description: String = "",
 ) : ReadWriteProperty<SettingsDSL, T>, PropertyDelegateProvider<SettingsDSL, ReadWriteProperty<SettingsDSL, T>> {
@@ -31,7 +31,10 @@ abstract class Setting<T> (
     var jsonName: String = name
         private set
 
-    override operator fun provideDelegate(thisRef: SettingsDSL, property: KProperty<*>): ReadWriteProperty<SettingsDSL, T> {
+    override operator fun provideDelegate(
+        thisRef: SettingsDSL,
+        property: KProperty<*>
+    ): ReadWriteProperty<SettingsDSL, T> {
         thisRef.register(this)
         return this
     }

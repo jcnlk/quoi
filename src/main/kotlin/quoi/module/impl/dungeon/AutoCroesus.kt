@@ -56,18 +56,53 @@ object AutoCroesus : Module(
         override val showProgress = false
     }
 
-    private val useChestKeys by switch("Use dungeon chest key", desc = "Claims a second profitable chest using a Dungeon Chest Key.")
-    private val chestKeyMinProfit by slider("Chest key min profit", 0.2, 0.0, 10.0, 0.1, desc = "Minimum profit required to use a Dungeon Chest Key.", unit = "M")
+    private val useChestKeys by switch(
+        "Use dungeon chest key",
+        desc = "Claims a second profitable chest using a Dungeon Chest Key."
+    )
+    private val chestKeyMinProfit by slider(
+        "Chest key min profit",
+        0.2,
+        0.0,
+        10.0,
+        0.1,
+        desc = "Minimum profit required to use a Dungeon Chest Key.",
+        unit = "M"
+    )
         .childOf(::useChestKeys)
-    private val bazaarPriceType by selector("Bazaar price", BazaarPriceType.InstaSell, desc = "Bazaar price used for Auto Croesus profit calculations.")
-    private val useKismets by switch("Use kismets", desc = "Rerolls configured floors when Bedrock profit is below the threshold.")
-    private val kismetMinProfit by slider("Kismet min profit", 2.0, 0.0, 10.0, 0.1, desc = "Bedrock chests below this profit are rerolled.", unit = "M")
+    private val bazaarPriceType by selector(
+        "Bazaar price",
+        BazaarPriceType.InstaSell,
+        desc = "Bazaar price used for Auto Croesus profit calculations."
+    )
+    private val useKismets by switch(
+        "Use kismets",
+        desc = "Rerolls configured floors when Bedrock profit is below the threshold."
+    )
+    private val kismetMinProfit by slider(
+        "Kismet min profit",
+        2.0,
+        0.0,
+        10.0,
+        0.1,
+        desc = "Bedrock chests below this profit are rerolled.",
+        unit = "M"
+    )
         .childOf(::useKismets)
 
     @Suppress("unused")
-    private val startKey by keybind("Start key", Keybinds.KEY_NONE, desc = "Starts Auto Croesus.").onPress(::startFromKeybind)
+    private val startKey by keybind(
+        "Start key",
+        Keybinds.KEY_NONE,
+        desc = "Starts Auto Croesus."
+    ).onPress(::startFromKeybind)
     private val killSwitch by keybind("Kill switch", Keybinds.KEY_NONE, desc = "Stops the current Auto Croesus claim.")
-    private val kismetFloors by multiSelect("Kismet floors", emptySet(), autoCroesusFloors, desc = "Floors where Auto Croesus may use Kismet Feathers.")
+    private val kismetFloors by multiSelect(
+        "Kismet floors",
+        emptySet(),
+        autoCroesusFloors,
+        desc = "Floors where Auto Croesus may use Kismet Feathers."
+    )
         .childOf(::useKismets)
     private val alwaysBuy by stringList(
         "Always buy", mutableListOf(), desc = "Item ids that are always claimed.",
@@ -80,8 +115,10 @@ object AutoCroesus : Module(
 
     private val runLoot by configList<LoggedRun>("autocroesus_loot.json")
 
-    private val croesusRegex = Regex("""^(?:\(\d/\d\) )?Croesus$""") // https://github.com/Noamm9/NoammAddons/blob/771d2702200bcdabf2bdc7d5256ec327b6d5a2c7/src/main/kotlin/com/github/noamm9/features/impl/dungeon/ChestProfit.kt#L46
-    private val runChestRegex = Regex("^(Master )?Catacombs - Flo(or (IV|V?I{0,3}))?$") // https://github.com/Noamm9/NoammAddons/blob/771d2702200bcdabf2bdc7d5256ec327b6d5a2c7/src/main/kotlin/com/github/noamm9/features/impl/dungeon/ChestProfit.kt#L45
+    private val croesusRegex =
+        Regex("""^(?:\(\d/\d\) )?Croesus$""") // https://github.com/Noamm9/NoammAddons/blob/771d2702200bcdabf2bdc7d5256ec327b6d5a2c7/src/main/kotlin/com/github/noamm9/features/impl/dungeon/ChestProfit.kt#L46
+    private val runChestRegex =
+        Regex("^(Master )?Catacombs - Flo(or (IV|V?I{0,3}))?$") // https://github.com/Noamm9/NoammAddons/blob/771d2702200bcdabf2bdc7d5256ec327b6d5a2c7/src/main/kotlin/com/github/noamm9/features/impl/dungeon/ChestProfit.kt#L45
     private val rewardChestRegex = Regex("^(?:${autoCroesusChestNames.joinToString("|")})$")
     private val chestParser = AutoCroesusChestParser(worthless) { bazaarPriceType.selected }
 
@@ -105,10 +142,11 @@ object AutoCroesus : Module(
             val chestRight = (width + 176) / 2
             val chestTop = (height - 114 - 18 * screen.menu.rowCount) / 2
             val buttonWidth = 64
-            val button = Button.builder(Component.literal("Start Auto")) { startWithPriceUpdate(screen) } // TODO: use use apply instead (someday)
-                .bounds(chestRight - buttonWidth - 6, chestTop + 2, buttonWidth, 14)
-                .tooltip(Tooltip.create(Component.literal("Start Auto Croesus")))
-                .build()
+            val button =
+                Button.builder(Component.literal("Start Auto")) { startWithPriceUpdate(screen) } // TODO: use use apply instead (someday)
+                    .bounds(chestRight - buttonWidth - 6, chestTop + 2, buttonWidth, 14)
+                    .tooltip(Tooltip.create(Component.literal("Start Auto Croesus")))
+                    .build()
 
             button.active = canStartFrom(screen)
             Screens.getWidgets(screen).add(button)
@@ -116,7 +154,10 @@ object AutoCroesus : Module(
         }
 
         on<TickEvent.Start> {
-            if ((!claiming && pendingStart == null) || killSwitch.key == Keybinds.KEY_NONE || !Keyboard.isKeyDown(killSwitch.key)) return@on
+            if ((!claiming && pendingStart == null) || killSwitch.key == Keybinds.KEY_NONE || !Keyboard.isKeyDown(
+                    killSwitch.key
+                )
+            ) return@on
             reset()
             modMessage("&cAuto Croesus stopped.")
         }
@@ -214,7 +255,9 @@ object AutoCroesus : Module(
         activeCycle = cycle
         val next = containerTask(name = name, settings = containerSettings, reportErrors = false) {
             check("Croesus is not within 4 blocks.") {
-                clickCroesus().also { if (it) task?.ticksSinceLastClick = 0 } // the first menu click waits the click delay too
+                clickCroesus().also {
+                    if (it) task?.ticksSinceLastClick = 0
+                } // the first menu click waits the click delay too
             }
             awaitContainer(croesusRegex, waitForItems = true, failureMessage = "Croesus did not open.")
             repeat(2) {
@@ -247,8 +290,10 @@ object AutoCroesus : Module(
                 modMessage("&aAuto Croesus finished. All chests looted.")
                 reset()
             }
+
             else -> {
-                val reason = (result as? ContainerTaskResult.Failure)?.message ?: "another container action is in progress"
+                val reason =
+                    (result as? ContainerTaskResult.Failure)?.message ?: "another container action is in progress"
                 log.add("stopped: $reason")
                 modMessage("&cAuto Croesus stopped: $reason")
                 reset()
@@ -290,7 +335,8 @@ object AutoCroesus : Module(
             failedRuns.add(run.index)
             if (parsed.error != null || data.isEmpty()) return false
 
-            val sorted = data.sortedWith(compareByDescending<ChestData> { it.items.any { item -> alwaysBuy.containsId(item.id) } }.thenByDescending { it.profit })
+            val sorted =
+                data.sortedWith(compareByDescending<ChestData> { it.items.any { item -> alwaysBuy.containsId(item.id) } }.thenByDescending { it.profit })
             val bedrock = data.firstOrNull { it.name == "Bedrock" }
 
             if (bedrock != null && shouldKismet(run, bedrock)) {
@@ -302,7 +348,8 @@ object AutoCroesus : Module(
 
             val best = sorted.first() // the Wood chest is free, so every run has a chest worth claiming
             modMessage("Claiming the ${best.name} Chest (${formatCoins(best.profit)} profit).")
-            val second = sorted.getOrNull(1)?.takeIf { useChestKeys && it.profit >= chestKeyMinProfit.coinsFromMillions() }
+            val second =
+                sorted.getOrNull(1)?.takeIf { useChestKeys && it.profit >= chestKeyMinProfit.coinsFromMillions() }
             if (second != null) {
                 modMessage("Using a Dungeon Chest Key on the ${second.name} Chest (${formatCoins(second.profit)} profit).")
                 keyChest = run.index to second.slot
@@ -335,11 +382,11 @@ object AutoCroesus : Module(
 
     private fun shouldKismet(run: Run, bedrock: ChestData): Boolean =
         useKismets &&
-                canKismet &&
-                run.index !in rerolledRuns &&
-                kismetFloors.any { it.equals(run.floor, true) } &&
-                bedrock.items.none { alwaysBuy.containsId(it.id) } &&
-                bedrock.profit < kismetMinProfit.coinsFromMillions()
+            canKismet &&
+            run.index !in rerolledRuns &&
+            kismetFloors.any { it.equals(run.floor, true) } &&
+            bedrock.items.none { alwaysBuy.containsId(it.id) } &&
+            bedrock.profit < kismetMinProfit.coinsFromMillions()
 
     private fun toggleListEntry(name: String, list: MutableList<String>, arg: String?, defaults: Set<String>) {
         val value = arg?.trim()?.uppercase()
@@ -350,10 +397,12 @@ object AutoCroesus : Module(
                 list.addAll(defaults)
                 modMessage("&a$name reset to defaults.")
             }
+
             list.any { it.equals(value, true) } -> {
                 list.removeAll { it.equals(value, true) }
                 modMessage("Removed $value from $name.")
             }
+
             else -> {
                 list.add(value)
                 modMessage("Added $value to $name.")
@@ -406,7 +455,13 @@ object AutoCroesus : Module(
         val lines = buildList {
             add("&aLoot from &e${filtered.size} &aruns on &b$floorText&a:")
             itemInfo.take(10).forEach {
-                add("&b${it.amount}x &a${displayNameFromId(it.id)} &7(${formatCoins(it.unitValue.roundToLong())} each) = &6${formatCoins(it.totalValue.roundToLong())}")
+                add(
+                    "&b${it.amount}x &a${displayNameFromId(it.id)} &7(${formatCoins(it.unitValue.roundToLong())} each) = &6${
+                        formatCoins(
+                            it.totalValue.roundToLong()
+                        )
+                    }"
+                )
             }
             if (itemInfo.size > 10) add("&7... and ${itemInfo.size - 10} more item types.")
             add("&cTotal Chest Cost: &6${formatCoins(totalChestCost)}")
@@ -418,8 +473,13 @@ object AutoCroesus : Module(
     }
 
     private fun clickCroesus(): Boolean {
-        val nameTag = getEntities<Entity>(4.0) { it.customName?.string == "Croesus" && it.distanceTo(player) <= 4.0 }.firstOrNull() ?: return false
-        val croesus = getEntities<Player>(nameTag.position(), 1.0) { it.uuid.version() == 2 && it.position() == nameTag.position() }.singleOrNull() ?: return false
+        val nameTag =
+            getEntities<Entity>(4.0) { it.customName?.string == "Croesus" && it.distanceTo(player) <= 4.0 }.firstOrNull()
+                ?: return false
+        val croesus = getEntities<Player>(
+            nameTag.position(),
+            1.0
+        ) { it.uuid.version() == 2 && it.position() == nameTag.position() }.singleOrNull() ?: return false
         AuraManager.interactEntity(croesus, AuraAction.INTERACT_AT)
         return true
     }
@@ -448,10 +508,11 @@ object AutoCroesus : Module(
             if (stack.item != Items.PLAYER_HEAD) continue
             val lore = stack.getCleanLore()
             if (key == null && lore.none { it == "No chests opened yet!" }) continue
-            val floorNum = lore.firstOrNull { it.startsWith("Floor ") }?.let { romanToInt(it.removePrefix("Floor ")) } ?: run {
-                failedRuns.add(index)
-                continue
-            }
+            val floorNum =
+                lore.firstOrNull { it.startsWith("Floor ") }?.let { romanToInt(it.removePrefix("Floor ")) } ?: run {
+                    failedRuns.add(index)
+                    continue
+                }
             val floor = (if (stack.cleanName == "Master Mode The Catacombs") "M" else "F") + floorNum
             if (key == null && !canKismet && kismetFloors.any { it.equals(floor, true) }) {
                 failedRuns.add(index)

@@ -103,7 +103,10 @@ class OrderComponent<T>(
     }
 
     fun nameOf(item: T): String =
-        displayString?.invoke(item) ?: if (item is Enum<*>) item.name.replace(Regex("(?<=[a-z])(?=[A-Z])"), " ") else item.toString()
+        displayString?.invoke(item) ?: if (item is Enum<*>) item.name.replace(
+            Regex("(?<=[a-z])(?=[A-Z])"),
+            " "
+        ) else item.toString()
 
     override fun reset() {
         entries.clear()

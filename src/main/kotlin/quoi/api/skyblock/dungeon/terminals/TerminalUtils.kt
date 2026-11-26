@@ -32,7 +32,13 @@ object TerminalUtils : EventListener {
 
     init {
         on<ContainerEvent.Open>(Priority.HIGH) { opened(container) }
-        on<ContainerEvent.Items>(Priority.HIGH) { loaded(container, EventDispatcher.totalTicks, System.currentTimeMillis()) }
+        on<ContainerEvent.Items>(Priority.HIGH) {
+            loaded(
+                container,
+                EventDispatcher.totalTicks,
+                System.currentTimeMillis()
+            )
+        }
         on<PacketEvent.ReceivedPost, ClientboundContainerClosePacket>(Priority.HIGH) {
             if (inTerminal) once<TickEvent.End> { reset() }
         }

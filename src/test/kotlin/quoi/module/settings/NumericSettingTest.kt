@@ -73,7 +73,12 @@ class NumericSettingTest {
 
     @ParameterizedTest
     @CsvSource("8.4, 2.6, 3.0, 8.0", "-10.0, 20.0, 0.0, 10.0", "4.4, 4.4, 4.0, 4.0", "2.0, 8.0, 2.0, 8.0")
-    fun `range slider orders endpoints after snapping and clamping`(first: Double, second: Double, low: Double, high: Double) {
+    fun `range slider orders endpoints after snapping and clamping`(
+        first: Double,
+        second: Double,
+        low: Double,
+        high: Double
+    ) {
         val setting = RangeSliderComponent("Range", default = 1.0 to 9.0, min = 0.0, max = 10.0)
 
         setting.set(first, second)

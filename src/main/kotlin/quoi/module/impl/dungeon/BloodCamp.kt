@@ -123,7 +123,13 @@ object BloodCamp : Module( // todo auto
         *///?}
     }
 
-    private data class BloodEntity(val entity: ArmorStand, val initPos: Vec3, var finalPos: Vec3, val vecs: MutableList<Vec3>, val ticks: Int)
+    private data class BloodEntity(
+        val entity: ArmorStand,
+        val initPos: Vec3,
+        var finalPos: Vec3,
+        val vecs: MutableList<Vec3>,
+        val ticks: Int
+    )
 
     private val textures = setOf(
         "eyJ0aW1lc3RhbXAiOjE1ODYwNDEwNjQwNTAsInByb2ZpbGVJZCI6ImRhNDk4YWM0ZTkzNzRlNWNiNjEyN2IzODA4NTU3OTgzIiwicHJvZmlsZU5hbWUiOiJOaXRyb2hvbGljXzIiLCJzaWduYXR1cmVSZXF1aXJlZCI6dHJ1ZSwidGV4dHVyZXMiOnsiU0tJTiI6eyJ1cmwiOiJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzVhNzk4NjBhY2E3OTk0MDdjMGZhYTEwYjFiYmNmNDI5OThmYWQ0ZWJjZjMxZDdhMjE0MTgwODI2YjRhYzk0ZTEifX19",

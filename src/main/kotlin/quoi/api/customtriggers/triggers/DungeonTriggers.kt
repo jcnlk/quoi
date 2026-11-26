@@ -17,6 +17,7 @@ class DungeonEnteredTrigger(var floor: Floor? = null) : Trigger {
         ctx.floor?.let { ctx.data["%floor%"] = it.name }
         return true
     }
+
     override fun displayString() = "Dungeon entered${floor?.let { ": ${it.name}" }.orEmpty()}"
     override fun ElementScope<*>.draw() = choiceField(
         "Floor", { floor }, listOf(null) + Floor.entries, { it?.name ?: "Any" }
@@ -31,6 +32,7 @@ class DungeonStartedTrigger : Trigger {
         ctx.floor?.let { ctx.data["%floor%"] = it.name }
         return true
     }
+
     override fun displayString() = "Dungeon started"
     override fun ElementScope<*>.draw() = this
 }
@@ -44,6 +46,7 @@ class DungeonPhaseCompletedTrigger(var phase: Phase? = null) : Trigger {
         ctx.phase?.let { ctx.data["%phase%"] = it.name }
         return true
     }
+
     override fun displayString() = "Phase completed${phase?.let { ": ${it.name}" }.orEmpty()}"
     override fun ElementScope<*>.draw() = choiceField(
         "Phase", { phase }, listOf(null) + Phase.entries.filter { it != Phase.Unknown }, { it?.name ?: "Any" }
@@ -59,6 +62,7 @@ class DungeonStageCompletedTrigger(var stage: Stage? = null) : Trigger {
         ctx.stage?.let { ctx.data["%stage%"] = it.name }
         return true
     }
+
     override fun displayString() = "Stage completed${stage?.let { ": ${it.name}" }.orEmpty()}"
     override fun ElementScope<*>.draw() = choiceField(
         "Stage", { stage }, listOf(null) + Stage.entries.filter { it != Stage.Unknown }, { it?.name ?: "Any" }

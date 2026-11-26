@@ -71,8 +71,14 @@ abstract class SettingsDSL {
     protected fun text(value: String, desc: String = "") =
         TextComponent(value, desc)
 
-    protected fun textInput(name: String, default: String = "", length: Int = 20, desc: String = "", placeholder: String = "") =
-        TextInputComponent(name ,default, length, desc, placeholder)
+    protected fun textInput(
+        name: String,
+        default: String = "",
+        length: Int = 20,
+        desc: String = "",
+        placeholder: String = ""
+    ) =
+        TextInputComponent(name, default, length, desc, placeholder)
 
     protected fun button(name: String, desc: String = "", block: () -> Unit = {}) =
         ButtonComponent(name, desc, block)
@@ -109,7 +115,18 @@ abstract class SettingsDSL {
         customFillColour: Boolean = false,
         aabbOffset: Boolean = false,
         defaultStyle: String = "Box",
-    ) = HighlightSettings(this as AreaBoundListener, name, desc, colour, fillColour, glow, customColour, customFillColour, aabbOffset, defaultStyle)
+    ) = HighlightSettings(
+        this as AreaBoundListener,
+        name,
+        desc,
+        colour,
+        fillColour,
+        glow,
+        customColour,
+        customFillColour,
+        aabbOffset,
+        defaultStyle
+    )
 
     protected fun tracer(
         name: String = "Tracer",

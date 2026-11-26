@@ -36,7 +36,15 @@ object IceFillSolver : SettingGroup(PuzzleSolvers, "Ice fill"), Repositionable {
     private val solver by switch("Solver", desc = "Shows the solution for the ice fill puzzle.")
     private val colour by colourPicker("Colour", Colour.MAGENTA, allowAlpha = true).childOf(::solver)
     private val auto by switch("Auto", desc = "Automatically completes the ice fill puzzle.")
-    private val delay by slider("Delay", 2, 0, 10, 1, desc = "Ticks between teleports. At 0, waits only for the server to confirm each teleport.", unit = "t").childOf(::auto)
+    private val delay by slider(
+        "Delay",
+        2,
+        0,
+        10,
+        1,
+        desc = "Ticks between teleports. At 0, waits only for the server to confirm each teleport.",
+        unit = "t"
+    ).childOf(::auto)
     private val reposition by switch("Auto reposition").childOf(::auto)
 
     private var currentPatterns: List<Vec3> = emptyList()
@@ -75,7 +83,14 @@ object IceFillSolver : SettingGroup(PuzzleSolvers, "Ice fill"), Repositionable {
                     mc.submit {
                         if (isActive && patternRoom === room) {
                             currentPatterns = path.map { room.getRealCoords(it) }
-                            modMessage("Ice Fill solved in &e${duration.toString(DurationUnit.MILLISECONDS, decimals = 1)}&r.")
+                            modMessage(
+                                "Ice Fill solved in &e${
+                                    duration.toString(
+                                        DurationUnit.MILLISECONDS,
+                                        decimals = 1
+                                    )
+                                }&r."
+                            )
                         }
                     }.join()
                 }
@@ -102,7 +117,11 @@ object IceFillSolver : SettingGroup(PuzzleSolvers, "Ice fill"), Repositionable {
                         return@onAsync
                     }
                 }
-                if (player.mainHandItem.skyblockId?.equalsOneOf("ASPECT_OF_THE_VOID", "ASPECT_OF_THE_END") == false) return@onAsync
+                if (player.mainHandItem.skyblockId?.equalsOneOf(
+                        "ASPECT_OF_THE_VOID",
+                        "ASPECT_OF_THE_END"
+                    ) == false
+                ) return@onAsync
 
                 val index = currentPatterns.indexOfFirst {
                     player.x == it.x && (player.y + 0.1) == it.y && player.z == it.z

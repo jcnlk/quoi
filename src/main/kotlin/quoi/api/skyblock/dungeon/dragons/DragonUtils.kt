@@ -114,7 +114,7 @@ object DragonUtils : EventListener {
         if (packet.type != EntityTypes.ENDER_DRAGON) return
         WitherDragon.entries.find {
             it.state == WitherDragonState.Spawning &&
-                    packet.x in it.skipBox.minX..it.skipBox.maxX && packet.z in it.skipBox.minZ..it.skipBox.maxZ
+                packet.x in it.skipBox.minX..it.skipBox.maxX && packet.z in it.skipBox.minZ..it.skipBox.maxZ
         }?.spawned(packet.id, now()) ?: fromEntityId(packet.id)?.takeIf {
             it.state == WitherDragonState.Alive && it.entity == null
         }?.updateEntity(packet.id, hard = true)

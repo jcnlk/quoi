@@ -11,15 +11,35 @@ object NodeCatalog {
     private val entries = mapOf(
         // triggers
         "chat_received" to Info("Chat message", "Starts when a chat message matches your text.", listOf("%message%")),
-        "command_sent" to Info("Command sent", "Starts when you send a matching command.", listOf("%command%", "%args%")),
+        "command_sent" to Info(
+            "Command sent",
+            "Starts when you send a matching command.",
+            listOf("%command%", "%args%")
+        ),
         "key_pressed" to Info("Key pressed", "Starts when you press a key or mouse button in game."),
         "sound_played" to Info("Sound played", "Starts when the server plays a matching sound."),
-        "area_changed" to Info("Area changed", "Starts when you enter an island or sub-area.", listOf("%island%", "%subarea%")),
-        "party_message" to Info("Party message", "Starts when someone writes a matching party chat message.", listOf("%sender%", "%message%")),
-        "container_opened" to Info("Menu opened", "Starts when a chest or menu with a matching title opens.", listOf("%title%")),
+        "area_changed" to Info(
+            "Area changed",
+            "Starts when you enter an island or sub-area.",
+            listOf("%island%", "%subarea%")
+        ),
+        "party_message" to Info(
+            "Party message",
+            "Starts when someone writes a matching party chat message.",
+            listOf("%sender%", "%message%")
+        ),
+        "container_opened" to Info(
+            "Menu opened",
+            "Starts when a chest or menu with a matching title opens.",
+            listOf("%title%")
+        ),
         "dungeon_entered" to Info("Dungeon entered", "Starts when you join a dungeon run.", listOf("%floor%")),
         "dungeon_started" to Info("Dungeon started", "Starts when the dungeon run begins.", listOf("%floor%")),
-        "dungeon_phase_completed" to Info("Boss phase done", "Starts when a Floor 7 boss phase is completed.", listOf("%phase%")),
+        "dungeon_phase_completed" to Info(
+            "Boss phase done",
+            "Starts when a Floor 7 boss phase is completed.",
+            listOf("%phase%")
+        ),
         "dungeon_stage_completed" to Info("Stage done", "Starts when a dungeon stage is completed.", listOf("%stage%")),
         // conditions
         "location" to Info("Location", "Passes when you are on an island or in a sub-area."),

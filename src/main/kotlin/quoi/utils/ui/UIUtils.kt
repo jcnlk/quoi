@@ -79,7 +79,11 @@ inline fun <T> ElementScope<*>.watch(
     }
 }
 
-inline fun <T> ElementScope<*>.watch(property: KProperty0<T>, immediate: Boolean = false, crossinline block: (T) -> Unit) =
+inline fun <T> ElementScope<*>.watch(
+    property: KProperty0<T>,
+    immediate: Boolean = false,
+    crossinline block: (T) -> Unit
+) =
     watch(property::get, immediate, block)
 
 inline fun ElementScope<*>.textPair(

@@ -65,7 +65,8 @@ class TextInputComponent(
     }
 
     override fun ElementScope<*>.draw(asSub: Boolean): ElementScope<*> = column(size(w = Copying), gap = 3.px) {
-        if (!asSub) text( // idk
+        if (!asSub) text(
+            // idk
             string = name,
             size = theme.textSize,
             colour = theme.onSurfaceVariant,

@@ -20,9 +20,10 @@ import kotlin.test.assertTrue
 class IceFillSolverTest {
     private data class Fixtures(val easy: List<List<List<BlockPos>>>)
 
-    private val fixtures = javaClass.getResourceAsStream("/assets/quoi/puzzles/iceFillFloors.json")!!.bufferedReader().use {
-        Gson().fromJson(it, Fixtures::class.java).easy
-    }
+    private val fixtures =
+        javaClass.getResourceAsStream("/assets/quoi/puzzles/iceFillFloors.json")!!.bufferedReader().use {
+            Gson().fromJson(it, Fixtures::class.java).easy
+        }
 
     @Test
     fun `every known floor combination visits each ice block once and connects the stairs`() = runBlocking {

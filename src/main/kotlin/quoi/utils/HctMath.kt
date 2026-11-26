@@ -359,9 +359,9 @@ internal class Cam16(
             val j = 100.0 * (ac / viewingConditions.aw).pow(viewingConditions.c * viewingConditions.z)
             val q =
                 4.0 / viewingConditions.c *
-                        sqrt(j / 100.0) *
-                        (viewingConditions.aw + 4.0) *
-                        viewingConditions.flRoot
+                    sqrt(j / 100.0) *
+                    (viewingConditions.aw + 4.0) *
+                    viewingConditions.flRoot
 
             // CAM16 chroma, colorfulness, and saturation.
             val huePrime = if (hue < 20.14) hue + 360 else hue
@@ -778,10 +778,12 @@ object HctSolver {
                 val r = (y - coordA * kG - coordB * kB) / kR
                 if (isBounded(r)) doubleArrayOf(r, coordA, coordB) else null
             }
+
             n < 8 -> {
                 val g = (y - coordB * kR - coordA * kB) / kG
                 if (isBounded(g)) doubleArrayOf(coordB, g, coordA) else null
             }
+
             else -> {
                 val b = (y - coordA * kR - coordB * kG) / kB
                 if (isBounded(b)) doubleArrayOf(coordA, coordB, b) else null

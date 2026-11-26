@@ -84,7 +84,7 @@ public class MinecraftMixin {
             instance.swing(hand);
             //?} else {
             /*return instance.swing(hand, animation, sendToSwingingEntity);
-            *///?}
+             *///?}
         }
     }
 }

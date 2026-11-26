@@ -60,22 +60,28 @@ internal class AutoCroesusChestParser(
                         chest.purchased = true
                         break
                     }
+
                     line == "Contents" -> {
                         inContents = true
                         continue
                     }
+
                     line == "Cost" -> {
                         inContents = false
                         continue
                     }
+
                     inContents && line.isNotBlank() -> {
                         when (val parsed = parseReward(line, formattedLore.getOrNull(lineIndex) ?: line)) {
                             is ParsedReward.Item -> chest.items.add(parsed.item)
                             is ParsedReward.Error -> return ChestParseResult(error = "${parsed.reason} in $name Chest")
                         }
                     }
+
                     line == "FREE" -> chest.cost = 0
-                    costRegex.matches(line) -> chest.cost = costRegex.matchEntire(line)!!.groupValues[1].replace(",", "").toInt()
+                    costRegex.matches(line) -> chest.cost =
+                        costRegex.matchEntire(line)!!.groupValues[1].replace(",", "").toInt()
+
                     line == "Dungeon Chest Key" -> {
                         val keyPrice = SkyblockPrices.buyPrice("DUNGEON_CHEST_KEY", bazaarPriceType())
                             ?: return ChestParseResult(error = "Could not find price for Dungeon Chest Key")
@@ -101,6 +107,7 @@ internal class AutoCroesusChestParser(
                     .replace("ULTIMATE_ULTIMATE_", "ULTIMATE_")
                 id to 1
             }
+
             enchantedBookRegex.matches(line) -> {
                 val match = enchantedBookRegex.matchEntire(line)!!.groupValues
                 val cleanName = match[1].uppercase().replace(" ", "_")
@@ -111,27 +118,32 @@ internal class AutoCroesusChestParser(
                 val id = if (SkyblockPrices.buyPrice(normal, bazaarPriceType()) != null) normal else ultimate
                 id to 1
             }
+
             formattedEssenceRegex.matches(formattedLine) -> {
                 val match = formattedEssenceRegex.matchEntire(formattedLine)!!.groupValues
                 "ESSENCE_${match[1].uppercase()}" to match[2].toInt()
             }
+
             essenceRegex.matches(line) -> {
                 val match = essenceRegex.matchEntire(line)!!.groupValues
                 "ESSENCE_${match[1].uppercase()}" to match[2].toInt()
             }
+
             formattedPetRegex.matches(formattedLine) -> {
                 val match = formattedPetRegex.matchEntire(formattedLine)!!.groupValues
                 val tier = if (match[1] == "6") 4 else 3
                 "${match[2].uppercase().replace(" ", "_")};$tier" to 1
             }
+
             petRegex.matches(line) -> {
                 val match = petRegex.matchEntire(line)!!.groupValues
                 "${match[1].uppercase().replace(" ", "_")};3" to 1
             }
+
             else -> {
                 val itemName = line.trim()
                 (itemReplacements[itemName] ?: SkyblockPrices.itemIdByName(itemName)
-                    ?: return ParsedReward.Error("Could not find item id for \"$line\"")) to 1
+                ?: return ParsedReward.Error("Could not find item id for \"$line\"")) to 1
             }
         }
 

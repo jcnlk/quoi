@@ -13,7 +13,9 @@ class NotificationAction(var text: String = "", var subtitle: String = "", var d
         else -> null
     }
 
-    override fun execute(ctx: TriggerContext) = PlayerUtils.setTitle(ctx.expand(text), ctx.expand(subtitle), stayAlive = duration)
+    override fun execute(ctx: TriggerContext) =
+        PlayerUtils.setTitle(ctx.expand(text), ctx.expand(subtitle), stayAlive = duration)
+
     override fun displayString() = "Show title: $text"
     override fun ElementScope<*>.draw() = settingRow(
         { textField("Title", text) { text = it } },

@@ -10,14 +10,23 @@ class AreaChangeTrigger(var island: Island? = null, var subarea: String = "") : 
     override val eventKind get() = TriggerContext.Kind.AREA
     override fun matches(ctx: TriggerContext): Boolean {
         if (ctx !is TriggerContext.Area || island != null && ctx.island != island) return false
-        if (subarea.isNotBlank() && !ctx.subarea.orEmpty().subareaName().equals(subarea.subareaName(), true)) return false
+        if (subarea.isNotBlank() && !ctx.subarea.orEmpty().subareaName()
+                .equals(subarea.subareaName(), true)
+        ) return false
         ctx.data["%island%"] = ctx.island?.displayName.orEmpty()
         ctx.data["%subarea%"] = ctx.subarea.orEmpty()
         return true
     }
-    override fun displayString() = "Area changed${island?.let { ": ${it.displayName}" }.orEmpty()}${if (subarea.isBlank()) "" else " / $subarea"}"
+
+    override fun displayString() =
+        "Area changed${island?.let { ": ${it.displayName}" }.orEmpty()}${if (subarea.isBlank()) "" else " / $subarea"}"
+
     override fun ElementScope<*>.draw() = settingRow(
-        { choiceField("Island", { island }, listOf(null) + Island.entries, { it?.displayName ?: "Any" }) { island = it } },
+        {
+            choiceField("Island", { island }, listOf(null) + Island.entries, { it?.displayName ?: "Any" }) {
+                island = it
+            }
+        },
         { textField("Subarea (optional)", subarea) { subarea = it } }
     )
 }

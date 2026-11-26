@@ -32,6 +32,7 @@ object BlazeSlayer : SettingGroup(Slayers, "Blaze", area = Island.CrimsonIsle, s
     )
 
     private var gummyRemaining by slider("remaining", 0L, 0L, Long.MAX_VALUE).hide()
+
     @Suppress("unused")
     private val gummyBear by textHud("Gummy bear timer") {
         visibleIf { Location.currentArea == Island.CrimsonIsle }
@@ -71,7 +72,8 @@ object BlazeSlayer : SettingGroup(Slayers, "Blaze", area = Island.CrimsonIsle, s
         }
 
     val attune: Attunement?
-        get() = (activeDemon ?: blazeBoss)?.getAttune() // since boss is invisible during demon phase we get activeDemon first
+        get() = (activeDemon
+            ?: blazeBoss)?.getAttune() // since boss is invisible during demon phase we get activeDemon first
 
 
     // could fail if someone next to you spawns demons at the same time, but it's very unlikely it'd every happen
@@ -98,10 +100,14 @@ object BlazeSlayer : SettingGroup(Slayers, "Blaze", area = Island.CrimsonIsle, s
         if (this.isDeadOrDying) return null
 
         val stand = when {
-            this == blazeBoss -> getEntities<ArmorStand>(this.position(), radius = 3.0) { entity -> // id + 2 only works for phase 1. other are random.
+            this == blazeBoss -> getEntities<ArmorStand>(
+                this.position(),
+                radius = 3.0
+            ) { entity -> // id + 2 only works for phase 1. other are random.
                 val name = entity.customName?.string?.noControlCodes ?: return@getEntities false
                 Attunement.entries.any { name.contains(it.name, true) }
             }.firstOrNull()
+
             else -> getEntity(this.id + 2) as? ArmorStand
         }
 

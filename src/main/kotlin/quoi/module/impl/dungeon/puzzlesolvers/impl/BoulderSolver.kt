@@ -38,16 +38,32 @@ import java.nio.charset.StandardCharsets
  */
 object BoulderSolver : SettingGroup(PuzzleSolvers, "Boulder") {
     private val solver by switch("Solver", desc = "Shows the solution for the boulder puzzle.")
-    private val showAll by switch("Show all clicks", desc = "Shows all clicks instead of only the next click.").childOf(::solver)
-    private val style by selector("Style", "Box", arrayListOf("Box", "Filled box", "Filled"), desc = "Render style to be used.").childOf(::solver)
-    private val colour by colourPicker("Colour", Colour.MINECRAFT_GREEN.withAlpha(0.5f), true, desc = "Colour for the boulder solver.").childOf(::solver)
+    private val showAll by switch("Show all clicks", desc = "Shows all clicks instead of only the next click.").childOf(
+        ::solver
+    )
+    private val style by selector(
+        "Style",
+        "Box",
+        arrayListOf("Box", "Filled box", "Filled"),
+        desc = "Render style to be used."
+    ).childOf(::solver)
+    private val colour by colourPicker(
+        "Colour",
+        Colour.MINECRAFT_GREEN.withAlpha(0.5f),
+        true,
+        desc = "Colour for the boulder solver."
+    ).childOf(::solver)
     private val auto by switch("Auto", desc = "Runs to the Boulder chest and back.").asParent()
-    private val triggerbot by switch("Triggerbot", desc = "Clicks the next button in the solution when you look at it.").asParent()
+    private val triggerbot by switch(
+        "Triggerbot",
+        desc = "Clicks the next button in the solution when you look at it."
+    ).asParent()
 
     private data class BoxPosition(val render: AABB, val click: BlockPos)
 
     private val gson = GsonBuilder().setPrettyPrinting().create()
-    private val isr = this::class.java.getResourceAsStream("/assets/quoi/puzzles/boulderSolutions.json")?.let { InputStreamReader(it, StandardCharsets.UTF_8) }
+    private val isr = this::class.java.getResourceAsStream("/assets/quoi/puzzles/boulderSolutions.json")
+        ?.let { InputStreamReader(it, StandardCharsets.UTF_8) }
     private var solutions: Map<String, List<List<Int>>>
     private var currentPositions = mutableListOf<BoxPosition>()
     private var walking = false
@@ -71,7 +87,9 @@ object BoulderSolver : SettingGroup(PuzzleSolvers, "Boulder") {
         }
 
         on<PlayerEvent.UseBlock.Post> {
-            if ((solver || triggerbot) && hand == InteractionHand.MAIN_HAND && interactionResult.consumesAction()) onInteract(hitResult.blockPos)
+            if ((solver || triggerbot) && hand == InteractionHand.MAIN_HAND && interactionResult.consumesAction()) onInteract(
+                hitResult.blockPos
+            )
         }
 
         on<TickEvent.End> {

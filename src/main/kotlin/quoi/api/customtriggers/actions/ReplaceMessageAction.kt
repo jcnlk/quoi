@@ -16,9 +16,14 @@ class ReplaceMessageAction(var replacement: String = "") : TriggerAction {
         ctx.cancelled = true
         ChatUtils.modMessage(ctx.expand(replacement), prefix = "")
     }
+
     override fun displayString() = "Replace message: $replacement"
     override fun ElementScope<*>.draw() = column(size(w = Copying)) {
         textField("Replacement", replacement) { replacement = it }
-        text(string = "Supports %0% and named captures", size = 14.px, colour = quoi.utils.ThemeManager.theme.onSurfaceVariant)
+        text(
+            string = "Supports %0% and named captures",
+            size = 14.px,
+            colour = quoi.utils.ThemeManager.theme.onSurfaceVariant
+        )
     }
 }

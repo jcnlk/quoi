@@ -22,15 +22,27 @@ object Leaps : Module(
     area = Island.Dungeon
 ) {
     private val presets by configMap<String, JsonObject>("leap_presets.json")
-    private val leapMode by selector("Leap mode", LeapMode.Class, "Choose boss leap targets by player name or class.").open()
+    private val leapMode by selector(
+        "Leap mode",
+        LeapMode.Class,
+        "Choose boss leap targets by player name or class."
+    ).open()
     private val containerSettings = ContainerSettings(this)
     private val swapBack by switch("Swap back", desc = "Restores your previous hotbar slot after leaping.")
     val byName get() = leapMode.selected == LeapMode.Name
 
-    private var presetName by textInput("Preset name", length = 32, desc = "Preset to save or load.", placeholder = "My preset").suggests { presets.keys.sorted() }
+    private var presetName by textInput(
+        "Preset name",
+        length = 32,
+        desc = "Preset to save or load.",
+        placeholder = "My preset"
+    ).suggests { presets.keys.sorted() }
 
     init {
-        +button("Save preset", desc = "Saves current settings. Overwrites presets with the same name.") { preset(save = true) }
+        +button(
+            "Save preset",
+            desc = "Saves current settings. Overwrites presets with the same name."
+        ) { preset(save = true) }
         +button("Load preset", desc = "Loads the selected preset.") { preset(save = false) }
 
         FastLeap(this)
@@ -75,7 +87,8 @@ object Leaps : Module(
             }
         } else {
             val preset = presets[key] ?: return modMessage("&cAuto Leap preset &e$name &cdoesn't exist.")
-            preset.entrySet().forEach { (settingName, value) -> (getSettingByName(settingName) as? Saving)?.read(value) }
+            preset.entrySet()
+                .forEach { (settingName, value) -> (getSettingByName(settingName) as? Saving)?.read(value) }
         }
         presetName = key
         modMessage("&a${if (save) "Saved" else "Loaded"} Auto Leap preset &e$key&a.")

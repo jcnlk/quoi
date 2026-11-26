@@ -122,7 +122,9 @@ class HighlightSettings(
         val box = if (aabbOffset) aabb.inflate(sizeOffset.value, 0.0, sizeOffset.value) else aabb
 
         val c = overrideColour ?: if (_outline != null && customCol.value) _outline.value else colour
-        val fc = overrideFillColour ?: if (_fill != null && fillCustomCol.value) _fill.value else fillColour.withAlpha(_fill?.value?.alpha ?: 1f) // idk maybe make fill colour alpha slider when custom is true but disabled
+        val fc = overrideFillColour ?: if (_fill != null && fillCustomCol.value) _fill.value else fillColour.withAlpha(
+            _fill?.value?.alpha ?: 1f
+        ) // idk maybe make fill colour alpha slider when custom is true but disabled
 
         ctx.drawStyledBox(style, box, c, fc, thickness, depth)
     }

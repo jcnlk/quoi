@@ -31,6 +31,7 @@ class Ticker(private val steps: ArrayDeque<TickerStep>) {
                             return false
                         }
                     }
+
                     is TickerStep.WaitUntil -> {
                         if (step.condition()) {
                             steps.removeFirst()
@@ -38,6 +39,7 @@ class Ticker(private val steps: ArrayDeque<TickerStep>) {
                         }
                         return false
                     }
+
                     is TickerStep.Action -> {
                         step.action()
                         steps.removeFirst()

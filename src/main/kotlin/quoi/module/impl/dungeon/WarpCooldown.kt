@@ -27,7 +27,10 @@ object WarpCooldown : Module(
         )
     }.setting()
 
-    private val blockInstanceCommands by switch("Block instance commands", desc = "Blocks instance commands while the dungeon warp cooldown is active.")
+    private val blockInstanceCommands by switch(
+        "Block instance commands",
+        desc = "Blocks instance commands while the dungeon warp cooldown is active."
+    )
 
     init {
         on<ChatEvent.Sent> {

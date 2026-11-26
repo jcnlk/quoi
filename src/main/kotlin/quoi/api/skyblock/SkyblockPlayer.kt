@@ -79,9 +79,11 @@ object SkyblockPlayer : EventListener, Shortcuts {
     val OVERFLOW_REGEX = Regex("§3([\\d,]+)[\\uE017ʬ]") // §3100ʬ
     val STACKS_REGEX = Regex("§6([0-9]+[ᝐ⁑Ѫ])") // §610⁑
     val SALVATION_REGEX = Regex("T([1-3])!") // no idea
-    val VITALITY_REGEX = Regex("§4([\\d.,]+)/([\\d,.]+)[♨\uE028]( Vitality)?") // https://regex101.com/r/tLHZYG/1 // https://github.com/Noamm9/NoammAddons/blob/fd000be897fd2facf1b8dfbfd28416206c544860/src/main/kotlin/com/github/noamm9/utils/ActionBarParser.kt#L25
+    val VITALITY_REGEX =
+        Regex("§4([\\d.,]+)/([\\d,.]+)[♨\uE028]( Vitality)?") // https://regex101.com/r/tLHZYG/1 // https://github.com/Noamm9/NoammAddons/blob/fd000be897fd2facf1b8dfbfd28416206c544860/src/main/kotlin/com/github/noamm9/utils/ActionBarParser.kt#L25
 
-    val MANA_USAGE_REGEX = Regex("§b-[\\d,]+ Mana \\(§6.+?§b\\)|§c§lNOT ENOUGH MANA") // §b-50 Mana (§6Speed Boost§b) , §c§lNOT ENOUGH MANA
+    val MANA_USAGE_REGEX =
+        Regex("§b-[\\d,]+ Mana \\(§6.+?§b\\)|§c§lNOT ENOUGH MANA") // §b-50 Mana (§6Speed Boost§b) , §c§lNOT ENOUGH MANA
     val SECRETS_REGEX = Regex("\\s*§7(\\d+)/(\\d+) Secrets") // §76/10 Secrets§r
 
     init {
@@ -217,7 +219,7 @@ object SkyblockPlayer : EventListener, Shortcuts {
                 BONZO -> currentMask == Mask.BONZO && PHOENIX.currentCooldown <= 0
                 SPIRIT -> currentMask == Mask.SPIRIT && PHOENIX.currentCooldown <= 0
                 PHOENIX -> (currentMask == Mask.SPIRIT && SPIRIT.currentCooldown <= 0)
-                        || (currentMask == Mask.BONZO && BONZO.currentCooldown <= 0)
+                    || (currentMask == Mask.BONZO && BONZO.currentCooldown <= 0)
             }
 
             val col = if (!highlight && currentCooldown <= 0) "&a" else "&c"

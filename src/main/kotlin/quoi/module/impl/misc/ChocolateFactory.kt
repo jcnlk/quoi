@@ -39,10 +39,24 @@ object ChocolateFactory : Module(
     desc = "Automates the Chocolate Factory."
 ) {
     private val clickFactory by switch("Click Factory", desc = "Click the cookie in the Chocolate Factory menu.")
-    private val autoTimeTower by switch("Auto Time Tower", desc = "Automatically activate the Time Tower when it has charges and is inactive.")
-    private val autoUpgrade by switch("Auto Upgrade", desc = "Automatically buy the most efficient Chocolate Factory upgrade.")
+    private val autoTimeTower by switch(
+        "Auto Time Tower",
+        desc = "Automatically activate the Time Tower when it has charges and is inactive."
+    )
+    private val autoUpgrade by switch(
+        "Auto Upgrade",
+        desc = "Automatically buy the most efficient Chocolate Factory upgrade."
+    )
     private val delay by slider("Delay", 150, 50, 1500, 5, unit = "ms", desc = "Delay between actions.")
-    private val upgradeDelay by slider("Upgrade delay", 500, 300, 2000, 100, unit = "ms", desc = "Delay between upgrades.")
+    private val upgradeDelay by slider(
+        "Upgrade delay",
+        500,
+        300,
+        2000,
+        100,
+        unit = "ms",
+        desc = "Delay between upgrades."
+    )
     private val claimStrays by switch("Claim Strays", desc = "Claim stray rabbits in the Chocolate Factory menu.")
     private val cancelSound by switch("Cancel Sound", desc = "Cancels the eating sound in the Chocolate Factory.")
     private val eggEsp by switch("Egg ESP", desc = "Shows the location of the egg.")
@@ -76,8 +90,10 @@ object ChocolateFactory : Module(
         Island.LotusAtoll,
         Island.TorrhusCanyon,
     )
-    private val eggSpawnedPattern = Regex("A Chocolate (Breakfast|Lunch|Dinner|Brunch|Déjeuner|Supper) Egg has appeared!")
-    private val eggFoundPattern = Regex("(?:found a|collected this) Chocolate (Breakfast|Lunch|Dinner|Brunch|Déjeuner|Supper) Egg")
+    private val eggSpawnedPattern =
+        Regex("A Chocolate (Breakfast|Lunch|Dinner|Brunch|Déjeuner|Supper) Egg has appeared!")
+    private val eggFoundPattern =
+        Regex("(?:found a|collected this) Chocolate (Breakfast|Lunch|Dinner|Brunch|Déjeuner|Supper) Egg")
 
     private const val DINNER_EGG_TEXTURE =
         "ewogICJ0aW1lc3RhbXAiIDogMTcxMTQ2MjY0OTcwMSwKICAicHJvZmlsZUlkIiA6ICI3NGEwMzQxNWY1OTI0ZTA4YjMyMGM2MmU1NGE3ZjJhYiIsCiAgInByb2ZpbGVOYW1lIiA6ICJNZXp6aXIiLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZTVlMzYxNjU4MTlmZDI4NTBmOTg1NTJlZGNkNzYzZmY5ODYzMTMxMTkyODNjMTI2YWNlMGM0Y2M0OTVlNzZhOCIKICAgIH0KICB9Cn0"
@@ -335,8 +351,8 @@ object ChocolateFactory : Module(
         pendingEggs.keys.toList().forEach { type ->
             val replacement = eggCandidates.values.firstOrNull { candidate ->
                 candidate.texture == type.texture &&
-                        candidate.entity.id !in assignedEntityIds &&
-                        candidate.entity.id != pendingEggs[type]
+                    candidate.entity.id !in assignedEntityIds &&
+                    candidate.entity.id != pendingEggs[type]
             } ?: return@forEach
 
             eggs.add(Egg(replacement.entity, type))

@@ -61,9 +61,9 @@ object CraftRoom : ToggleableGroup(MirrorverseSolvers, "Craft room") {
             val y = scaledHeight / 6 // not a good idea but idgaf
 
             ctx.drawRecipe(x - 158, y, rodRecipe)
-            ctx.drawRecipe(x - 74,  y, bowRecipe)
-            ctx.drawRecipe(x + 10,  y, leadRecipe)
-            ctx.drawRecipe(x + 94,  y, hammerRecipe)
+            ctx.drawRecipe(x - 74, y, bowRecipe)
+            ctx.drawRecipe(x + 10, y, leadRecipe)
+            ctx.drawRecipe(x + 94, y, hammerRecipe)
         }
     }
 
@@ -114,32 +114,32 @@ object CraftRoom : ToggleableGroup(MirrorverseSolvers, "Craft room") {
 
     private val rodRecipe by lazy {
         arrayOf(
-            stick,  null,  null,
+            stick, null, null,
             string, stick, null,
-            string, null,  stick
+            string, null, stick
         )
     }
 
     private val bowRecipe by lazy {
         arrayOf(
             string, stick, null,
-            string, null,  stick,
+            string, null, stick,
             string, stick, null
         )
     }
 
     private val leadRecipe by lazy {
         arrayOf(
-            null,   string, string,
-            null,   slime,  string,
-            string, null,   null
+            null, string, string,
+            null, slime, string,
+            string, null, null
         )
     }
 
     private val hammerRecipe by lazy {
         arrayOf(
             lead, bow, null,
-            bow,  rod, null,
+            bow, rod, null,
             null, rod, null
         )
     }

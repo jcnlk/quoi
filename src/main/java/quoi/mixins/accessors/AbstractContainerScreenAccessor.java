@@ -10,6 +10,6 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 @Mixin(AbstractContainerScreen.class)
 public interface AbstractContainerScreenAccessor {
     @Invoker("getHoveredSlot")
-    //~ if >=26.4 'Slot quoi$getSlotAtPos(double mouseX, double mouseY)' -> 'SlotWidget quoi$getSlotAtPos()'
+        //~ if >=26.4 'Slot quoi$getSlotAtPos(double mouseX, double mouseY)' -> 'SlotWidget quoi$getSlotAtPos()'
     Slot quoi$getSlotAtPos(double mouseX, double mouseY);
 }

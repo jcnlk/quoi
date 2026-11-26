@@ -106,9 +106,9 @@ internal object IceFillPathfinder {
                         .filter { (_, pos) -> pos !in visited }
                         .sortedWith(
                             compareBy(
-                            { (_, pos) -> graph.getValue(pos).count { (_, next) -> next !in visited } },
-                            { (dir, _) -> if (dir == lastDir) 0 else 1 }
-                        ))
+                                { (_, pos) -> graph.getValue(pos).count { (_, next) -> next !in visited } },
+                                { (dir, _) -> if (dir == lastDir) 0 else 1 }
+                            ))
 
                     for ((dir, next) in candidates) {
                         val turned = lastDir != null && dir != lastDir

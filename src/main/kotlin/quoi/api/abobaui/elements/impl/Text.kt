@@ -95,16 +95,24 @@ open class Text(
     open fun getTextWidth(): Float = textWidth(text)
 
     protected fun textWidth(string: String) =
-        if (font.name == "Minecraft") text.width(height / mc.font.lineHeight) else UIRenderer.textWidth(string.noControlCodes, height, font)
+        if (font.name == "Minecraft") text.width(height / mc.font.lineHeight) else UIRenderer.textWidth(
+            string.noControlCodes,
+            height,
+            font
+        )
 
     companion object {
         var <E : Text> ElementScope<E>.string
             get() = element.text
-            set(value) { element.text = value }
+            set(value) {
+                element.text = value
+            }
 
         var <E : Text> ElementScope<E>.shadow
             get() = element.shadow
-            set(value) { element.shadow = value }
+            set(value) {
+                element.shadow = value
+            }
 
         /**
          * Subclass of [Text], where text is supplied from a function.

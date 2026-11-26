@@ -45,13 +45,53 @@ object AutoHotbar : Module(
     "Auto Hotbar",
     desc = "Saves and equips hotbar presets."
 ) {
-    private val blockInput by switch("Block input", false, desc = "Blocks keyboard and mouse input during hotbar correction passes.")
-    private val swapPassDelay by slider("Swap pass delay", 5, 0, 20, 1, desc = "Base delay in ticks before each hotbar correction pass.")
-    private val passDelayRandomness by slider("Pass delay randomness", 3, 0, 20, 1, desc = "Adds 0 to this many random ticks to each correction pass delay.")
-    private val clickDelay by slider("Click delay", 2, 0, 10, 1, desc = "Base delay in ticks after each hotbar swap click.")
-    private val clickDelayRandomness by slider("Click delay randomness", 2, 0, 10, 1, desc = "Adds 0 to this many random ticks after each hotbar swap click.")
-    private val postSwapDelay by slider("Post swap delay", 5, 0, 20, 1, desc = "Delay in ticks after the final hotbar swap before movement and input are restored.")
-    private val presetsSetting = register(ListSetting<HotbarPreset, MutableList<HotbarPreset>>("Presets", mutableListOf()))
+    private val blockInput by switch(
+        "Block input",
+        false,
+        desc = "Blocks keyboard and mouse input during hotbar correction passes."
+    )
+    private val swapPassDelay by slider(
+        "Swap pass delay",
+        5,
+        0,
+        20,
+        1,
+        desc = "Base delay in ticks before each hotbar correction pass."
+    )
+    private val passDelayRandomness by slider(
+        "Pass delay randomness",
+        3,
+        0,
+        20,
+        1,
+        desc = "Adds 0 to this many random ticks to each correction pass delay."
+    )
+    private val clickDelay by slider(
+        "Click delay",
+        2,
+        0,
+        10,
+        1,
+        desc = "Base delay in ticks after each hotbar swap click."
+    )
+    private val clickDelayRandomness by slider(
+        "Click delay randomness",
+        2,
+        0,
+        10,
+        1,
+        desc = "Adds 0 to this many random ticks after each hotbar swap click."
+    )
+    private val postSwapDelay by slider(
+        "Post swap delay",
+        5,
+        0,
+        20,
+        1,
+        desc = "Delay in ticks after the final hotbar swap before movement and input are restored."
+    )
+    private val presetsSetting =
+        register(ListSetting<HotbarPreset, MutableList<HotbarPreset>>("Presets", mutableListOf()))
     private val presets get() = presetsSetting.value
     private val validFloors = listOf("f1", "f2", "f3", "f4", "f5", "f6", "f7", "m1", "m2", "m3", "m4", "m5", "m6", "m7")
     private val validClasses = listOf("healer", "mage", "berserk", "archer", "tank")

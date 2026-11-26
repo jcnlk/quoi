@@ -22,13 +22,33 @@ object GreatSpook : Module(
     desc = "Automatically solves Primal Fear challenges and shows a title when a Primal Fear spawns.",
 ) {
     private val autoMath by switch("Auto math", desc = "Automatically answers Quick Maths in all chat.")
-    private val autoSpeaking by switch("Auto Public Speaking", desc = "Automatically answers Public Speaking prompts addressed to you in all chat.")
-    private val autoCommitment by switch("Auto Commitment Phobia", desc = "Automatically signs the document linked in chat.")
-    private val responseDelay by slider("Answer delay", 0, 0, 10, 1, unit = " ticks", desc = "Client ticks to wait before answering. Zero answers immediately.").visibleIf { autoMath || autoSpeaking || autoCommitment }
-    private val spawnTitle by switch("Spawn title", desc = "Shows a title when the spawn message for a Primal Fear arrives.")
-    private val showInDungeon by switch("Show in dungeons", desc = "Show the spawn title while in a dungeon.").childOf(::spawnTitle)
+    private val autoSpeaking by switch(
+        "Auto Public Speaking",
+        desc = "Automatically answers Public Speaking prompts addressed to you in all chat."
+    )
+    private val autoCommitment by switch(
+        "Auto Commitment Phobia",
+        desc = "Automatically signs the document linked in chat."
+    )
+    private val responseDelay by slider(
+        "Answer delay",
+        0,
+        0,
+        10,
+        1,
+        unit = " ticks",
+        desc = "Client ticks to wait before answering. Zero answers immediately."
+    ).visibleIf { autoMath || autoSpeaking || autoCommitment }
+    private val spawnTitle by switch(
+        "Spawn title",
+        desc = "Shows a title when the spawn message for a Primal Fear arrives."
+    )
+    private val showInDungeon by switch("Show in dungeons", desc = "Show the spawn title while in a dungeon.").childOf(
+        ::spawnTitle
+    )
 
-    private val speakingPattern = Regex("\\[FEAR] Public Speaking Demon: (?:Speak|Say something interesting) (\\w{1,16})!")
+    private val speakingPattern =
+        Regex("\\[FEAR] Public Speaking Demon: (?:Speak|Say something interesting) (\\w{1,16})!")
     private val speakingAnswers = listOf(
         "The Great Spook is here!",
         "Time to face another Primal Fear.",
@@ -45,7 +65,8 @@ object GreatSpook : Module(
                 autoMath && unformatted.startsWith("QUICK MATHS! Solve: ") ->
                     calcMath(unformatted.removePrefix("QUICK MATHS! Solve: "))?.let { answer("ac $it") }
 
-                autoSpeaking && speakingPattern.matchEntire(unformatted)?.groupValues?.get(1).equals(player.gameProfile.name) -> {
+                autoSpeaking && speakingPattern.matchEntire(unformatted)?.groupValues?.get(1)
+                    .equals(player.gameProfile.name) -> {
                     answer("ac ${speakingAnswers[speakingIndex]}")
                     speakingIndex = (speakingIndex + 1) % speakingAnswers.size
                 }

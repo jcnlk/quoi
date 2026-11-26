@@ -14,9 +14,14 @@ open class PathContext<N : PathNode>(
     val startTime = System.currentTimeMillis()
     val endTime = startTime + timeout
 
-    @Volatile var solved = false
-    @Volatile var timedOut = false
-    @Volatile var finalPath: List<N>? = null
+    @Volatile
+    var solved = false
+
+    @Volatile
+    var timedOut = false
+
+    @Volatile
+    var finalPath: List<N>? = null
 
     val processed = AtomicInteger(0)
     val openSet = PriorityQueue<N>()

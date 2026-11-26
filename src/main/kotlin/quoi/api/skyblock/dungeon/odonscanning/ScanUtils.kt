@@ -215,7 +215,10 @@ object ScanUtils : EventListener, Shortcuts {
         val index = ((z - START) / 16) * 11 + (x - START) / 16
         val existing = grid[index] as? OdonRoom
         val room = uniqueRooms.getOrPut(data.name) {
-            existing?.takeUnless { it.identified } ?: OdonRoom(data = data.copy(), tiles = mutableSetOf()).also { scannedRooms.add(it) }
+            existing?.takeUnless { it.identified } ?: OdonRoom(
+                data = data.copy(),
+                tiles = mutableSetOf()
+            ).also { scannedRooms.add(it) }
         }
         if (existing != null && existing !== room) mergeRooms(room, existing)
         if (!room.identified) room.data = data.copy(state = room.data.state)
@@ -289,11 +292,12 @@ object ScanUtils : EventListener, Shortcuts {
             82 -> DoorType.FAIRY
             else -> DoorType.NORMAL
         }
-        val door = (grid[index] as? OdonDoor) ?: OdonDoor(Vec2i(START + index % 11 * 16, START + index / 11 * 16), type).also {
-            grid[index] = it
-            scannedDoors.add(it)
-            MapRenderer.refresh()
-        }
+        val door =
+            (grid[index] as? OdonDoor) ?: OdonDoor(Vec2i(START + index % 11 * 16, START + index / 11 * 16), type).also {
+                grid[index] = it
+                scannedDoors.add(it)
+                MapRenderer.refresh()
+            }
         door.type = type
         door.updateState(colour)
     }
@@ -350,7 +354,10 @@ object ScanUtils : EventListener, Shortcuts {
                 val chunk = level.chunkSource.getChunk(pos.x shr 4, pos.z shr 4, false) ?: continue
                 if (!chunk.getBlockState(pos).`is`(Blocks.DYED_TERRACOTTA.blue())) continue
                 if (room.tiles.size > 1 && horizontals.any {
-                        !chunk.getBlockState(pos.relative(it)).block.equalsOneOf(Blocks.AIR, Blocks.DYED_TERRACOTTA.blue())
+                        !chunk.getBlockState(pos.relative(it)).block.equalsOneOf(
+                            Blocks.AIR,
+                            Blocks.DYED_TERRACOTTA.blue()
+                        )
                     }) continue
                 room.clayPos = pos
                 room.rotation = rotation

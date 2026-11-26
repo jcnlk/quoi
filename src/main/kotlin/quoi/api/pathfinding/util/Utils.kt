@@ -34,5 +34,12 @@ fun generateRaycasts(pitchStep: Float, yawStep: Float, scale: Double = 1.0): Ray
         pitch += pitchStep
     }
 
-    return Raycasts(dx.toDoubleArray(), dy.toDoubleArray(), dz.toDoubleArray(), yaws.toFloatArray(), pitches.toFloatArray(), scale)
+    return Raycasts(
+        dx.toDoubleArray(),
+        dy.toDoubleArray(),
+        dz.toDoubleArray(),
+        yaws.toFloatArray(),
+        pitches.toFloatArray(),
+        scale
+    )
 }

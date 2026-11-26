@@ -44,42 +44,46 @@ class OdonRoom(
     val colour: Colour get() = if (this === ScanUtils.mimicRoom) data.colour.mix(DungeonMap.mimicRoom) else data.colour
 
     fun getRelativeCoords(pos: BlockPos) = pos.subtract(clayPos.atY(0)).rotateToNorth(rotation)
-    fun getRelativeCoords(vec: Vec3) = vec.subtract(clayPos.x.toDouble(), 0.0, clayPos.z.toDouble()).rotateToNorth(rotation)
+    fun getRelativeCoords(vec: Vec3) =
+        vec.subtract(clayPos.x.toDouble(), 0.0, clayPos.z.toDouble()).rotateToNorth(rotation)
 
     fun getRealCoords(pos: BlockPos) = pos.rotateAroundNorth(rotation).offset(clayPos.x, 0, clayPos.z)
     fun getRealCoords(vec: Vec3) = vec.rotateAroundNorth(rotation).add(clayPos.x.toDouble(), 0.0, clayPos.z.toDouble())
-    fun getRealCoords(mutVec: MutableVec3) = mutVec.immutable().rotateAroundNorth(rotation).add(clayPos.x.toDouble(), 0.0, clayPos.z.toDouble()).mutable()
+    fun getRealCoords(mutVec: MutableVec3) =
+        mutVec.immutable().rotateAroundNorth(rotation).add(clayPos.x.toDouble(), 0.0, clayPos.z.toDouble()).mutable()
 
     fun getRelativeYaw(yaw: Float) = yaw + rotation.deg
     fun getRealYaw(yaw: Float) = wrapDegrees(yaw - rotation.deg)
 
-    val textPlacement: Vec2i get() {
-        if (tiles.isEmpty()) return Vec2i(0, 0)
-        val placements = tiles.map { it.placement }
+    val textPlacement: Vec2i
+        get() {
+            if (tiles.isEmpty()) return Vec2i(0, 0)
+            val placements = tiles.map { it.placement }
 
-        if (placements.size == 3) {
-            val horiz = placements.groupBy { it.z }.values.find { it.size == 2 }
+            if (placements.size == 3) {
+                val horiz = placements.groupBy { it.z }.values.find { it.size == 2 }
 
-            if (horiz != null) {
-                val x = (horiz[0].x + horiz[1].x) / 2
-                val z = horiz[0].z
-                return Vec2i(x, z)
+                if (horiz != null) {
+                    val x = (horiz[0].x + horiz[1].x) / 2
+                    val z = horiz[0].z
+                    return Vec2i(x, z)
+                }
             }
+            val minX = placements.minOf { it.x }
+            val maxX = placements.maxOf { it.x }
+            val minZ = placements.minOf { it.z }
+            val maxZ = placements.maxOf { it.z }
+
+            return Vec2i((minX + maxX) / 2, (minZ + maxZ) / 2)
         }
-        val minX = placements.minOf { it.x }
-        val maxX = placements.maxOf { it.x }
-        val minZ = placements.minOf { it.z }
-        val maxZ = placements.maxOf { it.z }
 
-        return Vec2i((minX + maxX) / 2, (minZ + maxZ) / 2)
-    }
-
-    val textColour: Colour get() = when(data.state) {
-        RoomState.CLEARED -> Colour.WHITE
-        RoomState.GREEN -> Colour.MINECRAFT_GREEN
-        RoomState.FAILED -> Colour.MINECRAFT_RED
-        else -> Colour.MINECRAFT_GRAY
-    }
+    val textColour: Colour
+        get() = when (data.state) {
+            RoomState.CLEARED -> Colour.WHITE
+            RoomState.GREEN -> Colour.MINECRAFT_GREEN
+            RoomState.FAILED -> Colour.MINECRAFT_RED
+            else -> Colour.MINECRAFT_GRAY
+        }
 
 
     fun updateState(col: Int, roomColour: Int = 0) {
@@ -93,9 +97,15 @@ class OdonRoom(
                 RoomType.PUZZLE -> RoomState.FAILED
                 else -> data.state
             }
+
             30 -> if (roomColour == 30 || data.type == RoomType.ENTRANCE) RoomState.DISCOVERED else RoomState.GREEN
             85, 119 -> RoomState.UNOPENED
-            else -> if (data.state.equalsOneOf(RoomState.GREEN, RoomState.CLEARED, RoomState.FAILED)) data.state else RoomState.DISCOVERED
+            else -> if (data.state.equalsOneOf(
+                    RoomState.GREEN,
+                    RoomState.CLEARED,
+                    RoomState.FAILED
+                )
+            ) data.state else RoomState.DISCOVERED
         }
 
         if (new.ordinal > data.state.ordinal && data.type != RoomType.PUZZLE) return
@@ -111,11 +121,12 @@ data class RoomTile(val x: Int, val z: Int, val core: Int = 0) {
     val vec2 = Vec2i(x, z)
     val blockPos = BlockPos(x, 70, z)
 
-    val placement: Vec2i get() {
-        val gridX = (x + 185) shr 5
-        val gridZ = (z + 185) shr 5
-        return Vec2i(gridX * 20, gridZ * 20)
-    }
+    val placement: Vec2i
+        get() {
+            val gridX = (x + 185) shr 5
+            val gridZ = (z + 185) shr 5
+            return Vec2i(gridX * 20, gridZ * 20)
+        }
 
 }
 
@@ -124,23 +135,24 @@ data class RoomData(
     val crypts: Int, val secrets: Int, val trappedChests: Int, var state: RoomState = RoomState.UNDISCOVERED,
     val shape: String = "1x1",
 ) {
-    val colour: Colour get() {
-        val base = when (type) {
-            RoomType.ENTRANCE -> DungeonMap.entranceRoom
-            RoomType.BLOOD    -> DungeonMap.bloodRoom
-            RoomType.FAIRY    -> DungeonMap.fairyRoom
-            RoomType.PUZZLE   -> DungeonMap.puzzleRoom
-            RoomType.TRAP     -> DungeonMap.trapRoom
-            RoomType.CHAMPION -> DungeonMap.miniRoom
-            RoomType.RARE     -> DungeonMap.rareRoom
-            RoomType.UNKNOWN  -> DungeonMap.unknownRoom
-            else              -> DungeonMap.normalRoom
-        }
+    val colour: Colour
+        get() {
+            val base = when (type) {
+                RoomType.ENTRANCE -> DungeonMap.entranceRoom
+                RoomType.BLOOD -> DungeonMap.bloodRoom
+                RoomType.FAIRY -> DungeonMap.fairyRoom
+                RoomType.PUZZLE -> DungeonMap.puzzleRoom
+                RoomType.TRAP -> DungeonMap.trapRoom
+                RoomType.CHAMPION -> DungeonMap.miniRoom
+                RoomType.RARE -> DungeonMap.rareRoom
+                RoomType.UNKNOWN -> DungeonMap.unknownRoom
+                else -> DungeonMap.normalRoom
+            }
 
-        return if (state.equalsOneOf(RoomState.UNDISCOVERED, RoomState.UNOPENED)) {
-            Colour.RGB(base.rgb.multiply(1f - DungeonMap.darkenMultiplier))
-        } else base
-    }
+            return if (state.equalsOneOf(RoomState.UNDISCOVERED, RoomState.UNOPENED)) {
+                Colour.RGB(base.rgb.multiply(1f - DungeonMap.darkenMultiplier))
+            } else base
+        }
 }
 
 class RoomDataDeserializer : JsonDeserializer<RoomData> {
@@ -154,6 +166,14 @@ class RoomDataDeserializer : JsonDeserializer<RoomData> {
         val secrets = (jsonObject?.get("maxSecrets") ?: jsonObject?.get("secrets"))?.asInt ?: 0
         val trappedChests = jsonObject?.get("trappedChests")?.asInt ?: 0
 
-        return RoomData(name, type, cores, crypts, secrets, trappedChests, shape = jsonObject?.get("shape")?.asString ?: "1x1")
+        return RoomData(
+            name,
+            type,
+            cores,
+            crypts,
+            secrets,
+            trappedChests,
+            shape = jsonObject?.get("shape")?.asString ?: "1x1"
+        )
     }
 }

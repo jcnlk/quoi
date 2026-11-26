@@ -3,6 +3,7 @@ package quoi.api.input
 import quoi.QuoiMod.mc
 //? if <26.3 {
 import org.lwjgl.glfw.GLFW
+
 //?} else {
 /*import org.lwjgl.sdl.SDLMouse
 *///?}

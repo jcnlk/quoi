@@ -13,7 +13,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(LevelRenderer.class)
 public class OverlayLevelRendererMixin {
-    @Unique private boolean quoi$hasOverlayGeometry;
+    @Unique
+    private boolean quoi$hasOverlayGeometry;
 
     @WrapOperation(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/feature/FeatureRenderDispatcher;prepareFrame(Lnet/minecraft/client/renderer/SubmitNodeStorage;)Lnet/minecraft/client/renderer/feature/FeatureRenderDispatcher$PreparedFrame;"))
     private FeatureRenderDispatcher.PreparedFrame quoi$captureOverlayPass(FeatureRenderDispatcher dispatcher, SubmitNodeStorage storage, Operation<FeatureRenderDispatcher.PreparedFrame> original) {

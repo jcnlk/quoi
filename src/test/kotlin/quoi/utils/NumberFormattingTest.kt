@@ -58,7 +58,18 @@ class NumberFormattingTest {
     }
 
     @ParameterizedTest
-    @CsvSource("1, 1st", "2, 2nd", "3, 3rd", "4, 4th", "11, 11th", "12, 12th", "13, 13th", "21, 21st", "112, 112th", "123, 123rd")
+    @CsvSource(
+        "1, 1st",
+        "2, 2nd",
+        "3, 3rd",
+        "4, 4th",
+        "11, 11th",
+        "12, 12th",
+        "13, 13th",
+        "21, 21st",
+        "112, 112th",
+        "123, 123rd"
+    )
     fun `ordinals use English suffixes`(value: Int, expected: String) {
         assertEquals(expected, value.ordinal())
     }

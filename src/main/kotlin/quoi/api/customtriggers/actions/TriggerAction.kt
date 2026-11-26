@@ -15,6 +15,7 @@ sealed interface TriggerAction : TypeNamed, Abobable {
      * Event type required by this action, or `null` for actions that support any trigger.
      */
     val requiredEvent: TriggerContext.Kind? get() = null
+
     /**
      * Whether this action can run after a delay or a container task.
      * Event edits must finish before the originating event returns.

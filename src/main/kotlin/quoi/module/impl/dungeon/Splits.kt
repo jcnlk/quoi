@@ -29,7 +29,14 @@ object Splits : Module( // todo section split info hud, task (terms, levers, dev
     private val bossClear by switch("Boss Clear split")
     private val p3Stages by switch("Goldor sections")
     private val hideNotStarted by switch("Hide not started")
-    private val numbersAfterDecimal by slider("Numbers after decimal", 2, 0, 5, 1, desc = "Numbers after decimal in time.")
+    private val numbersAfterDecimal by slider(
+        "Numbers after decimal",
+        2,
+        0,
+        5,
+        1,
+        desc = "Numbers after decimal in time."
+    )
     private val showTickTime by switch("Show tick time", desc = "Show tick-based time alongside real time.")
 
     private lateinit var refreshable: RefreshableGroup
@@ -95,13 +102,14 @@ object Splits : Module( // todo section split info hud, task (terms, levers, dev
                     )
                     if (i == 5 && p3Stages) {
                         Stage.entries
-                            .filter {it.number in 1..4}
+                            .filter { it.number in 1..4 }
                             .forEach { section ->
                                 textPair(
                                     string = "  S${section.number}:",
                                     supplier = {
                                         val time = if (preview) (12_000L * section.number) else section.getDuration()
-                                        val ticks = if (preview) (1200L * section.number) else section.getDurationTicks()
+                                        val ticks =
+                                            if (preview) (1200L * section.number) else section.getDurationTicks()
                                         val formatted = formatTime(time, numbersAfterDecimal)
                                         if (showTickTime) "$formatted §7(§a${(ticks / 20f).toFixed()}§7)" else formatted
                                     },
@@ -112,11 +120,12 @@ object Splits : Module( // todo section split info hud, task (terms, levers, dev
                                 ).apply {
                                     operation {
                                         val terms = preview || splits.getOrNull(5)?.time != 0L
-                                        element.enabled = terms && (preview || !hideNotStarted || section.startTime != 0L)
+                                        element.enabled =
+                                            terms && (preview || !hideNotStarted || section.startTime != 0L)
                                         false
                                     }
                                 }
-                        }
+                            }
                     }
                 }
 
@@ -135,7 +144,15 @@ object Splits : Module( // todo section split info hud, task (terms, levers, dev
                 }
             }
         }
-    }.withSettings(::timeElapsed, ::bossEntry, ::bossClear, ::p3Stages, ::hideNotStarted, ::numbersAfterDecimal, ::showTickTime).setting()
+    }.withSettings(
+        ::timeElapsed,
+        ::bossEntry,
+        ::bossClear,
+        ::p3Stages,
+        ::hideNotStarted,
+        ::numbersAfterDecimal,
+        ::showTickTime
+    ).setting()
 
     private val previewSplits = listOf(
         Split(Regex(""), "Blood Open", Colour.MINECRAFT_DARK_RED, 1L),
@@ -148,7 +165,7 @@ object Splits : Module( // todo section split info hud, task (terms, levers, dev
     )
 
     init {
-        on<AreaEvent.Main> (Priority.LOW) {
+        on<AreaEvent.Main>(Priority.LOW) {
             scheduleTask(21) {
                 if (::refreshable.isInitialized) refreshable.refresh()
             }

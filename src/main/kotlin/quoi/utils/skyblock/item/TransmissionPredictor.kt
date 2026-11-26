@@ -25,7 +25,8 @@ internal object TransmissionPredictor {
         val bars: Boolean = false,
         val exact: Boolean = false
     ) {
-        val fullCube = boxes.any { it.minX == 0.0 && it.minY == 0.0 && it.minZ == 0.0 && it.maxX == 1.0 && it.maxY == 1.0 && it.maxZ == 1.0 }
+        val fullCube =
+            boxes.any { it.minX == 0.0 && it.minY == 0.0 && it.minZ == 0.0 && it.maxX == 1.0 && it.maxY == 1.0 && it.maxZ == 1.0 }
     }
 
     private class LevelWorld(private val level: BlockGetter) {
@@ -77,7 +78,13 @@ internal object TransmissionPredictor {
                 block = world.cell(pos)
             }
             if (block.passable || block.fullCube) continue
-            val passesShape = (block.bottomSlab || block.pane || block.exact) && block.boxes.none { it.contains(px - bx, py - by, pz - bz) }
+            val passesShape = (block.bottomSlab || block.pane || block.exact) && block.boxes.none {
+                it.contains(
+                    px - bx,
+                    py - by,
+                    pz - bz
+                )
+            }
             if (!passesShape) {
                 k = floor(t).toInt()
                 break
@@ -101,7 +108,14 @@ internal object TransmissionPredictor {
             if (closeFloorY?.let { y < it } == true) break
 
             val below = world.cell(BlockPos.containing(x, y - 1.0, z))
-            if (!below.passable && below.fullCube && point.y - y < 0.31 && world.noCollision(bodyBox(x, y, z))) closeFloorY = y
+            if (!below.passable && below.fullCube && point.y - y < 0.31 && world.noCollision(
+                    bodyBox(
+                        x,
+                        y,
+                        z
+                    )
+                )
+            ) closeFloorY = y
             if (below.passable && world.noCollision(bodyBox(x, y - 1.0, z)) && !isObstructed(target.below())) y -= 1.0
 
             val body = bodyBox(x, y, z)
@@ -128,7 +142,7 @@ internal object TransmissionPredictor {
             passable = state.block in PASSABLE_BLOCKS || shape.isEmpty,
             bottomSlab = state.block is SlabBlock && state.getValue(SlabBlock.TYPE) == SlabType.BOTTOM,
             landingShape = state.`is`(Blocks.CHEST) || state.`is`(Blocks.TRAPPED_CHEST) || state.`is`(Blocks.ENDER_CHEST) ||
-                    state.block is SlabBlock || state.`is`(Blocks.END_PORTAL_FRAME) || state.block is StairBlock,
+                state.block is SlabBlock || state.`is`(Blocks.END_PORTAL_FRAME) || state.block is StairBlock,
             pane = state.`is`(Blocks.GLASS_PANE) || state.block is StainedGlassPaneBlock,
             bars = state.block is IronBarsBlock,
             exact = state.block is StairBlock || state.block is FenceBlock
@@ -179,7 +193,13 @@ internal object TransmissionPredictor {
         while (true) {
             val block = cell(pos)
             if (!block.passable && block.fullCube) return true
-            if (!block.passable && block.landingShape && block.boxes.any { rayIntersects(start, d, it.move(pos)) }) return true
+            if (!block.passable && block.landingShape && block.boxes.any {
+                    rayIntersects(
+                        start,
+                        d,
+                        it.move(pos)
+                    )
+                }) return true
             if (tMaxX > 1.0 && tMaxY > 1.0 && tMaxZ > 1.0) return false
 
             when {
@@ -214,7 +234,12 @@ internal object TransmissionPredictor {
             return t0 <= t1
         }
 
-        return clip(start.x, d.x, box.minX, box.maxX) && clip(start.y, d.y, box.minY, box.maxY) && clip(start.z, d.z, box.minZ, box.maxZ)
+        return clip(start.x, d.x, box.minX, box.maxX) && clip(start.y, d.y, box.minY, box.maxY) && clip(
+            start.z,
+            d.z,
+            box.minZ,
+            box.maxZ
+        )
     }
 
     private fun bodyBox(x: Double, y: Double, z: Double) = AABB(x - 0.3, y, z - 0.3, x + 0.3, y + 1.8, z + 0.3)

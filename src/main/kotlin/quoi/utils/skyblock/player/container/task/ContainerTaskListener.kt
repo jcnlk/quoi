@@ -31,7 +31,10 @@ class ContainerTaskListener internal constructor(
             val next = containerTask(name = name, force = force, settings = settings, reportErrors = reportErrors) {
                 builder()
                 if (actions.isEmpty()) return@containerTask
-                actions.add(0, ContainerAction.AwaitContainer(Regex("^${Regex.escape(packet.title.string)}$"), 20, true))
+                actions.add(
+                    0,
+                    ContainerAction.AwaitContainer(Regex("^${Regex.escape(packet.title.string)}$"), 20, true)
+                )
                 val callback = onFinished
                 onFinished { result ->
                     task = null

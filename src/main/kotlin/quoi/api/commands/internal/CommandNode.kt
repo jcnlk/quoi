@@ -42,7 +42,15 @@ abstract class CommandNode<T : CommandNode<T>>(val name: String) {
         return sub
     }
 
-    fun sub(name: String, lambda: () -> Unit = { modMessage(subcommands[name]!!.first().buildHelpMessage(), id = this.name.hashCode()) }) =
+    fun sub(
+        name: String,
+        lambda: () -> Unit = {
+            modMessage(
+                subcommands[name]!!.first().buildHelpMessage(),
+                id = this.name.hashCode()
+            )
+        }
+    ) =
         sub(name, lambda as Function<*>)
 
     operator fun String.invoke(action: Function<*>): SubCommand = sub(this, action)

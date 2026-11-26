@@ -137,7 +137,7 @@ fun pathToRoom(room: OdonRoom, tile: RoomTile? = null, type: Int) {
     if (type !in 0..2) return
     pathBlockedReason()?.let { return Notifications.warning(InteractiveMap.name, it) }
     val targetTile = tile ?: room.tiles.firstOrNull()
-        ?: return Notifications.warning(InteractiveMap.name, "${room.name} hasn't been mapped yet.")
+    ?: return Notifications.warning(InteractiveMap.name, "${room.name} hasn't been mapped yet.")
 
     val enterRoomFirst = type == 2 && Dungeon.currentRoom != room
     if (type == 0 || enterRoomFirst) {
@@ -146,27 +146,36 @@ fun pathToRoom(room: OdonRoom, tile: RoomTile? = null, type: Int) {
             room.getRealCoords(overridePos)
         } else {
             targetTile.blockPos.firstNearbyBlock(25f) { it.etherwarpable }
-                ?: return Notifications.error(InteractiveMap.name, "Couldn't find an Etherwarp landing spot in ${room.name}.")
+                ?: return Notifications.error(
+                    InteractiveMap.name,
+                    "Couldn't find an Etherwarp landing spot in ${room.name}."
+                )
         }
 
         val nextLeg: (() -> Unit)? = if (enterRoomFirst) {
             {
                 if (Dungeon.currentRoom == room) pathToRoom(room, targetTile, type = 1)
-                else Notifications.error(InteractiveMap.name, "Couldn't reach ${room.name}. Travel to the route start was cancelled.")
+                else Notifications.error(
+                    InteractiveMap.name,
+                    "Couldn't reach ${room.name}. Travel to the route start was cancelled."
+                )
             }
         } else null
         pathToMapTarget(goal, room.name, onArrival = nextLeg)
         return
     }
 
-    if (!room.ready) return Notifications.warning(InteractiveMap.name, "Room data for ${room.name} is still loading. Enter the room first.")
+    if (!room.ready) return Notifications.warning(
+        InteractiveMap.name,
+        "Room data for ${room.name} is still loading. Enter the room first."
+    )
     val rings = routeNodes[room.name].orEmpty()
     val starts = rings.filter { it.start == true }
     if (starts.isEmpty()) return Notifications.warning(InteractiveMap.name, "No route start is saved for ${room.name}.")
 
     val landingSpots = starts.map { room.getRealCoords(it.relative.floorPos) }.filter { it.etherwarpable }
     val goal = landingSpots.find { it.distanceToSqr(targetTile.blockPos) < 225 } ?: landingSpots.firstOrNull()
-        ?: return Notifications.error(InteractiveMap.name, "No route start in ${room.name} can be reached with Etherwarp.")
+    ?: return Notifications.error(InteractiveMap.name, "No route start in ${room.name} can be reached with Etherwarp.")
 
     pathToMapTarget(goal, "the route start in ${room.name}")
 }
@@ -175,7 +184,13 @@ private fun pathToMapTarget(goal: BlockPos, target: String, onArrival: (() -> Un
     ClearExecutor.etherPath(
         to = goal,
         config = PathConfig(feedback = false),
-        onAlreadyThere = { Notifications.info(InteractiveMap.name, "You're already at the destination.", duration = 2000L) },
+        onAlreadyThere = {
+            Notifications.info(
+                InteractiveMap.name,
+                "You're already at the destination.",
+                duration = 2000L
+            )
+        },
         onFailure = { reason -> Notifications.error(InteractiveMap.name, "Couldn't travel to $target. $reason") },
         onComplete = onArrival,
     )

@@ -50,9 +50,25 @@ interface HudDSL {
         val anchorSetting = anchor?.let { SelectorComponent("Anchor", it) }
         val alignmentSetting = alignment?.let { SelectorComponent("Alignment", it) }
 
-        val hud = TextHud(name, hudModule, toggleable, colourSetting, shadowSetting, fontSetting, anchorSetting, alignmentSetting, block)
+        val hud = TextHud(
+            name,
+            hudModule,
+            toggleable,
+            colourSetting,
+            shadowSetting,
+            fontSetting,
+            anchorSetting,
+            alignmentSetting,
+            block
+        )
 
-        val settings = listOfNotNull<UIComponent<*>>(colourSetting, shadowSetting, fontSetting, anchorSetting, alignmentSetting).toTypedArray()
+        val settings = listOfNotNull<UIComponent<*>>(
+            colourSetting,
+            shadowSetting,
+            fontSetting,
+            anchorSetting,
+            alignmentSetting
+        ).toTypedArray()
         hud.withSettings(*settings)
         return hud
     }
@@ -71,11 +87,14 @@ interface HudDSL {
         val height = SliderComponent("Height", height, 10f, 10000f, 1f).hide()
         val colour = ColourPickerComponent("Colour", colour, allowAlpha = true)
         val outlineColour = outline?.let { ColourPickerComponent("Outline colour", it, allowAlpha = true) }
-        val outlineThickness = outline?.let { SliderComponent("Outline thickness", thickness, 1f, 10f, increment = 0.5f) }
+        val outlineThickness =
+            outline?.let { SliderComponent("Outline thickness", thickness, 1f, 10f, increment = 0.5f) }
 
-        val hud = ResizableHud(name, hudModule, toggleable, width, height, colour, outlineColour, outlineThickness, block)
+        val hud =
+            ResizableHud(name, hudModule, toggleable, width, height, colour, outlineColour, outlineThickness, block)
 
-        val settings = listOfNotNull<UIComponent<*>>(width, height, colour, outlineColour, outlineThickness).toTypedArray()
+        val settings =
+            listOfNotNull<UIComponent<*>>(width, height, colour, outlineColour, outlineThickness).toTypedArray()
         hud.withSettings(*settings)
         return hud
     }

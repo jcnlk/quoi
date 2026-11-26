@@ -38,7 +38,11 @@ object VisualBlocking : Module(
             for (action in ListAction.entries) {
                 listCommand.sub(action.name.lowercase()) { type: String, entry: GreedyString? ->
                     editEntry(list, type, entry?.string, action)
-                }.description("${action.name.lowercase().replaceFirstChar(Char::uppercase)} a SkyBlock ID or vanilla item name, or use the held item.")
+                }.description(
+                    "${
+                        action.name.lowercase().replaceFirstChar(Char::uppercase)
+                    } a SkyBlock ID or vanilla item name, or use the held item."
+                )
                     .suggests("type", "skyblock", "vanilla")
                     .suggestsCtx("entry") { ctx ->
                         val skyblock = StringArgumentType.getString(ctx, "type").equals("skyblock", true)
@@ -74,7 +78,8 @@ object VisualBlocking : Module(
         val raw = value ?: mc.player?.mainHandItem?.takeUnless { it.isEmpty }?.let { stack ->
             if (skyblock) stack.skyblockId?.takeIf(String::isNotBlank)
             else BuiltInRegistries.ITEM.getKey(stack.item).toString()
-        } ?: return modMessage("&cHold a matching item or provide its ${if (skyblock) "SkyBlock ID" else "vanilla name"}.")
+        }
+        ?: return modMessage("&cHold a matching item or provide its ${if (skyblock) "SkyBlock ID" else "vanilla name"}.")
         val id = BlockingItemFilter.normalizeEntry(if (skyblock) "skyblock:$raw" else raw)
             ?.takeIf { it.startsWith("skyblock:") == skyblock }
             ?: return modMessage("&cInvalid $type entry.")
@@ -97,7 +102,8 @@ object VisualBlocking : Module(
         if (!enabled) return false
         val player = mc.player ?: return false
         if (mc.gui.screen() != null || !mc.options.keyUse.isDown || player.isSpectator || player.isSleeping ||
-            player.isUsingItem || player.isAutoSpinAttack) return false
+            player.isUsingItem || player.isAutoSpinAttack
+        ) return false
         if (ItemAnimations.isMap(stack) || !ItemStack.isSameItemSameComponents(stack, player.mainHandItem)) return false
         return whitelistFilter.matches(stack, whitelist.value) && !blacklistFilter.matches(stack, blacklist.value)
     }
@@ -106,7 +112,8 @@ object VisualBlocking : Module(
     fun applyFirstPerson(pose: PoseStack, stack: ItemStack, context: ItemDisplayContext) {
         val player = mc.player ?: return
         val rightHand = player.mainArm == HumanoidArm.RIGHT
-        val mainContext = if (rightHand) ItemDisplayContext.FIRST_PERSON_RIGHT_HAND else ItemDisplayContext.FIRST_PERSON_LEFT_HAND
+        val mainContext =
+            if (rightHand) ItemDisplayContext.FIRST_PERSON_RIGHT_HAND else ItemDisplayContext.FIRST_PERSON_LEFT_HAND
         if (context != mainContext || !isBlocking(stack)) return
 
         val side = if (rightHand) 1f else -1f
@@ -159,7 +166,8 @@ object VisualBlocking : Module(
                     return "skyblock:${id.uppercase()}"
                 }
                 val tag = entry.startsWith('#')
-                val id = Identifier.tryParse(entry.removePrefix("#").lowercase())?.takeUnless { it.path.isEmpty() } ?: return null
+                val id = Identifier.tryParse(entry.removePrefix("#").lowercase())?.takeUnless { it.path.isEmpty() }
+                    ?: return null
                 return if (tag) "#$id" else id.toString()
             }
         }

@@ -26,9 +26,29 @@ object AutoDoorOpener : Module(
     desc = "Automatically opens nearby Wither and Blood doors.",
     area = Island.Dungeon(inClear = true)
 ) {
-    private val mode by selector("Mode", "Triggerbot", listOf("Aura", "Triggerbot"), desc = "Aura opens nearby doors automatically. Triggerbot only opens the door you are looking at.")
-    private val auraRange by slider("Range", 5.0, 2.0, 6.0, 0.1, desc = "Maximum distance for opening a door.").visibleIf { mode.selected == "Aura" }
-    private val retryDelay by slider("Retry delay", 500, 100, 2000, 50, unit = "ms", desc = "Delay between attempts to open a door.")
+    private val mode by selector(
+        "Mode",
+        "Triggerbot",
+        listOf("Aura", "Triggerbot"),
+        desc = "Aura opens nearby doors automatically. Triggerbot only opens the door you are looking at."
+    )
+    private val auraRange by slider(
+        "Range",
+        5.0,
+        2.0,
+        6.0,
+        0.1,
+        desc = "Maximum distance for opening a door."
+    ).visibleIf { mode.selected == "Aura" }
+    private val retryDelay by slider(
+        "Retry delay",
+        500,
+        100,
+        2000,
+        50,
+        unit = "ms",
+        desc = "Delay between attempts to open a door."
+    )
     private val swing by switch("Swing hand", desc = "Swings the hand when opening a door.")
     private val inMenus by switch("In menus", desc = "Allows doors to be opened while a menu is open.")
 
@@ -76,12 +96,12 @@ object AutoDoorOpener : Module(
         return hitPos.takeIf {
             doors.any { door ->
                 abs(hitPos.x - door.pos.x) <= 2 &&
-                        abs(hitPos.z - door.pos.z) <= 2 &&
-                        when (door.type) {
-                            DoorType.WITHER -> hitPos.state.block == Blocks.COAL_BLOCK
-                            DoorType.BLOOD -> hitPos.state.block == Blocks.DYED_TERRACOTTA.red()
-                            else -> false
-                        }
+                    abs(hitPos.z - door.pos.z) <= 2 &&
+                    when (door.type) {
+                        DoorType.WITHER -> hitPos.state.block == Blocks.COAL_BLOCK
+                        DoorType.BLOOD -> hitPos.state.block == Blocks.DYED_TERRACOTTA.red()
+                        else -> false
+                    }
             }
         }
     }

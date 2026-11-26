@@ -11,6 +11,12 @@ class DelayAction(var ticks: Int = 20, var server: Boolean = false) : TriggerAct
     override fun displayString() = "Wait $ticks ${if (server) "server" else "client"} ticks"
     override fun ElementScope<*>.draw() = settingRow(
         { intField("Ticks", { ticks }, 0, 72000) { ticks = it } },
-        { choiceField("Clock", { server }, listOf(false, true), { if (it) "Server ticks" else "Client ticks" }) { server = it } }
+        {
+            choiceField(
+                "Clock",
+                { server },
+                listOf(false, true),
+                { if (it) "Server ticks" else "Client ticks" }) { server = it }
+        }
     )
 }

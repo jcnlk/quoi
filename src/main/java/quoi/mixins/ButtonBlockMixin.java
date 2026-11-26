@@ -57,10 +57,18 @@ public class ButtonBlockMixin {
                     break;
                 case WALL:
                     switch (state.getValue(ButtonBlock.FACING)) {
-                        case NORTH: cir.setReturnValue(NORTH_SHAPE); break;
-                        case SOUTH: cir.setReturnValue(SOUTH_SHAPE); break;
-                        case WEST:  cir.setReturnValue(WEST_SHAPE); break;
-                        case EAST:  cir.setReturnValue(EAST_SHAPE); break;
+                        case NORTH:
+                            cir.setReturnValue(NORTH_SHAPE);
+                            break;
+                        case SOUTH:
+                            cir.setReturnValue(SOUTH_SHAPE);
+                            break;
+                        case WEST:
+                            cir.setReturnValue(WEST_SHAPE);
+                            break;
+                        case EAST:
+                            cir.setReturnValue(EAST_SHAPE);
+                            break;
                     }
                     break;
             }

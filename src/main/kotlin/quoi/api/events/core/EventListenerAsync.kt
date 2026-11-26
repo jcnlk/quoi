@@ -56,8 +56,8 @@ val EventListener.asyncScope: CoroutineScope
 
         CoroutineScope(
             job +
-                    CoroutineExceptionHandler { _, t -> if (t !is ListenerInactiveException) t.printStackTrace() } +
-                    ActiveStateInterceptor(mc.asCoroutineDispatcher(), listener)
+                CoroutineExceptionHandler { _, t -> if (t !is ListenerInactiveException) t.printStackTrace() } +
+                ActiveStateInterceptor(mc.asCoroutineDispatcher(), listener)
         )
     }!!
 

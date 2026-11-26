@@ -52,7 +52,19 @@ object EtherwarpPathfinder : AbstractTeleportPathfinder<EtherwarpContext>() {
         val ctx = EtherwarpContext(to, dist, config.hWeight, raycasts, config.timeout, offset)
         val startPos = from.blockPos
 
-        ctx.addNode(TeleportPathNode(from.x, from.y, from.z, startPos, 0.0, startPos.distanceTo(to) / dist, null, 0f, 0f))
+        ctx.addNode(
+            TeleportPathNode(
+                from.x,
+                from.y,
+                from.z,
+                startPos,
+                0.0,
+                startPos.distanceTo(to) / dist,
+                null,
+                0f,
+                0f
+            )
+        )
 
         val path = find(ctx, config.threads)
 
@@ -95,7 +107,8 @@ object EtherwarpPathfinder : AbstractTeleportPathfinder<EtherwarpContext>() {
 
         val path = mutableListOf<TeleportPathNode>()
 
-        var lastNode = TeleportPathNode(from.x, from.y, from.z, startPos, 0.0, 0.0, null, 0f, 0f) // last node in the whole path
+        var lastNode =
+            TeleportPathNode(from.x, from.y, from.z, startPos, 0.0, 0.0, null, 0f, 0f) // last node in the whole path
         var startNode = lastNode  // start node in *this* segment
 
         // start - door 1, door 1 - door 2 .. door N - goal
@@ -144,7 +157,17 @@ object EtherwarpPathfinder : AbstractTeleportPathfinder<EtherwarpContext>() {
 
             if (path.isNotEmpty()) {
                 lastNode = path.last()
-                startNode = TeleportPathNode(lastNode.x, lastNode.y, lastNode.z, lastNode.pos, 0.0, 0.0, null, lastNode.yaw, lastNode.pitch)
+                startNode = TeleportPathNode(
+                    lastNode.x,
+                    lastNode.y,
+                    lastNode.z,
+                    lastNode.pos,
+                    0.0,
+                    0.0,
+                    null,
+                    lastNode.yaw,
+                    lastNode.pitch
+                )
             }
         }
 
@@ -183,7 +206,15 @@ object EtherwarpPathfinder : AbstractTeleportPathfinder<EtherwarpContext>() {
     override fun getDirection(from: Vec3, to: BlockPos, dist: Double): Direction? =
         getEtherwarpDirection(from, to, dist)
 
-    override fun getHit(ctx: EtherwarpContext, eyeX: Double, eyeY: Double, eyeZ: Double, dx: Double, dy: Double, dz: Double): BlockPos? {
+    override fun getHit(
+        ctx: EtherwarpContext,
+        eyeX: Double,
+        eyeY: Double,
+        eyeZ: Double,
+        dx: Double,
+        dy: Double,
+        dz: Double
+    ): BlockPos? {
         val result = traverseVoxels(
             eyeX, eyeY, eyeZ,
             eyeX + dx, eyeY + dy, eyeZ + dz,
@@ -213,15 +244,16 @@ object EtherwarpPathfinder : AbstractTeleportPathfinder<EtherwarpContext>() {
     inline val BlockState?.blackListed: Boolean
         get() {
             if (this == null) return true
-            val isBottomSlab = block is SlabBlock && hasProperty(SlabBlock.TYPE) && getValue(SlabBlock.TYPE) == SlabType.BOTTOM
+            val isBottomSlab =
+                block is SlabBlock && hasProperty(SlabBlock.TYPE) && getValue(SlabBlock.TYPE) == SlabType.BOTTOM
 
             return isBottomSlab ||
-                    block is CarpetBlock ||
-                    block is WallBlock ||
-                    block is FenceBlock ||
-                    block is FenceGateBlock ||
-                    block is HopperBlock ||
-                    block is CauldronBlock ||
-                    block is BannerBlock
+                block is CarpetBlock ||
+                block is WallBlock ||
+                block is FenceBlock ||
+                block is FenceGateBlock ||
+                block is HopperBlock ||
+                block is CauldronBlock ||
+                block is BannerBlock
         }
 }

@@ -9,7 +9,7 @@ class Animatable(
     var to: Constraint,
 ) : Constraint.Measurement {
 
-    constructor(from: Constraint, to: Constraint, swapIf: Boolean) : this(from, to,) {
+    constructor(from: Constraint, to: Constraint, swapIf: Boolean) : this(from, to) {
         if (swapIf) {
             swap()
         }

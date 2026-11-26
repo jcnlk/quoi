@@ -30,8 +30,15 @@ object CommissionDisplay : Module(
     desc = "Displays your commissions without you having to open the tab menu!"
 ) {
     private val completionTitle by switch("Completion title", desc = "Shows a title when a commission is completed.")
-    private val highlightDoneCommissions by switch("Highlight done commissions", desc = "Highlights completed commissions in the commissions menu.")
-    private val doneCommissionColour by colourPicker("Done commission colour", Colour.GREEN.withAlpha(90), allowAlpha = true).visibleIf { highlightDoneCommissions }
+    private val highlightDoneCommissions by switch(
+        "Highlight done commissions",
+        desc = "Highlights completed commissions in the commissions menu."
+    )
+    private val doneCommissionColour by colourPicker(
+        "Done commission colour",
+        Colour.GREEN.withAlpha(90),
+        allowAlpha = true
+    ).visibleIf { highlightDoneCommissions }
 
     @Suppress("unused")
     private val hud by textHud("Commision Display") {
@@ -107,7 +114,8 @@ object CommissionDisplay : Module(
         }
     }
 
-    private fun inCommissionArea(): Boolean = currentArea.isArea(Island.DwarvenMines, Island.CrystalHollows, Island.Mineshaft)
+    private fun inCommissionArea(): Boolean =
+        currentArea.isArea(Island.DwarvenMines, Island.CrystalHollows, Island.Mineshaft)
 
     private fun refreshCommissions() {
         val lines = parseCommissions().map(::formatCommissionLine)

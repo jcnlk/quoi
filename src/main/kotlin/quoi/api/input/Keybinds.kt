@@ -1,6 +1,7 @@
 package quoi.api.input
 
 import com.mojang.blaze3d.platform.InputConstants
+
 //? if >=26.3
 //import org.lwjgl.sdl.SDLScancode
 
@@ -116,9 +117,11 @@ object Keybinds {
 
     //~ if >=26.3 'InputConstants.KEY_NUMPADCOMMA' -> 'SDLScancode.SDL_SCANCODE_KP_PERIOD'
     const val KEY_NUMPAD_DECIMAL: Int = InputConstants.KEY_NUMPADCOMMA
+
     //$ input_key KEY_NUMPAD_DIVIDE 'key.keyboard.keypad.divide' KP_DIVIDE
     val KEY_NUMPAD_DIVIDE: Int = InputConstants.getKey("key.keyboard.keypad.divide").value
     const val KEY_NUMPAD_MULTIPLY: Int = InputConstants.KEY_MULTIPLY
+
     //$ input_key KEY_NUMPAD_SUBTRACT 'key.keyboard.keypad.subtract' KP_MINUS
     val KEY_NUMPAD_SUBTRACT: Int = InputConstants.getKey("key.keyboard.keypad.subtract").value
     const val KEY_NUMPAD_ADD: Int = InputConstants.KEY_ADD
@@ -127,6 +130,7 @@ object Keybinds {
 
     const val KEY_PRINT_SCREEN: Int = InputConstants.KEY_PRINTSCREEN
     const val KEY_PAUSE: Int = InputConstants.KEY_PAUSE
+
     //$ input_key KEY_MENU 'key.keyboard.menu' APPLICATION
     val KEY_MENU: Int = InputConstants.getKey("key.keyboard.menu").value
 

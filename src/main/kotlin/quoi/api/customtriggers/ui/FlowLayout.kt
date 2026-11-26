@@ -14,7 +14,15 @@ class FlowLayout(val graph: TriggerGraph, val wide: Boolean) {
     }
 
     /** [slot] is the insertion point for the + button, or `null` for links without one. */
-    data class Link(val x1: Float, val y1: Float, val x2: Float, val y2: Float, val horizontal: Boolean, val slot: Int?, val dashed: Boolean)
+    data class Link(
+        val x1: Float,
+        val y1: Float,
+        val x2: Float,
+        val y2: Float,
+        val horizontal: Boolean,
+        val slot: Int?,
+        val dashed: Boolean
+    )
 
     data class Caption(val kind: TriggerGraph.Kind, val x: Float, val y: Float)
 
@@ -23,6 +31,7 @@ class FlowLayout(val graph: TriggerGraph, val wide: Boolean) {
     val conditionGroup: Box
     val addCondition: Box
     val addAction: Box
+
     // centres of the AND labels between conditions
     val ands: List<Pair<Float, Float>>
     val links: List<Link>
@@ -69,16 +78,56 @@ class FlowLayout(val graph: TriggerGraph, val wide: Boolean) {
         links = buildList {
             if (wide) {
                 add(Link(event.right, event.centreY, conditionGroup.x, event.centreY, true, null, false))
-                add(Link(conditionGroup.right, event.centreY, firstAction.x, firstAction.centreY, true, graph.boundary.takeIf { actions > 0 }, actions == 0))
+                add(
+                    Link(
+                        conditionGroup.right,
+                        event.centreY,
+                        firstAction.x,
+                        firstAction.centreY,
+                        true,
+                        graph.boundary.takeIf { actions > 0 },
+                        actions == 0
+                    )
+                )
             } else {
                 add(Link(event.centreX, event.bottom, event.centreX, conditionGroup.y, false, null, false))
-                add(Link(event.centreX, conditionGroup.bottom, firstAction.centreX, firstAction.y, false, graph.boundary.takeIf { actions > 0 }, actions == 0))
+                add(
+                    Link(
+                        event.centreX,
+                        conditionGroup.bottom,
+                        firstAction.centreX,
+                        firstAction.y,
+                        false,
+                        graph.boundary.takeIf { actions > 0 },
+                        actions == 0
+                    )
+                )
             }
             for (i in 1 until actions) {
                 val above = nodes[graph.boundary + i - 1]
-                add(Link(above.centreX, above.bottom, above.centreX, nodes[graph.boundary + i].y, false, graph.boundary + i, false))
+                add(
+                    Link(
+                        above.centreX,
+                        above.bottom,
+                        above.centreX,
+                        nodes[graph.boundary + i].y,
+                        false,
+                        graph.boundary + i,
+                        false
+                    )
+                )
             }
-            if (actions > 0) add(Link(addAction.centreX, nodes.last().bottom, addAction.centreX, addAction.y, false, null, true))
+            if (actions > 0) add(
+                Link(
+                    addAction.centreX,
+                    nodes.last().bottom,
+                    addAction.centreX,
+                    addAction.y,
+                    false,
+                    null,
+                    true
+                )
+            )
         }
 
         captions = if (wide) listOf(
@@ -91,7 +140,8 @@ class FlowLayout(val graph: TriggerGraph, val wide: Boolean) {
             Caption(TriggerGraph.Kind.ACTION, event.centreX + 18f, firstAction.y - CAPTION_GAP),
         )
 
-        val parts = nodes + conditionGroup + addCondition + addAction + captions.map { Box(it.x, it.y, CAPTION_W, CAPTION_H) }
+        val parts =
+            nodes + conditionGroup + addCondition + addAction + captions.map { Box(it.x, it.y, CAPTION_W, CAPTION_H) }
         val left = parts.minOf { it.x }
         val top = parts.minOf { it.y }
         bounds = Box(left, top, parts.maxOf { it.right } - left, parts.maxOf { it.bottom } - top)

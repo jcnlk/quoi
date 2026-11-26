@@ -33,7 +33,12 @@ object UIGeometry {
      * Clip both triangles of each GUI quad, interpolating UVs and vertex colours.
      * Reads [vertexCount] vertices from the backing arrays and returns independent arrays.
      */
-    fun clipQuads(vertices: FloatArray, colors: IntArray, rect: FloatArray, vertexCount: Int = colors.size): Pair<FloatArray, IntArray> {
+    fun clipQuads(
+        vertices: FloatArray,
+        colors: IntArray,
+        rect: FloatArray,
+        vertexCount: Int = colors.size
+    ): Pair<FloatArray, IntArray> {
         if (rect[2] <= rect[0] || rect[3] <= rect[1]) return FloatArray(0) to IntArray(0)
         var output = FloatArray(0)
         var outputColors = IntArray(0)
@@ -45,6 +50,7 @@ object UIGeometry {
                 outputColors = outputColors.copyOf(capacity)
             }
         }
+
         fun emit(polygon: ClipPolygon, index: Int) {
             reserve(1)
             polygon.vertices.copyInto(output, size * 4, index * 4, index * 4 + 4)
@@ -56,10 +62,14 @@ object UIGeometry {
         var polygonB: ClipPolygon? = null
         for (offset in 0 until vertexCount step 4) {
             var inside = true
-            var left = true; var right = true; var above = true; var below = true
+            var left = true;
+            var right = true;
+            var above = true;
+            var below = true
             for (i in 0..3) {
                 val p = (offset + i) * 4
-                val x = vertices[p]; val y = vertices[p + 1]
+                val x = vertices[p];
+                val y = vertices[p + 1]
                 inside = inside && x >= rect[0] && x <= rect[2] && y >= rect[1] && y <= rect[3]
                 left = left && x < rect[0]; right = right && x > rect[2]
                 above = above && y < rect[1]; below = below && y > rect[3]
@@ -88,7 +98,8 @@ object UIGeometry {
                     val boundary = rect[edge]
                     val keepGreater = edge < 2
                     fun coordinate(index: Int) = polygon.vertices[index * 4 + axis]
-                    fun inside(index: Int) = if (keepGreater) coordinate(index) >= boundary else coordinate(index) <= boundary
+                    fun inside(index: Int) =
+                        if (keepGreater) coordinate(index) >= boundary else coordinate(index) <= boundary
                     clipped.size = 0
                     var previous = polygon.size - 1
                     for (next in 0 until polygon.size) {
@@ -167,10 +178,12 @@ object UIGeometry {
         x: Float, y: Float, w: Float, h: Float,
         tl: Float, bl: Float, br: Float, tr: Float,
     ): FloatArray {
-        return roundedRectOutlineFixedSegments(x, y, w, h, tl, bl, br, tr, intArrayOf(
-            segmentsFor(tl, w, h), segmentsFor(tr, w, h),
-            segmentsFor(br, w, h), segmentsFor(bl, w, h),
-        ))
+        return roundedRectOutlineFixedSegments(
+            x, y, w, h, tl, bl, br, tr, intArrayOf(
+                segmentsFor(tl, w, h), segmentsFor(tr, w, h),
+                segmentsFor(br, w, h), segmentsFor(bl, w, h),
+            )
+        )
     }
 
     /** Circle outline with a caller-supplied segment count for concentric AA bands. */
@@ -297,10 +310,14 @@ object UIGeometry {
         tl: Float, bl: Float, br: Float, tr: Float,
         segments: IntArray,
     ): FloatArray {
-        val rxTL = clampRadius(tl, w); val ryTL = clampRadius(tl, h)
-        val rxBL = clampRadius(bl, w); val ryBL = clampRadius(bl, h)
-        val rxBR = clampRadius(br, w); val ryBR = clampRadius(br, h)
-        val rxTR = clampRadius(tr, w); val ryTR = clampRadius(tr, h)
+        val rxTL = clampRadius(tl, w);
+        val ryTL = clampRadius(tl, h)
+        val rxBL = clampRadius(bl, w);
+        val ryBL = clampRadius(bl, h)
+        val rxBR = clampRadius(br, w);
+        val ryBR = clampRadius(br, h)
+        val rxTR = clampRadius(tr, w);
+        val ryTR = clampRadius(tr, h)
 
         val pointCount = (0..3).sumOf { max(0, segments[it]) + 1 }
         val points = FloatArray(pointCount * 2)
@@ -311,7 +328,16 @@ object UIGeometry {
         return points
     }
 
-    private fun cornerFixed(out: FloatArray, offset: Int, cx: Float, cy: Float, rx: Float, ry: Float, startDeg: Float, segments: Int): Int {
+    private fun cornerFixed(
+        out: FloatArray,
+        offset: Int,
+        cx: Float,
+        cy: Float,
+        rx: Float,
+        ry: Float,
+        startDeg: Float,
+        segments: Int
+    ): Int {
         if (segments <= 0) {
             // sharp corner: emit the corner point once; offset centre back to the corner
             val sx = when (startDeg) {
@@ -338,7 +364,16 @@ object UIGeometry {
      * Intersection of two rectangles given as (x, y, maxX, maxY); used by the scissor stack.
      * Returns FloatArray(x, y, maxX, maxY) with width/height clamped to >= 0.
      */
-    fun intersect(ax: Float, ay: Float, aMaxX: Float, aMaxY: Float, bx: Float, by: Float, bMaxX: Float, bMaxY: Float): FloatArray {
+    fun intersect(
+        ax: Float,
+        ay: Float,
+        aMaxX: Float,
+        aMaxY: Float,
+        bx: Float,
+        by: Float,
+        bMaxX: Float,
+        bMaxY: Float
+    ): FloatArray {
         val x = max(ax, bx)
         val y = max(ay, by)
         val mx = max(x, min(aMaxX, bMaxX))

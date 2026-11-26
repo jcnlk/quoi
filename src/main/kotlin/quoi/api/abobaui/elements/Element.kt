@@ -149,7 +149,12 @@ abstract class Element(
                 val sy = scaled.y + (y - scaled.y) * scaled.scaleY
                 ctx.pose().pushMatrix()
                 ctx.pose().identity().scale(1f / sf, 1f / sf)
-                ctx.enableScissor(floor(sx).toInt(), floor(sy).toInt(), ceil(sx + width * scaled.scaleX).toInt(), ceil(sy + height * scaled.scaleY).toInt())
+                ctx.enableScissor(
+                    floor(sx).toInt(),
+                    floor(sy).toInt(),
+                    ceil(sx + width * scaled.scaleX).toInt(),
+                    ceil(sy + height * scaled.scaleY).toInt()
+                )
                 ctx.pose().popMatrix()
             }
             if (usingCtx) ctx.pose().pushMatrix()

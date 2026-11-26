@@ -258,9 +258,9 @@ object QuoiCommand : EventListener {
                 retryAt = now + 5_000L
             }
         }.description("Finds lobby with specified criteria.")
-        .requires("&cYou are not in skyblock!") { inSkyblock }
-        .suggests("area") { Island.entries.filter { it.command != null }.map { it.displayName.replace(" ", "_") } }
-        .suggests("criteria", "day", "server", "player")
+            .requires("&cYou are not in skyblock!") { inSkyblock }
+            .suggests("area") { Island.entries.filter { it.command != null }.map { it.displayName.replace(" ", "_") } }
+            .suggests("criteria", "day", "server", "player")
 
         command.sub("antiafk") { delay: Int ->
             if (delay < 20) return@sub modMessage("&cThe delay is too low!")

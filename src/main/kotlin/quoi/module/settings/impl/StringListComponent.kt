@@ -170,9 +170,11 @@ class StringListComponent<T : MutableCollection<String>>(
 
         val listArea = group(size(w = Copying))
         val maxHeight = (rowHeight * visibleRows + gap * (visibleRows - 1)).px
-        val scrollable = listArea.scrollable(constrain(x = 0.px, y = 0.px, w = Copying, h = Bounding.coerceAtMost(maxHeight))) {}
+        val scrollable =
+            listArea.scrollable(constrain(x = 0.px, y = 0.px, w = Copying, h = Bounding.coerceAtMost(maxHeight))) {}
         val list = scrollable.column(size(w = Copying), gap = gap.px) {}
-        val scrollBar = ScrollBar(constrain(x = 0.px.alignOpposite, y = 0.px, w = 4.px, h = 1.px), scrollable.element, list.element)
+        val scrollBar =
+            ScrollBar(constrain(x = 0.px.alignOpposite, y = 0.px, w = 4.px, h = 1.px), scrollable.element, list.element)
         listArea.apply { scrollBar.add() }
 
         fun rebuild() {
@@ -208,7 +210,12 @@ class StringListComponent<T : MutableCollection<String>>(
                         }
 
                         block(
-                            constrain(x = 3.px.alignOpposite, y = Centre, w = (rowHeight - 6f).px, h = (rowHeight - 6f).px),
+                            constrain(
+                                x = 3.px.alignOpposite,
+                                y = Centre,
+                                w = (rowHeight - 6f).px,
+                                h = (rowHeight - 6f).px
+                            ),
                             colour = theme.surfaceContainerHighest,
                             radius = 3.radius()
                         ) {
@@ -327,7 +334,14 @@ class StringListComponent<T : MutableCollection<String>>(
 
             val thumbHeight = (viewHeight * viewHeight / contentHeight).coerceAtLeast(12f)
             val progress = (scrollable.scrollOffset / (contentHeight - viewHeight)).coerceIn(0f, 1f)
-            UIRenderer.rect(x, top + (viewHeight - thumbHeight) * progress, width, thumbHeight, theme.primary.rgb, width / 2f)
+            UIRenderer.rect(
+                x,
+                top + (viewHeight - thumbHeight) * progress,
+                width,
+                thumbHeight,
+                theme.primary.rgb,
+                width / 2f
+            )
         }
     }
 }

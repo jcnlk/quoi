@@ -19,7 +19,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Pseudo
 @Mixin(targets = "com.github.noamm9.features.impl.misc.NoRotate", remap = false)
 public abstract class NoRotateMixin {
-    @Shadow @Final
+    @Shadow
+    @Final
     private static CopyOnWriteArrayList<?> pendingTeleports;
 
     @ModifyArg(method = "init", at = @At(

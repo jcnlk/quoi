@@ -43,6 +43,7 @@ object TextEngine {
                         underline = false
                         strike = false
                     }
+
                     'l', 'o', 'k' -> {}
                     else -> {
                         val c = colourForCode(code)

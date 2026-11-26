@@ -36,7 +36,11 @@ object NameTags : Module(
     private val customTag by switch("Custom nametag").json("Custom nametags toggle")
     private val dungeonsOnly by switch("Dungeons only").childOf(::customTag)
     private val simpleTag by switch("Simple tag").childOf(::customTag)
-    private val customTagBgColour by colourPicker("Background colour", Colour.RGB(0, 0, 0, 0.33f), allowAlpha = true).json("Custom tag background colour").childOf(::customTag)
+    private val customTagBgColour by colourPicker(
+        "Background colour",
+        Colour.RGB(0, 0, 0, 0.33f),
+        allowAlpha = true
+    ).json("Custom tag background colour").childOf(::customTag)
     private val customTagShadow by switch("Shadow").json("Custom tag shadow").childOf(::customTag)
     private val heightOffset by slider("Height offset", 0.0, -2.2, 1.0, 0.1).childOf(::customTag)
     private val distanceText by switch("Distance").childOf(::customTag)
@@ -44,9 +48,15 @@ object NameTags : Module(
     private val distanceColour by colourPicker("Colour", Colour.WHITE).json("Distance colour").childOf(::customCol)
 
     private val vanillaTagDropDown by text("Vanilla nametags")
-    @JvmStatic val customBg by switch("Custom background").childOf(::vanillaTagDropDown)
-    @JvmStatic val bgColour by colourPicker("Background colour", Colour.RGB(0, 0, 0, 0.33f), allowAlpha = true).childOf(::customBg)
-    @JvmStatic val shadow by switch("Shadow").childOf(::vanillaTagDropDown)
+
+    @JvmStatic
+    val customBg by switch("Custom background").childOf(::vanillaTagDropDown)
+
+    @JvmStatic
+    val bgColour by colourPicker("Background colour", Colour.RGB(0, 0, 0, 0.33f), allowAlpha = true).childOf(::customBg)
+
+    @JvmStatic
+    val shadow by switch("Shadow").childOf(::vanillaTagDropDown)
 
     private val SIMPLE_TAG_REGEX = Regex("\\[\\d+]\\s+(\\S+)")
 
@@ -61,6 +71,7 @@ object NameTags : Module(
                         inDungeon -> dungeonTeammatesNoSelf.firstOrNull { it.name == entity.name.string }
                             ?.let { literal("&${it.clazz.colourCode}${it.name}") }
                             ?: if (simpleTag) displayName.simple else displayName
+
                         simpleTag -> displayName.simple
                         else -> displayName
                     }
@@ -79,7 +90,14 @@ object NameTags : Module(
                 }
                 val scale = (0.5 + sqrt(dist) / 10.0).toFloat()
 
-                ctx.drawText(name, Vec3(renderX, renderY + (2.2 + heightOffset), renderZ), customTagBgColour, customTagShadow, scale, false)
+                ctx.drawText(
+                    name,
+                    Vec3(renderX, renderY + (2.2 + heightOffset), renderZ),
+                    customTagBgColour,
+                    customTagShadow,
+                    scale,
+                    false
+                )
             }
         }
     }

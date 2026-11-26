@@ -27,6 +27,10 @@ class SendMessageAction(var message: String = "", var client: Boolean = true) : 
 
     override fun ElementScope<*>.draw() = settingRow(
         { textField("Message", message) { message = it } },
-        { choiceField("Destination", { client }, listOf(true, false), { if (it) "Client" else "Server" }) { client = it } }
+        {
+            choiceField("Destination", { client }, listOf(true, false), { if (it) "Client" else "Server" }) {
+                client = it
+            }
+        }
     )
 }

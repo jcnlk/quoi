@@ -21,7 +21,13 @@ class ColourTest {
     }
 
     @ParameterizedTest
-    @CsvSource("'#123456', '#123456FF'", "'#aBcDeF', '#ABCDEFFF'", "'#12345680', '#12345680'", "'#00000000', '#00000000'", "'#FFFFFFFF', '#FFFFFFFF'")
+    @CsvSource(
+        "'#123456', '#123456FF'",
+        "'#aBcDeF', '#ABCDEFFF'",
+        "'#12345680', '#12345680'",
+        "'#00000000', '#00000000'",
+        "'#FFFFFFFF', '#FFFFFFFF'"
+    )
     fun `hex colors roundtrip with explicit alpha and normalized casing`(input: String, expected: String) {
         val colour = Colour.RGB(hexToRGBA(input))
 

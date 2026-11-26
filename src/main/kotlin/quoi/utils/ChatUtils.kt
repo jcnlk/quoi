@@ -123,7 +123,12 @@ object ChatUtils {
 
     fun say(message: String) = connection.sendChat(message)
 
-    fun button(text: String, command: String, hoverText: String? = null, action: ClickEvent.Action = ClickEvent.Action.RUN_COMMAND): MutableComponent {
+    fun button(
+        text: String,
+        command: String,
+        hoverText: String? = null,
+        action: ClickEvent.Action = ClickEvent.Action.RUN_COMMAND
+    ): MutableComponent {
         val literal = literal(text)
 
         val clickEvent = when (action) {

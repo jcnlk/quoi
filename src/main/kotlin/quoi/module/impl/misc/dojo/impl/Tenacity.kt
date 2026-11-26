@@ -88,7 +88,15 @@ object Tenacity : ToggleableGroup(Dojo, "Tenacity", subarea = "dojo arena") {
             it.start = start
 
             val dir = it.entity.position().subtract(it.spawn)
-            val hit = level.clip(ClipContext(start, start.add(dir.scale(100.0)), ClipContext.Block.OUTLINE, ClipContext.Fluid.ANY, it.entity))
+            val hit = level.clip(
+                ClipContext(
+                    start,
+                    start.add(dir.scale(100.0)),
+                    ClipContext.Block.OUTLINE,
+                    ClipContext.Fluid.ANY,
+                    it.entity
+                )
+            )
             it.end = hit.location
             it.box = AABB.ofSize(hit.location, 3.0, 0.1, 3.0)
 

@@ -86,7 +86,19 @@ abstract class AbstractTeleportPathfinder<T : TeleportContext> : AbstractPathfin
                     val gCost = current.g + 1.0
                     if (ctx.canImprove(result, gCost)) {
                         val hCost = (result.distanceTo(ctx.goal) / ctx.dist) * ctx.hWeight
-                        ctx.addNode(TeleportPathNode(result.x + 0.5, getNodeY(ctx, result), result.z + 0.5, result, gCost, hCost, current, ctx.raycasts.yaws[i], ctx.raycasts.pitches[i]))
+                        ctx.addNode(
+                            TeleportPathNode(
+                                result.x + 0.5,
+                                getNodeY(ctx, result),
+                                result.z + 0.5,
+                                result,
+                                gCost,
+                                hCost,
+                                current,
+                                ctx.raycasts.yaws[i],
+                                ctx.raycasts.pitches[i]
+                            )
+                        )
                     }
                 }
             }
@@ -119,7 +131,19 @@ abstract class AbstractTeleportPathfinder<T : TeleportContext> : AbstractPathfin
                 }
             }
 
-            smoothed.add(TeleportPathNode(current.x, current.y, current.z, current.pos, current.g, current.h, current.parent, yaw, pitch))
+            smoothed.add(
+                TeleportPathNode(
+                    current.x,
+                    current.y,
+                    current.z,
+                    current.pos,
+                    current.g,
+                    current.h,
+                    current.parent,
+                    yaw,
+                    pitch
+                )
+            )
 
             i = next
         }

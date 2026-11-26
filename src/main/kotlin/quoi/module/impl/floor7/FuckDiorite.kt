@@ -73,7 +73,10 @@ object FuckDiorite : Module(
         "BLACK"
     )
 
-    private val oneColour by switch("One colour", desc = "Swaps the diorite to one colour rather than pillar based colour.")
+    private val oneColour by switch(
+        "One colour",
+        desc = "Swaps the diorite to one colour rather than pillar based colour."
+    )
     private val colour by selector("Colour", "None", COLS).visibleIf { oneColour }
 
     private val pillars = arrayOf(
@@ -125,7 +128,14 @@ object FuckDiorite : Module(
         for ((index, pillar) in pillars.withIndex()) {
             if (!dirtyPillars[index]) continue
             dirtyPillars[index] = false
-            for (pos in BlockPos.betweenClosed(pillar.x - 3, pillar.y, pillar.z - 3, pillar.x + 3, pillar.y + 37, pillar.z + 3)) {
+            for (pos in BlockPos.betweenClosed(
+                pillar.x - 3,
+                pillar.y,
+                pillar.z - 3,
+                pillar.x + 3,
+                pillar.y + 37,
+                pillar.z + 3
+            )) {
                 if (pos.state.block.equalsOneOf(Blocks.DIORITE, Blocks.POLISHED_DIORITE)) {
                     setGlass(pos.immutable(), index)
                 }

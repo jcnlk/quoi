@@ -46,15 +46,15 @@ inline fun ElementScope<*>.switch(
         swapIf = value
     )
     val handlePos = Animatable(
-        from = 13.5.percent ,
+        from = 13.5.percent,
         to = 46.15.percent,
         swapIf = value
     )
     val handleSize = Animatable(
         from = 50.percent,
-       to = 75.percent,
-       swapIf = value
-   )
+        to = 75.percent,
+        swapIf = value
+    )
 
     val syncState: (Boolean) -> Unit = { target ->
         if (renderedValue != target) {

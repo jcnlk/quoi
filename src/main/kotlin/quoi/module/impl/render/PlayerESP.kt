@@ -18,7 +18,8 @@ object PlayerESP : Module(
     desc = "Highlights players through walls."
 ) {
     private var specific by switch("Specific player")
-    private var specificName by textInput("Name", length = 16, placeholder = "Player name").childOf(::specific).suggests { WorldUtils.players.map { it.profile.name } }
+    private var specificName by textInput("Name", length = 16, placeholder = "Player name").childOf(::specific)
+        .suggests { WorldUtils.players.map { it.profile.name } }
 
     private val tracer = tracer(customColour = true)
     private val highlight = highlight(customColour = true, customFillColour = true, aabbOffset = true)

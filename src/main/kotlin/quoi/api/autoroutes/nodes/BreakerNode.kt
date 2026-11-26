@@ -94,7 +94,14 @@ class BreakerNode : RouteNode() {
         return false
     }
 
-    override fun render(ctx: LevelRenderContext, style: String, colour: Colour, fillColour: Colour, activeColour: Colour, thickness: Float) {
+    override fun render(
+        ctx: LevelRenderContext,
+        style: String,
+        colour: Colour,
+        fillColour: Colour,
+        activeColour: Colour,
+        thickness: Float
+    ) {
         super.render(ctx, style, colour, fillColour, activeColour, thickness)
         if (!inside() && AutoRoutes.breakerRing == null) return
         for (pos in realBlocks) {

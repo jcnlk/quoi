@@ -4,6 +4,7 @@ import quoi.api.abobaui.elements.ElementScope
 
 interface Abobable {
     fun displayString(): String
+
     /**
      * @return the first configuration error, or `null` if the settings are valid
      */

@@ -12,11 +12,11 @@ import quoi.module.impl.general.Tweaks;
 public abstract class SoundEngineMixin {
 
     @ModifyExpressionValue(
-        method = "calculateVolume(FLnet/minecraft/sounds/SoundSource;)F",
-        at = @At(
-            value = "INVOKE",
-            target = "Lnet/minecraft/client/Options;getFinalSoundSourceVolume(Lnet/minecraft/sounds/SoundSource;)F"
-        )
+            method = "calculateVolume(FLnet/minecraft/sounds/SoundSource;)F",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/Options;getFinalSoundSourceVolume(Lnet/minecraft/sounds/SoundSource;)F"
+            )
     )
     private float quoi$muteSoundsWhileUnfocused(float original) {
         Minecraft minecraft = Minecraft.getInstance();

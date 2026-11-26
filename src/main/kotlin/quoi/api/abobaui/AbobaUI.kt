@@ -121,7 +121,9 @@ class AbobaUI(val title: String) {
 
         var ctx: GuiGraphicsExtractor
             get() = ui.ctx
-            set(value) { ui.ctx = value }
+            set(value) {
+                ui.ctx = value
+            }
 
         val ui: AbobaUI
             get() {

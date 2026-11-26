@@ -42,7 +42,12 @@ object TickTimers : Module(
     private val goldorHud: Hud by textHud("Goldor death tick") {
         visibleIf { (goldorStart >= 0 && startTimer) || goldorTick >= 0 }
         textSupplied(
-            supplier = { if (goldorStart >= 0 && startTimer) formatTime(goldorStart, GOLDOR_START_TICKS) else formatTime(if (preview) 40 else goldorTick, 60) },
+            supplier = {
+                if (goldorStart >= 0 && startTimer) formatTime(
+                    goldorStart,
+                    GOLDOR_START_TICKS
+                ) else formatTime(if (preview) 40 else goldorTick, 60)
+            },
             size = theme.textSize,
             font = font,
             colour = colour

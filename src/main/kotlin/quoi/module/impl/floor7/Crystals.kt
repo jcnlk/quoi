@@ -23,7 +23,12 @@ object Crystals : Module(
     desc = "Picks up Energy Crystals with an aura or triggerbot.",
     area = Island.Dungeon(7, inBoss = true, phase = Phase.P1)
 ) {
-    private val mode by selector("Mode", "Aura", listOf("Aura", "Triggerbot"), desc = "Aura picks up nearby crystals automatically. Triggerbot only picks up the crystal you are looking at.")
+    private val mode by selector(
+        "Mode",
+        "Aura",
+        listOf("Aura", "Triggerbot"),
+        desc = "Aura picks up nearby crystals automatically. Triggerbot only picks up the crystal you are looking at."
+    )
     private val range by slider("Range", 3.0, 1.0, 5.0, 0.1, desc = "Maximum distance to a crystal target.")
     private val delay by slider("Delay", 7, 1, 20, 1, unit = "ticks", desc = "Delay between crystal interactions.")
     private val inContainer by switch("In container", desc = "Also triggers while any menu is open.")
@@ -62,8 +67,8 @@ object Crystals : Module(
         val entities = crystals.filter { crystal ->
             CRYSTAL_POSITIONS.any { pos ->
                 abs(crystal.x - pos.x) < 0.1 &&
-                        abs(crystal.y - pos.y) < 0.1 &&
-                        abs(crystal.z - pos.z) < 0.1
+                    abs(crystal.y - pos.y) < 0.1 &&
+                    abs(crystal.z - pos.z) < 0.1
             }
         }
 

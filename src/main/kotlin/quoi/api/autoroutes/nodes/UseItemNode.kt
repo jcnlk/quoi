@@ -40,6 +40,7 @@ class UseItemNode : RouteNode() {
             val stack = player.inventory.getItem(slot)
             return item.equalsOneOf(stack.skyblockId, stack.registryPath)
         }
+
         val slot = player.inventory.selectedSlot.takeIf { matches(it) } ?: (0..8).find { matches(it) }
 
         if (slot == null) {

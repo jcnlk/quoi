@@ -93,6 +93,7 @@ object LeapManager : EventListener, Shortcuts {
                 is ClientboundContainerSetContentPacket -> if (update.containerId == menuId) {
                     for (slot in 11..15) cacheLeapTarget(slot, update.items.getOrNull(slot))
                 }
+
                 is ClientboundContainerSetSlotPacket -> if (update.containerId == menuId && update.slot in 11..15) {
                     cacheLeapTarget(update.slot, update.item)
                 }
@@ -103,7 +104,8 @@ object LeapManager : EventListener, Shortcuts {
             if (leapMenu?.menu?.containerId != packet.containerId || packet.containerInput() != ContainerInput.PICKUP) return@on
 
             val targetName = leapTargets[packet.slotNum.toInt()] ?: return@on
-            val target = dungeonTeammatesNoSelf.firstOrNull { it.name.equals(targetName, ignoreCase = true) } ?: return@on
+            val target =
+                dungeonTeammatesNoSelf.firstOrNull { it.name.equals(targetName, ignoreCase = true) } ?: return@on
 
             val now = DualTime(totalTicks.toLong())
             val itemId = menuItemId
@@ -163,6 +165,7 @@ object LeapManager : EventListener, Shortcuts {
             when (doLeap(pending)) {
                 LeapStartResult.Started,
                 LeapStartResult.Rejected -> if (pendingLeap === pending) pendingLeap = null
+
                 LeapStartResult.Retry -> Unit
             }
         }

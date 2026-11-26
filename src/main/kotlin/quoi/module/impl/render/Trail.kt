@@ -14,7 +14,14 @@ object Trail : Module(
     "Trail",
     desc = "Draws a trail behind you as you move."
 ) {
-    private val ticks by slider("Ticks", 100, 1, 400, unit = "t", desc = "Length of the trail in client ticks. Pauses while stationary if Stay is enabled.")
+    private val ticks by slider(
+        "Ticks",
+        100,
+        1,
+        400,
+        unit = "t",
+        desc = "Length of the trail in client ticks. Pauses while stationary if Stay is enabled."
+    )
     private val colour by colourPicker("Colour", Colour.MINECRAFT_AQUA, desc = "Colour of the trail.")
     private val thickness by slider("Thickness", 3f, 1f, 5f, 0.1f, desc = "Width of the trail.")
     private val stay by switch("Stay", true, desc = "Keeps the trail while you stand still.")

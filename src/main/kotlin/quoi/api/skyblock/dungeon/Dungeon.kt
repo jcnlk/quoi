@@ -101,7 +101,12 @@ object Dungeon : EventListener, Shortcuts {
         private set
 
     inline val currentDungeonPlayer: DungeonPlayer
-        get() = dungeonTeammates.find { it.name == player.name.string } ?: DungeonPlayer(player.name.string, DungeonClass.Unknown, 0, null)
+        get() = dungeonTeammates.find { it.name == player.name.string } ?: DungeonPlayer(
+            player.name.string,
+            DungeonClass.Unknown,
+            0,
+            null
+        )
 
     inline val isDead: Boolean
         get() = currentDungeonPlayer.isDead
@@ -199,7 +204,11 @@ object Dungeon : EventListener, Shortcuts {
                 .ifEmpty { return@on }
 
             val stringEntries = tabListEntries.map { it.string.noControlCodes }
-            val colouredEntries = tabListEntries.map { it.string.noControlCodes to Colour.RGB(it.siblings.lastOrNull()?.style?.color?.value ?: Colour.WHITE.rgb).withAlpha(1.0f) }
+            val colouredEntries = tabListEntries.map {
+                it.string.noControlCodes to Colour.RGB(
+                    it.siblings.lastOrNull()?.style?.color?.value ?: Colour.WHITE.rgb
+                ).withAlpha(1.0f)
+            }
 
             updateDungeonTeammates(colouredEntries)
             updateDungeonStats(stringEntries)
@@ -244,7 +253,8 @@ object Dungeon : EventListener, Shortcuts {
                         if (overlay()) return@on
                         val message = content.string.noControlCodes
                         if (expectingBloodRegex.matches(message)) expectingBloodUpdate = true
-                        if (enterRegex.matches(message) && warpCooldown == 0L) enterTime = System.currentTimeMillis() + if (onAlpha) 5_000L else 30_000L
+                        if (enterRegex.matches(message) && warpCooldown == 0L) enterTime =
+                            System.currentTimeMillis() + if (onAlpha) 5_000L else 30_000L
                         doorOpenRegex.matchEntire(message)?.let { match ->
                             val opener = match.groupValues[1]
                             dungeonStats.doorOpener = opener
@@ -255,14 +265,17 @@ object Dungeon : EventListener, Shortcuts {
                             chatDeaths++
                             dungeonStats.deaths = maxOf(dungeonStats.deaths, chatDeaths)
                             dungeonTeammates.find { teammate ->
-                                teammate.name == (match.groupValues[1].takeUnless { it.isEmpty() || it == "You" } ?: player.name.string)
+                                teammate.name == (match.groupValues[1].takeUnless { it.isEmpty() || it == "You" }
+                                    ?: player.name.string)
                             }?.let { it.deaths++ }
                         }
 
                         if (inDungeons) updateBonusScore(message)
 
                         when (message) {
-                            "[NPC] Mort: Here, I found this map when I first entered the dungeon." -> if (!hasStarted) DungeonEvent.Start().post()
+                            "[NPC] Mort: Here, I found this map when I first entered the dungeon." -> if (!hasStarted) DungeonEvent.Start()
+                                .post()
+
                             "The BLOOD DOOR has been opened!" -> dungeonStats.bloodOpen = true
                         }
 
@@ -304,7 +317,10 @@ object Dungeon : EventListener, Shortcuts {
 
     private val tablistRegex = Regex("^\\[(\\d+)] (?:\\[\\w+] )*(\\w+) .*?\\((\\w+)(?: (\\w+))*\\)$")
 
-    private fun getDungeonTeammates(previousTeammates: ArrayList<DungeonPlayer>, tabList: List<Pair<String, Colour>>): ArrayList<DungeonPlayer> {
+    private fun getDungeonTeammates(
+        previousTeammates: ArrayList<DungeonPlayer>,
+        tabList: List<Pair<String, Colour>>
+    ): ArrayList<DungeonPlayer> {
         for ((line, colour) in tabList) {
             val (_, name, clazz, clazzLevel) = tablistRegex.find(line)?.destructured ?: continue
 
@@ -368,9 +384,12 @@ object Dungeon : EventListener, Shortcuts {
 
     fun isBossLever(pos: BlockPos, state: BlockState): Boolean {
         if (state.block != Blocks.LEVER) return false
-        val p3Lever = pos in bossLevers && getEntities<ArmorStand>(pos.above().vec3.aabb(1.5)) { it.displayName.string == "Not Activated" }.isNotEmpty()
-        val deviceLever = pos in deviceLevers && state.hasProperty(LeverBlock.POWERED) && !state.getValue(LeverBlock.POWERED)
-        val extraDeviceLever = pos == EXTRA_DEVICE_LEVER && !deviceLever && getEntities<ArmorStand>(pos.vec3.aabb(2.0)) { it.displayName.string == "Inactive" }.isNotEmpty()
+        val p3Lever =
+            pos in bossLevers && getEntities<ArmorStand>(pos.above().vec3.aabb(1.5)) { it.displayName.string == "Not Activated" }.isNotEmpty()
+        val deviceLever =
+            pos in deviceLevers && state.hasProperty(LeverBlock.POWERED) && !state.getValue(LeverBlock.POWERED)
+        val extraDeviceLever =
+            pos == EXTRA_DEVICE_LEVER && !deviceLever && getEntities<ArmorStand>(pos.vec3.aabb(2.0)) { it.displayName.string == "Inactive" }.isNotEmpty()
         return p3Lever || deviceLever || extraDeviceLever
     }
 
@@ -425,7 +444,8 @@ object Dungeon : EventListener, Shortcuts {
                 secretsFound = secretCountRegex.find(entry)?.groupValues?.get(1)?.toIntOrNull() ?: secretsFound
                 openedRooms = openedRoomsRegex.find(entry)?.groupValues?.get(1)?.toIntOrNull() ?: openedRooms
                 puzzleCount = puzzleCountRegex.find(entry)?.groupValues?.get(1)?.toIntOrNull() ?: puzzleCount
-                deathsRegex.find(entry)?.groupValues?.get(1)?.toIntOrNull()?.let { deaths = maxOf(deaths, it, chatDeaths) }
+                deathsRegex.find(entry)?.groupValues?.get(1)?.toIntOrNull()
+                    ?.let { deaths = maxOf(deaths, it, chatDeaths) }
                 crypts = cryptRegex.find(entry)?.groupValues?.get(1)?.toIntOrNull() ?: crypts
                 updateElapsedTime(entry)
             }
@@ -435,7 +455,8 @@ object Dungeon : EventListener, Shortcuts {
     private fun updateElapsedTime(text: String) {
         val match = timeRegex.matchEntire(text.trim()) ?: return
         val (hours, minutes, seconds) = match.destructured
-        dungeonStats.secondsElapsed = (hours.toIntOrNull() ?: 0) * 3600 + (minutes.toIntOrNull() ?: 0) * 60 + (seconds.toIntOrNull() ?: 0)
+        dungeonStats.secondsElapsed =
+            (hours.toIntOrNull() ?: 0) * 3600 + (minutes.toIntOrNull() ?: 0) * 60 + (seconds.toIntOrNull() ?: 0)
         dungeonStats.elapsedTime = text.substringAfter(":").trim()
         if (!hasStarted && dungeonStats.secondsElapsed > 0) DungeonEvent.Start().post()
     }
@@ -465,30 +486,49 @@ object Dungeon : EventListener, Shortcuts {
 
         leapTeammates =
             when (LeapMenu.sorting.selected) {
-                "Class" -> dungeonTeammatesNoSelf.sortedWith(LeapMenu.classOrder.comparator<DungeonPlayer> { it.clazz }.thenBy { it.name })
+                "Class" -> dungeonTeammatesNoSelf.sortedWith(LeapMenu.classOrder.comparator<DungeonPlayer> { it.clazz }
+                    .thenBy { it.name })
+
                 "Name" -> dungeonTeammatesNoSelf.sortedBy { it.name }
                 "Custom" -> {
                     if (LeapMenu.fillEmpty) {
                         val remaining = dungeonTeammatesNoSelf.toMutableList()
                         LeapMenu.customOrder.map { entry ->
                             if (entry == "_") DungeonPlayer.EMPTY
-                            else remaining.firstOrNull { it.name.lowercase().equals(entry, true) }?.also { remaining.remove(it) } ?: DungeonPlayer.EMPTY
+                            else remaining.firstOrNull { it.name.lowercase().equals(entry, true) }
+                                ?.also { remaining.remove(it) } ?: DungeonPlayer.EMPTY
                         }.map { if (it == DungeonPlayer.EMPTY && remaining.isNotEmpty()) remaining.removeAt(0) else it }
                     } else {
                         LeapMenu.customOrder.map { entry ->
                             if (entry == "_") DungeonPlayer.EMPTY
-                            else dungeonTeammatesNoSelf.firstOrNull { it.name.lowercase().equals(entry, true) } ?: DungeonPlayer.EMPTY
+                            else dungeonTeammatesNoSelf.firstOrNull { it.name.lowercase().equals(entry, true) }
+                                ?: DungeonPlayer.EMPTY
                         }
                     }
                 }
+
                 else -> dungeonTeammatesNoSelf
             }
     }
 
     val dungeonItemDrops = setOf(
-        "Health Potion VIII Splash Potion", "Healing Potion 8 Splash Potion", "Healing Potion VIII Splash Potion", "Healing VIII Splash Potion", "Healing 8 Splash Potion",
-        "Decoy", "Inflatable Jerry", "Spirit Leap", "Trap", "Training Weights", "Defuse Kit", "Dungeon Chest Key", "Treasure Talisman", "Revive Stone", "Architect's First Draft",
-        "Secret Dye", "Candycomb"
+        "Health Potion VIII Splash Potion",
+        "Healing Potion 8 Splash Potion",
+        "Healing Potion VIII Splash Potion",
+        "Healing VIII Splash Potion",
+        "Healing 8 Splash Potion",
+        "Decoy",
+        "Inflatable Jerry",
+        "Spirit Leap",
+        "Trap",
+        "Training Weights",
+        "Defuse Kit",
+        "Dungeon Chest Key",
+        "Treasure Talisman",
+        "Revive Stone",
+        "Architect's First Draft",
+        "Secret Dye",
+        "Candycomb"
     )
 
     private val bossLevers = setOf(
@@ -522,7 +562,8 @@ object Dungeon : EventListener, Shortcuts {
         Blocks.LEVER, Blocks.STONE_BUTTON, Blocks.DISPENSER, Blocks.HOPPER, Blocks.DROPPER
     )
 
-    val BLOOD_START_REGEX = Regex("^\\[BOSS] The Watcher: (Congratulations, you made it through the Entrance\\.|Ah, you've finally arrived\\.|Ah, we meet again\\.\\.\\.|So you made it this far\\.\\.\\. interesting\\.|You've managed to scratch and claw your way here, eh\\?|I'm starting to get tired of seeing you around here\\.\\.\\.|Oh\\.\\. hello\\?|Things feel a little more roomy now, eh\\?)$")
+    val BLOOD_START_REGEX =
+        Regex("^\\[BOSS] The Watcher: (Congratulations, you made it through the Entrance\\.|Ah, you've finally arrived\\.|Ah, we meet again\\.\\.\\.|So you made it this far\\.\\.\\. interesting\\.|You've managed to scratch and claw your way here, eh\\?|I'm starting to get tired of seeing you around here\\.\\.\\.|Oh\\.\\. hello\\?|Things feel a little more roomy now, eh\\?)$")
 
     private val enterRegex = Regex("^-*\\n\\[[^]]+] (\\w+) entered (?:MM )?\\w+ Catacombs, Floor (\\w+)!\\n-*$")
     private val puzzleRegex = Regex("^ (\\w+(?: \\w+)*|\\?\\?\\?): \\[([✖✔✦])] ?(?:\\((\\w+)\\))?$")
@@ -541,8 +582,21 @@ object Dungeon : EventListener, Shortcuts {
     private val deathsRegex = Regex("^\\s*Team Deaths: (\\d+)$")
     private val cryptRegex = Regex("^ Crypts: (\\d+)$")
     private val mimicCharmRegex = Regex("charm you charmed a mimic and captured (?:\\d+ shards from it|its shard)\\.")
-    private val mimicMessages = setOf("mimic dead", "mimic killed", "mimic slain", "\$skytils-dungeon-score-mimic$", "child destroyed", "mimic obliterated", "mimic exorcised", "mimic destroyed", "mimic annhilated", "breefing killed", "breefing dead")
-    private val princeMessages = setOf("prince dead", "prince killed", "prince slain", "\$skytils-dungeon-score-prince$")
+    private val mimicMessages = setOf(
+        "mimic dead",
+        "mimic killed",
+        "mimic slain",
+        "\$skytils-dungeon-score-mimic$",
+        "child destroyed",
+        "mimic obliterated",
+        "mimic exorcised",
+        "mimic destroyed",
+        "mimic annhilated",
+        "breefing killed",
+        "breefing dead"
+    )
+    private val princeMessages =
+        setOf("prince dead", "prince killed", "prince slain", "\$skytils-dungeon-score-prince$")
     private val batMessages = setOf("bat dead", "bat killed", "bat slain", "\$skytils-dungeon-score-bat$")
 
     data class DungeonStats(

@@ -36,12 +36,27 @@ import quoi.utils.skyblock.player.interact.AuraManager
  */
 object TicTacToeSolver : SettingGroup(PuzzleSolvers, "Tic tac toe"), Repositionable {
     private val solver by switch("Solver", desc = "Shows the solution for the Tic tac toe puzzle.")
-    private val colour by colourPicker("Colour", Colour.MINECRAFT_GREEN.withAlpha(0.7f), true, desc = "Colour for the tic tac toe solver").childOf(::solver)
+    private val colour by colourPicker(
+        "Colour",
+        Colour.MINECRAFT_GREEN.withAlpha(0.7f),
+        true,
+        desc = "Colour for the tic tac toe solver"
+    ).childOf(::solver)
     private val prediction by switch("Prediction", desc = "try and see").childOf(::solver)
-    private val pColour by colourPicker("Prediction colour", Colour.MINECRAFT_YELLOW.withAlpha(0.7f), true).childOf(::prediction)
+    private val pColour by colourPicker(
+        "Prediction colour",
+        Colour.MINECRAFT_YELLOW.withAlpha(0.7f),
+        true
+    ).childOf(::prediction)
     private val auto by switch("Auto").asParent()
-    private val autoReposition by switch("Auto reposition", desc = "Moves to the chest after the last player move, then moves on once Secret Aura opens it.").childOf(::auto)
-    private val triggerbot by switch("Triggerbot", desc = "Clicks the best move when you look at its button.").asParent()
+    private val autoReposition by switch(
+        "Auto reposition",
+        desc = "Moves to the chest after the last player move, then moves on once Secret Aura opens it."
+    ).childOf(::auto)
+    private val triggerbot by switch(
+        "Triggerbot",
+        desc = "Clicks the best move when you look at its button."
+    ).asParent()
 
     private var lastBoardHash = 0
     private var bestMove: BlockPos? = null
@@ -125,8 +140,11 @@ object TicTacToeSolver : SettingGroup(PuzzleSolvers, "Tic tac toe"), Repositiona
             }
 
             val searchBox = AABB.ofSize(Vec3.atCenterOf(room.getRealCoords(BlockPos(8, 71, 16))), 12.0, 12.0, 12.0)
-            val frames = EntityUtils.getEntities<ItemFrame>(searchBox) { it.item.item is MapItem && it.item.has(
-                DataComponents.MAP_ID) }
+            val frames = EntityUtils.getEntities<ItemFrame>(searchBox) {
+                it.item.item is MapItem && it.item.has(
+                    DataComponents.MAP_ID
+                )
+            }
 
             val board = CharArray(9) { EMPTY }
             var validFrames = 0
@@ -167,7 +185,8 @@ object TicTacToeSolver : SettingGroup(PuzzleSolvers, "Tic tac toe"), Repositiona
                     bestMove = null
                     getBestMove(board, false)?.let { i ->
                         board[i] = 'X'
-                        predictedMove = if (getScore(board) == 0) getBestMove(board, true)?.let { indexToPos(it, room) } else null
+                        predictedMove =
+                            if (getScore(board) == 0) getBestMove(board, true)?.let { indexToPos(it, room) } else null
                         board[i] = EMPTY
                     } ?: run { predictedMove = null }
                 } else {
@@ -274,9 +293,9 @@ object TicTacToeSolver : SettingGroup(PuzzleSolvers, "Tic tac toe"), Repositiona
 
     private val MOVE_ORDER = intArrayOf(4, 0, 2, 6, 8, 1, 3, 5, 7) // centre -> cornesr -> edges
     private val WIN_SETS = intArrayOf(
-        0, 1, 2,  3, 4, 5,  6, 7, 8, // horiz
-        0, 3, 6,  1, 4, 7,  2, 5, 8, // vert
-        0, 4, 8,  2, 4, 6 // diag
+        0, 1, 2, 3, 4, 5, 6, 7, 8, // horiz
+        0, 3, 6, 1, 4, 7, 2, 5, 8, // vert
+        0, 4, 8, 2, 4, 6 // diag
     )
     private const val EMPTY = '\u0000'
 

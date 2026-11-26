@@ -50,9 +50,9 @@ object Keyboard {
         if (scancode == -1) return null
 
         return GLFW.glfwGetKeyName(key, scancode) ?: when (key) {
-        //?} else {
-        /*return InputConstants.Type.KEYSYM.getOrCreate(key).displayName.string.ifBlank { null } ?: when (key) {
-        *///?}
+            //?} else {
+            /*return InputConstants.Type.KEYSYM.getOrCreate(key).displayName.string.ifBlank { null } ?: when (key) {
+            *///?}
             Keybinds.KEY_SPACE -> "Space"
             Keybinds.KEY_ENTER -> "Enter"
             Keybinds.KEY_TAB -> "Tab"

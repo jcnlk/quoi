@@ -171,7 +171,9 @@ object AutoRoutesCommand : EventListener {
                 ?: return@sub modMessage("&cNo &e$type&c ring found!")
             editNode(node, args)
         }.description("Modifies arguments of ring you're standing in.").suggestArgs(true)
-            .suggests("type") { routeNodes[room.name]?.filter { it.inside() }?.map { it.typeName } ?: emptyList<String>() }
+            .suggests("type") {
+                routeNodes[room.name]?.filter { it.inside() }?.map { it.typeName } ?: emptyList<String>()
+            }
 
         ar.sub("editdb") {
             if (breakerRing == null) {

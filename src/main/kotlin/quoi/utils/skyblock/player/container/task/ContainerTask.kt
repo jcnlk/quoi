@@ -58,8 +58,8 @@ class ContainerTask(
 
     private val blocksForMenu: Boolean
         get() = !completed && settings.silent && mc.gui.screen() == null &&
-                (silentInventoryOpen ||
-                        mc.player?.let { it.containerMenu !== it.inventoryMenu } == true)
+            (silentInventoryOpen ||
+                mc.player?.let { it.containerMenu !== it.inventoryMenu } == true)
 
     val stopsMovement: Boolean
         get() = !settings.invWalk && blocksForMenu
@@ -131,7 +131,13 @@ class ContainerTaskBuilder(val force: Boolean) {
     var onComplete: (() -> Unit)? = null
     var onFinished: ((ContainerTaskResult) -> Unit)? = null
 
-    private fun click(slot: MenuSlot, button: Int, input: ContainerInput, timeout: Int = 20, failureMessage: String = "Timed out finding item"): ItemAction {
+    private fun click(
+        slot: MenuSlot,
+        button: Int,
+        input: ContainerInput,
+        timeout: Int = 20,
+        failureMessage: String = "Timed out finding item"
+    ): ItemAction {
         val action = ContainerAction.Click(slot, button, input, timeout, failureMessage)
         actions.add(action)
         return action

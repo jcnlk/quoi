@@ -68,7 +68,11 @@ class RotationAnimation(
         }
         val progress = ((nowMillis - start) / turnDurationMillis).coerceIn(0.0, 1.0)
         val amount = Animation.Style.SmootherStep.getValue(progress.toFloat())
-        return Step(startYaw + deltaYaw * amount, (startPitch + deltaPitch * amount).coerceIn(-90.0, 90.0), progress >= 1.0)
+        return Step(
+            startYaw + deltaYaw * amount,
+            (startPitch + deltaPitch * amount).coerceIn(-90.0, 90.0),
+            progress >= 1.0
+        )
     }
 }
 
@@ -90,7 +94,8 @@ private class NaturalRotation(
         val previous = previousFrameMillis
         previousFrameMillis = nowMillis
         if (previous == null) {
-            segmentEnd = step(segmentStart.yaw, segmentStart.pitch, targetYaw, targetPitch, mouseSensitivity, simulationMillis)
+            segmentEnd =
+                step(segmentStart.yaw, segmentStart.pitch, targetYaw, targetPitch, mouseSensitivity, simulationMillis)
             return segmentStart
         }
         if (segmentStart.finished) return segmentStart
@@ -101,7 +106,8 @@ private class NaturalRotation(
             segmentMillis -= 50L
             simulationMillis += 50L
             if (segmentStart.finished) return segmentStart
-            segmentEnd = step(segmentStart.yaw, segmentStart.pitch, targetYaw, targetPitch, mouseSensitivity, simulationMillis)
+            segmentEnd =
+                step(segmentStart.yaw, segmentStart.pitch, targetYaw, targetPitch, mouseSensitivity, simulationMillis)
         }
 
         val end = segmentEnd
@@ -113,7 +119,14 @@ private class NaturalRotation(
         )
     }
 
-    private fun step(yaw: Double, pitch: Double, targetYaw: Double, targetPitch: Double, mouseSensitivity: Double, nowMillis: Long): Step {
+    private fun step(
+        yaw: Double,
+        pitch: Double,
+        targetYaw: Double,
+        targetPitch: Double,
+        mouseSensitivity: Double,
+        nowMillis: Long
+    ): Step {
         val deltaYaw = wrap(targetYaw - yaw)
         val deltaPitch = targetPitch - pitch
         if (abs(deltaYaw) <= 1.0 && abs(deltaPitch) <= 1.0) {
@@ -134,7 +147,13 @@ private class NaturalRotation(
         return quantize(yaw, pitch, newYaw, newPitch, mouseSensitivity)
     }
 
-    private fun quantize(yaw: Double, pitch: Double, targetYaw: Double, targetPitch: Double, mouseSensitivity: Double): Step {
+    private fun quantize(
+        yaw: Double,
+        pitch: Double,
+        targetYaw: Double,
+        targetPitch: Double,
+        mouseSensitivity: Double
+    ): Step {
         val multiplier = sensitivity(mouseSensitivity).pow(3) * 8 * 0.15
         return Step(
             yaw + (((targetYaw - yaw) / multiplier).roundToInt() * multiplier),

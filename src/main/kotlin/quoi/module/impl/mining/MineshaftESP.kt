@@ -38,40 +38,146 @@ object MineshaftESP : Module(
     desc = "Highlights corpses, fossils, and mobs in Glacite Mineshafts."
 ) {
     private val corpseEsp by switch("Corpse ESP", desc = "Highlights detected corpse spots.")
-    private val corpseHighlight = highlight(desc = "Render style for detected spots.", colour = null, fillColour = null, glow = false).childOf(::corpseEsp)
-    private val hideLootedCorpses by switch("Hide looted corpses", desc = "Hides corpse highlights after successfully looting them.").childOf(::corpseEsp).asParent()
+    private val corpseHighlight = highlight(
+        desc = "Render style for detected spots.",
+        colour = null,
+        fillColour = null,
+        glow = false
+    ).childOf(::corpseEsp)
+    private val hideLootedCorpses by switch(
+        "Hide looted corpses",
+        desc = "Hides corpse highlights after successfully looting them."
+    ).childOf(::corpseEsp).asParent()
 
     private val corpseColours by text("Colours").childOf(::corpseEsp)
-    private val lapisColour by colourPicker("Lapis", Colour.RGB(85, 85, 255), true, "ESP color for Lapis corpses.").json("Lapis colour").childOf(::corpseColours)
-    private val umberColour by colourPicker("Umber", Colour.RGB(255, 170, 0), true, "ESP color for Umber corpses.").json("Umber colour").childOf(::corpseColours)
-    private val tungstenColour by colourPicker("Tungsten", Colour.RGB(170, 170, 170), true, "ESP color for Tungsten corpses.").json("Tungsten colour").childOf(::corpseColours)
-    private val vanguardColour by colourPicker("Vanguard", Colour.RGB(85, 255, 255), true, "ESP color for Vanguard corpses.").json("Vanguard colour").childOf(::corpseColours)
+    private val lapisColour by colourPicker(
+        "Lapis",
+        Colour.RGB(85, 85, 255),
+        true,
+        "ESP color for Lapis corpses."
+    ).json("Lapis colour").childOf(::corpseColours)
+    private val umberColour by colourPicker(
+        "Umber",
+        Colour.RGB(255, 170, 0),
+        true,
+        "ESP color for Umber corpses."
+    ).json("Umber colour").childOf(::corpseColours)
+    private val tungstenColour by colourPicker(
+        "Tungsten",
+        Colour.RGB(170, 170, 170),
+        true,
+        "ESP color for Tungsten corpses."
+    ).json("Tungsten colour").childOf(::corpseColours)
+    private val vanguardColour by colourPicker(
+        "Vanguard",
+        Colour.RGB(85, 255, 255),
+        true,
+        "ESP color for Vanguard corpses."
+    ).json("Vanguard colour").childOf(::corpseColours)
 
-    private val corpseFillColours by text("Fill colours").childOf(::corpseEsp).visibleIf { corpseHighlight.style != "Box" }
-    private val lapisFillColour by colourPicker("Lapis", Colour.RGB(85, 85, 255).withAlpha(0.24f), true, "Fill color for Lapis corpses.").json("Lapis fill colour").childOf(::corpseFillColours)
-    private val umberFillColour by colourPicker("Umber", Colour.RGB(255, 170, 0).withAlpha(0.24f), true, "Fill color for Umber corpses.").json("Umber fill colour").childOf(::corpseFillColours)
-    private val tungstenFillColour by colourPicker("Tungsten", Colour.RGB(170, 170, 170).withAlpha(0.24f), true, "Fill color for Tungsten corpses.").json("Tungsten fill colour").childOf(::corpseFillColours)
-    private val vanguardFillColour by colourPicker("Vanguard", Colour.RGB(85, 255, 255).withAlpha(0.24f), true, "Fill color for Vanguard corpses.").json("Vanguard fill colour").childOf(::corpseFillColours)
+    private val corpseFillColours by text("Fill colours").childOf(::corpseEsp)
+        .visibleIf { corpseHighlight.style != "Box" }
+    private val lapisFillColour by colourPicker(
+        "Lapis",
+        Colour.RGB(85, 85, 255).withAlpha(0.24f),
+        true,
+        "Fill color for Lapis corpses."
+    ).json("Lapis fill colour").childOf(::corpseFillColours)
+    private val umberFillColour by colourPicker(
+        "Umber",
+        Colour.RGB(255, 170, 0).withAlpha(0.24f),
+        true,
+        "Fill color for Umber corpses."
+    ).json("Umber fill colour").childOf(::corpseFillColours)
+    private val tungstenFillColour by colourPicker(
+        "Tungsten",
+        Colour.RGB(170, 170, 170).withAlpha(0.24f),
+        true,
+        "Fill color for Tungsten corpses."
+    ).json("Tungsten fill colour").childOf(::corpseFillColours)
+    private val vanguardFillColour by colourPicker(
+        "Vanguard",
+        Colour.RGB(85, 255, 255).withAlpha(0.24f),
+        true,
+        "Fill color for Vanguard corpses."
+    ).json("Vanguard fill colour").childOf(::corpseFillColours)
 
     private val fossilEsp by switch("Fossil ESP", desc = "Highlights Fossil Blocks in Glacite Mineshafts.")
-    private val fossilHighlight = highlight(desc = "Render style for Fossil Blocks.", colour = Colour.RGB(255, 170, 0), fillColour = Colour.RGB(255, 170, 0).withAlpha(0.24f), glow = false).json("Fossil ESP style").childOf(::fossilEsp)
+    private val fossilHighlight = highlight(
+        desc = "Render style for Fossil Blocks.",
+        colour = Colour.RGB(255, 170, 0),
+        fillColour = Colour.RGB(255, 170, 0).withAlpha(0.24f),
+        glow = false
+    ).json("Fossil ESP style").childOf(::fossilEsp)
 
     private val mobEsp by switch("Mob ESP", desc = "Highlights Glacite Mineshaft mobs.").json("Entity ESP")
-    private val mobHighlight = highlight(desc = "Render style for highlighted mobs.", colour = null, fillColour = null, glow = false,).json("Entity ESP style").childOf(::mobEsp)
+    private val mobHighlight = highlight(
+        desc = "Render style for highlighted mobs.",
+        colour = null,
+        fillColour = null,
+        glow = false,
+    ).json("Entity ESP style").childOf(::mobEsp)
 
     private val mobColours by text("Colours").childOf(::mobEsp)
-    private val bowmanColour by colourPicker("Glacite Bowman", Colour.CYAN, true, "ESP color for Glacite Bowmen.").json("Glacite Bowman colour").childOf(::mobColours)
-    private val caverColour by colourPicker("Glacite Caver", Colour.CYAN, true, "ESP color for Glacite Cavers.").json("Glacite Caver colour").childOf(::mobColours)
-    private val mageColour by colourPicker("Glacite Mage", Colour.CYAN, true, "ESP color for Glacite Mages.").json("Glacite Mage colour").childOf(::mobColours)
-    private val littlefootColour by colourPicker("Littlefoot", Colour.CYAN, true, "ESP color for Littlefoot.").json("Littlefoot colour").childOf(::mobColours)
-    private val muttColour by colourPicker("Glacite Mutt", Colour.CYAN, true, "ESP color for Glacite Mutts.").json("Glacite Mutt colour").childOf(::mobColours)
+    private val bowmanColour by colourPicker("Glacite Bowman", Colour.CYAN, true, "ESP color for Glacite Bowmen.").json(
+        "Glacite Bowman colour"
+    ).childOf(::mobColours)
+    private val caverColour by colourPicker(
+        "Glacite Caver",
+        Colour.CYAN,
+        true,
+        "ESP color for Glacite Cavers."
+    ).json("Glacite Caver colour").childOf(::mobColours)
+    private val mageColour by colourPicker(
+        "Glacite Mage",
+        Colour.CYAN,
+        true,
+        "ESP color for Glacite Mages."
+    ).json("Glacite Mage colour").childOf(::mobColours)
+    private val littlefootColour by colourPicker(
+        "Littlefoot",
+        Colour.CYAN,
+        true,
+        "ESP color for Littlefoot."
+    ).json("Littlefoot colour").childOf(::mobColours)
+    private val muttColour by colourPicker(
+        "Glacite Mutt",
+        Colour.CYAN,
+        true,
+        "ESP color for Glacite Mutts."
+    ).json("Glacite Mutt colour").childOf(::mobColours)
 
     private val mobFillColors by text("Fill colours").childOf(::mobEsp).visibleIf { mobHighlight.style != "Box" }
-    private val bowmanFillColour by colourPicker("Glacite Bowman", Colour.CYAN.withAlpha(0.24f), true, "Fill color for Glacite Bowmen.").json("Glacite Bowman fill colour").childOf(::mobFillColors)
-    private val caverFillColour by colourPicker("Glacite Caver", Colour.CYAN.withAlpha(0.24f), true, "Fill color for Glacite Cavers.").json("Glacite Caver fill colour").childOf(::mobFillColors)
-    private val mageFillColour by colourPicker("Glacite Mage", Colour.CYAN.withAlpha(0.24f), true, "Fill color for Glacite Mages.").json("Glacite Mage fill colour").childOf(::mobFillColors)
-    private val littlefootFillColour by colourPicker("Littlefoot", Colour.CYAN.withAlpha(0.24f), true, "Fill color for Littlefoot.").json("Littlefoot fill colour").childOf(::mobFillColors)
-    private val muttFillColour by colourPicker("Glacite Mutt", Colour.CYAN.withAlpha(0.24f), true, "Fill color for Glacite Mutts.").json("Glacite Mutt fill colour").childOf(::mobFillColors)
+    private val bowmanFillColour by colourPicker(
+        "Glacite Bowman",
+        Colour.CYAN.withAlpha(0.24f),
+        true,
+        "Fill color for Glacite Bowmen."
+    ).json("Glacite Bowman fill colour").childOf(::mobFillColors)
+    private val caverFillColour by colourPicker(
+        "Glacite Caver",
+        Colour.CYAN.withAlpha(0.24f),
+        true,
+        "Fill color for Glacite Cavers."
+    ).json("Glacite Caver fill colour").childOf(::mobFillColors)
+    private val mageFillColour by colourPicker(
+        "Glacite Mage",
+        Colour.CYAN.withAlpha(0.24f),
+        true,
+        "Fill color for Glacite Mages."
+    ).json("Glacite Mage fill colour").childOf(::mobFillColors)
+    private val littlefootFillColour by colourPicker(
+        "Littlefoot",
+        Colour.CYAN.withAlpha(0.24f),
+        true,
+        "Fill color for Littlefoot."
+    ).json("Littlefoot fill colour").childOf(::mobFillColors)
+    private val muttFillColour by colourPicker(
+        "Glacite Mutt",
+        Colour.CYAN.withAlpha(0.24f),
+        true,
+        "Fill color for Glacite Mutts."
+    ).json("Glacite Mutt fill colour").childOf(::mobFillColors)
 
     private val waypoints = hashMapOf<BlockPos, CorpseType>()
     private val fossilBlocks = hashSetOf<BlockPos>()
@@ -115,7 +221,15 @@ object MineshaftESP : Module(
             if (!hideLootedCorpses) return@on
             val type = CorpseType.entries.firstOrNull { unformatted.trim() == "${it.name} CORPSE LOOT!" } ?: return@on
             val looted = waypoints.asSequence()
-                .filter { (pos, corpseType) -> corpseType == type && player.distanceToSqr(pos.vec3.add(0.5, 0.5, 0.5)) <= 25.0 }
+                .filter { (pos, corpseType) ->
+                    corpseType == type && player.distanceToSqr(
+                        pos.vec3.add(
+                            0.5,
+                            0.5,
+                            0.5
+                        )
+                    ) <= 25.0
+                }
                 .minByOrNull { (pos, _) -> player.distanceToSqr(pos.vec3.add(0.5, 0.5, 0.5)) }
                 ?.key
                 ?: return@on
@@ -147,13 +261,20 @@ object MineshaftESP : Module(
             if (mobEsp) {
                 getEntities().forEach { entity ->
                     val type = entity.espType ?: return@forEach
-                    mobHighlight.draw(ctx, entity.interpolatedBox, overrideColour = type.colour(), overrideFillColour = type.fillColour())
+                    mobHighlight.draw(
+                        ctx,
+                        entity.interpolatedBox,
+                        overrideColour = type.colour(),
+                        overrideFillColour = type.fillColour()
+                    )
                 }
             }
         }
     }
 
-    override fun onDisable() { reset() }
+    override fun onDisable() {
+        reset()
+    }
 
     private fun isFossilBlock(state: BlockState) = when (state.block) {
         Blocks.QUARTZ_BLOCK, Blocks.QUARTZ_STAIRS, Blocks.QUARTZ_SLAB -> true

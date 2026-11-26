@@ -25,6 +25,7 @@ import kotlin.reflect.full.findAnnotation
 
 // https://github.com/Noamm9/CatgirlAddons/blob/main/src/main/kotlin/catgirlroutes/utils/ConfigSystem.kt
 val configPath = File("config/quoi!")
+
 object ConfigSystem {
     @PublishedApi
     internal val failedLoads = mutableSetOf<File>()
@@ -56,7 +57,10 @@ object ConfigSystem {
             loaded
         } catch (error: Exception) {
             failedLoads.add(key)
-            logger.error("Could not load ${file.absolutePath}. Saving is blocked until the file is successfully reloaded.", error)
+            logger.error(
+                "Could not load ${file.absolutePath}. Saving is blocked until the file is successfully reloaded.",
+                error
+            )
             default()
         }
     }
@@ -96,15 +100,15 @@ class ConfigList<E>(
         return result
     }
 
-    override fun add(index: Int, element: E)    = modify { list.add(index, element) }
-    override fun removeAt(index: Int): E        = modify { list.removeAt(index) }
+    override fun add(index: Int, element: E) = modify { list.add(index, element) }
+    override fun removeAt(index: Int): E = modify { list.removeAt(index) }
     override fun set(index: Int, element: E): E = modify { list.set(index, element) }
 
     override fun addAll(index: Int, elements: Collection<E>) = modify { list.addAll(index, elements) }
-    override fun addAll(elements: Collection<E>)             = modify { list.addAll(elements) }
-    override fun removeAll(elements: Collection<E>)          = modify { list.removeAll(elements) }
-    override fun retainAll(elements: Collection<E>)          = modify { list.retainAll(elements) }
-    override fun clear()                                     = modify { list.clear() }
+    override fun addAll(elements: Collection<E>) = modify { list.addAll(elements) }
+    override fun removeAll(elements: Collection<E>) = modify { list.removeAll(elements) }
+    override fun retainAll(elements: Collection<E>) = modify { list.retainAll(elements) }
+    override fun clear() = modify { list.clear() }
 }
 
 inline fun <reified T : Any> configList(name: String): ReadOnlyProperty<Any?, ConfigList<T>> {
@@ -132,31 +136,32 @@ class ConfigMap<K, V>(
     fun reload() = onReload()
 
     override val size: Int get() = map.size
-    override val entries: MutableSet<MutableMap.MutableEntry<K, V>> = object : AbstractMutableSet<MutableMap.MutableEntry<K, V>>() {
-        override val size: Int get() = map.size
+    override val entries: MutableSet<MutableMap.MutableEntry<K, V>> =
+        object : AbstractMutableSet<MutableMap.MutableEntry<K, V>>() {
+            override val size: Int get() = map.size
 
-        override fun iterator(): MutableIterator<MutableMap.MutableEntry<K, V>> {
-            val iterator = map.entries.iterator()
-            return object : MutableIterator<MutableMap.MutableEntry<K, V>> {
-                override fun hasNext() = iterator.hasNext()
+            override fun iterator(): MutableIterator<MutableMap.MutableEntry<K, V>> {
+                val iterator = map.entries.iterator()
+                return object : MutableIterator<MutableMap.MutableEntry<K, V>> {
+                    override fun hasNext() = iterator.hasNext()
 
-                override fun next(): MutableMap.MutableEntry<K, V> {
-                    val entry = iterator.next()
-                    return object : MutableMap.MutableEntry<K, V> by entry {
-                        override fun setValue(newValue: V): V = modify { entry.setValue(newValue) }
-                        override fun equals(other: Any?) = entry == other
-                        override fun hashCode() = entry.hashCode()
-                        override fun toString() = entry.toString()
+                    override fun next(): MutableMap.MutableEntry<K, V> {
+                        val entry = iterator.next()
+                        return object : MutableMap.MutableEntry<K, V> by entry {
+                            override fun setValue(newValue: V): V = modify { entry.setValue(newValue) }
+                            override fun equals(other: Any?) = entry == other
+                            override fun hashCode() = entry.hashCode()
+                            override fun toString() = entry.toString()
+                        }
                     }
+
+                    override fun remove() = modify { iterator.remove() }
                 }
-
-                override fun remove() = modify { iterator.remove() }
             }
-        }
 
-        override fun add(element: MutableMap.MutableEntry<K, V>): Boolean = throw UnsupportedOperationException()
-        override fun clear() = this@ConfigMap.clear()
-    }
+            override fun add(element: MutableMap.MutableEntry<K, V>): Boolean = throw UnsupportedOperationException()
+            override fun clear() = this@ConfigMap.clear()
+        }
 
     private inline fun <R> modify(block: () -> R): R {
         val result = block()
@@ -255,7 +260,7 @@ val TypeNamed.typeName: String
 
 inline fun <reified T : TypeNamed> routeNodeAdapter(
     subclasses: List<KClass<out T>>
-) : TypeAdapterFactory {
+): TypeAdapterFactory {
 
     val subtypesByName = subclasses.associate { subclass ->
         val typeName = subclass.findAnnotation<TypeName>()?.value ?: error("No @TypeName")

@@ -14,7 +14,11 @@ import quoi.utils.skyblock.player.container.task.ContainerTaskResult
 class TriggerEngine(
     private val triggers: () -> List<TriggerRule>,
     private val execute: (TriggerAction, TriggerContext) -> Unit = { action, context -> action.execute(context) },
-    private val matches: (TriggerCondition, TriggerContext) -> Boolean = { condition, context -> condition.matches(context) },
+    private val matches: (TriggerCondition, TriggerContext) -> Boolean = { condition, context ->
+        condition.matches(
+            context
+        )
+    },
     private val isActive: () -> Boolean = { true },
     private val onError: (TriggerRule, Exception) -> Unit = { _, _ -> },
     private val onRun: (TriggerRule) -> Unit = {},
@@ -59,8 +63,12 @@ class TriggerEngine(
                 onRun(trigger)
                 if (!resume(trigger, trigger.actions.toList(), 0, local, started)) return@safely
                 when (context) {
-                    is TriggerContext.Chat if local is TriggerContext.Chat -> context.cancelled = context.cancelled || local.cancelled
-                    is TriggerContext.Command if local is TriggerContext.Command -> context.cancelled = context.cancelled || local.cancelled
+                    is TriggerContext.Chat if local is TriggerContext.Chat -> context.cancelled =
+                        context.cancelled || local.cancelled
+
+                    is TriggerContext.Command if local is TriggerContext.Command -> context.cancelled =
+                        context.cancelled || local.cancelled
+
                     else -> {}
                 }
             }
@@ -88,7 +96,16 @@ class TriggerEngine(
             if (action is DelayAction) {
                 if (action.ticks > 0 && index < actions.lastIndex) {
                     checkPendingLimit()
-                    pending.add(PendingSequence(trigger, actions, index + 1, context.snapshot(), action.ticks, action.server))
+                    pending.add(
+                        PendingSequence(
+                            trigger,
+                            actions,
+                            index + 1,
+                            context.snapshot(),
+                            action.ticks,
+                            action.server
+                        )
+                    )
                     return true
                 }
             } else if (action is ContainerTaskAction) {
@@ -109,6 +126,7 @@ class TriggerEngine(
     fun tick(server: Boolean = false) = guarded {
         val started = generation
         val current = triggers()
+
         // Cancel queued work if the rule was removed or its action order changed.
         fun valid(queued: PendingSequence): Boolean =
             queued.trigger.enabled && queued.trigger.id !in failed &&
@@ -127,6 +145,7 @@ class TriggerEngine(
                     when (val result = queued.task?.result) {
                         null, ContainerTaskResult.Success ->
                             resume(queued.trigger, queued.actions, queued.nextIndex, queued.context, started)
+
                         ContainerTaskResult.Cancelled -> Unit
                         ContainerTaskResult.Busy -> error("A container action is already in progress")
                         is ContainerTaskResult.Failure -> error(result.message)
@@ -153,11 +172,17 @@ class TriggerEngine(
             return
         }
         dispatching = true
-        try { block() } finally { dispatching = false }
+        try {
+            block()
+        } finally {
+            dispatching = false
+        }
     }
 
     private inline fun safely(trigger: TriggerRule, block: () -> Unit) {
-        try { block() } catch (error: Exception) {
+        try {
+            block()
+        } catch (error: Exception) {
             failed.add(trigger.id)
             discard(pending.filter { it.trigger === trigger })
             onError(trigger, error)

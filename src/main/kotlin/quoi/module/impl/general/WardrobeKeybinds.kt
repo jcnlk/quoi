@@ -23,7 +23,10 @@ object WardrobeKeybinds : Module(
     private val unequipKeybind by keybind("Unequip", desc = "Unequips the current slot.")
     private val nextPageKeybind by keybind("Next page", desc = "Goes to the next page.")
     private val previousPageKeybind by keybind("Previous page", desc = "Goes to the previous page.")
-    private val noUnequip by switch("Disable unequip", desc = "Prevents using a wardrobe keybind to unequip a wardrobe. Does not prevent unequip keybind or normal clicking.")
+    private val noUnequip by switch(
+        "Disable unequip",
+        desc = "Prevents using a wardrobe keybind to unequip a wardrobe. Does not prevent unequip keybind or normal clicking."
+    )
 
     private val advanced by text("Keybinds")
     private val wardrobeKeys = listOf(

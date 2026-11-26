@@ -29,10 +29,18 @@ object WitherCloak : Module(
     "Wither Cloak",
     desc = "Tracks Creeper Veil and optionally hides nearby cloak creepers."
 ) {
-    private val title by textInput("Title", "Wither Cloak", length = 24, desc = "Title to show while Wither Cloak is active.")
+    private val title by textInput(
+        "Title",
+        "Wither Cloak",
+        length = 24,
+        desc = "Title to show while Wither Cloak is active."
+    )
     private val timer by switch("Timer", desc = "Shows the cooldown timer.")
     private val hideCloak by switch("Hide cloak", desc = "Hides creepers around the player.")
-    private val autoBossCloak by switch("Auto cloak", desc = "Automatically uses Wither Cloak on the F7 boss countdown at 2.")
+    private val autoBossCloak by switch(
+        "Auto cloak",
+        desc = "Automatically uses Wither Cloak on the F7 boss countdown at 2."
+    )
     private val autoDelay by slider("Delay", 3, 1, 10, 1, unit = "t").childOf(::autoBossCloak)
 
     @Suppress("unused")
@@ -60,7 +68,9 @@ object WitherCloak : Module(
     private var cloakCooldownEnd = 0L
     private var swapBackSlot = -1
 
-    override fun onDisable() { reset() }
+    override fun onDisable() {
+        reset()
+    }
 
     init {
         on<ChatEvent.Packet> {

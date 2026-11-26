@@ -30,7 +30,10 @@ internal class PlayerMarkers(var config: MapRenderer.MapConfig) : Element(size(C
         if (!config.icons) return@withScale
         val localPlayer = mc.player ?: return@withScale
         val partialTick = mc.deltaTracker.getGameTimeDeltaPartialTick(false)
-        val showNames = config.icon.name && (!config.icon.whenLeap || localPlayer.mainHandItem.skyblockId.equalsOneOf("SPIRIT_LEAP", "INFINITE_SPIRIT_LEAP"))
+        val showNames = config.icon.name && (!config.icon.whenLeap || localPlayer.mainHandItem.skyblockId.equalsOneOf(
+            "SPIRIT_LEAP",
+            "INFINITE_SPIRIT_LEAP"
+        ))
 
         ctx.pose().scale(config.scale)
         for (player in Dungeon.dungeonTeammatesNoSelf) {
@@ -53,14 +56,28 @@ internal class PlayerMarkers(var config: MapRenderer.MapConfig) : Element(size(C
         }
     }
 
-    private fun drawMarker(position: Pair<Float, Float>, yaw: Float, skin: PlayerSkin?, classColour: Colour, name: String?, head: Boolean) {
+    private fun drawMarker(
+        position: Pair<Float, Float>,
+        yaw: Float,
+        skin: PlayerSkin?,
+        classColour: Colour,
+        name: String?,
+        head: Boolean
+    ) {
         val (px, pz) = position
         if (px !in 0f..(width / config.scale) || pz !in 0f..(height / config.scale)) return
         val icon = config.icon
         ctx.withMatrix(px, pz) {
             if (name != null) {
                 ctx.withMatrix(scale = icon.nameScale) {
-                    ctx.text(mc.font, name, -mc.font.width(name) / 2, ((4 * icon.scale + 2) / icon.nameScale).toInt(), Colour.WHITE.rgb, config.shadow)
+                    ctx.text(
+                        mc.font,
+                        name,
+                        -mc.font.width(name) / 2,
+                        ((4 * icon.scale + 2) / icon.nameScale).toInt(),
+                        Colour.WHITE.rgb,
+                        config.shadow
+                    )
                 }
             }
             ctx.pose().rotate(Math.toRadians(180.0 + yaw).toFloat())

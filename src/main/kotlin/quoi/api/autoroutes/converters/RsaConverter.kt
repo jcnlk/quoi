@@ -31,6 +31,7 @@ object RsaConverter {
                     "etherwarp" -> EtherwarpNode().apply {
                         target = vec(ring.get("localTarget"))
                     }
+
                     "use" -> UseItemNode().apply {
                         val rotation = gson.fromJson(ring.get("rotationVec"), Vec3::class.java)
                         val dir = rotation.toDirection()
@@ -38,19 +39,23 @@ object RsaConverter {
                         pitch = dir.pitch
                         item = ring.get("itemID").asString
                     }
+
                     "boom" -> BoomNode().apply {
                         target = vec(ring.get("target"))
                     }
+
                     "break" -> BreakerNode().apply {
                         blocks = ring.getAsJsonArray("blocks").map {
                             bp(it)
                         }
                     }
+
                     "bat" -> UseItemNode().apply {
                         yaw = ring.get("yaw").asFloat
                         pitch = ring.get("pitch").asFloat
                         item = "HYPERION"
                     }
+
                     else -> return@forEach
                 }
 

@@ -109,7 +109,12 @@ object TriggerManager : EventListener {
             if (!canRun) return@on
             val context = when (val sound = packet) {
                 is ClientboundSoundPacket -> TriggerContext.Sound(sound.sound.registeredName, sound.volume, sound.pitch)
-                is ClientboundSoundEntityPacket -> TriggerContext.Sound(sound.sound.registeredName, sound.volume, sound.pitch)
+                is ClientboundSoundEntityPacket -> TriggerContext.Sound(
+                    sound.sound.registeredName,
+                    sound.volume,
+                    sound.pitch
+                )
+
                 else -> return@on
             }
             engine.handle(context)
@@ -124,13 +129,28 @@ object TriggerManager : EventListener {
             if (canRun) engine.handle(TriggerContext.Dungeon(TriggerContext.Dungeon.Event.ENTER, floor = floor))
         }
         on<DungeonEvent.Start> {
-            if (canRun) engine.handle(TriggerContext.Dungeon(TriggerContext.Dungeon.Event.START, floor = quoi.api.skyblock.dungeon.Dungeon.floor))
+            if (canRun) engine.handle(
+                TriggerContext.Dungeon(
+                    TriggerContext.Dungeon.Event.START,
+                    floor = quoi.api.skyblock.dungeon.Dungeon.floor
+                )
+            )
         }
         on<DungeonEvent.PhaseComplete> {
-            if (canRun) engine.handle(TriggerContext.Dungeon(TriggerContext.Dungeon.Event.PHASE_COMPLETE, phase = phase))
+            if (canRun) engine.handle(
+                TriggerContext.Dungeon(
+                    TriggerContext.Dungeon.Event.PHASE_COMPLETE,
+                    phase = phase
+                )
+            )
         }
         on<DungeonEvent.StageComplete> {
-            if (canRun) engine.handle(TriggerContext.Dungeon(TriggerContext.Dungeon.Event.STAGE_COMPLETE, stage = stage))
+            if (canRun) engine.handle(
+                TriggerContext.Dungeon(
+                    TriggerContext.Dungeon.Event.STAGE_COMPLETE,
+                    stage = stage
+                )
+            )
         }
         on<PartyEvent.Message> {
             if (canRun) engine.handle(TriggerContext.PartyMessage(sender, content))

@@ -8,6 +8,7 @@ import kotlin.test.assertTrue
 
 class SubscriptionRegistryTest {
     private class TestEvent : Event()
+
     private val listener = object : EventListener {}
 
     private fun subscription(priority: Int) = Subscription<TestEvent>(listener, TestEvent::class.java, priority) {}

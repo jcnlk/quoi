@@ -25,20 +25,42 @@ object Waypoints : Module(
 ) {
     private val fromParty by switch("Party chat").asParent()
     private val partyClearOnArrive by switch("Clear on arrive").childOf(::fromParty)
-    private val partyDuration by slider("Duration", 120, 0, 300, 1, unit = "s", desc = "How long party waypoints remain visible. 0 keeps them permanently.").childOf(::fromParty)
+    private val partyDuration by slider(
+        "Duration",
+        120,
+        0,
+        300,
+        1,
+        unit = "s",
+        desc = "How long party waypoints remain visible. 0 keeps them permanently."
+    ).childOf(::fromParty)
     private val partyColour by colourPicker("Colour", Colour.RGB(85, 125, 255, 0.67f), true).childOf(::fromParty)
 
     private val fromAll by switch("All chat").asParent()
     private val allClearOnArrive by switch("Clear on arrive").childOf(::fromAll)
-    private val allDuration by slider("Duration", 60, 0, 300, 1, unit = "s", desc = "How long public-chat waypoints remain visible. 0 keeps them permanently.").childOf(::fromAll)
+    private val allDuration by slider(
+        "Duration",
+        60,
+        0,
+        300,
+        1,
+        unit = "s",
+        desc = "How long public-chat waypoints remain visible. 0 keeps them permanently."
+    ).childOf(::fromAll)
     private val allColour by colourPicker("Colour", Colour.RGB(85, 220, 220, 0.67f), true).childOf(::fromAll)
 
-    private val personalWaypoints by switch("Create from own messages", desc = "Creates a waypoint when your own coordinates message appears in party or public chat.")
+    private val personalWaypoints by switch(
+        "Create from own messages",
+        desc = "Creates a waypoint when your own coordinates message appears in party or public chat."
+    )
 
-    private val partyRegex = Regex("^Party > (?:\\[[^]]*])? ?(\\w{1,16})(?: [ቾ⚒])?: x: (-?\\d+),? y: (-?\\d+),? z: (-?\\d+).*")
-    private val allRegex = Regex("^(?!Party >).*?(?:\\[[^]]*])? ?(\\w{1,16})(?: [ቾ⚒])?: x: (-?\\d+),? y: (-?\\d+),? z: (-?\\d+).*")
+    private val partyRegex =
+        Regex("^Party > (?:\\[[^]]*])? ?(\\w{1,16})(?: [ቾ⚒])?: x: (-?\\d+),? y: (-?\\d+),? z: (-?\\d+).*")
+    private val allRegex =
+        Regex("^(?!Party >).*?(?:\\[[^]]*])? ?(\\w{1,16})(?: [ቾ⚒])?: x: (-?\\d+),? y: (-?\\d+),? z: (-?\\d+).*")
 
     private val waypoints = mutableListOf<Waypoint>()
+
     init {
         on<ChatEvent.Packet> {
             val partyMatch = if (fromParty) partyRegex.matchEntire(unformatted) else null

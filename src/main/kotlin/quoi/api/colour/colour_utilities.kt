@@ -71,7 +71,8 @@ fun getRGBA(red: Int, green: Int, blue: Int, alpha: Float): Int {
 fun hexToRGBA(hex: String): Int {
     return when (hex.length) {
         7 -> (255 shl 24) or hex.substring(1, 7).toInt(16)
-        9 -> (hex.substring(7, 9).toInt(16) shl 24) or hex.substring(1, 7).toInt(16) // needs 2 substrings because it is unable to correctly parse with 1
+        9 -> (hex.substring(7, 9).toInt(16) shl 24) or hex.substring(1, 7)
+            .toInt(16) // needs 2 substrings because it is unable to correctly parse with 1
         else -> throw IllegalArgumentException("Invalid hex colour format: $hex. Use #RRGGBB or #RRGGBBAA.")
     }
 }
@@ -160,16 +161,24 @@ inline fun colour(crossinline block: () -> Int): Colour = object : Colour {
 inline fun hsb(crossinline block: () -> Colour.HSB): Colour.HSB = object : Colour.HSB(0f, 0f, 0f) {
     override var hue: Float
         get() = block().hue
-        set(value) { super.hue = value }
+        set(value) {
+            super.hue = value
+        }
     override var saturation: Float
         get() = block().saturation
-        set(value) { super.saturation = value }
+        set(value) {
+            super.saturation = value
+        }
     override var brightness: Float
         get() = block().brightness
-        set(value) { super.brightness = value }
+        set(value) {
+            super.brightness = value
+        }
     override var alpha: Float
         get() = block().alpha
-        set(value) { super.alpha = value }
+        set(value) {
+            super.alpha = value
+        }
 
     override var rgb: Int
         get() = block().rgb

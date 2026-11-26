@@ -32,7 +32,12 @@ object DrawContextUtils {
     private val textureCache = mutableMapOf<UUID, PlayerSkin>()
     private var lastCacheClear = System.currentTimeMillis()
 
-    fun GuiGraphicsExtractor.withMatrix(x: Number? = null, y: Number? = null, scale: Number? = null, block: () -> Unit) {
+    fun GuiGraphicsExtractor.withMatrix(
+        x: Number? = null,
+        y: Number? = null,
+        scale: Number? = null,
+        block: () -> Unit
+    ) {
         require((x == null && y == null) || (x != null && y != null)) {
             "x and y must either both be null or both be not null"
         }
@@ -81,17 +86,37 @@ object DrawContextUtils {
         enableScissor(x, y, x + width, y + height)
     }
 
-    fun GuiGraphicsExtractor.drawText(text: Component, x: Number, y: Number, colour: Int = Colour.WHITE.rgb, scale: Float = 1f, shadow: Boolean = true) {
+    fun GuiGraphicsExtractor.drawText(
+        text: Component,
+        x: Number,
+        y: Number,
+        colour: Int = Colour.WHITE.rgb,
+        scale: Float = 1f,
+        shadow: Boolean = true
+    ) {
         withMatrix(x, y) {
             if (scale != 1f) pose().scale(scale, scale)
             text(mc.font, text, 0, 0, colour, shadow)
         }
     }
 
-    fun GuiGraphicsExtractor.drawText(text: String, x: Number, y: Number, colour: Int = Colour.WHITE.rgb, scale: Float = 1f, shadow: Boolean = true)
-        = drawText(literal(text), x, y, colour, scale, shadow)
+    fun GuiGraphicsExtractor.drawText(
+        text: String,
+        x: Number,
+        y: Number,
+        colour: Int = Colour.WHITE.rgb,
+        scale: Float = 1f,
+        shadow: Boolean = true
+    ) = drawText(literal(text), x, y, colour, scale, shadow)
 
-    fun GuiGraphicsExtractor.drawText(text: FormattedCharSequence, x: Number, y: Number, colour: Int = Colour.WHITE.rgb, scale: Float = 1f, shadow: Boolean = true) {
+    fun GuiGraphicsExtractor.drawText(
+        text: FormattedCharSequence,
+        x: Number,
+        y: Number,
+        colour: Int = Colour.WHITE.rgb,
+        scale: Float = 1f,
+        shadow: Boolean = true
+    ) {
         withMatrix(x, y) {
             if (scale != 1f) pose().scale(scale, scale)
             text(mc.font, text, 0, 0, colour, shadow)
@@ -108,7 +133,8 @@ object DrawContextUtils {
         val textures = textureCache.getOrElse(uuid) {
             val profile = connection.getPlayerInfo(uuid)?.profile
             val skin =
-                if (profile != null) mc.skinManager.get(profile).getNow(Optional.empty()).orElseGet { DefaultPlayerSkin.get(uuid) }
+                if (profile != null) mc.skinManager.get(profile).getNow(Optional.empty())
+                    .orElseGet { DefaultPlayerSkin.get(uuid) }
                 else DefaultPlayerSkin.get(uuid)
 
             val defaultSkin = DefaultPlayerSkin.get(uuid)
@@ -124,6 +150,7 @@ object DrawContextUtils {
     fun GuiGraphicsExtractor.drawImage(image: Identifier, x: Int, y: Int, width: Int, height: Int, colour: Int = -1) {
         blit(RenderPipelines.GUI_TEXTURED, image, x, y, 0f, 0f, width, height, width, height, colour)
     }
+
     fun GuiGraphicsExtractor.drawEntity(
         entity: LivingEntity,
         x: Int,
@@ -150,7 +177,7 @@ object DrawContextUtils {
             val mid = (min + max) / 2f
             val dev = (max - min) / 2f
             entity.yHeadRot = mid + wrapDegrees(entity.yHeadRot - entity.yBodyRot).coerceIn(-dev, dev)
-            entity.yHeadRotO = mid + wrapDegrees(entity. yHeadRotO - entity.yBodyRotO).coerceIn(-dev, dev)
+            entity.yHeadRotO = mid + wrapDegrees(entity.yHeadRotO - entity.yBodyRotO).coerceIn(-dev, dev)
             entity.yBodyRot = mid
             entity.yBodyRotO = mid
             entity.yRot = mid

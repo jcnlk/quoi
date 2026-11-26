@@ -390,12 +390,14 @@ object PlayerUtils {
                 ?.takeUnless { it.equals(name, ignoreCase = true) }
                 ?.let(NickResult::Denicked)
                 ?: NickResult.Nicked
+
             else -> NickResult.Nicked
         }
     }
 
     private fun decodeTexturePayload(encodedTextures: String): TexturePayload? = runCatching {
-        val json = JsonParser.parseString(Base64.getDecoder().decode(encodedTextures).toString(Charsets.UTF_8)).asJsonObject
+        val json =
+            JsonParser.parseString(Base64.getDecoder().decode(encodedTextures).toString(Charsets.UTF_8)).asJsonObject
         val profileId = json["profileId"]
             ?.takeUnless { it.isJsonNull }
             ?.asString

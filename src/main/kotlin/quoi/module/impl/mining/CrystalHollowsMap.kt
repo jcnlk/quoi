@@ -46,7 +46,11 @@ object CrystalHollowsMap : Module(
 
     private val other by text("Other").visibleIf { chScanner }
     private val drawChunks by switch("Draw loaded chunks").childOf(::other) // fixme
-    private val chunksCol by colourPicker("Loaded chunks colour", Colour.PURPLE.withAlpha(0.33f), allowAlpha = true).childOf(::other) { drawChunks }
+    private val chunksCol by colourPicker(
+        "Loaded chunks colour",
+        Colour.PURPLE.withAlpha(0.33f),
+        allowAlpha = true
+    ).childOf(::other) { drawChunks }
     private val drawRouteBlocks by switch("Draw route blocks").childOf(::other) { routeScanner }
     private val drawStructures by switch("Draw structures").childOf(::other) { structureScanner }
 
@@ -79,6 +83,7 @@ object CrystalHollowsMap : Module(
 
     private const val GRID_SIZE = 64
     private const val CHUNK_OFFSET = X_MIN shr 4
+
     data class MeshedChunk(val x: Int, val z: Int, val width: Int, val height: Int)
 
     private val mapPlayers = mutableMapOf<String, MapPlayer>()

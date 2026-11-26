@@ -34,7 +34,9 @@ class SegmentedComponent<T>(
 
     override var value: SegmentedComponent<T>
         get() = this
-        set(v) { index = v.index }
+        set(v) {
+            index = v.index
+        }
 
     var index: Int = options.indexOf(defaultSelected).coerceAtLeast(0)
         set(value) {
@@ -75,71 +77,72 @@ class SegmentedComponent<T>(
 
     private val cols = options.indices.map { Cols(it) }
 
-    override fun ElementScope<*>.draw(asSub: Boolean) = group(size(w = Copying)) { // todo improve. maybe make bg colour move instead of fade in/out
-        text(
-            string = name,
-            size = theme.textSize,
-            colour = theme.onSurfaceVariant,
-            pos = at(x = 0.px, y = Centre)
-        )
+    override fun ElementScope<*>.draw(asSub: Boolean) =
+        group(size(w = Copying)) { // todo improve. maybe make bg colour move instead of fade in/out
+            text(
+                string = name,
+                size = theme.textSize,
+                colour = theme.onSurfaceVariant,
+                pos = at(x = 0.px, y = Centre)
+            )
 
-        val width = 100f / options.size
-        group(constrain(x = 0.px.alignOpposite, w = 60.percent, h = if (asSub) Bounding else 20.px,)) {
+            val width = 100f / options.size
+            group(constrain(x = 0.px.alignOpposite, w = 60.percent, h = if (asSub) Bounding else 20.px)) {
 
-            options.reversed().forEachIndexed { i, option -> // tbh I don't remember why I made it reversed
+                options.reversed().forEachIndexed { i, option -> // tbh I don't remember why I made it reversed
 
-                val originalIndex = options.size - 1 - i
-                val col = cols[originalIndex]
+                    val originalIndex = options.size - 1 - i
+                    val col = cols[originalIndex]
 
-                val r = if (asSub) 4 else 5
-                val radius = when (originalIndex) {
-                    0 -> radius(tl = r, bl = r, tr = 0, br = 0)
-                    options.lastIndex ->  radius(tr = r, br = r, tl = 0, bl = 0)
-                    else -> 0.radius()
-                }
+                    val r = if (asSub) 4 else 5
+                    val radius = when (originalIndex) {
+                        0 -> radius(tl = r, bl = r, tr = 0, br = 0)
+                        options.lastIndex -> radius(tr = r, br = r, tl = 0, bl = 0)
+                        else -> 0.radius()
+                    }
 
-                block(
-                    constrain(
-                        x = (i * width).percent.alignOpposite,
-                        w = width.percent,
-                        h = Copying
-                    ),
-                    colour = col.bg,
-                    radius = radius
-                ) {
-                    outline(col.outline, thickness = 2.px)
-                    cursor(CursorShape.HAND)
+                    block(
+                        constrain(
+                            x = (i * width).percent.alignOpposite,
+                            w = width.percent,
+                            h = Copying
+                        ),
+                        colour = col.bg,
+                        radius = radius
+                    ) {
+                        outline(col.outline, thickness = 2.px)
+                        cursor(CursorShape.HAND)
 
-                    text(
-                        string = nameOf(option),
-                        size = theme.textSize,
-                        colour = col.text,
-                    )
+                        text(
+                            string = nameOf(option),
+                            size = theme.textSize,
+                            colour = col.text,
+                        )
 
-                    onAdd {
-                        scheduleTask {
-                            if (originalIndex == index) {
-                                element.moveToTop()
+                        onAdd {
+                            scheduleTask {
+                                if (originalIndex == index) {
+                                    element.moveToTop()
+                                }
                             }
                         }
-                    }
 
-                    onMouseEnterExit {
-                        if (originalIndex != index) {
-                            col.hovered = !col.hovered
-                            col.outline.animate(0.25.seconds, style = Animation.Style.EaseOutQuint)
+                        onMouseEnterExit {
+                            if (originalIndex != index) {
+                                col.hovered = !col.hovered
+                                col.outline.animate(0.25.seconds, style = Animation.Style.EaseOutQuint)
+                            }
                         }
-                    }
 
-                    onClick {
-                        index = originalIndex
-                        element.moveToTop()
-                        true
+                        onClick {
+                            index = originalIndex
+                            element.moveToTop()
+                            true
+                        }
                     }
                 }
             }
         }
-    }
 
     private inner class Cols(i: Int) {
         var hovered = false
@@ -176,5 +179,9 @@ class SegmentedComponent<T>(
     }
 }
 
-inline fun <reified E : Enum<E>> SegmentedComponent(name: String, default: E, desc: String = ""): SegmentedComponent<E> =
+inline fun <reified E : Enum<E>> SegmentedComponent(
+    name: String,
+    default: E,
+    desc: String = ""
+): SegmentedComponent<E> =
     SegmentedComponent(name, default, default.declaringJavaClass.enumConstants.toList(), desc)

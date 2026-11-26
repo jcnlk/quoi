@@ -27,8 +27,18 @@ object SecretTriggerbot : ToggleableGroup(
     area = Island.Dungeon
 ) {
     private val itemSwapping by switch("Item swapping", desc = "Swaps to the configured hotbar slot before clicking.")
-    private val swapSlot by slider("Swap slot", 1, 1, 9, 1, desc = "Hotbar slot to swap to (1-9).").childOf(::itemSwapping)
-    private val swapBack by switch("Swap back", desc = "Swaps back to original slot after clicking.").childOf(::itemSwapping)
+    private val swapSlot by slider(
+        "Swap slot",
+        1,
+        1,
+        9,
+        1,
+        desc = "Hotbar slot to swap to (1-9)."
+    ).childOf(::itemSwapping)
+    private val swapBack by switch(
+        "Swap back",
+        desc = "Swaps back to original slot after clicking."
+    ).childOf(::itemSwapping)
     private val reactionDelay by slider("Interact delay", 0, 0, 5, 1, desc = "Ticks to wait before triggering.")
 
     private val clickedBlocks = HashSet<BlockPos>()

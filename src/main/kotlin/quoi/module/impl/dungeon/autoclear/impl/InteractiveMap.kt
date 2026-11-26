@@ -39,7 +39,11 @@ object InteractiveMap : Module(
     area = Island.Dungeon(inClear = true),
     tag = Tag.BETA
 ) {
-    private val keepChunks by switch("Keep chunks loaded", true, desc = "Keeps the chunks loaded. Good for long distances.")
+    private val keepChunks by switch(
+        "Keep chunks loaded",
+        true,
+        desc = "Keeps the chunks loaded. Good for long distances."
+    )
     private val closeOn by segmented("Close on", "Release", listOf("Release", "Repress"))
     val faceDoorOnArrival by switch("Face door on arrival", desc = "Faces the targeted door after arriving.")
 
@@ -57,18 +61,28 @@ object InteractiveMap : Module(
             if (mapOpen) mc.gui.setScreen(null)
         }
 
-    private val lockedKey: KeybindComponent = register(keybind("Locked door key", desc = "Teleports to the closest locked door"))
-        .onPress {
-            if (!enabled || !Dungeon.inClear || Dungeon.isDead) return@onPress
-            if (Dungeon.currentRoom == null) return@onPress Notifications.warning(name, "Your current room hasn't been detected yet.")
-            val door = getLockedDoor() ?: return@onPress Notifications.warning(name, "No reachable locked door was found.")
-            pathToDoor(door, faceDoorOnArrival, mapFeedback = true)
-        }
+    private val lockedKey: KeybindComponent =
+        register(keybind("Locked door key", desc = "Teleports to the closest locked door"))
+            .onPress {
+                if (!enabled || !Dungeon.inClear || Dungeon.isDead) return@onPress
+                if (Dungeon.currentRoom == null) return@onPress Notifications.warning(
+                    name,
+                    "Your current room hasn't been detected yet."
+                )
+                val door =
+                    getLockedDoor() ?: return@onPress Notifications.warning(name, "No reachable locked door was found.")
+                pathToDoor(door, faceDoorOnArrival, mapFeedback = true)
+            }
 
     private val visuals by text("Visuals")
     private val scale by slider("Map scale", 5f, 1f, 10f, 0.5f).childOf(::visuals)
     private val showHelp by switch("Show help", true, desc = "Shows the controls below the map.").childOf(::visuals)
-    val roomInCol by colourPicker("Highlight colour", Colour.GREY.withAlpha(0.5f), allowAlpha = true, desc = "Room the player currently in colour.").childOf(::visuals)
+    val roomInCol by colourPicker(
+        "Highlight colour",
+        Colour.GREY.withAlpha(0.5f),
+        allowAlpha = true,
+        desc = "Room the player currently in colour."
+    ).childOf(::visuals)
 
     val mapOpen: Boolean
         get() = mc.gui.screen()?.title?.string == "quoi clear map"
@@ -127,7 +141,10 @@ object InteractiveMap : Module(
 
                     listOf(
                         listOf("§bLeft click room / door§f: Travel", "§bRight click room§f: Route start"),
-                        listOf("§bLeft click empty space§f: Continue route", "§bRight click empty space§f: Return to route start")
+                        listOf(
+                            "§bLeft click empty space§f: Continue route",
+                            "§bRight click empty space§f: Return to route start"
+                        )
                     ).forEach { hints ->
                         group(constrain(w = Copying, h = hintSize)) {
                             hints.forEachIndexed { index, hint ->

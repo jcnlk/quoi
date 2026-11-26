@@ -59,7 +59,8 @@ class BoomNode : RouteNode() {
         } ?: return true
 
         if (!player.mainHandItem.skyblockId.equalsOneOf("INFINITE_SUPERBOOM_TNT", "SUPERBOOM_TNT")) {
-            val swap = SwapManager.swapById("INFINITE_SUPERBOOM_TNT", "SUPERBOOM_TNT", reportMissing = onMissingItem == null)
+            val swap =
+                SwapManager.swapById("INFINITE_SUPERBOOM_TNT", "SUPERBOOM_TNT", reportMissing = onMissingItem == null)
             if (swap == SwapResult.NOT_FOUND) onMissingItem?.invoke("Put Superboom TNT in your hotbar.")
             if (!swap.success) return swap == SwapResult.NOT_FOUND
         }

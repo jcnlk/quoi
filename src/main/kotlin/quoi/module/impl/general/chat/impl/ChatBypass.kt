@@ -26,22 +26,23 @@ object ChatBypass : ToggleableGroup(
             }
 
             if (isCommand) {
-                socialCommands.firstOrNull { message.equals(it, true) || message.startsWith("$it ", true) }?.let { cmd ->
-                    val isPm = socialCommands.drop(4).any { message.startsWith(it) }
-                    val text = message.removePrefix(cmd).trimStart()
-                    val shit = if (isPm) text.split(" ").first() else ""
-                    val content = text.removePrefix(shit).trimStart()
+                socialCommands.firstOrNull { message.equals(it, true) || message.startsWith("$it ", true) }
+                    ?.let { cmd ->
+                        val isPm = socialCommands.drop(4).any { message.startsWith(it) }
+                        val text = message.removePrefix(cmd).trimStart()
+                        val shit = if (isPm) text.split(" ").first() else ""
+                        val content = text.removePrefix(shit).trimStart()
 
-                    val t = buildString {
-                        append(cmd)
-                        if (shit.isNotEmpty()) append(" $shit")
-                        if (content.isNotEmpty()) append(" ${apply(content)}")
+                        val t = buildString {
+                            append(cmd)
+                            if (shit.isNotEmpty()) append(" $shit")
+                            if (content.isNotEmpty()) append(" ${apply(content)}")
+                        }
+
+                        cancel()
+                        bypass = true
+                        commandAny(t)
                     }
-
-                    cancel()
-                    bypass = true
-                    commandAny(t)
-                }
             } else {
                 cancel()
                 bypass = true
@@ -50,7 +51,8 @@ object ChatBypass : ToggleableGroup(
         }
     }
 
-    val socialCommands = setOf("pc", "ac", "gc", "cc", "r", "msg", "w", "m", "message", "whisper", "tell", "pm") // maybe there are more
+    val socialCommands =
+        setOf("pc", "ac", "gc", "cc", "r", "msg", "w", "m", "message", "whisper", "tell", "pm") // maybe there are more
 
     private fun apply(str: String) = mode.selected.apply(str)
 

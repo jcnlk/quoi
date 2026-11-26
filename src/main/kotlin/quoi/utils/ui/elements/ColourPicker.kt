@@ -59,7 +59,7 @@ fun ElementScope<*>.colourPicker(
         val offset = size / 2f
 
         val pointerX = Animatable.Raw((sx * w).coerceIn(offset, w - offset))
-        val pointerY = if (onlyX) null else  Animatable.Raw((sy * height).coerceIn(offset, height))
+        val pointerY = if (onlyX) null else Animatable.Raw((sy * height).coerceIn(offset, height))
 
         var animate = false
 
@@ -88,9 +88,14 @@ fun ElementScope<*>.colourPicker(
 
         watch(block) {
             val (x, y) = block()
-            val duration = if (animate || (!ui.eventManager.mouseDown && isRainbow?.get() == false)) 0.15.seconds else 0f
+            val duration =
+                if (animate || (!ui.eventManager.mouseDown && isRainbow?.get() == false)) 0.15.seconds else 0f
             pointerX.animate(to = (x * w).coerceIn(offset, w - offset), duration, Animation.Style.EaseOutQuad)
-            pointerY?.animate(to = (y * height).coerceIn(offset, height - offset), duration, Animation.Style.EaseOutQuad)
+            pointerY?.animate(
+                to = (y * height).coerceIn(offset, height - offset),
+                duration,
+                Animation.Style.EaseOutQuad
+            )
 
             animate = false
             redraw()
@@ -303,9 +308,11 @@ fun ElementScope<*>.colourPicker(
                                         value.hue = newColour.hue
                                         value.saturation = newColour.saturation
                                         value.brightness = newColour.brightness
-                                    } catch (_: Exception) { }
+                                    } catch (_: Exception) {
+                                    }
                                 }
                             }
+
                             1, 2 -> { // HSB or RGB
                                 val isHSB = selected == 1
                                 val props = if (isHSB) {
@@ -329,6 +336,7 @@ fun ElementScope<*>.colourPicker(
                                     }
                                 }
                             }
+
                             3 -> cell(centreWidth, endRadius) { // rainbow speed
                                 slider(
                                     ::rainbowSpeed,

@@ -63,8 +63,18 @@ class CustomMainMenuScreen(
         val multiplayerAllowed = minecraft.allowsMultiplayer() && !minecraft.isDemo
         addButton("Singleplayer") { minecraft.gui.setScreen(SelectWorldScreen(this)) }
         addButton("Multiplayer", multiplayerAllowed) { minecraft.gui.setScreen(JoinMultiplayerScreen(this)) }
-        if (CustomMainMenu.showHypixelButton) addButton("Join Hypixel", multiplayerAllowed) { joinServer("Hypixel", "mc.hypixel.net") }
-        if (CustomMainMenu.showP3SimButton) addButton("Join P3Sim", multiplayerAllowed) { joinServer("P3Sim", "p3sim.net") }
+        if (CustomMainMenu.showHypixelButton) addButton("Join Hypixel", multiplayerAllowed) {
+            joinServer(
+                "Hypixel",
+                "mc.hypixel.net"
+            )
+        }
+        if (CustomMainMenu.showP3SimButton) addButton("Join P3Sim", multiplayerAllowed) {
+            joinServer(
+                "P3Sim",
+                "p3sim.net"
+            )
+        }
         //~ if >=26.3 'minecraft.options, false)' -> 'minecraft.options)'
         addButton("Options") { minecraft.gui.setScreen(OptionsScreen(this, minecraft.options, false)) }
         externalTitleButtons.forEach { button ->
@@ -74,21 +84,34 @@ class CustomMainMenuScreen(
         }
 
         addRenderableWidget(
-            CustomMenuButton(x, height - BUTTON_HEIGHT - 10, buttonWidth.coerceAtMost(width - 216 - x), "Quit") { minecraft.stop() }
+            CustomMenuButton(
+                x,
+                height - BUTTON_HEIGHT - 10,
+                buttonWidth.coerceAtMost(width - 216 - x),
+                "Quit"
+            ) { minecraft.stop() }
         )
 
         listOf("GitHub" to "https://github.com/jcnlk/quoi", "Discord" to "https://discord.com/invite/QCWgrQ57pN")
             .forEachIndexed { index, (label, url) ->
-                addRenderableWidget(CustomMenuButton(width - 206 + index * 100, height - BUTTON_HEIGHT - 10, 92, label) {
-                    Util.getPlatform().openUri(URI(url))
-                })
+                addRenderableWidget(
+                    CustomMenuButton(
+                        width - 206 + index * 100,
+                        height - BUTTON_HEIGHT - 10,
+                        92,
+                        label
+                    ) {
+                        Util.getPlatform().openUri(URI(url))
+                    })
             }
     }
 
     override fun extractRenderState(guiGraphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, deltaTicks: Float) {
         extractBackground(guiGraphics, mouseX, mouseY, deltaTicks)
-        guiGraphics.text(font, "${SharedConstants.getCurrentVersion().name()} - Fabric",
-            12, height - BUTTON_HEIGHT - 27, theme.onSurface.withAlpha(220).rgb, true)
+        guiGraphics.text(
+            font, "${SharedConstants.getCurrentVersion().name()} - Fabric",
+            12, height - BUTTON_HEIGHT - 27, theme.onSurface.withAlpha(220).rgb, true
+        )
         super.extractRenderState(guiGraphics, mouseX, mouseY, deltaTicks)
     }
 
@@ -124,7 +147,10 @@ class CustomMainMenuScreen(
     private fun loadBackground() {
         val file = CustomMainMenu.selectedBackgroundFile()
         val source = file?.let { it to it.lastModified() }
-        if (source == loadedSource && (file == null || loadedImage != null && minecraft.textureManager.getTexture(BACKGROUND_ID) === loadedImage)) return
+        if (source == loadedSource && (file == null || loadedImage != null && minecraft.textureManager.getTexture(
+                BACKGROUND_ID
+            ) === loadedImage)
+        ) return
         loadedSource = source
         sampledMenuColour = null
         loadedImage = file?.let {
@@ -170,6 +196,7 @@ class CustomMainMenuScreen(
         val pixels = (0 until image.width step max(1, image.width / 24)).flatMap { x ->
             (0 until image.height step max(1, image.height / 24)).map { y -> image.getPixel(x, y) }
         }
+
         fun channel(shift: Int) = pixels.map { it ushr shift and 0xFF }.average().toInt().coerceIn(48, 255)
         return Colour.RGB(channel(0), channel(8), channel(16))
     }
@@ -188,15 +215,18 @@ class CustomMainMenuScreen(
         private val action: (InputWithModifiers) -> Unit,
     ) : Button(x, y, width, BUTTON_HEIGHT, Component.literal(label), {}, DEFAULT_NARRATION) {
         override fun extractContents(guiGraphics: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, deltaTicks: Float) {
-            val accent = if (CustomMainMenu.autoMenuColour) sampledMenuColour ?: theme.primary else CustomMainMenu.menuColour
+            val accent =
+                if (CustomMainMenu.autoMenuColour) sampledMenuColour ?: theme.primary else CustomMainMenu.menuColour
             val fill = if (isHoveredOrFocused) accent.withAlpha(60).rgb else theme.surface.withAlpha(35).rgb
             val outline = if (isHoveredOrFocused) accent.rgb else accent.withAlpha(210).rgb
             guiGraphics.fill(x, y, x + width, y + height, fill)
             guiGraphics.outline(x, y, width, height, outline)
             if (isHoveredOrFocused) guiGraphics.fill(x + 2, y + 2, x + 4, y + height - 2, outline)
 
-            guiGraphics.text(font, message, x + (width - font.width(message)) / 2,
-                y + (height - 8) / 2, theme.onSurface.rgb, true)
+            guiGraphics.text(
+                font, message, x + (width - font.width(message)) / 2,
+                y + (height - 8) / 2, theme.onSurface.rgb, true
+            )
         }
 
         override fun onPress(input: InputWithModifiers) = action(input)

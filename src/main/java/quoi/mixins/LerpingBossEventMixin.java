@@ -1,6 +1,7 @@
 package quoi.mixins;
 
 import java.util.UUID;
+
 import net.minecraft.client.gui.components.LerpingBossEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.BossEvent;

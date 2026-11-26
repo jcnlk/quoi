@@ -46,8 +46,16 @@ class TriggerGraph(val rule: TriggerRule) {
      */
     fun insert(slot: Int, component: Abobable): Int? {
         when (component) {
-            is TriggerCondition -> if (slot in slots(Kind.CONDITION)) rule.conditions.add(slot - 1, component) else return null
-            is TriggerAction -> if (slot in slots(Kind.ACTION)) rule.actions.add(slot - boundary, component) else return null
+            is TriggerCondition -> if (slot in slots(Kind.CONDITION)) rule.conditions.add(
+                slot - 1,
+                component
+            ) else return null
+
+            is TriggerAction -> if (slot in slots(Kind.ACTION)) rule.actions.add(
+                slot - boundary,
+                component
+            ) else return null
+
             else -> return null
         }
         return slot
@@ -82,7 +90,8 @@ class TriggerGraph(val rule: TriggerRule) {
         }
         if (!component.allowsDelay) {
             val position = index - boundary
-            val delayed = rule.actions.take(position).any { it is ContainerTaskAction || it is DelayAction && it.ticks > 0 }
+            val delayed =
+                rule.actions.take(position).any { it is ContainerTaskAction || it is DelayAction && it.ticks > 0 }
             if (delayed) return "Must run before any Wait or menu action."
         }
         return null

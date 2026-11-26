@@ -17,7 +17,14 @@ internal class LineGeometry(
 ) {
     private val tanHalfFov = tan(Math.toRadians(fovDegrees) / 2.0)
 
-    fun addSegment(buffer: VertexConsumer, pose: PoseStack.Pose, start: Vec3, end: Vec3, colour: Colour, thickness: Float) {
+    fun addSegment(
+        buffer: VertexConsumer,
+        pose: PoseStack.Pose,
+        start: Vec3,
+        end: Vec3,
+        colour: Colour,
+        thickness: Float
+    ) {
         if (thickness <= 0f || windowHeight <= 0.0) return
         var a = start.subtract(cameraPos)
         var b = end.subtract(cameraPos)
@@ -40,13 +47,49 @@ internal class LineGeometry(
         if (length <= 1.0E-9) return
         val perpendicular = left.scale(-dy / length).add(up.scale(dx / length))
         val pixelWidth = thickness * tanHalfFov / windowHeight
-        addQuad(buffer, pose, a, b, perpendicular.scale(startDepth * pixelWidth), perpendicular.scale(endDepth * pixelWidth), colour)
+        addQuad(
+            buffer,
+            pose,
+            a,
+            b,
+            perpendicular.scale(startDepth * pixelWidth),
+            perpendicular.scale(endDepth * pixelWidth),
+            colour
+        )
     }
 
-    private fun addQuad(buffer: VertexConsumer, pose: PoseStack.Pose, start: Vec3, end: Vec3, startOffset: Vec3, endOffset: Vec3, colour: Colour) {
-        buffer.addVertex(pose, (start.x - startOffset.x).toFloat(), (start.y - startOffset.y).toFloat(), (start.z - startOffset.z).toFloat()).setColor(colour.rgb)
-        buffer.addVertex(pose, (start.x + startOffset.x).toFloat(), (start.y + startOffset.y).toFloat(), (start.z + startOffset.z).toFloat()).setColor(colour.rgb)
-        buffer.addVertex(pose, (end.x + endOffset.x).toFloat(), (end.y + endOffset.y).toFloat(), (end.z + endOffset.z).toFloat()).setColor(colour.rgb)
-        buffer.addVertex(pose, (end.x - endOffset.x).toFloat(), (end.y - endOffset.y).toFloat(), (end.z - endOffset.z).toFloat()).setColor(colour.rgb)
+    private fun addQuad(
+        buffer: VertexConsumer,
+        pose: PoseStack.Pose,
+        start: Vec3,
+        end: Vec3,
+        startOffset: Vec3,
+        endOffset: Vec3,
+        colour: Colour
+    ) {
+        buffer.addVertex(
+            pose,
+            (start.x - startOffset.x).toFloat(),
+            (start.y - startOffset.y).toFloat(),
+            (start.z - startOffset.z).toFloat()
+        ).setColor(colour.rgb)
+        buffer.addVertex(
+            pose,
+            (start.x + startOffset.x).toFloat(),
+            (start.y + startOffset.y).toFloat(),
+            (start.z + startOffset.z).toFloat()
+        ).setColor(colour.rgb)
+        buffer.addVertex(
+            pose,
+            (end.x + endOffset.x).toFloat(),
+            (end.y + endOffset.y).toFloat(),
+            (end.z + endOffset.z).toFloat()
+        ).setColor(colour.rgb)
+        buffer.addVertex(
+            pose,
+            (end.x - endOffset.x).toFloat(),
+            (end.y - endOffset.y).toFloat(),
+            (end.z - endOffset.z).toFloat()
+        ).setColor(colour.rgb)
     }
 }

@@ -38,7 +38,11 @@ object DungeonESP : Module(
     desc = "Highlights various dungeon entities.",
     area = Island.Dungeon
 ) {
-    private val teammateEsp by switch("Teammate ESP", true, desc = "Highlights dungeon teammates based on their class colour.")
+    private val teammateEsp by switch(
+        "Teammate ESP",
+        true,
+        desc = "Highlights dungeon teammates based on their class colour."
+    )
         .json("Teammate class glow")
     private val teammateHighlight = highlight(
         customColour = true,
@@ -54,14 +58,37 @@ object DungeonESP : Module(
     private val starHighlight = highlight(colour = null, fillColour = null, aabbOffset = true).childOf(::starEsp)
 
     private val colourDropdown by text("Colours").childOf(::starEsp).visibleIf { starHighlight.style != "Filled" }
-    private val colourStar by colourPicker("Star", Colour.RED, true, "ESP color for star mobs.").childOf(::colourDropdown)
-    private val colourSA by colourPicker("Shadow assassin", Colour.RED, true, "ESP color for shadow assassins.").childOf(::colourDropdown)
+    private val colourStar by colourPicker(
+        "Star",
+        Colour.RED,
+        true,
+        "ESP color for star mobs."
+    ).childOf(::colourDropdown)
+    private val colourSA by colourPicker(
+        "Shadow assassin",
+        Colour.RED,
+        true,
+        "ESP color for shadow assassins."
+    ).childOf(::colourDropdown)
     private val colourBat by colourPicker("Bat", Colour.RED, true, "ESP color for bats.").childOf(::colourDropdown)
 
-    private val fillDropdown by text("Fill colours").childOf(::starEsp).visibleIf { starHighlight.style.equalsOneOf("Filled box", "Filled") }
-    private val colourStarFill by colourPicker("Star", Colour.RED.withAlpha(60), true, "ESP color for star mobs.").json("Star fill").childOf(::fillDropdown)
-    private val colourSAFill by colourPicker("Shadow assassin", Colour.RED.withAlpha(60), true, "ESP color for shadow assassins.").json("Shadow assassin fill").childOf(::fillDropdown)
-    private val colourBatFill by colourPicker("Bat", Colour.RED.withAlpha(60), true, "ESP color for bats.").json("Bat fill").childOf(::fillDropdown)
+    private val fillDropdown by text("Fill colours").childOf(::starEsp)
+        .visibleIf { starHighlight.style.equalsOneOf("Filled box", "Filled") }
+    private val colourStarFill by colourPicker("Star", Colour.RED.withAlpha(60), true, "ESP color for star mobs.").json(
+        "Star fill"
+    ).childOf(::fillDropdown)
+    private val colourSAFill by colourPicker(
+        "Shadow assassin",
+        Colour.RED.withAlpha(60),
+        true,
+        "ESP color for shadow assassins."
+    ).json("Shadow assassin fill").childOf(::fillDropdown)
+    private val colourBatFill by colourPicker(
+        "Bat",
+        Colour.RED.withAlpha(60),
+        true,
+        "ESP color for bats."
+    ).json("Bat fill").childOf(::fillDropdown)
 
     private val bossEsp by switch("Wither boss")
     private val bossHighlight = highlight("Style", aabbOffset = true).json("Boss style").childOf(::bossEsp)
@@ -96,7 +123,13 @@ object DungeonESP : Module(
                 is ArmorStand -> handleStand(entity)
                 is Bat -> bats.add(entity.id)
                 is Player -> {
-                    if (!entity.gameProfile.name.equalsOneOf("Shadow Assassin", "Lost Adventurer", "Diamond Guy", "King Midas")) return@on
+                    if (!entity.gameProfile.name.equalsOneOf(
+                            "Shadow Assassin",
+                            "Lost Adventurer",
+                            "Diamond Guy",
+                            "King Midas"
+                        )
+                    ) return@on
                     val roomName = ScanUtils.getRoomFromPos(entity.x, entity.z)?.name ?: return@on
                     if (roomName in fakeMinibossRooms || roomName == "Stairs" && entity.y > 80) return@on
                     starMobs.add(entity.id)

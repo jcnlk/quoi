@@ -20,7 +20,8 @@ public class PreparedTextBuilderMixin {
             cancellable = true
     )
     private void devonian$disableTextShadow(Style style, int i, CallbackInfoReturnable<Integer> cir) {
-        if (should(RenderOptimiser.getContainerTextShadow()) && Minecraft.getInstance().gui.screen() instanceof AbstractContainerScreen) return;
+        if (should(RenderOptimiser.getContainerTextShadow()) && Minecraft.getInstance().gui.screen() instanceof AbstractContainerScreen)
+            return;
         if (should(RenderOptimiser.getDisableTextShadow())) cir.setReturnValue(0);
     }
 }

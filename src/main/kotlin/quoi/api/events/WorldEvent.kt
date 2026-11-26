@@ -7,6 +7,7 @@ abstract class WorldEvent {
     abstract class Chunk {
         class Load(val chunk: LevelChunk) : UnfilteredEvent()
     }
+
     class Change : UnfilteredEvent()
     abstract class Load {
         class Start : UnfilteredEvent()

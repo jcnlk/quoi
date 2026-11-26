@@ -16,6 +16,7 @@ class DungeonStageCondition(var stage: Stage = Stage.S1) : TriggerCondition() {
         DungeonCheckMode.STATE -> Floor7.inStage(stage)
         DungeonCheckMode.POSITION -> Floor7.getStageAt() == stage
     }
+
     override fun displayString() = "${mode.label}: stage ${stage.name}"
     override fun invertedString() = "${mode.label}: not stage ${stage.name}"
     override fun ElementScope<*>.draw() = settingRow(

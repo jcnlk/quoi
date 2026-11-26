@@ -1,4 +1,3 @@
-
 package quoi.utils.ui.screens
 
 import net.minecraft.client.gui.GuiGraphicsExtractor

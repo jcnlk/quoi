@@ -77,7 +77,7 @@ object SplitsManager : EventListener {
 
                 val fullList = ArrayList<Split>(startSplits.size + selectedFloor.size + 1)
                 fullList.addAll(startSplits.map { it.copy() })
-                fullList.addAll(selectedFloor.map{ it.copy() })
+                fullList.addAll(selectedFloor.map { it.copy() })
                 fullList.add(Split(TOTAL_REGEX, "Time Elapsed", Colour.MINECRAFT_GREEN))
 
                 currentSplits = fullList
@@ -124,7 +124,13 @@ object SplitsManager : EventListener {
         data class StageReached(val stage: Stage) : SplitTrigger
     }
 
-    data class Split(val trigger: SplitTrigger, val name: String, val colour: Colour, var time: Long = 0L, var ticks: Long = 0L) {
+    data class Split(
+        val trigger: SplitTrigger,
+        val name: String,
+        val colour: Colour,
+        var time: Long = 0L,
+        var ticks: Long = 0L
+    ) {
         constructor(regex: Regex, name: String, colour: Colour, time: Long = 0L, ticks: Long = 0L) : this(
             SplitTrigger.ChatMessage(regex), name, colour, time, ticks
         )
@@ -159,8 +165,10 @@ object SplitsManager : EventListener {
         Regex("^\\[BOSS] Sadan: So you made it all the way here\\.\\.\\. Now you wish to defy me\\? Sadan\\?!$"),
     )
 
-    private val BLOOD_OPEN_REGEX = Regex("^\\[BOSS] The Watcher: (Congratulations, you made it through the Entrance\\.|Ah, you've finally arrived\\.|Ah, we meet again\\.\\.\\.|So you made it this far\\.\\.\\. interesting\\.|You've managed to scratch and claw your way here, eh\\?|I'm starting to get tired of seeing you around here\\.\\.\\.|Oh\\.\\. hello\\?|Things feel a little more roomy now, eh\\?)$|^The BLOOD DOOR has been opened!$")
-    private val MORT_REGEX = Regex("\\[NPC] Mort: Here, I found this map when I first entered the dungeon\\.|\\[NPC] Mort: Right-click the Orb for spells, and Left-click \\(or Drop\\) to use your Ultimate!")
+    private val BLOOD_OPEN_REGEX =
+        Regex("^\\[BOSS] The Watcher: (Congratulations, you made it through the Entrance\\.|Ah, you've finally arrived\\.|Ah, we meet again\\.\\.\\.|So you made it this far\\.\\.\\. interesting\\.|You've managed to scratch and claw your way here, eh\\?|I'm starting to get tired of seeing you around here\\.\\.\\.|Oh\\.\\. hello\\?|Things feel a little more roomy now, eh\\?)$|^The BLOOD DOOR has been opened!$")
+    private val MORT_REGEX =
+        Regex("\\[NPC] Mort: Here, I found this map when I first entered the dungeon\\.|\\[NPC] Mort: Right-click the Orb for spells, and Left-click \\(or Drop\\) to use your Ultimate!")
     private val PORTAL_REGEX = Regex("\\[BOSS] The Watcher: You have proven yourself\\. You may pass\\.")
     private val MAXOR_ENTRY_REGEX = Regex("^\\[BOSS] Maxor: WELL! WELL! WELL! LOOK WHO'S HERE!$")
     private val TOTAL_REGEX = Regex("^\\s*☠ Defeated (.+) in 0?([\\dhms ]+?)\\s*(\\(NEW RECORD!\\))?$")
@@ -184,14 +192,26 @@ object SplitsManager : EventListener {
         // F2
         listOf(
             Split(entryRegexes[1], "Scarf's minions", Colour.MINECRAFT_GREEN),
-            Split(Regex("^\\[BOSS] Scarf: Did you forget\\? I was taught by the best! Let's dance\\.$"), "Scarf", Colour.MINECRAFT_RED)
+            Split(
+                Regex("^\\[BOSS] Scarf: Did you forget\\? I was taught by the best! Let's dance\\.$"),
+                "Scarf",
+                Colour.MINECRAFT_RED
+            )
         ),
 
         // F3
         listOf(
             Split(entryRegexes[2], "Guardians", Colour.MINECRAFT_GREEN),
-            Split(Regex("^\\[BOSS] The Professor: Oh\\? You found my Guardians' one weakness\\?$"), "The Professor", Colour.MINECRAFT_RED),
-            Split(Regex("^\\[BOSS] The Professor: What\\?! My Guardian power is unbeatable!$"), "Cleared", Colour.MINECRAFT_DARK_GREEN)
+            Split(
+                Regex("^\\[BOSS] The Professor: Oh\\? You found my Guardians' one weakness\\?$"),
+                "The Professor",
+                Colour.MINECRAFT_RED
+            ),
+            Split(
+                Regex("^\\[BOSS] The Professor: What\\?! My Guardian power is unbeatable!$"),
+                "Cleared",
+                Colour.MINECRAFT_DARK_GREEN
+            )
         ),
 
         // F4
@@ -208,7 +228,11 @@ object SplitsManager : EventListener {
         listOf(
             Split(entryRegexes[5], "Terracottas", Colour.MINECRAFT_LIGHT_PURPLE),
             Split(Regex("^\\[BOSS] Sadan: ENOUGH!$"), "Giants", Colour.MINECRAFT_GREEN),
-            Split(Regex("^\\[BOSS] Sadan: You did it\\. I understand now, you have earned my respect\\.$"), "Sadan", Colour.MINECRAFT_RED)
+            Split(
+                Regex("^\\[BOSS] Sadan: You did it\\. I understand now, you have earned my respect\\.$"),
+                "Sadan",
+                Colour.MINECRAFT_RED
+            )
         ),
     )
 
@@ -220,6 +244,8 @@ object SplitsManager : EventListener {
         Split(SplitTrigger.PhaseReached(Phase.P4), "Necron", Colour.MINECRAFT_DARK_RED)
     )
 
-    private val f7Splits = baseFloor7Splits + Split(SplitTrigger.PhaseReached(Phase.P5), "Cleared", Colour.MINECRAFT_DARK_GREEN)
-    private val m7Splits = baseFloor7Splits + Split(SplitTrigger.PhaseReached(Phase.P5), "Wither King", Colour.MINECRAFT_DARK_PURPLE)
+    private val f7Splits =
+        baseFloor7Splits + Split(SplitTrigger.PhaseReached(Phase.P5), "Cleared", Colour.MINECRAFT_DARK_GREEN)
+    private val m7Splits =
+        baseFloor7Splits + Split(SplitTrigger.PhaseReached(Phase.P5), "Wither King", Colour.MINECRAFT_DARK_PURPLE)
 }

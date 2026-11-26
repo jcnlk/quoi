@@ -23,10 +23,35 @@ import quoi.utils.center
 
 // todo fix it randomly stopping
 object Swiftness : ToggleableGroup(Dojo, "Swiftness", subarea = "dojo arena") { // kinda rng but good enough for 2-3k
-    private val fullStop by switch("Full stop", desc = "Fully stops after walking.") // doesn't really change anything lowkey
-    private val magicNumber by slider("Magic number", 0.3, 0.0, 0.5, 0.05, desc = "Adjust it and maybe it will suck less.")
-    private val magicNumber2 by slider("Magic number 2", 9, 4, 9, 0.5, desc = "Adjust it and maybe it will suck less 2.") // todo maybe get rid of these and fucking improve moveto.
-    private val speed by slider("Rotation speed", 150, 0, 300, 50, desc = "Lower = better but less legit looking idk", unit = "ms")
+    private val fullStop by switch(
+        "Full stop",
+        desc = "Fully stops after walking."
+    ) // doesn't really change anything lowkey
+    private val magicNumber by slider(
+        "Magic number",
+        0.3,
+        0.0,
+        0.5,
+        0.05,
+        desc = "Adjust it and maybe it will suck less."
+    )
+    private val magicNumber2 by slider(
+        "Magic number 2",
+        9,
+        4,
+        9,
+        0.5,
+        desc = "Adjust it and maybe it will suck less 2."
+    ) // todo maybe get rid of these and fucking improve moveto.
+    private val speed by slider(
+        "Rotation speed",
+        150,
+        0,
+        300,
+        50,
+        desc = "Lower = better but less legit looking idk",
+        unit = "ms"
+    )
     private val style by selector("Style", Animation.Style.Linear, desc = "Rotation style")
 
     private val blocks = ArrayDeque<Vec3>()

@@ -24,17 +24,20 @@ object ServerInfo : EventListener {
     private val samples = ArrayDeque<PingSample>()
     private var pingSum = 0.0
     private var weightSum = 0
-    private val medianMax = TreeSet<PingSample> { a, b -> b.value.compareTo(a.value).let { if (it == 0) a.time.compareTo(b.time) else it } }
-    private val medianMin = TreeSet<PingSample> { a, b -> a.value.compareTo(b.value).let { if (it == 0) a.time.compareTo(b.time) else it } }
+    private val medianMax =
+        TreeSet<PingSample> { a, b -> b.value.compareTo(a.value).let { if (it == 0) a.time.compareTo(b.time) else it } }
+    private val medianMin =
+        TreeSet<PingSample> { a, b -> a.value.compareTo(b.value).let { if (it == 0) a.time.compareTo(b.time) else it } }
 
     val currentPing: Double get() = samples.lastOrNull()?.value ?: 0.0
     val averagePing: Double get() = if (weightSum == 0) 0.0 else pingSum / weightSum
-    val medianPing: Double get() = when {
-        medianMax.size > medianMin.size -> medianMax.first.value
-        medianMin.size > medianMax.size -> medianMin.first.value
-        medianMax.isEmpty() -> 0.0
-        else -> 0.5 * (medianMax.first.value + medianMin.first.value)
-    }
+    val medianPing: Double
+        get() = when {
+            medianMax.size > medianMin.size -> medianMax.first.value
+            medianMin.size > medianMax.size -> medianMin.first.value
+            medianMax.isEmpty() -> 0.0
+            else -> 0.5 * (medianMax.first.value + medianMin.first.value)
+        }
 
     private var lastTickTime = System.currentTimeMillis()
     private val tickTimes = ArrayDeque<Long>()

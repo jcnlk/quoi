@@ -104,7 +104,14 @@ class EtherwarpNode : RouteNode() {
         return this
     }
 
-    override fun render(ctx: LevelRenderContext, style: String, colour: Colour, fillColour: Colour, activeColour: Colour, thickness: Float) {
+    override fun render(
+        ctx: LevelRenderContext,
+        style: String,
+        colour: Colour,
+        fillColour: Colour,
+        activeColour: Colour,
+        thickness: Float
+    ) {
         super.render(ctx, style, colour, fillColour, activeColour, thickness)
         val col = if (this.chain != null) Colour.GREEN else Colour.WHITE
         val final = if (yaw != null) Colour.ORANGE else col

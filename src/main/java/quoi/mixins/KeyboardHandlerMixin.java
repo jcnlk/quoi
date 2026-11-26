@@ -14,7 +14,8 @@ import quoi.api.input.Keybinds;
 
 @Mixin(KeyboardHandler.class)
 public class KeyboardHandlerMixin {
-    @Unique Minecraft mc = Minecraft.getInstance();
+    @Unique
+    Minecraft mc = Minecraft.getInstance();
 
     @Inject(
             method = "keyPress",

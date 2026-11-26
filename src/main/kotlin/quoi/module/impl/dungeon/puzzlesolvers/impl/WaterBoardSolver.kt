@@ -39,11 +39,27 @@ object WaterBoardSolver : SettingGroup(PuzzleSolvers, "Water board"), Reposition
 
     private val solver by switch("Solver", desc = "Shows the solution to the water board puzzle.")
     private val tracer by switch("Tracer", true, desc = "Shows a tracer to the next lever.").childOf(::solver)
-    private val tracerFirst by colourPicker("First", Colour.MINECRAFT_GREEN, true, desc = "Colour for the first tracer.").childOf(::tracer)
-    private val tracerSecond by colourPicker("Second", Colour.MINECRAFT_GOLD, true, desc = "Colour for the second tracer.").childOf(::tracer)
-    private val optimised by switch("Optimised solutions", desc = "Uses optimised solutions for the water board puzzle.").asParent()
+    private val tracerFirst by colourPicker(
+        "First",
+        Colour.MINECRAFT_GREEN,
+        true,
+        desc = "Colour for the first tracer."
+    ).childOf(::tracer)
+    private val tracerSecond by colourPicker(
+        "Second",
+        Colour.MINECRAFT_GOLD,
+        true,
+        desc = "Colour for the second tracer."
+    ).childOf(::tracer)
+    private val optimised by switch(
+        "Optimised solutions",
+        desc = "Uses optimised solutions for the water board puzzle."
+    ).asParent()
     private val auto by switch("Auto").asParent()
-    private val triggerbot by switch("Triggerbot", desc = "Automatically clicks the next correct water board lever when you look at it.").asParent()
+    private val triggerbot by switch(
+        "Triggerbot",
+        desc = "Automatically clicks the next correct water board lever when you look at it."
+    ).asParent()
 
     private var waterSolutions: JsonObject = PuzzleSolvers.loadSolution("waterSolutions.json", JsonObject())
 
@@ -67,7 +83,10 @@ object WaterBoardSolver : SettingGroup(PuzzleSolvers, "Water board"), Reposition
 
                 if (solutionList.size > 1 && firstSolution.leverPos != solutionList[1].first.leverPos) {
                     ctx.drawLine(
-                        listOf(Vec3(firstSolution.leverPos).add(.5, .5, .5), Vec3(solutionList[1].first.leverPos).add(.5, .5, .5)),
+                        listOf(
+                            Vec3(firstSolution.leverPos).add(.5, .5, .5),
+                            Vec3(solutionList[1].first.leverPos).add(.5, .5, .5)
+                        ),
                         colour = tracerSecond, depth = false
                     )
                 }
@@ -79,9 +98,15 @@ object WaterBoardSolver : SettingGroup(PuzzleSolvers, "Water board"), Reposition
                     val str = when (openedWaterTicks) {
                         -1 if timeInTicks == 0 -> "§a§lCLICK ME!"
                         -1 -> "§e${time}s"
-                        else -> (openedWaterTicks + timeInTicks - tickCounter).takeIf { it > 0 }?.let { "§e${(it / 20f).toFixed()}s" } ?: "§a§lCLICK ME!"
+                        else -> (openedWaterTicks + timeInTicks - tickCounter).takeIf { it > 0 }
+                            ?.let { "§e${(it / 20f).toFixed()}s" } ?: "§a§lCLICK ME!"
                     }
-                    ctx.drawText(ChatUtils.literal(str), Vec3(lever.leverPos).add(0.5, (index + lever.i) * 0.5 + 1.5, 0.5), scale = 1f, depth = true)
+                    ctx.drawText(
+                        ChatUtils.literal(str),
+                        Vec3(lever.leverPos).add(0.5, (index + lever.i) * 0.5 + 1.5, 0.5),
+                        scale = 1f,
+                        depth = true
+                    )
                 }
             }
         }
@@ -189,7 +214,8 @@ object WaterBoardSolver : SettingGroup(PuzzleSolvers, "Water board"), Reposition
 
     private fun scan(optimized: Boolean) = with(Dungeon.currentRoom) {
         if (this?.name != "Water Board" || patternIdentifier != -1) return@with
-        val extendedSlots = WoolColour.entries.joinToString("") { if (it.isExtended) it.ordinal.toString() else "" }.takeIf { it.length == 3 } ?: return@with
+        val extendedSlots = WoolColour.entries.joinToString("") { if (it.isExtended) it.ordinal.toString() else "" }
+            .takeIf { it.length == 3 } ?: return@with
 
         patternIdentifier = when {
             getRealCoords(BlockPos(14, 77, 27)).state.block == Blocks.TERRACOTTA -> 0 // right block == clay
@@ -206,20 +232,21 @@ object WaterBoardSolver : SettingGroup(PuzzleSolvers, "Water board"), Reposition
         )
 
         solutions.clear()
-        waterSolutions[optimized.toString()].asJsonObject[patternIdentifier.toString()].asJsonObject[extendedSlots].asJsonObject.entrySet().forEach { entry ->
-            solutions[
-                when (entry.key) {
-                    "diamond_block" -> LeverBlock.DIAMOND
-                    "emerald_block" -> LeverBlock.EMERALD
-                    "hardened_clay" -> LeverBlock.CLAY
-                    "quartz_block" -> LeverBlock.QUARTZ
-                    "gold_block" -> LeverBlock.GOLD
-                    "coal_block" -> LeverBlock.COAL
-                    "water" -> LeverBlock.WATER
-                    else -> LeverBlock.NONE
-                }
-            ] = entry.value.asJsonArray.map { it.asDouble }.toTypedArray()
-        }
+        waterSolutions[optimized.toString()].asJsonObject[patternIdentifier.toString()].asJsonObject[extendedSlots].asJsonObject.entrySet()
+            .forEach { entry ->
+                solutions[
+                    when (entry.key) {
+                        "diamond_block" -> LeverBlock.DIAMOND
+                        "emerald_block" -> LeverBlock.EMERALD
+                        "hardened_clay" -> LeverBlock.CLAY
+                        "quartz_block" -> LeverBlock.QUARTZ
+                        "gold_block" -> LeverBlock.GOLD
+                        "coal_block" -> LeverBlock.COAL
+                        "water" -> LeverBlock.WATER
+                        else -> LeverBlock.NONE
+                    }
+                ] = entry.value.asJsonArray.map { it.asDouble }.toTypedArray()
+            }
     }
 
     private fun reset() {

@@ -26,7 +26,13 @@ import kotlin.math.*
 
 fun minFovDot(fov: Number): Double = cos(Math.toRadians(fov.toDouble()) / 2.0)
 
-fun isWithinFov(eyePos: Vec3, targetPos: Vec3, lookVec: Vec3, minFovDot: Double, fullCircleFov: Boolean = false): Boolean {
+fun isWithinFov(
+    eyePos: Vec3,
+    targetPos: Vec3,
+    lookVec: Vec3,
+    minFovDot: Double,
+    fullCircleFov: Boolean = false
+): Boolean {
     if (fullCircleFov) return true
 
     val targetVec = targetPos.subtract(eyePos)
@@ -360,7 +366,8 @@ fun getArrowDirection(from: Vec3, to: BlockPos, isTerminator: Boolean = false): 
     return null
 }
 
-fun getArrowDirection(to: BlockPos, isTerminator: Boolean = false) = getArrowDirection(player.eyePosition(), to, isTerminator)
+fun getArrowDirection(to: BlockPos, isTerminator: Boolean = false) =
+    getArrowDirection(player.eyePosition(), to, isTerminator)
 
 fun getArrowOrigin(from: Vec3, yaw: Float, isTerminator: Boolean): Vec3 {
     return if (isTerminator) {
@@ -494,9 +501,9 @@ fun isXZInterceptable(box: AABB, range: Double, pos: Vec3, yaw: Float, pitch: Fl
     val goal = start.add(getLook(yaw, pitch).multiply(range, range, range))
 
     return isVecInZ(start.intermediateWithXValue(goal, box.minX), box) ||
-            isVecInZ(start.intermediateWithXValue(goal, box.maxX), box) ||
-            isVecInX(start.intermediateWithZValue(goal, box.minZ), box) ||
-            isVecInX(start.intermediateWithZValue(goal, box.maxZ), box)
+        isVecInZ(start.intermediateWithXValue(goal, box.maxX), box) ||
+        isVecInX(start.intermediateWithZValue(goal, box.minZ), box) ||
+        isVecInX(start.intermediateWithZValue(goal, box.maxZ), box)
 }
 
 fun getLook(yaw: Float, pitch: Float): Vec3 {

@@ -13,7 +13,13 @@ import quoi.utils.StringUtils.noControlCodes
  * @property slotCount number of terminal slots, excluding the player inventory
  * @property gridSize width and height of the puzzle grid, excluding the menu border
  */
-enum class TerminalType(val displayName: String, val title: String, val slotCount: Int, val gridSize: Pair<Int, Int>, val titleRegex: Regex = Regex(Regex.escape(title))) {
+enum class TerminalType(
+    val displayName: String,
+    val title: String,
+    val slotCount: Int,
+    val gridSize: Pair<Int, Int>,
+    val titleRegex: Regex = Regex(Regex.escape(title))
+) {
     RED_GREEN("Red Green", "Correct all the panes!", 45, 5 to 3),
     RUBIX("Rubix", "Change all to same color!", 45, 3 to 3),
     NUMBERS("Numbers", "Click in order!", 36, 5 to 2),
@@ -25,6 +31,7 @@ enum class TerminalType(val displayName: String, val title: String, val slotCoun
         /**
          * Finds the terminal type for [title], ignoring formatting codes
          */
-        fun fromTitle(title: String): TerminalType? = entries.firstOrNull { it.titleRegex.matches(title.noControlCodes) }
+        fun fromTitle(title: String): TerminalType? =
+            entries.firstOrNull { it.titleRegex.matches(title.noControlCodes) }
     }
 }

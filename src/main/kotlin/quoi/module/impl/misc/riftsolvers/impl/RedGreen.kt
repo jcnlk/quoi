@@ -74,6 +74,7 @@ object RedGreen : ToggleableGroup(MirrorverseSolvers, "Red green") {
                         QuoiMod.mc.options.keySprint.isDown = true
                     }
                 }
+
                 is Action.Interact -> {
                     if (interactStage == 0) {
                         val dir = TeleportUtils.getEtherwarpDirection(action.pos)
@@ -91,6 +92,7 @@ object RedGreen : ToggleableGroup(MirrorverseSolvers, "Red green") {
                         currentStep++
                     }
                 }
+
                 is Action.Swap -> {
                     action.target?.let { target ->
                         if (player.distanceToSqr(target) < 25) {
@@ -101,10 +103,12 @@ object RedGreen : ToggleableGroup(MirrorverseSolvers, "Red green") {
 
                     currentStep++
                 }
+
                 is Action.Wait -> {
                     waitingTicks = action.ticks
                     currentStep++
                 }
+
                 is Action.AwaitSound -> {
                     awaitingSound = true
                 }

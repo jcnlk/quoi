@@ -46,7 +46,8 @@ object EntityOverlayRenderer {
         val state = current.get() ?: return false
         val colour = state.`quoi$getOverlayColour`()
         val depth = state.`quoi$getOverlayDepth`()
-        val textures = quads.groupBy { CustomRenderLayer.overlayTexture(it.materialInfo().itemRenderType()) ?: return false }
+        val textures =
+            quads.groupBy { CustomRenderLayer.overlayTexture(it.materialInfo().itemRenderType()) ?: return false }
         for ((texture, geometry) in textures) {
             collector.submitCustomGeometry(stack, CustomRenderLayer.entityOverlay(texture, depth)) { pose, vertices ->
                 val instance = QuadInstance()

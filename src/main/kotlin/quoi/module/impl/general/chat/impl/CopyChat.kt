@@ -22,8 +22,16 @@ object CopyChat : ToggleableGroup(
     "Copy chat",
     desc = "Copies chat on mouse click."
 ) {
-    private val copyKey by keybind("Copy key", Keybinds.MOUSE_RIGHT).includingOnly(Keybinds.MOUSE_RIGHT, Keybinds.MOUSE_LEFT, *Keyboard.modifierCodes)
-    private val copyCodesKey by keybind("Copy with codes key", Keybinds.KEY_NONE).includingOnly(Keybinds.MOUSE_RIGHT, Keybinds.MOUSE_LEFT, *Keyboard.modifierCodes)
+    private val copyKey by keybind("Copy key", Keybinds.MOUSE_RIGHT).includingOnly(
+        Keybinds.MOUSE_RIGHT,
+        Keybinds.MOUSE_LEFT,
+        *Keyboard.modifierCodes
+    )
+    private val copyCodesKey by keybind("Copy with codes key", Keybinds.KEY_NONE).includingOnly(
+        Keybinds.MOUSE_RIGHT,
+        Keybinds.MOUSE_LEFT,
+        *Keyboard.modifierCodes
+    )
 
     init {
         on<GuiEvent.Click> {
@@ -39,7 +47,9 @@ object CopyChat : ToggleableGroup(
             val dy = mc.gui.hud.chat.toChatLineMY(my)
             val idx = mc.gui.hud.chat.getMessageLineIdx(dx, dy)
             if (idx !in mc.gui.hud.chat.trimmedMessages.indices) return@on
-            if (idx == 0 && dy !in 0.0..1.0 || dx >= ChatComponent.getWidth(mc.options.chatWidth().get()).plus(10)) return@on
+            if (idx == 0 && dy !in 0.0..1.0 || dx >= ChatComponent.getWidth(mc.options.chatWidth().get())
+                    .plus(10)
+            ) return@on
 
             val fullText = mc.gui.hud.chat.getFullText(idx)?.string ?: return@on
             val finalText = if (isCodeBtn) fullText else fullText.noControlCodes

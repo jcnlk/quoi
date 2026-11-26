@@ -57,31 +57,119 @@ object DungeonBreaker : Module(
         )
     }.setting()
 
-    private val disableInInventory by switch("Disable in inventory", desc = "Prevents dungeon breaker from working while inside of an inventory.")
-    private val preventMineSecrets by switch("Prevent mine secrets", desc = "Prevents Dungeon Breaker from mining protected blocks, except Redstone Keys and boss levers or stone buttons.")
-    private val preventMineWithoutCharges by switch("Prevent mine without charges", desc = "Prevents mining blocks with Dungeon Breaker while it has no charges left.")
-    private val autoSwap by switch("Auto swap", true, desc = "Automatically switches to Dungeon Breaker before mining preset blocks.")
+    private val disableInInventory by switch(
+        "Disable in inventory",
+        desc = "Prevents dungeon breaker from working while inside of an inventory."
+    )
+    private val preventMineSecrets by switch(
+        "Prevent mine secrets",
+        desc = "Prevents Dungeon Breaker from mining protected blocks, except Redstone Keys and boss levers or stone buttons."
+    )
+    private val preventMineWithoutCharges by switch(
+        "Prevent mine without charges",
+        desc = "Prevents mining blocks with Dungeon Breaker while it has no charges left."
+    )
+    private val autoSwap by switch(
+        "Auto swap",
+        true,
+        desc = "Automatically switches to Dungeon Breaker before mining preset blocks."
+    )
 
     private val triggerbot by switch("Triggerbot", desc = "Mines preset blocks when looking at them.")
-    private val triggerbotDelay by slider("Delay", 0, 0, 10, 1, desc = "Delay before mining the looked-at block.", unit = " ticks").childOf(::triggerbot).json("Triggerbot Delay")
-    private val aura by switch("Aura", desc = "Automatically mines preset route when in boss.").json("Auto dungeon breaker")
-    private val auraRange by slider("Range", 5.5, 1.0, 5.5, 0.1, desc = "Maximum distance to auto dungeon breaker blocks.", unit = " blocks").childOf(::aura)
-    private val auraFov by slider("FOV", 360, 10, 360, 1, desc = "Only mines route blocks inside this field of view.", unit = "°").childOf(::aura)
-    private val auraDelay by slider("Delay", 0, 0, 20, 1, desc = "Delay between auto dungeon breaker mining attempts.", unit = " ticks").childOf(::aura).json("Aura Delay")
+    private val triggerbotDelay by slider(
+        "Delay",
+        0,
+        0,
+        10,
+        1,
+        desc = "Delay before mining the looked-at block.",
+        unit = " ticks"
+    ).childOf(::triggerbot).json("Triggerbot Delay")
+    private val aura by switch(
+        "Aura",
+        desc = "Automatically mines preset route when in boss."
+    ).json("Auto dungeon breaker")
+    private val auraRange by slider(
+        "Range",
+        5.5,
+        1.0,
+        5.5,
+        0.1,
+        desc = "Maximum distance to auto dungeon breaker blocks.",
+        unit = " blocks"
+    ).childOf(::aura)
+    private val auraFov by slider(
+        "FOV",
+        360,
+        10,
+        360,
+        1,
+        desc = "Only mines route blocks inside this field of view.",
+        unit = "°"
+    ).childOf(::aura)
+    private val auraDelay by slider(
+        "Delay",
+        0,
+        0,
+        20,
+        1,
+        desc = "Delay between auto dungeon breaker mining attempts.",
+        unit = " ticks"
+    ).childOf(::aura).json("Aura Delay")
     private val zeroTickAura by switch("Zero tick").childOf(::aura)
 
     private val highlightBlocks by switch("Highlight blocks", true, desc = "Highlights blocks set for dungeon breaker.")
-    private val blockStyle by selector("Block style", "Filled box", arrayListOf("Box", "Filled box", "Filled"), desc = "Render style for set dungeon breaker blocks.").childOf(::highlightBlocks)
-    private val blockColour by colourPicker("Ready outline", Colour.GREEN.withAlpha(180), allowAlpha = true, desc = "Outline colour for blocks that can be mined.").childOf(::highlightBlocks).visibleIf { blockStyle.selected != "Filled" }
-    private val blockFillColour by colourPicker("Ready fill", Colour.GREEN.withAlpha(45), allowAlpha = true, desc = "Fill colour for blocks that can be mined.").childOf(::highlightBlocks).visibleIf { blockStyle.selected != "Box" }
-    private val missingBlockColour by colourPicker("Broken outline", Colour.RED.withAlpha(180), allowAlpha = true, desc = "Outline colour for set blocks that are currently air.").childOf(::highlightBlocks).visibleIf { blockStyle.selected != "Filled" }
-    private val missingBlockFillColour by colourPicker("Broken fill", Colour.RED.withAlpha(35), allowAlpha = true, desc = "Fill colour for set blocks that are currently air.").childOf(::highlightBlocks).visibleIf { blockStyle.selected != "Box" }
-    private val blockThickness by slider("Outline thickness", 3f, 1f, 8f, 1f, desc = "Outline thickness for highlighted blocks.").childOf(::highlightBlocks).visibleIf { blockStyle.selected != "Filled" }
-    private val blockDepth by switch("Block depth check", true, desc = "Renders block highlights with depth check.").childOf(::highlightBlocks)
+    private val blockStyle by selector(
+        "Block style",
+        "Filled box",
+        arrayListOf("Box", "Filled box", "Filled"),
+        desc = "Render style for set dungeon breaker blocks."
+    ).childOf(::highlightBlocks)
+    private val blockColour by colourPicker(
+        "Ready outline",
+        Colour.GREEN.withAlpha(180),
+        allowAlpha = true,
+        desc = "Outline colour for blocks that can be mined."
+    ).childOf(::highlightBlocks).visibleIf { blockStyle.selected != "Filled" }
+    private val blockFillColour by colourPicker(
+        "Ready fill",
+        Colour.GREEN.withAlpha(45),
+        allowAlpha = true,
+        desc = "Fill colour for blocks that can be mined."
+    ).childOf(::highlightBlocks).visibleIf { blockStyle.selected != "Box" }
+    private val missingBlockColour by colourPicker(
+        "Broken outline",
+        Colour.RED.withAlpha(180),
+        allowAlpha = true,
+        desc = "Outline colour for set blocks that are currently air."
+    ).childOf(::highlightBlocks).visibleIf { blockStyle.selected != "Filled" }
+    private val missingBlockFillColour by colourPicker(
+        "Broken fill",
+        Colour.RED.withAlpha(35),
+        allowAlpha = true,
+        desc = "Fill colour for set blocks that are currently air."
+    ).childOf(::highlightBlocks).visibleIf { blockStyle.selected != "Box" }
+    private val blockThickness by slider(
+        "Outline thickness",
+        3f,
+        1f,
+        8f,
+        1f,
+        desc = "Outline thickness for highlighted blocks."
+    ).childOf(::highlightBlocks).visibleIf { blockStyle.selected != "Filled" }
+    private val blockDepth by switch(
+        "Block depth check",
+        true,
+        desc = "Renders block highlights with depth check."
+    ).childOf(::highlightBlocks)
     private val dbBlocks by configList<BlockPos>("dungeonbreaker_blocks.json")
 
     @Suppress("unused")
-    private val toggleBlock by keybind("Toggle block", Keybinds.KEY_NONE, desc = "Adds or removes the block you are currently looking at.")
+    private val toggleBlock by keybind(
+        "Toggle block",
+        Keybinds.KEY_NONE,
+        desc = "Adds or removes the block you are currently looking at."
+    )
         .onPress {
             if (!enabled || !inF7Boss) return@onPress
             if (disableInGUI()) return@onPress
@@ -186,7 +274,11 @@ object DungeonBreaker : Module(
         }
     }
 
-    private fun mineDbBlocks(targetBlocks: Collection<BlockPos>, allowZeroTick: Boolean, range: Double = DEFAULT_RANGE): Boolean {
+    private fun mineDbBlocks(
+        targetBlocks: Collection<BlockPos>,
+        allowZeroTick: Boolean,
+        range: Double = DEFAULT_RANGE
+    ): Boolean {
         val blocks = targetBlocks.filter { isMineableDbBlock(it, range) }
         if (blocks.isEmpty()) return false
 
@@ -210,7 +302,12 @@ object DungeonBreaker : Module(
         return true
     }
 
-    private fun mineDbBlocks(targetBlocks: Collection<BlockPos>, allowZeroTick: Boolean, range: Double, fov: Int): Boolean {
+    private fun mineDbBlocks(
+        targetBlocks: Collection<BlockPos>,
+        allowZeroTick: Boolean,
+        range: Double,
+        fov: Int
+    ): Boolean {
         val eyePos = player.eyePosition()
         val lookVec = player.getViewVector(mc.deltaTracker.getGameTimeDeltaPartialTick(false)).normalize()
         val minFovDot = minFovDot(fov)
@@ -225,7 +322,7 @@ object DungeonBreaker : Module(
 
     private fun isMineableDbBlock(pos: BlockPos, range: Double = DEFAULT_RANGE) =
         !recentlyBroken.containsKey(pos) &&
-                level.isLoaded(pos) &&
-                !pos.state.isAir &&
-                pos.distToCenterSqr(player.eyePosition()) <= range * range
+            level.isLoaded(pos) &&
+            !pos.state.isAir &&
+            pos.distToCenterSqr(player.eyePosition()) <= range * range
 }

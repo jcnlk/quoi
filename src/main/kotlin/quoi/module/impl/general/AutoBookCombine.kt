@@ -22,9 +22,24 @@ object AutoBookCombine : Module(
     area = Island.Skyblock
 ) {
     private val containerSettings = ContainerSettings(this, showProgress = false)
-    private val resultDelay by slider("Result delay", 10, 2, 40, 1, desc = "Delay before taking the combined book.", unit = " ticks").json("Result delay ticks")
-    private val disableAfterFinish by switch("Disable after finish", true, desc = "Disables the module after all matching books have been combined.")
-    private val autoCloseAfterFinish by switch("Auto close after finish", desc = "Closes the anvil after successfully combining books.")
+    private val resultDelay by slider(
+        "Result delay",
+        10,
+        2,
+        40,
+        1,
+        desc = "Delay before taking the combined book.",
+        unit = " ticks"
+    ).json("Result delay ticks")
+    private val disableAfterFinish by switch(
+        "Disable after finish",
+        true,
+        desc = "Disables the module after all matching books have been combined."
+    )
+    private val autoCloseAfterFinish by switch(
+        "Auto close after finish",
+        desc = "Closes the anvil after successfully combining books."
+    )
 
     private var combineTask: ContainerTask? = null
     private var finishedForCurrentAnvil = false

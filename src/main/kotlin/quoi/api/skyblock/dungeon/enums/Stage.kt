@@ -133,7 +133,8 @@ enum class Stage(val number: Int, val reqTerminals: Int) {
     }
 
     companion object {
-        private val REGEX_TERM_COMPLETED = Regex("^(.{1,16}) (activated|completed) a (terminal|lever|device)! \\((\\d)/(\\d)\\)$")
+        private val REGEX_TERM_COMPLETED =
+            Regex("^(.{1,16}) (activated|completed) a (terminal|lever|device)! \\((\\d)/(\\d)\\)$")
 
         fun resetAll() {
             entries.forEach(Stage::reset)

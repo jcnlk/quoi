@@ -31,9 +31,23 @@ object LightsDevice : Module(
     desc = "Adds triggerbot and hides useless levers for the lights device.",
     area = Island.Dungeon(7, inBoss = true)
 ) {
-    private val triggerbot by switch("Triggerbot", desc = "Automatically toggles the correct levers when you look at them.")
-    private val delay by slider("Delay", 200L, 70L, 500L, 10L, unit = "ms", desc = "Delay between triggerbot clicks.").childOf(::triggerbot)
-    private val hideUselessLevers by switch("Hide useless levers", desc = "Turns useless lights device levers into ghost blocks.")
+    private val triggerbot by switch(
+        "Triggerbot",
+        desc = "Automatically toggles the correct levers when you look at them."
+    )
+    private val delay by slider(
+        "Delay",
+        200L,
+        70L,
+        500L,
+        10L,
+        unit = "ms",
+        desc = "Delay between triggerbot clicks."
+    ).childOf(::triggerbot)
+    private val hideUselessLevers by switch(
+        "Hide useless levers",
+        desc = "Turns useless lights device levers into ghost blocks."
+    )
 
     private var lastTriggerAt = 0L
     private val pendingLevers = hashMapOf<BlockPos, Long>()
@@ -130,6 +144,7 @@ object LightsDevice : Module(
                 is ClientboundBlockUpdatePacket -> {
                     if (shouldGhostLever(packet.pos)) cancel()
                 }
+
                 is ClientboundSectionBlocksUpdatePacket -> {
                     var cancelPacket = false
                     packet.runUpdates { pos, _ ->

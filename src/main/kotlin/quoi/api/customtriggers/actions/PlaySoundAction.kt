@@ -8,7 +8,11 @@ import net.minecraft.sounds.SoundEvent
 import quoi.utils.SoundUtils
 
 @TypeName("play_sound")
-class PlaySoundAction(var sound: String = "minecraft:entity.experience_orb.pickup", var volume: Float = 1f, var pitch: Float = 1f) : TriggerAction {
+class PlaySoundAction(
+    var sound: String = "minecraft:entity.experience_orb.pickup",
+    var volume: Float = 1f,
+    var pitch: Float = 1f
+) : TriggerAction {
     override fun validationError() = when {
         Identifier.tryParse(sound) == null -> "Enter a valid sound ID."
         !volume.isFinite() || volume !in 0f..10f -> "Volume must be between 0 and 10."
@@ -20,6 +24,7 @@ class PlaySoundAction(var sound: String = "minecraft:entity.experience_orb.picku
         val id = Identifier.tryParse(sound) ?: return
         SoundUtils.play(SoundEvent.createVariableRangeEvent(id), volume, pitch)
     }
+
     override fun displayString() = "Play $sound"
     override fun ElementScope<*>.draw() = settingRow(
         { textField("Sound", sound) { sound = it } },

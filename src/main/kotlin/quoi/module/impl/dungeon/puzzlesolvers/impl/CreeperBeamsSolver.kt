@@ -40,11 +40,19 @@ object CreeperBeamsSolver : SettingGroup(PuzzleSolvers, "Creeper beams"), Reposi
 
     private val solver by switch("Solver", desc = "Shows the solution for the creeper beams puzzle.")
     private val tracer by switch("Tracer").json("Beams tracer").childOf(::solver)
-    private val style by selector("Style", "Box", arrayListOf("Box", "Filled box"), desc = "Render style to be used.").childOf(::solver)
+    private val style by selector(
+        "Style",
+        "Box",
+        arrayListOf("Box", "Filled box"),
+        desc = "Render style to be used."
+    ).childOf(::solver)
     private val alpha by slider("Colour alpha", 0.7f, 0f, 1f, 0.05f).childOf(::solver)
     private val announce by switch("Announce completion", desc = "Sends complete message.").asParent()
     val auto by switch("Auto").asParent()
-    val triggerbot by switch("Triggerbot", desc = "Fires at a valid lantern you aim at, then at its matching lantern.").asParent()
+    val triggerbot by switch(
+        "Triggerbot",
+        desc = "Fires at a valid lantern you aim at, then at its matching lantern."
+    ).asParent()
 
     private var lanternPairs: List<List<Int>> = PuzzleSolvers.loadSolution("creeperBeamsSolutions.json", emptyList())
 
@@ -130,7 +138,8 @@ object CreeperBeamsSolver : SettingGroup(PuzzleSolvers, "Creeper beams"), Reposi
 
             val lantern = getArrowHit(player.yRot, player.xRot) ?: return@on
             val pair = activePair ?: run {
-                val entry = currentLanternPairs.entries.firstOrNull { it.key == lantern || it.value.first == lantern } ?: return@on
+                val entry = currentLanternPairs.entries.firstOrNull { it.key == lantern || it.value.first == lantern }
+                    ?: return@on
                 val other = if (entry.key == lantern) entry.value.first else entry.key
                 LanternPair(lantern, other, key = entry.key)
             }
@@ -225,8 +234,10 @@ object CreeperBeamsSolver : SettingGroup(PuzzleSolvers, "Creeper beams"), Reposi
     private fun recalculateLanternPairs(room: OdonRoom) {
         currentLanternPairs.clear()
         lanternPairs.forEachIndexed { i, l ->
-            val pos = room.getRealCoords(BlockPos(l[0], l[1], l[2])).takeIf { it.state.block == Blocks.SEA_LANTERN } ?: return@forEachIndexed
-            val pos2 = room.getRealCoords(BlockPos(l[3], l[4], l[5])).takeIf { it.state.block == Blocks.SEA_LANTERN } ?: return@forEachIndexed
+            val pos = room.getRealCoords(BlockPos(l[0], l[1], l[2])).takeIf { it.state.block == Blocks.SEA_LANTERN }
+                ?: return@forEachIndexed
+            val pos2 = room.getRealCoords(BlockPos(l[3], l[4], l[5])).takeIf { it.state.block == Blocks.SEA_LANTERN }
+                ?: return@forEachIndexed
 
             currentLanternPairs[pos] = pos2 to colours[i % colours.size]
         }

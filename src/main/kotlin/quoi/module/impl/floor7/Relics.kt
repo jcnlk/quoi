@@ -41,12 +41,32 @@ object Relics : Module(
     desc = "Relic pickup, placement and movement helpers for M7.",
     area = Island.Dungeon(7, inBoss = true, phase = Phase.P5)
 ) {
-    private val relicLook by switch("Relic look", desc = "Turns toward the cauldron when you pick up a red or orange relic.")
+    private val relicLook by switch(
+        "Relic look",
+        desc = "Turns toward the cauldron when you pick up a red or orange relic."
+    )
     private val relicLookTime by slider("Relic look time", 150, 10, 300, 1, unit = "ms").childOf(::relicLook)
-    private val relicRun by switch("Relic run", desc = "Runs red and orange relics from the marked start spots toward their cauldrons.").childOf(::relicLook).asParent()
-    private val relicTriggerbot by switch("Relic triggerbot", desc = "Picks up nearby relics and places your carried relic when aiming at its cauldron or the anvil below it. Automatically selects hotbar slot 9 for placement.")
-    private val relicAura by switch("Relic aura", desc = "Automatically picks up and places relics within the configured range. Selects hotbar slot 9 for placement.")
-    private val auraRange by slider("Aura range", 4.5, 1.0, 4.5, 0.1, unit = " blocks", desc = "Maximum distance for relic pickup and placement.").childOf(::relicAura)
+    private val relicRun by switch(
+        "Relic run",
+        desc = "Runs red and orange relics from the marked start spots toward their cauldrons."
+    ).childOf(::relicLook).asParent()
+    private val relicTriggerbot by switch(
+        "Relic triggerbot",
+        desc = "Picks up nearby relics and places your carried relic when aiming at its cauldron or the anvil below it. Automatically selects hotbar slot 9 for placement."
+    )
+    private val relicAura by switch(
+        "Relic aura",
+        desc = "Automatically picks up and places relics within the configured range. Selects hotbar slot 9 for placement."
+    )
+    private val auraRange by slider(
+        "Aura range",
+        4.5,
+        1.0,
+        4.5,
+        0.1,
+        unit = " blocks",
+        desc = "Maximum distance for relic pickup and placement."
+    ).childOf(::relicAura)
 
     private var lastRelicClick = 0L
     private var lastHeldRelic: Relic? = null
@@ -80,7 +100,8 @@ object Relics : Module(
             }
             updateRelicLook()
             runningRelic?.let {
-                if (!relicLook || !relicRun || carriedRelic != it || reachedCauldron(it) || ++runTicks > 200) runningRelic = null
+                if (!relicLook || !relicRun || carriedRelic != it || reachedCauldron(it) || ++runTicks > 200) runningRelic =
+                    null
                 else SwapManager.swapToSlot(8)
             }
             if (System.currentTimeMillis() - lastRelicClick < 200) return@on
@@ -108,7 +129,10 @@ object Relics : Module(
 
         on<KeyEvent.Input>(Priority.LOWEST - 1) {
             val relic = runningRelic ?: return@on
-            if (Dungeon.floor != Floor.M7 || !relicLook || !relicRun || Dungeon.isDead || mc.gui.screen() != null || carriedRelic != relic || reachedCauldron(relic)) {
+            if (Dungeon.floor != Floor.M7 || !relicLook || !relicRun || Dungeon.isDead || mc.gui.screen() != null || carriedRelic != relic || reachedCauldron(
+                    relic
+                )
+            ) {
                 runningRelic = null
                 return@on
             }
@@ -148,7 +172,7 @@ object Relics : Module(
         val hit = if (relicAura) placementHit(relic) else null
         val target = hit ?: (mc.hitResult as? BlockHitResult)?.takeIf {
             relicTriggerbot && it.type == HitResult.Type.BLOCK && relic.isPlacementTarget(it.blockPos) &&
-                    player.eyePosition.distanceToSqr(it.location) <= 4.5 * 4.5
+                player.eyePosition.distanceToSqr(it.location) <= 4.5 * 4.5
         } ?: return
         if (!SwapManager.swapToSlot(8).success) return
         gameMode.useItemOn(player, InteractionHand.MAIN_HAND, target)
@@ -176,10 +200,11 @@ object Relics : Module(
 
     private fun isRelicStand(stand: ArmorStand): Boolean =
         !stand.isRemoved && stand.isAlive &&
-                stand.getItemBySlot(EquipmentSlot.HEAD).cleanName.contains("Relic")
+            stand.getItemBySlot(EquipmentSlot.HEAD).cleanName.contains("Relic")
 
     private fun canPickUp(stand: ArmorStand, range: Double = 3.0): Boolean =
-        stand.position().distanceToSqr(player.position()) <= range * range && Relic.entries.none { it.isAtCauldron(stand.position()) }
+        stand.position()
+            .distanceToSqr(player.position()) <= range * range && Relic.entries.none { it.isAtCauldron(stand.position()) }
 
     private enum class Relic(
         val formalName: String,
@@ -202,7 +227,9 @@ object Relics : Module(
         }
 
         companion object {
-            fun fromName(name: String): Relic? = entries.find { it.formalName.equals(name.noControlCodes, ignoreCase = true) }
+            fun fromName(name: String): Relic? =
+                entries.find { it.formalName.equals(name.noControlCodes, ignoreCase = true) }
+
             fun fromItem(item: ItemStack): Relic? = fromName(item.hoverName.string)
         }
     }

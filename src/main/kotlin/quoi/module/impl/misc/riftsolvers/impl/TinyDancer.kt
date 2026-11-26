@@ -149,22 +149,23 @@ object TinyDancer : ToggleableGroup(MirrorverseSolvers, "Tiny dancer") {
 
     private const val COMPLETE_PITCH = 0.7460317611694336
 
-    private val actions = listOf( // https://github.com/hannibal002/SkyHanni-REPO/blob/main/constants/DanceRoomInstructions.json
-        "move", "move", "move", "move", "move",
-        "sneak", "stand",
-        "sneak", "stand",
-        "sneak", "stand",
-        "sneak", "stand",
-        "sneak jump", "jump", "sneak", "stand",
-        "sneak jump", "jump", "sneak", "stand",
-        "sneak jump", "jump", "sneak", "stand",
-        "sneak jump", "jump", "sneak", "stand",
-        "sneak jump", "jump", "sneak", "stand",
-        "sneak jump punch", "jump punch", "sneak punch", "punch",
-        "sneak jump punch", "jump punch", "sneak punch", "punch",
-        "sneak jump punch", "jump punch", "sneak punch", "punch",
-        "sneak jump punch", "jump punch", "sneak punch", "punch"
-    )
+    private val actions =
+        listOf( // https://github.com/hannibal002/SkyHanni-REPO/blob/main/constants/DanceRoomInstructions.json
+            "move", "move", "move", "move", "move",
+            "sneak", "stand",
+            "sneak", "stand",
+            "sneak", "stand",
+            "sneak", "stand",
+            "sneak jump", "jump", "sneak", "stand",
+            "sneak jump", "jump", "sneak", "stand",
+            "sneak jump", "jump", "sneak", "stand",
+            "sneak jump", "jump", "sneak", "stand",
+            "sneak jump", "jump", "sneak", "stand",
+            "sneak jump punch", "jump punch", "sneak punch", "punch",
+            "sneak jump punch", "jump punch", "sneak punch", "punch",
+            "sneak jump punch", "jump punch", "sneak punch", "punch",
+            "sneak jump punch", "jump punch", "sneak punch", "punch"
+        )
 
     private val segments = listOf(
         Segment("z", -105.0) { QuoiMod.mc.options.keyLeft },

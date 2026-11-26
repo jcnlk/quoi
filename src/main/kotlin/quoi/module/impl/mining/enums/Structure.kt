@@ -136,7 +136,8 @@ enum class Structure( // todo cleanup some day
 
     RUINS_GROTTO_2(
         Colour.PINK,
-        listOf( // todo fix idk why no work
+        listOf(
+            // todo fix idk why no work
             Blocks.STONE,
             Blocks.LANTERN,
             Blocks.COARSE_DIRT,

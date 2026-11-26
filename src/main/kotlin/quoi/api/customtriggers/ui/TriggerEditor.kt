@@ -59,6 +59,7 @@ class TriggerEditor : NodeCanvas.Host {
     // user preferences for docked panels
     private var sidebarHidden = false
     private var inspectorHidden = false
+
     // floating panels in windows too narrow to dock them
     private var sidebarOpen = false
         set(value) {
@@ -89,6 +90,7 @@ class TriggerEditor : NodeCanvas.Host {
     override val rule: TriggerRule? get() = triggers[selectedGroup]?.firstOrNull { it.id == selectedId }
 
     private val windowWidth get() = shell?.width ?: 0f
+
     // dock only when the flow still fits at 100% zoom
     private val sidebarDocked get() = windowWidth >= LEFT_DOCK_MIN && !sidebarHidden
     private val sidebarFloating get() = windowWidth < LEFT_DOCK_MIN && sidebarOpen
@@ -123,7 +125,8 @@ class TriggerEditor : NodeCanvas.Host {
         }
     }
 
-    private fun panelState() = listOf(windowWidth, sidebarDocked, sidebarFloating, inspectorDocked, inspectorFloating, moduleOff)
+    private fun panelState() =
+        listOf(windowWidth, sidebarDocked, sidebarFloating, inspectorDocked, inspectorFloating, moduleOff)
 
     private fun toggleSidebar() {
         if (windowWidth >= LEFT_DOCK_MIN) {
@@ -170,13 +173,15 @@ class TriggerEditor : NodeCanvas.Host {
         val rule = rule ?: return
         val graph = TriggerGraph(rule)
         if (slot !in graph.slots(kind)) return
-        val (title, sections) = if (kind == TriggerGraph.Kind.ACTION) "Add an action" to listOf(PickerSection(
-            "Action", "Then do…", kind,
-            TriggerManager.actionEntries.filter { it.second().supports(rule.trigger) }.map { it.first to it.second }
-        )) else "Add a condition" to listOf(PickerSection(
-            "Condition", "Only continue if…", kind,
-            TriggerManager.conditionEntries.map { it.first to it.second }
-        ))
+        val (title, sections) = if (kind == TriggerGraph.Kind.ACTION) "Add an action" to listOf(
+            PickerSection(
+                "Action", "Then do…", kind,
+                TriggerManager.actionEntries.filter { it.second().supports(rule.trigger) }.map { it.first to it.second }
+            )) else "Add a condition" to listOf(
+            PickerSection(
+                "Condition", "Only continue if…", kind,
+                TriggerManager.conditionEntries.map { it.first to it.second }
+            ))
         root.picker(x, y, title, sections) { component ->
             canvas.cancelDrag()
             val index = graph.insert(slot, component) ?: return@picker
@@ -257,8 +262,18 @@ class TriggerEditor : NodeCanvas.Host {
         !rule.enabled -> RuleStatus("Off", theme.outline, "Switched off, so it never runs.")
         TriggerGraph(rule).let { g -> (0 until g.size).any { g.error(it) != null } || g.flowError() != null } ->
             RuleStatus("Incomplete", theme.error, "Fix the problems below so it can run.")
-        moduleOff -> RuleStatus("Paused", NodeCanvas.CONDITION_ACCENT, "Nothing runs while the Custom Triggers module is off.")
-        else -> RuleStatus("Active", NodeCanvas.ACTION_ACCENT, "Runs in SkyBlock whenever its event happens, except while this editor is open.")
+
+        moduleOff -> RuleStatus(
+            "Paused",
+            NodeCanvas.CONDITION_ACCENT,
+            "Nothing runs while the Custom Triggers module is off."
+        )
+
+        else -> RuleStatus(
+            "Active",
+            NodeCanvas.ACTION_ACCENT,
+            "Runs in SkyBlock whenever its event happens, except while this editor is open."
+        )
     }
 
     private class RuleStatus(val label: String, val colour: Colour, val explanation: String)
@@ -309,7 +324,14 @@ class TriggerEditor : NodeCanvas.Host {
 
         // absolute so panels can dock beside the flow or float over it
         block(copies(), colour = theme.background) {
-            group(constrain(Computed { leftInset }, 0.px, Computed { it.parent!!.width - leftInset - rightInset }, Copying)) {
+            group(
+                constrain(
+                    Computed { leftInset },
+                    0.px,
+                    Computed { it.parent!!.width - leftInset - rightInset },
+                    Copying
+                )
+            ) {
                 header = refreshableGroup(constrain(0.px, 0.px, Copying, 64.px)) { headerBar() }
                 block(constrain(0.px, 64.px, Copying, 1.px), colour = theme.outlineVariant)
                 banner = moduleBanner().element
@@ -320,15 +342,28 @@ class TriggerEditor : NodeCanvas.Host {
                     canvasToolbar(scope)
                 }
             }
-            inspectorElement = block(constrain(0.px.alignOpposite, 0.px, INSPECTOR_W.px, Copying), colour = theme.surfaceContainerLow) {
+            inspectorElement = block(
+                constrain(0.px.alignOpposite, 0.px, INSPECTOR_W.px, Copying),
+                colour = theme.surfaceContainerLow
+            ) {
                 block(constrain(0.px, 0.px, 1.px, Copying), colour = theme.outlineVariant)
                 val top = { if (inspectorFloating) 84f else 22f }
                 inspector = refreshableGroup(
                     constrain(20.px, Computed { top() }, Copying - 40.px, Computed { it.parent!!.height - top() - 22f })
                 ) { inspectorPanel() }
                 drawerBar = group(constrain(0.px, 0.px, Copying, 64.px)) {
-                    label({ if (selected != null) "Step" else "Overview" }, 15f, { theme.onSurface }, constrain(20.px, Centre, Copying - 140.px))
-                    button("Close", ButtonStyle.OUTLINE, constrain(16.px.alignOpposite, Centre, Bounding + 28.px, 32.px), fontSize = 13f) { closeInspector() }
+                    label(
+                        { if (selected != null) "Step" else "Overview" },
+                        15f,
+                        { theme.onSurface },
+                        constrain(20.px, Centre, Copying - 140.px)
+                    )
+                    button(
+                        "Close",
+                        ButtonStyle.OUTLINE,
+                        constrain(16.px.alignOpposite, Centre, Bounding + 28.px, 32.px),
+                        fontSize = 13f
+                    ) { closeInspector() }
                     block(constrain(0.px, 0.px.alignOpposite, Copying, 1.px), colour = theme.outlineVariant)
                 }.element
             }.element
@@ -354,7 +389,12 @@ class TriggerEditor : NodeCanvas.Host {
             { "The Custom Triggers module is off, so no trigger runs." }, 13.5f, { theme.onSurface },
             constrain(42.px, Centre, Copying - 210.px)
         )
-        button("Turn on module", ButtonStyle.OUTLINE, constrain(16.px.alignOpposite, Centre, Bounding + 28.px, 30.px), fontSize = 13f) {
+        button(
+            "Turn on module",
+            ButtonStyle.OUTLINE,
+            constrain(16.px.alignOpposite, Centre, Bounding + 28.px, 30.px),
+            fontSize = 13f
+        ) {
             if (!CustomTriggers.enabled) {
                 CustomTriggers.toggle()
                 Config.save()
@@ -406,12 +446,20 @@ class TriggerEditor : NodeCanvas.Host {
         constrain(0.px, 0.px, SIDEBAR_W.px, Copying), colour = theme.surfaceContainerLow
     ) {
         block(constrain(0.px.alignOpposite, 0.px, 1.px, Copying), colour = theme.outlineVariant)
-        iconButton(PANEL_LEFT, constrain(14.px.alignOpposite, 18.px, 36.px, 36.px), fill = theme.surfaceContainerHigh) { toggleSidebar() }
+        iconButton(
+            PANEL_LEFT,
+            constrain(14.px.alignOpposite, 18.px, 36.px, 36.px),
+            fill = theme.surfaceContainerHigh
+        ) { toggleSidebar() }
         column(constrain(18.px, 20.px, Copying - 70.px, Bounding), gap = 4.px) {
             text(string = "Custom Triggers", size = 19.px, colour = theme.onSurface)
             label({ "Run actions on game events." }, 12.5f, { theme.onSurfaceVariant }, size(Copying))
         }
-        block(constrain(18.px, 76.px, Copying - 36.px, 34.px), colour = theme.surfaceContainerHigh, radius = 8.radius()) {
+        block(
+            constrain(18.px, 76.px, Copying - 36.px, 34.px),
+            colour = theme.surfaceContainerHigh,
+            radius = 8.radius()
+        ) {
             outline(theme.outlineVariant, 1.px)
             textInput(
                 string = search, placeholder = "Search triggers", pos = at(12.px, Centre), size = 13.5.px,
@@ -427,7 +475,8 @@ class TriggerEditor : NodeCanvas.Host {
             }
             cursor(CursorShape.IBEAM)
         }
-        sidebar = refreshableGroup(constrain(10.px, 124.px, Copying - 20.px, Copying - 124.px - 108.px)) { triggerList() }
+        sidebar =
+            refreshableGroup(constrain(10.px, 124.px, Copying - 20.px, Copying - 124.px - 108.px)) { triggerList() }
         column(constrain(18.px, 18.px.alignOpposite, Copying - 36.px, Bounding), gap = 8.px) {
             button("+  New trigger", ButtonStyle.PRIMARY, size(Copying, 36.px)) { newTrigger(selectedGroup) }
             button("New group", ButtonStyle.GHOST, size(Copying, 32.px)) {
@@ -454,17 +503,32 @@ class TriggerEditor : NodeCanvas.Host {
                     if (open) {
                         matches.forEach { triggerRow(group, it) }
                         if (rules.isEmpty()) group(size(Copying, 30.px)) {
-                            text(string = "No triggers yet", size = 12.5.px, colour = theme.onSurfaceVariant.withAlpha(0.7f), pos = at(30.px, Centre))
+                            text(
+                                string = "No triggers yet",
+                                size = 12.5.px,
+                                colour = theme.onSurfaceVariant.withAlpha(0.7f),
+                                pos = at(30.px, Centre)
+                            )
                         }
                         val hidden = TriggerManager.unsupportedCount(group)
                         if (hidden > 0) group(size(Copying, 26.px)) {
-                            text(string = "$hidden unsupported, kept in file", size = 12.px, colour = theme.error, pos = at(30.px, Centre))
+                            text(
+                                string = "$hidden unsupported, kept in file",
+                                size = 12.px,
+                                colour = theme.error,
+                                pos = at(30.px, Centre)
+                            )
                         }
                     }
                     group(size(Copying, 6.px))
                 }
                 if (shown == 0) group(size(Copying, 40.px)) {
-                    text(string = "Nothing matches \"$search\"", size = 13.px, colour = theme.onSurfaceVariant, pos = at(12.px, Centre))
+                    text(
+                        string = "Nothing matches \"$search\"",
+                        size = 13.px,
+                        colour = theme.onSurfaceVariant,
+                        pos = at(12.px, Centre)
+                    )
                 }
             }
         }
@@ -480,20 +544,30 @@ class TriggerEditor : NodeCanvas.Host {
             rotation(if (open) 90f else 0f)
         }
         label({ group.uppercase() }, 11.5f, { theme.onSurfaceVariant }, constrain(28.px, Centre, Copying - 96.px))
-        text(string = "$count", size = 11.5.px, colour = theme.onSurfaceVariant.withAlpha(0.7f), pos = at(44.px.alignOpposite, Centre))
+        text(
+            string = "$count",
+            size = 11.5.px,
+            colour = theme.onSurfaceVariant.withAlpha(0.7f),
+            pos = at(44.px.alignOpposite, Centre)
+        )
         iconButton(MORE, constrain(6.px.alignOpposite, Centre, 26.px, 24.px), fill = theme.surfaceContainerLow) {
-            menu(element.x, element.y + element.height + 4f, listOf(
-                "New trigger here" to { newTrigger(group) },
-                "Rename group" to { renameGroupDialog(group) },
-                "Delete group" to {
-                    val total = count + TriggerManager.unsupportedCount(group)
-                    confirm("Delete group \"$group\"?", "This removes the group and its $total trigger${if (total == 1) "" else "s"}.") {
-                        TriggerManager.deleteGroup(group)
-                        if (selectedGroup == group) openRule(triggers.keys.firstOrNull() ?: "General", null)
-                        else sidebar.refresh()
-                    }
-                },
-            ))
+            menu(
+                element.x, element.y + element.height + 4f, listOf(
+                    "New trigger here" to { newTrigger(group) },
+                    "Rename group" to { renameGroupDialog(group) },
+                    "Delete group" to {
+                        val total = count + TriggerManager.unsupportedCount(group)
+                        confirm(
+                            "Delete group \"$group\"?",
+                            "This removes the group and its $total trigger${if (total == 1) "" else "s"}."
+                        ) {
+                            TriggerManager.deleteGroup(group)
+                            if (selectedGroup == group) openRule(triggers.keys.firstOrNull() ?: "General", null)
+                            else sidebar.refresh()
+                        }
+                    },
+                )
+            )
         }
         tonalHover()
         cursor(CursorShape.HAND)
@@ -506,15 +580,35 @@ class TriggerEditor : NodeCanvas.Host {
 
     private fun ElementScope<*>.triggerRow(group: String, rule: TriggerRule) {
         val active = rule.id == selectedId
-        block(size(Copying, 36.px), colour = if (active) theme.primary.withAlpha(0.14f) else theme.surfaceContainerLow, radius = 7.radius()) {
+        block(
+            size(Copying, 36.px),
+            colour = if (active) theme.primary.withAlpha(0.14f) else theme.surfaceContainerLow,
+            radius = 7.radius()
+        ) {
             if (active) block(constrain(0.px, Centre, 3.px, 18.px), colour = theme.primary, radius = 2.radius())
             val status = { statusColour(rule) }
             block(constrain(16.px, Centre, 8.px, 8.px), colour = Colour.TRANSPARENT, radius = 4.radius()) {
-                element.colour = object : Colour { override val rgb get() = status().rgb }
+                element.colour = object : Colour {
+                    override val rgb get() = status().rgb
+                }
             }
-            label({ rule.name }, 13.5f, { if (active) theme.onSurface else theme.onSurface.withAlpha(0.85f) }, constrain(34.px, Centre, Copying - 100.px))
-            label({ if (rule.enabled) "" else "Off" }, 12f, { theme.onSurfaceVariant.withAlpha(0.8f) }, constrain(40.px.alignOpposite, Centre, 24.px))
-            iconButton(MORE, constrain(6.px.alignOpposite, Centre, 26.px, 24.px), fill = if (active) theme.surfaceContainerHigh else theme.surfaceContainerLow) {
+            label(
+                { rule.name },
+                13.5f,
+                { if (active) theme.onSurface else theme.onSurface.withAlpha(0.85f) },
+                constrain(34.px, Centre, Copying - 100.px)
+            )
+            label(
+                { if (rule.enabled) "" else "Off" },
+                12f,
+                { theme.onSurfaceVariant.withAlpha(0.8f) },
+                constrain(40.px.alignOpposite, Centre, 24.px)
+            )
+            iconButton(
+                MORE,
+                constrain(6.px.alignOpposite, Centre, 26.px, 24.px),
+                fill = if (active) theme.surfaceContainerHigh else theme.surfaceContainerLow
+            ) {
                 ruleMenu(group, rule, element.x, element.y + element.height + 4f)
             }
             if (!active) tonalHover()
@@ -538,19 +632,24 @@ class TriggerEditor : NodeCanvas.Host {
         menu(x, y, buildList {
             add("Duplicate" to { duplicate(group, rule) })
             if (others.isNotEmpty()) add("Move to group…" to {
-                menu(x, y, others.map { target -> "Move to \"$target\"" to {
-                    triggers[group]?.remove(rule)
-                    triggers.getOrPut(target) { mutableListOf() }.add(rule)
-                    collapsed.remove(target)
-                    commit()
-                    openRule(target, rule.id)
-                } })
+                menu(x, y, others.map { target ->
+                    "Move to \"$target\"" to {
+                        triggers[group]?.remove(rule)
+                        triggers.getOrPut(target) { mutableListOf() }.add(rule)
+                        collapsed.remove(target)
+                        commit()
+                        openRule(target, rule.id)
+                    }
+                })
             })
             add("Delete trigger" to {
                 confirm("Delete \"${rule.name}\"?", "This trigger and all of its steps will be removed.") {
                     triggers[group]?.remove(rule)
                     commit()
-                    if (rule.id == selectedId) openRule(group, triggers[group]?.firstOrNull()?.id) else sidebar.refresh()
+                    if (rule.id == selectedId) openRule(
+                        group,
+                        triggers[group]?.firstOrNull()?.id
+                    ) else sidebar.refresh()
                 }
             })
         })
@@ -571,7 +670,8 @@ class TriggerEditor : NodeCanvas.Host {
 
     private fun nextName(group: String): String {
         val names = triggers[group].orEmpty().map { it.name }.toSet()
-        return generateSequence(1) { it + 1 }.map { if (it == 1) "New trigger" else "New trigger $it" }.first { it !in names }
+        return generateSequence(1) { it + 1 }.map { if (it == 1) "New trigger" else "New trigger $it" }
+            .first { it !in names }
     }
 
     private fun duplicate(group: String, rule: TriggerRule) {
@@ -586,7 +686,11 @@ class TriggerEditor : NodeCanvas.Host {
 
     private fun ElementScope<RefreshableGroup>.headerBar() {
         val listToggle = !sidebarDocked
-        if (listToggle) iconButton(PANEL_LEFT, constrain(16.px, Centre, 36.px, 36.px), fill = if (sidebarOpen) theme.surfaceContainerHigh else theme.background) { toggleSidebar() }
+        if (listToggle) iconButton(
+            PANEL_LEFT,
+            constrain(16.px, Centre, 36.px, 36.px),
+            fill = if (sidebarOpen) theme.surfaceContainerHigh else theme.background
+        ) { toggleSidebar() }
         val rule = rule ?: return
         // narrow headers drop the switch label and shorten the run button
         val compact = headerWidth in 1f..1000f
@@ -641,11 +745,20 @@ class TriggerEditor : NodeCanvas.Host {
                     }
                 }
             }
-            if (!tiny) block(size((if (compact) 104 else 150).px, 36.px), colour = theme.surfaceContainerHigh, radius = 8.radius()) {
+            if (!tiny) block(
+                size((if (compact) 104 else 150).px, 36.px),
+                colour = theme.surfaceContainerHigh,
+                radius = 8.radius()
+            ) {
                 outline(theme.outlineVariant, 1.px)
                 centredLabel(
-                    { if (TriggerManager.testRunning(rule)) "Running…" else if (compact) "Run once" else "Run actions once" }, 13.5f,
-                    { if (TriggerManager.testError(rule) == null) theme.onSurface else theme.onSurfaceVariant.withAlpha(0.6f) },
+                    { if (TriggerManager.testRunning(rule)) "Running…" else if (compact) "Run once" else "Run actions once" },
+                    13.5f,
+                    {
+                        if (TriggerManager.testError(rule) == null) theme.onSurface else theme.onSurfaceVariant.withAlpha(
+                            0.6f
+                        )
+                    },
                     constrain(8.px, 0.px, Copying - 16.px, Copying)
                 )
                 tonalHover()
@@ -656,7 +769,11 @@ class TriggerEditor : NodeCanvas.Host {
                     true
                 }
             }
-            iconButton(PANEL_RIGHT, size(36.px, 36.px), fill = if (inspectorShown) theme.surfaceContainerHigh else theme.background) { toggleInspector() }
+            iconButton(
+                PANEL_RIGHT,
+                size(36.px, 36.px),
+                fill = if (inspectorShown) theme.surfaceContainerHigh else theme.background
+            ) { toggleInspector() }
         }
     }
 
@@ -669,20 +786,35 @@ class TriggerEditor : NodeCanvas.Host {
                 iconButton("−", size(32.px, 32.px), fill = theme.surfaceContainer) { canvas.zoomBy(1 / 1.2f) }
                 group(size(52.px, 32.px)) {
                     quoi.api.abobaui.elements.impl.Text.run {
-                        textSupplied({ canvas.zoomPercent()?.let { "$it%" } ?: "" }, colour = theme.onSurfaceVariant, size = 12.5.px, pos = at(Centre, Centre))
+                        textSupplied(
+                            { canvas.zoomPercent()?.let { "$it%" } ?: "" },
+                            colour = theme.onSurfaceVariant,
+                            size = 12.5.px,
+                            pos = at(Centre, Centre)
+                        )
                     }
                 }
                 iconButton("+", size(32.px, 32.px), fill = theme.surfaceContainer) { canvas.zoomBy(1.2f) }
             }
         }
-        button("Fit view", ButtonStyle.OUTLINE, size(Bounding + 24.px, 32.px), fontSize = 12.5f) { rule?.let(canvas::fit) }
+        button(
+            "Fit view",
+            ButtonStyle.OUTLINE,
+            size(Bounding + 24.px, 32.px),
+            fontSize = 12.5f
+        ) { rule?.let(canvas::fit) }
     }
 
     private fun ElementScope<RefreshableGroup>.inspectorPanel() {
         val rule = rule
         if (rule == null) {
             text(string = "Inspector", size = 16.px, colour = theme.onSurface, pos = at(0.px, 0.px))
-            paragraph({ "Select or create a trigger to see its steps here." }, 13f, { theme.onSurfaceVariant }, constrain(0.px, 30.px, Copying))
+            paragraph(
+                { "Select or create a trigger to see its steps here." },
+                13f,
+                { theme.onSurfaceVariant },
+                constrain(0.px, 30.px, Copying)
+            )
             return
         }
         val graph = TriggerGraph(rule)
@@ -714,7 +846,11 @@ class TriggerEditor : NodeCanvas.Host {
                     outline(theme.outlineVariant, 1.px)
                     centredLabel(
                         { if (TriggerManager.testRunning(rule)) "Running…" else "Run actions once" }, 14f,
-                        { if (TriggerManager.testError(rule) == null) theme.onSurface else theme.onSurfaceVariant.withAlpha(0.6f) },
+                        {
+                            if (TriggerManager.testError(rule) == null) theme.onSurface else theme.onSurfaceVariant.withAlpha(
+                                0.6f
+                            )
+                        },
                         constrain(8.px, 0.px, Copying - 16.px, Copying)
                     )
                     tonalHover()
@@ -726,7 +862,10 @@ class TriggerEditor : NodeCanvas.Host {
                     }
                 }
                 paragraph(
-                    { TriggerManager.testError(rule) ?: "Runs the actions one time now and skips the event and conditions." },
+                    {
+                        TriggerManager.testError(rule)
+                            ?: "Runs the actions one time now and skips the event and conditions."
+                    },
                     13f, { theme.onSurfaceVariant }, size(Copying)
                 )
 
@@ -735,12 +874,21 @@ class TriggerEditor : NodeCanvas.Host {
                     sectionTitle("Text placeholders")
                     row(size(Copying, 28.px), gap = 6.px) {
                         placeholders.forEach { placeholder ->
-                            block(size(Bounding + 18.px, 28.px), colour = theme.surfaceContainerHigh, radius = 6.radius()) {
+                            block(
+                                size(Bounding + 18.px, 28.px),
+                                colour = theme.surfaceContainerHigh,
+                                radius = 6.radius()
+                            ) {
                                 text(string = placeholder, size = 13.px, colour = theme.onSurface)
                             }
                         }
                     }
-                    paragraph({ "Type them into an action's text to insert details of the event." }, 13f, { theme.onSurfaceVariant }, size(Copying))
+                    paragraph(
+                        { "Type them into an action's text to insert details of the event." },
+                        13f,
+                        { theme.onSurfaceVariant },
+                        size(Copying)
+                    )
                 }
             }
         }
@@ -793,26 +941,40 @@ class TriggerEditor : NodeCanvas.Host {
                 row(size(Bounding, 22.px), gap = 8.px) {
                     block(size(Bounding + 14.px, 22.px), colour = accent.withAlpha(0.2f), radius = 5.radius()) {
                         quoi.api.abobaui.elements.impl.Text.run {
-                            textSupplied({ NodeCanvas.chipLabel(kind, step) }, colour = NodeCanvas.accentText(kind), size = 11.5.px, pos = at(Centre, Centre))
+                            textSupplied(
+                                { NodeCanvas.chipLabel(kind, step) },
+                                colour = NodeCanvas.accentText(kind),
+                                size = 11.5.px,
+                                pos = at(Centre, Centre)
+                            )
                         }
                     }
-                    text(string = when (kind) {
-                        TriggerGraph.Kind.EVENT -> "Starts the trigger"
-                        TriggerGraph.Kind.CONDITION -> "Condition, checked before the actions"
-                        TriggerGraph.Kind.ACTION -> "Action $step of ${rule.actions.size}"
-                    }, size = 13.px, colour = theme.onSurfaceVariant, pos = at(y = Centre))
+                    text(
+                        string = when (kind) {
+                            TriggerGraph.Kind.EVENT -> "Starts the trigger"
+                            TriggerGraph.Kind.CONDITION -> "Condition, checked before the actions"
+                            TriggerGraph.Kind.ACTION -> "Action $step of ${rule.actions.size}"
+                        }, size = 13.px, colour = theme.onSurfaceVariant, pos = at(y = Centre)
+                    )
                 }
                 text(string = info.name, size = 20.px, colour = theme.onSurface)
-                if (info.description.isNotEmpty()) paragraph({ info.description }, 13.5f, { theme.onSurfaceVariant }, size(Copying))
+                if (info.description.isNotEmpty()) paragraph(
+                    { info.description },
+                    13.5f,
+                    { theme.onSurfaceVariant },
+                    size(Copying)
+                )
 
                 if (kind == TriggerGraph.Kind.EVENT) {
                     button("Change event…", ButtonStyle.OUTLINE, size(Copying, 34.px)) {
                         val anchorX = element.x
                         val anchorY = element.y + element.height + 6f
-                        root.picker(anchorX, anchorY, "Start this trigger when…", listOf(PickerSection(
-                            "Event", "Starts the trigger", TriggerGraph.Kind.EVENT,
-                            TriggerManager.triggerEntries.map { it.first to it.second }
-                        ))) { picked ->
+                        root.picker(
+                            anchorX, anchorY, "Start this trigger when…", listOf(
+                                PickerSection(
+                                    "Event", "Starts the trigger", TriggerGraph.Kind.EVENT,
+                                    TriggerManager.triggerEntries.map { it.first to it.second }
+                                ))) { picked ->
                             rule.trigger = picked as quoi.api.customtriggers.triggers.Trigger
                             commit()
                             refreshAll()
@@ -831,12 +993,19 @@ class TriggerEditor : NodeCanvas.Host {
                         outline(theme.outlineVariant, 1.px)
                         column(constrain(14.px, Centre, Copying - 84.px, Bounding), gap = 4.px) {
                             text(string = "Invert this check", size = 14.px, colour = theme.onSurface)
-                            label({ "Passes when: ${component.summary()}" }, 12.5f, { theme.onSurfaceVariant }, size(Copying))
+                            label(
+                                { "Passes when: ${component.summary()}" },
+                                12.5f,
+                                { theme.onSurfaceVariant },
+                                size(Copying)
+                            )
                         }
                         val inverted = object {
                             var value: Boolean
                                 get() = !component.expected
-                                set(v) { component.expected = !v }
+                                set(v) {
+                                    component.expected = !v
+                                }
                         }
                         switch(inverted::value, size = 18.px, pos = at(14.px.alignOpposite, Centre))
                     }
@@ -868,7 +1037,12 @@ class TriggerEditor : NodeCanvas.Host {
 
         group(constrain(0.px, 0.px.alignOpposite, Copying, 38.px)) {
             if (kind == TriggerGraph.Kind.EVENT) {
-                paragraph({ "Every trigger has exactly one start event." }, 12.5f, { theme.onSurfaceVariant.withAlpha(0.8f) }, constrain(0.px, Centre, Copying))
+                paragraph(
+                    { "Every trigger has exactly one start event." },
+                    12.5f,
+                    { theme.onSurfaceVariant.withAlpha(0.8f) },
+                    constrain(0.px, Centre, Copying)
+                )
             } else {
                 button("Delete step", ButtonStyle.DANGER, size(Copying, 38.px)) { deleteNode(index) }
             }
@@ -909,7 +1083,13 @@ class TriggerEditor : NodeCanvas.Host {
         overlay = null
     }
 
-    private fun ElementScope<*>.picker(x: Float, y: Float, title: String, sections: List<PickerSection>, onPick: (Abobable) -> Unit) {
+    private fun ElementScope<*>.picker(
+        x: Float,
+        y: Float,
+        title: String,
+        sections: List<PickerSection>,
+        onPick: (Abobable) -> Unit
+    ) {
         var query = ""
         val width = 360f
         val rows = sections.sumOf { it.entries.size } + sections.size
@@ -920,12 +1100,22 @@ class TriggerEditor : NodeCanvas.Host {
                 colour = theme.surfaceContainer, radius = 12.radius()
             ) {
                 outline(theme.outlineVariant, 1.px)
-                dropShadow(blur = 30f, spread = 0f, colour = Colour.RGB(0, 0, 0, 0.5f), offsetY = 6f, radius = 12.radius())
+                dropShadow(
+                    blur = 30f,
+                    spread = 0f,
+                    colour = Colour.RGB(0, 0, 0, 0.5f),
+                    offsetY = 6f,
+                    radius = 12.radius()
+                )
                 onClick { true }
                 text(string = title, size = 15.px, colour = theme.onSurface, pos = at(16.px, 16.px))
                 lateinit var results: RefreshableGroup
                 lateinit var input: ElementScope<TextInput>
-                block(constrain(12.px, 44.px, Copying - 24.px, 34.px), colour = theme.surfaceContainerHigh, radius = 8.radius()) {
+                block(
+                    constrain(12.px, 44.px, Copying - 24.px, 34.px),
+                    colour = theme.surfaceContainerHigh,
+                    radius = 8.radius()
+                ) {
                     outline(theme.primary.withAlpha(0.6f), 1.px)
                     input = textInput(
                         placeholder = "Search…", pos = at(12.px, Centre), size = 13.5.px, colour = theme.onSurface,
@@ -938,7 +1128,10 @@ class TriggerEditor : NodeCanvas.Host {
                         }
                         onKeyPressed { (key, _) ->
                             when (key) {
-                                Keybinds.KEY_ESCAPE -> { closeOverlay(); true }
+                                Keybinds.KEY_ESCAPE -> {
+                                    closeOverlay(); true
+                                }
+
                                 Keybinds.KEY_ENTER -> {
                                     val first = sections.firstNotNullOfOrNull { section ->
                                         NodeCatalog.search(section.entries.map { it.first }, query).firstOrNull()
@@ -950,6 +1143,7 @@ class TriggerEditor : NodeCanvas.Host {
                                     }
                                     true
                                 }
+
                                 else -> false
                             }
                         }
@@ -967,17 +1161,39 @@ class TriggerEditor : NodeCanvas.Host {
                                 val accent = NodeCanvas.accent(section.kind)
                                 group(size(Copying, 28.px)) {
                                     row(at(8.px, Centre), gap = 8.px) {
-                                        text(string = section.title.uppercase(), size = 11.px, colour = NodeCanvas.accentText(section.kind))
-                                        text(string = section.subtitle, size = 11.px, colour = theme.onSurfaceVariant.withAlpha(0.8f))
+                                        text(
+                                            string = section.title.uppercase(),
+                                            size = 11.px,
+                                            colour = NodeCanvas.accentText(section.kind)
+                                        )
+                                        text(
+                                            string = section.subtitle,
+                                            size = 11.px,
+                                            colour = theme.onSurfaceVariant.withAlpha(0.8f)
+                                        )
                                     }
                                 }
                                 types.forEach { type ->
                                     val info = NodeCatalog.info(type)
                                     val factory = section.entries.first { it.first == type }.second
                                     block(size(Copying, 48.px), colour = theme.surfaceContainer, radius = 8.radius()) {
-                                        block(constrain(10.px, Centre, 8.px, 8.px), colour = accent, radius = 4.radius())
-                                        label({ info.name }, 13.5f, { theme.onSurface }, constrain(28.px, 8.px, Copying - 40.px))
-                                        label({ info.description }, 11.5f, { theme.onSurfaceVariant }, constrain(28.px, 27.px, Copying - 40.px))
+                                        block(
+                                            constrain(10.px, Centre, 8.px, 8.px),
+                                            colour = accent,
+                                            radius = 4.radius()
+                                        )
+                                        label(
+                                            { info.name },
+                                            13.5f,
+                                            { theme.onSurface },
+                                            constrain(28.px, 8.px, Copying - 40.px)
+                                        )
+                                        label(
+                                            { info.description },
+                                            11.5f,
+                                            { theme.onSurfaceVariant },
+                                            constrain(28.px, 27.px, Copying - 40.px)
+                                        )
                                         tonalHover()
                                         cursor(CursorShape.HAND)
                                         onClick {
@@ -989,7 +1205,12 @@ class TriggerEditor : NodeCanvas.Host {
                                 }
                             }
                             if (!any) group(size(Copying, 40.px)) {
-                                text(string = "No matches", size = 13.px, colour = theme.onSurfaceVariant, pos = at(10.px, Centre))
+                                text(
+                                    string = "No matches",
+                                    size = 13.px,
+                                    colour = theme.onSurfaceVariant,
+                                    pos = at(10.px, Centre)
+                                )
                             }
                         }
                     }
@@ -1009,13 +1230,24 @@ class TriggerEditor : NodeCanvas.Host {
                 colour = theme.surfaceContainer, radius = 10.radius()
             ) {
                 outline(theme.outlineVariant, 1.px)
-                dropShadow(blur = 24f, spread = 0f, colour = Colour.RGB(0, 0, 0, 0.45f), offsetY = 4f, radius = 10.radius())
+                dropShadow(
+                    blur = 24f,
+                    spread = 0f,
+                    colour = Colour.RGB(0, 0, 0, 0.45f),
+                    offsetY = 4f,
+                    radius = 10.radius()
+                )
                 onClick { true }
                 column(constrain(6.px, 6.px, Copying - 12.px, Bounding)) {
                     items.forEach { (label, action) ->
                         val danger = label.startsWith("Delete")
                         block(size(Copying, 34.px), colour = theme.surfaceContainer, radius = 6.radius()) {
-                            text(string = label, size = 13.px, colour = if (danger) theme.error else theme.onSurface, pos = at(10.px, Centre))
+                            text(
+                                string = label,
+                                size = 13.px,
+                                colour = if (danger) theme.error else theme.onSurface,
+                                pos = at(10.px, Centre)
+                            )
                             tonalHover()
                             cursor(CursorShape.HAND)
                             onClick {
@@ -1072,6 +1304,7 @@ class TriggerEditor : NodeCanvas.Host {
                     closeOverlay()
                     refreshAll()
                 }
+
                 else -> error = "Use a unique name with 1–40 characters."
             }
         }
@@ -1079,14 +1312,24 @@ class TriggerEditor : NodeCanvas.Host {
             block(size(Copying, 36.px), colour = theme.surfaceContainerHigh, radius = 8.radius()) {
                 outline(theme.primary.withAlpha(0.6f), 1.px)
                 val input = textInput(
-                    string = group, pos = at(12.px, Centre), size = 14.px, colour = theme.onSurface, caretColour = theme.primary
+                    string = group,
+                    pos = at(12.px, Centre),
+                    size = 14.px,
+                    colour = theme.onSurface,
+                    caretColour = theme.primary
                 ) {
                     maxWidth(Copying - 24.px)
                     onTextChanged { name = it.string }
                     onKeyPressed { (key, _) ->
                         when (key) {
-                            Keybinds.KEY_ESCAPE -> { closeOverlay(); true }
-                            Keybinds.KEY_ENTER -> { save(); true }
+                            Keybinds.KEY_ESCAPE -> {
+                                closeOverlay(); true
+                            }
+
+                            Keybinds.KEY_ENTER -> {
+                                save(); true
+                            }
+
                             else -> false
                         }
                     }
@@ -1103,6 +1346,7 @@ class TriggerEditor : NodeCanvas.Host {
         const val AUTOSAVE_MS = 600L
         const val SIDEBAR_W = 280f
         const val INSPECTOR_W = 360f
+
         // outlines and switch tracks extend past the content bounds
         const val SCROLL_BLEED = 6f
         const val BANNER_H = 46f

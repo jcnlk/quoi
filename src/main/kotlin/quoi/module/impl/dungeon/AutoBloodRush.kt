@@ -23,9 +23,29 @@ object AutoBloodRush : Module(
     desc = "Travels to locked Wither and Blood doors and opens them automatically.", // TODO: change this
     area = Island.Dungeon
 ) {
-    private val mode by selector("Mode", "Doorcamp", listOf("Doorcamp"), desc = "Doorcamp travels to the closest locked door and auras it until it opens.") // TODO: make this enums
-    private val auraRange by slider("Aura range", 5.0, 3.0, 6.0, 0.1, desc = "Maximum distance for opening the targeted door.")
-    private val retryDelay by slider("Retry delay", 500, 100, 2000, 50, unit = "ms", desc = "Delay between attempts to open the targeted door.")
+    private val mode by selector(
+        "Mode",
+        "Doorcamp",
+        listOf("Doorcamp"),
+        desc = "Doorcamp travels to the closest locked door and auras it until it opens."
+    ) // TODO: make this enums
+    private val auraRange by slider(
+        "Aura range",
+        5.0,
+        3.0,
+        6.0,
+        0.1,
+        desc = "Maximum distance for opening the targeted door."
+    )
+    private val retryDelay by slider(
+        "Retry delay",
+        500,
+        100,
+        2000,
+        50,
+        unit = "ms",
+        desc = "Delay between attempts to open the targeted door."
+    )
 
     private var targetDoor: OdonDoor? = null
     private var lastPath = 0L

@@ -43,7 +43,8 @@ public abstract class ItemInHandRendererMixin {
     )
     private float quoi$itemAnimationsSwing(float original, float frameInterp, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, PlayerRenderState playerState, FirstPersonHandsAndItemsRenderState state) {
         if (!ItemAnimations.INSTANCE.getEnabled()) return original;
-        if (ItemAnimations.isMap(state.attackHand == InteractionHand.MAIN_HAND ? state.mainHandItem : state.offHandItem)) return original;
+        if (ItemAnimations.isMap(state.attackHand == InteractionHand.MAIN_HAND ? state.mainHandItem : state.offHandItem))
+            return original;
 
         return ItemAnimations.getSwingAnimation(frameInterp);
     }
@@ -53,7 +54,8 @@ public abstract class ItemInHandRendererMixin {
             at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/state/level/FirstPersonHandsAndItemsRenderState;attackHand:Lnet/minecraft/world/InteractionHand;")
     )
     private InteractionHand quoi$itemAnimationsSwingHand(InteractionHand original, float frameInterp, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, PlayerRenderState playerState, FirstPersonHandsAndItemsRenderState state) {
-        if (ItemAnimations.isMap(original == InteractionHand.MAIN_HAND ? state.mainHandItem : state.offHandItem)) return original;
+        if (ItemAnimations.isMap(original == InteractionHand.MAIN_HAND ? state.mainHandItem : state.offHandItem))
+            return original;
         LivingEntity.SwingDescription swing = ItemAnimations.getSwingDescription(null);
         return swing != null ? swing.hand() : original;
     }
@@ -63,7 +65,8 @@ public abstract class ItemInHandRendererMixin {
             at = @At(value = "FIELD", target = "Lnet/minecraft/client/renderer/entity/state/AvatarRenderState;currentSwing:Lnet/minecraft/world/entity/LivingEntity$SwingDescription;")
     )
     private LivingEntity.SwingDescription quoi$itemAnimationsSwingDescription(LivingEntity.SwingDescription original, PlayerRenderState playerState, FirstPersonHandsAndItemsRenderState state) {
-        if (original != null && ItemAnimations.isMap(original.hand() == InteractionHand.MAIN_HAND ? state.mainHandItem : state.offHandItem)) return original;
+        if (original != null && ItemAnimations.isMap(original.hand() == InteractionHand.MAIN_HAND ? state.mainHandItem : state.offHandItem))
+            return original;
         return ItemAnimations.getSwingDescription(original);
     }
 
@@ -75,7 +78,7 @@ public abstract class ItemInHandRendererMixin {
     private void quoi$applyEquipOffset(PoseStack poseStack, HumanoidArm humanoidArm, float f, CallbackInfo ci) {
         if (ItemAnimations.disableReequip(humanoidArm)) {
             int i = humanoidArm == HumanoidArm.RIGHT ? 1 : -1;
-            poseStack.translate((float)i * 0.56f, -0.52f, -0.72f);
+            poseStack.translate((float) i * 0.56f, -0.52f, -0.72f);
             ci.cancel();
         }
     }

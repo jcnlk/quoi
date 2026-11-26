@@ -31,6 +31,7 @@ internal fun MenuSlot.resolve(menu: AbstractContainerMenu, inventory: Inventory)
             menu.slots.firstOrNull { it.container === inventory && it.containerSlot == inventoryIndex }
         }
     }
+
     is ItemSlot -> menu.slots.firstOrNull {
         val inInventory = it.container === inventory
         val inRange = when (inContainer) {
@@ -64,6 +65,7 @@ class ItemSlot(val predicate: (ItemStack) -> Boolean, override val inContainer: 
 
 // container only
 inline val Int.menu: MenuSlot get() = IndexSlot(this, true)
+
 // inventory only
 inline val Int.inv: MenuSlot get() = IndexSlot(this, false)
 

@@ -1,0 +1,32 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{java,kt,kts}]
+max_line_length = 120
+# Avoid inserting spaces into Stonecutter comment prefixes.
+ij_any_line_comment_add_space = false
+ij_any_line_comment_add_space_on_reformat = false
+ij_any_block_comment_add_space = false
+
+[*.java]
+ij_java_continuation_indent_size = 8
+
+[*.{kt,kts}]
+ij_kotlin_code_style_defaults = KOTLIN_OFFICIAL
+ij_kotlin_continuation_indent_size = 4
+
+[*.{json,md,xml,yaml,yml}]
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false
+
+[*.bat]
+end_of_line = crlf

@@ -95,7 +95,11 @@ class SimulatedCache(val simulatedPlayer: SimulatedPlayer) {
         return null
     }
 
-    fun findSnapshot(tickRange: ClosedFloatingPointRange<Double>, step: Double = 1.0, predicate: (SimulatedSnapshot) -> Boolean): SimulatedSnapshot? {
+    fun findSnapshot(
+        tickRange: ClosedFloatingPointRange<Double>,
+        step: Double = 1.0,
+        predicate: (SimulatedSnapshot) -> Boolean
+    ): SimulatedSnapshot? {
         require(step > 0.0) { "ticks may not be negative" }
         check(tickRange.start >= 0.0) { "start tick may not be negative" }
         check(tickRange.endInclusive < 60 * 20) { "tried to simulate a player for more than a minute!" }

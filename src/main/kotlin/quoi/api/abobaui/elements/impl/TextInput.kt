@@ -79,7 +79,13 @@ class TextInput(
             val time = System.currentTimeMillis()
 
             val x = x + caretX - offset
-            if (selectionWidth != 0f) UIRenderer.rect(x, y, selectionWidth, height, caretColour.withAlpha(0.3f).rgb) // ctx.rect(x, y, selectionWidth.roundToInt(), height, SELECTION_COLOR)
+            if (selectionWidth != 0f) UIRenderer.rect(
+                x,
+                y,
+                selectionWidth,
+                height,
+                caretColour.withAlpha(0.3f).rgb
+            ) // ctx.rect(x, y, selectionWidth.roundToInt(), height, SELECTION_COLOR)
 
             if (time - caretBlinkTime < 500) {
 //                ctx.drawLine(x, y.toFloat(), x, y.toFloat() + height, Colour.WHITE.rgb, 1f)
@@ -498,6 +504,8 @@ class TextInput(
 
         var ElementScope<TextInput>.censors
             get() = element.censors
-            set(value) { element.censors = value }
+            set(value) {
+                element.censors = value
+            }
     }
 }

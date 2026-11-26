@@ -6,6 +6,7 @@ package quoi.api.events.core
  */
 class SubscriptionRegistry<T : Event> {
     private val subscriptions = mutableListOf<Subscription<T>>()
+
     @Volatile
     var dispatchSnapshot: Array<Subscription<T>> = emptyArray()
         private set

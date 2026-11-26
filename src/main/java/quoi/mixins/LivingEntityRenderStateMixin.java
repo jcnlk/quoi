@@ -7,8 +7,10 @@ import quoi.utils.render.EntityOverlayState;
 
 @Mixin(LivingEntityRenderState.class)
 public class LivingEntityRenderStateMixin implements EntityOverlayState {
-    @Unique private int quoi$overlayColour;
-    @Unique private boolean quoi$overlayDepth;
+    @Unique
+    private int quoi$overlayColour;
+    @Unique
+    private boolean quoi$overlayDepth;
 
     @Override
     public int quoi$getOverlayColour() {

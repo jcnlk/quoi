@@ -33,7 +33,11 @@ object GlaciteTunnels : Module(
     area = Island.DwarvenMines,
     desc = "Navigation and utilities for the Glacite Tunnels.",
 ) {
-    private val commissionRoutes by switch("Commission routes", desc = "Shows the best route to the next collector commission location.")
+    private val commissionRoutes by switch(
+        "Commission routes",
+        desc = "Shows the best route to the next collector commission location."
+    )
+
     @Suppress("unused")
     private val baseWarpKey by keybind("Base warp", desc = "Warps to the Dwarven Base Camp with /warp basecamp.")
         .onPress {
@@ -142,10 +146,12 @@ object GlaciteTunnels : Module(
                 if (packet.containerId != menu.containerId) return
                 null
             }
+
             is ClientboundContainerSetSlotPacket -> {
                 if (packet.containerId != menu.containerId || packet.slot !in menu.slots.indices) return
                 packet.slot
             }
+
             else -> return
         }
         val preferredSlot = updatedSlot.takeIf { awaitingClaim }
@@ -179,7 +185,15 @@ object GlaciteTunnels : Module(
     private fun hasWalkingLine(from: Vec3, to: Vec3): Boolean {
         val level = mc.level ?: return false
         val eyeOffset = Vec3(0.0, 1.0, 0.0)
-        return level.clip(ClipContext(from.add(eyeOffset), to.add(eyeOffset), ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, player)).type == HitResult.Type.MISS
+        return level.clip(
+            ClipContext(
+                from.add(eyeOffset),
+                to.add(eyeOffset),
+                ClipContext.Block.COLLIDER,
+                ClipContext.Fluid.NONE,
+                player
+            )
+        ).type == HitResult.Type.MISS
     }
 
     private fun inGlaciteEnvironment(): Boolean = Location.subarea?.let { subarea ->

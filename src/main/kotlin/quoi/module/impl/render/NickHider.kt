@@ -41,7 +41,11 @@ object NickHider : Module(
     }
 }
 
-internal fun replaceOrderedText(original: FormattedCharSequence, target: String, replacement: Component): FormattedCharSequence {
+internal fun replaceOrderedText(
+    original: FormattedCharSequence,
+    target: String,
+    replacement: Component
+): FormattedCharSequence {
     if (target.isEmpty()) return original
 
     // only build styled characters if the name is present

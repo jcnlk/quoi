@@ -54,17 +54,48 @@ object BlazeSolver : SettingGroup(PuzzleSolvers, "Blaze"), Repositionable { // t
     private val solver by switch("Solver", desc = "Shows the solution for the blaze puzzle.")
     private val lineNext by switch("Next line", desc = "Shows the next line to click.").childOf(::solver)
     private val lineAmount by slider("Lines amount", 1, 1, 10, 1, desc = "Amount of lines to show.").childOf(::lineNext)
-    private val lineWidth by slider("Lines width", 2f, 0.5f, 5f, 0.1f, desc = "Width for blaze lines.").childOf(::lineNext)
-    private val style by selector("Style", "Box", arrayListOf("Box", "Filled box"), desc = "Render style to be used.").childOf(::solver)
-    private val firstColour by colourPicker("First colour", Colour.MINECRAFT_GREEN.withAlpha(0.75f), desc = "Colour for the first blaze.").childOf(::solver)
-    private val secondColour by colourPicker("Second colour", Colour.MINECRAFT_GOLD.withAlpha(0.75f), desc = "Colour for the second blaze.").childOf(::solver)
-    private val thirdColour by colourPicker("Third colour", Colour.MINECRAFT_RED.withAlpha(0.75f), desc = "Colour for the third blaze.").childOf(::solver)
-    private val allColour by colourPicker("Other colour", Colour.WHITE.withAlpha(0.3f), desc = "Colour for the other blazes.").childOf(::solver)
+    private val lineWidth by slider(
+        "Lines width",
+        2f,
+        0.5f,
+        5f,
+        0.1f,
+        desc = "Width for blaze lines."
+    ).childOf(::lineNext)
+    private val style by selector(
+        "Style",
+        "Box",
+        arrayListOf("Box", "Filled box"),
+        desc = "Render style to be used."
+    ).childOf(::solver)
+    private val firstColour by colourPicker(
+        "First colour",
+        Colour.MINECRAFT_GREEN.withAlpha(0.75f),
+        desc = "Colour for the first blaze."
+    ).childOf(::solver)
+    private val secondColour by colourPicker(
+        "Second colour",
+        Colour.MINECRAFT_GOLD.withAlpha(0.75f),
+        desc = "Colour for the second blaze."
+    ).childOf(::solver)
+    private val thirdColour by colourPicker(
+        "Third colour",
+        Colour.MINECRAFT_RED.withAlpha(0.75f),
+        desc = "Colour for the third blaze."
+    ).childOf(::solver)
+    private val allColour by colourPicker(
+        "Other colour",
+        Colour.WHITE.withAlpha(0.3f),
+        desc = "Colour for the other blazes."
+    ).childOf(::solver)
     private val showSpots by switch("Show spots", desc = "Highlights the blocks auto shoots from.").childOf(::solver)
     private val announce by switch("Announce completion", desc = "Sends complete message.").asParent()
     val auto by switch("Auto")
     private val reposition by switch("Auto reposition").childOf(::auto)
-    val triggerbot by switch("Triggerbot", desc = "Fires when your aim will hit the next blaze without hitting a wrong blaze.").asParent()
+    val triggerbot by switch(
+        "Triggerbot",
+        desc = "Fires when your aim will hit the next blaze without hitting a wrong blaze."
+    ).asParent()
 
     private var blazes = mutableListOf<ArmorStand>()
     private var sneakingForReposition = false
@@ -91,7 +122,11 @@ object BlazeSolver : SettingGroup(PuzzleSolvers, "Blaze"), Repositionable { // t
             if ((solver && showSpots) || (auto && reposition)) {
                 val spots = if (Dungeon.currentRoom?.name == "Higher Blaze") HIGHER_SPOTS else LOWER_SPOTS
                 spots.forEach { spot ->
-                    ctx.drawFilledBox(Dungeon.currentRoom!!.getRealCoords(spot).aabb, colour = Colour.CYAN, depth = true)
+                    ctx.drawFilledBox(
+                        Dungeon.currentRoom!!.getRealCoords(spot).aabb,
+                        colour = Colour.CYAN,
+                        depth = true
+                    )
                 }
             }
 
@@ -107,7 +142,12 @@ object BlazeSolver : SettingGroup(PuzzleSolvers, "Blaze"), Repositionable { // t
                 ctx.drawStyledBox(style.selected, aabb, colour, depth = true)
 
                 if (lineNext && index in 1..lineAmount)
-                    ctx.drawLine(listOf(blazes[index - 1].renderPos, aabb.center), colour = colour, thickness = lineWidth, depth = true)
+                    ctx.drawLine(
+                        listOf(blazes[index - 1].renderPos, aabb.center),
+                        colour = colour,
+                        thickness = lineWidth,
+                        depth = true
+                    )
             }
         }
 
@@ -154,7 +194,14 @@ object BlazeSolver : SettingGroup(PuzzleSolvers, "Blaze"), Repositionable { // t
                 val dir = Direction(player.yRot, player.xRot)
                 val origin = getArrowOrigin(player.eyePosition, dir.yaw, isTerminator)
                 if (!isSafe(origin, dir.yaw, dir.pitch, hitboxes, false)) return@on
-                if (isTerminator && (!isSafe(origin, dir.yaw + 5f, dir.pitch, hitboxes, true) || !isSafe(origin, dir.yaw - 5f, dir.pitch, hitboxes, true))) return@on
+                if (isTerminator && (!isSafe(origin, dir.yaw + 5f, dir.pitch, hitboxes, true) || !isSafe(
+                        origin,
+                        dir.yaw - 5f,
+                        dir.pitch,
+                        hitboxes,
+                        true
+                    ))
+                ) return@on
                 dir
             }
 
@@ -194,7 +241,8 @@ object BlazeSolver : SettingGroup(PuzzleSolvers, "Blaze"), Repositionable { // t
         getEntities<ArmorStand>().forEach { entity ->
             if (entity.isRemoved) return@forEach
             if (entity in blazes) return@forEach
-            val hp = BLAZE_HEALTH_REGEX.find(entity.name.string)?.groups?.get(1)?.value?.replace(",", "")?.toIntOrNull() ?: return@forEach
+            val hp = BLAZE_HEALTH_REGEX.find(entity.name.string)?.groups?.get(1)?.value?.replace(",", "")?.toIntOrNull()
+                ?: return@forEach
             hpMap[entity] = hp
             blazes.add(entity)
         }
@@ -233,7 +281,14 @@ object BlazeSolver : SettingGroup(PuzzleSolvers, "Blaze"), Repositionable { // t
 
             if (isSafe(origin, yaw, pitch, hitboxes, false)) {
 
-                if (!isTerminator || (isSafe(origin, yaw + 5f, pitch, hitboxes, true) && isSafe(origin, yaw - 5f, pitch, hitboxes, true))) {
+                if (!isTerminator || (isSafe(origin, yaw + 5f, pitch, hitboxes, true) && isSafe(
+                        origin,
+                        yaw - 5f,
+                        pitch,
+                        hitboxes,
+                        true
+                    ))
+                ) {
                     return dir
                 }
             }
@@ -261,7 +316,7 @@ object BlazeSolver : SettingGroup(PuzzleSolvers, "Blaze"), Repositionable { // t
         val center = target.aabb.center
 
         val dist = if (sideArrow) hitboxes.maxOf { it.aabb.center.distanceTo2DSqr(from) }
-            else center.distanceTo2DSqr(from)
+        else center.distanceTo2DSqr(from)
 
         var (px, py, pz) = from
         val yawRad = yaw.rad
@@ -289,7 +344,8 @@ object BlazeSolver : SettingGroup(PuzzleSolvers, "Blaze"), Repositionable { // t
                     nearestDistance = distance
                 }
             }
-            val blockHit = level.clip(ClipContext(currPos, nextPos, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, player))
+            val blockHit =
+                level.clip(ClipContext(currPos, nextPos, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, player))
             if (blockHit.type == HitResult.Type.BLOCK && currPos.distanceToSqr(blockHit.location) <= nearestDistance) return sideArrow
             if (nearest != null) return nearest.isTarget
 
@@ -346,7 +402,8 @@ object BlazeSolver : SettingGroup(PuzzleSolvers, "Blaze"), Repositionable { // t
                 if (player.at(realLink)) continue
                 if (getEtherwarpDirection(realLink) == null) continue
 
-                val linkEye = Vec3(realLink.x + 0.5, getEtherwarpLandingY(realLink) + getEyeHeight(true), realLink.z + 0.5)
+                val linkEye =
+                    Vec3(realLink.x + 0.5, getEtherwarpLandingY(realLink) + getEyeHeight(true), realLink.z + 0.5)
                 if (getEtherwarpDirection(linkEye, realSpot) != null) {
                     currentSpot = i
                     repositionTo(realLink)

@@ -50,10 +50,31 @@ object AutoInvincibility : Module(
             InvincibilityType.PHOENIX -> "Phoenix Pet"
         }
     }
-    private val swapDelay by slider("Swap delay", 0, 0, 40, 1, desc = "Ticks to wait before swapping after an invincibility proc.", unit = "t")
-    private val phoenixSwapMethod by selector("Swap method", PhoenixSwapMethod.RodSwap, desc = "Method used to swap to the Phoenix pet.").childOf(::items).visibleIf { InvincibilityType.PHOENIX in items }
-    private val swapBackPet by switch("Swap back to previous pet", true, desc = "Swaps back to the previous pet after Phoenix procced or timed out.").childOf(::items).visibleIf { InvincibilityType.PHOENIX in items }
-    private val swapBackItem by switch("Swap back to previous item", true, desc = "Swaps back to the previously held item after a rod swap.").childOf(::items).visibleIf { InvincibilityType.PHOENIX in items && phoenixSwapMethod.selected == PhoenixSwapMethod.RodSwap }
+    private val swapDelay by slider(
+        "Swap delay",
+        0,
+        0,
+        40,
+        1,
+        desc = "Ticks to wait before swapping after an invincibility proc.",
+        unit = "t"
+    )
+    private val phoenixSwapMethod by selector(
+        "Swap method",
+        PhoenixSwapMethod.RodSwap,
+        desc = "Method used to swap to the Phoenix pet."
+    ).childOf(::items).visibleIf { InvincibilityType.PHOENIX in items }
+    private val swapBackPet by switch(
+        "Swap back to previous pet",
+        true,
+        desc = "Swaps back to the previous pet after Phoenix procced or timed out."
+    ).childOf(::items).visibleIf { InvincibilityType.PHOENIX in items }
+    private val swapBackItem by switch(
+        "Swap back to previous item",
+        true,
+        desc = "Swaps back to the previously held item after a rod swap."
+    ).childOf(::items)
+        .visibleIf { InvincibilityType.PHOENIX in items && phoenixSwapMethod.selected == PhoenixSwapMethod.RodSwap }
     private val bossOnly by switch("Boss only", desc = "Only triggers while being in boss room.")
     private val p3Only by switch("Phase 3 only", desc = "Only triggers during phase 3.")
     private val containerSettings = ContainerSettings(this)
@@ -100,7 +121,10 @@ object AutoInvincibility : Module(
                     InvincibilityType.PHOENIX -> {
                         previousPet = PetUtils.currentPet?.name?.takeIf { it.isNotBlank() && !isPhoenixEquipped() }
                         if (swapPet("Phoenix") && InvincibilityType.PHOENIX.currentCooldown <= 0) {
-                            schedulePetRestore("§cPhoenix didn't proc within 5s, swapping back to previous pet.", delay = 100)
+                            schedulePetRestore(
+                                "§cPhoenix didn't proc within 5s, swapping back to previous pet.",
+                                delay = 100
+                            )
                         }
                     }
                 }
@@ -121,7 +145,7 @@ object AutoInvincibility : Module(
     }
 
     private fun canSwap(): Boolean = inEnvironment() && !Dungeon.isDead &&
-            (!bossOnly || Dungeon.inBoss) && (!p3Only || Floor7.inPhase(Phase.P3))
+        (!bossOnly || Dungeon.inBoss) && (!p3Only || Floor7.inPhase(Phase.P3))
 
     private suspend fun equipMask(maskName: String) {
         modMessage("§eEquipping $maskName.")

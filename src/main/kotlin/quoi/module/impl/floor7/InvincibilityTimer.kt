@@ -21,7 +21,10 @@ object InvincibilityTimer : Module(
     desc = "Gives visual information about your invincibility times.",
     area = Island.Dungeon
 ) {
-    private val invincibilityAnnounce by switch("Announce Invincibility", desc = "Announces when you get invincibility in party chat.")
+    private val invincibilityAnnounce by switch(
+        "Announce Invincibility",
+        desc = "Announces when you get invincibility in party chat."
+    )
     private val bossOnly by switch("Boss only", desc = "Active in boss room only.")
 
     @Suppress("unused")
@@ -30,7 +33,8 @@ object InvincibilityTimer : Module(
         column {
             InvincibilityType.entries.forEach { type ->
                 val displayTime = {
-                    type.getTime().let { if (font.name == "Minecraft" || !it.endsWith("✔")) it else "${it.dropLast(1)}√" }
+                    type.getTime()
+                        .let { if (font.name == "Minecraft" || !it.endsWith("✔")) it else "${it.dropLast(1)}√" }
                 }
                 row(gap = 1.px) {
                     block(

@@ -33,15 +33,41 @@ object SecretHighlights : ToggleableGroup(
     private val outline by switch("Outline", desc = "Draws the outline.").childOf(::secretClicks)
     private val thickness by slider("Thickness", 3f, 1f, 6f).childOf(::outline)
     private val clickColour by colourPicker("Click colour", Colour.GREEN, allowAlpha = true).childOf(::secretClicks)
-    private val lockedColour by colourPicker("Locked colour", Colour.RED, allowAlpha = true, desc = "Locked secret colour.").childOf(::secretClicks)
-    private val secretChime by switch("Play sound", desc = "Plays a sound on secret click.").json("Secret chime").childOf(::secretClicks)
+    private val lockedColour by colourPicker(
+        "Locked colour",
+        Colour.RED,
+        allowAlpha = true,
+        desc = "Locked secret colour."
+    ).childOf(::secretClicks)
+    private val secretChime by switch("Play sound", desc = "Plays a sound on secret click.").json("Secret chime")
+        .childOf(::secretClicks)
     private val clickSound = sound("Secret sound").childOf(::secretClicks) { secretChime }
 
     private val itemHighlight by switch("Item", desc = "Highlights secret items.")
-    private val closeColour by colourPicker("Close colour", Colour.GREEN, allowAlpha = true, desc = "Highlight colour when the player is near the item.").childOf(::itemHighlight)
-    private val farColour by colourPicker("Far colour", Colour.RED, allowAlpha = true, desc = "Highlight colour when the player is far from the item.").childOf(::itemHighlight)
-    private val sizeOffset by slider("Size offset", 0.0, -1.0, 1.0, 0.05, desc = "Changes box size offset.").childOf(::itemHighlight)
-    private val playSound by switch("Play sound", desc = "Plays a sound when the player is near the item.").childOf(::itemHighlight)
+    private val closeColour by colourPicker(
+        "Close colour",
+        Colour.GREEN,
+        allowAlpha = true,
+        desc = "Highlight colour when the player is near the item."
+    ).childOf(::itemHighlight)
+    private val farColour by colourPicker(
+        "Far colour",
+        Colour.RED,
+        allowAlpha = true,
+        desc = "Highlight colour when the player is far from the item."
+    ).childOf(::itemHighlight)
+    private val sizeOffset by slider(
+        "Size offset",
+        0.0,
+        -1.0,
+        1.0,
+        0.05,
+        desc = "Changes box size offset."
+    ).childOf(::itemHighlight)
+    private val playSound by switch(
+        "Play sound",
+        desc = "Plays a sound when the player is near the item."
+    ).childOf(::itemHighlight)
     private val itemSound = sound("Item sound").childOf(::playSound)
 
     private data class Secret(val blockPos: BlockPos, var isLocked: Boolean = false)
@@ -79,7 +105,11 @@ object SecretHighlights : ToggleableGroup(
                 val colour = if (locked) lockedColour else clickColour
                 val aabb = blockPos.aabb
                 ctx.drawFilledBox(aabb, colour)
-                if (outline && colour.alpha != 1.0f) ctx.drawWireFrameBox(aabb, colour.withAlpha(1.0f), thickness = thickness)
+                if (outline && colour.alpha != 1.0f) ctx.drawWireFrameBox(
+                    aabb,
+                    colour.withAlpha(1.0f),
+                    thickness = thickness
+                )
             }
             itemEntities.removeIf { item ->
                 if (!item.isAlive) return@removeIf true

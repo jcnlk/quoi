@@ -43,7 +43,11 @@ object AutoSell : Module(
     ).normalises { it.normalizeItemName() }
 
     private val containerSettings = ContainerSettings(this)
-    private val inventoryToggleKey by keybind("Toggle hovered item", Keybinds.KEY_NONE, desc = "Adds or removes the hovered item from the auto sell list while an inventory is open.")
+    private val inventoryToggleKey by keybind(
+        "Toggle hovered item",
+        Keybinds.KEY_NONE,
+        desc = "Adds or removes the hovered item from the auto sell list while an inventory is open."
+    )
 
     private val normalizedEntries get() = sellList.map { it.normalizeItemName() }.filter(String::isNotEmpty).distinct()
 

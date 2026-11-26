@@ -36,10 +36,19 @@ object QuizSolver : SettingGroup(PuzzleSolvers, "Quiz") {
     private const val QUESTION_DURATION = 100
 
     private val solver by switch("Solver", desc = "Solver for the trivia puzzle.")
-    private val colour by colourPicker("Colour", Colour.MINECRAFT_GREEN.withAlpha(0.75f), true, desc = "Color for the quiz solver.").childOf(::solver)
+    private val colour by colourPicker(
+        "Colour",
+        Colour.MINECRAFT_GREEN.withAlpha(0.75f),
+        true,
+        desc = "Color for the quiz solver."
+    ).childOf(::solver)
     private val depth by switch("Depth", desc = "Depth check for the trivia puzzle.").childOf(::solver)
     private val auto by switch("Auto").asParent()
-    private val triggerbot by switch("Triggerbot", desc = "Clicks the correct answer block or an attached button when you look at it.").asParent()
+    private val triggerbot by switch(
+        "Triggerbot",
+        desc = "Clicks the correct answer block or an attached button when you look at it."
+    ).asParent()
+
     @Suppress("unused")
     private val timerHud by textHud("Quiz timer") {
         visibleIf { solver && (preview || timerTicks > 0) }
@@ -152,8 +161,16 @@ object QuizSolver : SettingGroup(PuzzleSolvers, "Quiz") {
 
     private fun handleMessage(msg: String) {
         when (msg) {
-            "[STATUE] Oruo the Omniscient: I am Oruo the Omniscient. I have lived many lives. I have learned all there is to know." -> startTimer(START_DURATION, 1)
-            "[STATUE] Oruo the Omniscient: 2 questions left... Then you will have proven your worth to me!" -> startTimer(QUESTION_DURATION, 2)
+            "[STATUE] Oruo the Omniscient: I am Oruo the Omniscient. I have lived many lives. I have learned all there is to know." -> startTimer(
+                START_DURATION,
+                1
+            )
+
+            "[STATUE] Oruo the Omniscient: 2 questions left... Then you will have proven your worth to me!" -> startTimer(
+                QUESTION_DURATION,
+                2
+            )
+
             "[STATUE] Oruo the Omniscient: One more question!" -> startTimer(QUESTION_DURATION, 3)
         }
         if (msg.startsWith("[STATUE] Oruo the Omniscient: ") && msg.endsWith("correctly!")) {

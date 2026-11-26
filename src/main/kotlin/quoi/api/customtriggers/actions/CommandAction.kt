@@ -8,6 +8,7 @@ import quoi.utils.ChatUtils
 @TypeName("command")
 class CommandAction(var command: String = "", var target: Target = Target.AUTO) : TriggerAction {
     enum class Target { AUTO, CLIENT, SERVER }
+
     override fun validationError() = if (command.trim().removePrefix("/").isBlank()) "Enter a command." else null
 
     override fun execute(ctx: TriggerContext) {
@@ -18,6 +19,7 @@ class CommandAction(var command: String = "", var target: Target = Target.AUTO) 
             Target.SERVER -> ChatUtils.command(value)
         }
     }
+
     override fun displayString() = "Run /$command (${target.name.lowercase()})"
     override fun ElementScope<*>.draw() = settingRow(
         { textField("Command", command) { command = it } },

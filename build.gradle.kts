@@ -22,6 +22,7 @@ sourceSets.named("main") {
                 "quoi/mixins/OverlayQuadSortingMixin.java",
                 "quoi/mixins/LevelExtractorMixin.java",
             )
+
             else -> listOf("quoi/mixins/LegacyItemInHandRendererMixin.java")
         }
     )

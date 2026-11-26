@@ -93,9 +93,11 @@ object ItemAnimations : Module(
         }
     }
 
-    @JvmStatic fun disableReequip(): Boolean = enabled && noReequipReset
+    @JvmStatic
+    fun disableReequip(): Boolean = enabled && noReequipReset
 
-    @JvmStatic fun disableHandMovement(): Boolean = enabled && noHandMovement
+    @JvmStatic
+    fun disableHandMovement(): Boolean = enabled && noHandMovement
 
     @JvmStatic
     fun disableReequip(arm: HumanoidArm): Boolean {
@@ -193,9 +195,10 @@ object ItemAnimations : Module(
         val existingSwing = thirdPersonSwings[playerId]
         val existingProgress = existingSwing?.progress(currentTime, speed)
 
-        val vanillaStartedSwing = current > 0f && (existingSwing == null || existingSwing.previousVanilla <= 0f || current < existingSwing.previousVanilla)
+        val vanillaStartedSwing =
+            current > 0f && (existingSwing == null || existingSwing.previousVanilla <= 0f || current < existingSwing.previousVanilla)
         val swing = if (vanillaStartedSwing && (existingProgress == null || existingProgress >= 0.5f))
-            //~ if >=26.3 'ThirdPersonSwing(currentTime, current)' -> 'ThirdPersonSwing(currentTime, current, description)'
+        //~ if >=26.3 'ThirdPersonSwing(currentTime, current)' -> 'ThirdPersonSwing(currentTime, current, description)'
             ThirdPersonSwing(currentTime, current).also { thirdPersonSwings[playerId] = it }
         else existingSwing ?: return current
 
@@ -227,7 +230,7 @@ object ItemAnimations : Module(
 
     private fun shouldApplyThirdPerson(playerId: Int): Boolean {
         return enabled &&
-                (if (playerId == player.id) applyInThirdPerson else applyToOtherPlayers)
+            (if (playerId == player.id) applyInThirdPerson else applyToOtherPlayers)
     }
 
     @JvmStatic

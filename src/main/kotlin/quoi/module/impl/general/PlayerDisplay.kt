@@ -44,10 +44,17 @@ object PlayerDisplay : Module(
 
     private val hideDropdown by text("Hide")
 
-    private val hideHealth by switch("Health", desc = "Hides player health bar.").json("Hide health").childOf(::hideDropdown)
+    private val hideHealth by switch("Health", desc = "Hides player health bar.").json("Hide health")
+        .childOf(::hideDropdown)
     private val hideAbsorption by switch("Absorption", desc = "Hides absorption health bar.").childOf(::hideDropdown)
-    private val hideMountHealth by switch("Mount health", desc = "Hides health bar of the mounted entity.").childOf(::hideDropdown)
-    private val hideRegenBounce by switch("Regeneration bounce", desc = "Stops hearts from bouncing when regenerating.").childOf(::hideDropdown)
+    private val hideMountHealth by switch(
+        "Mount health",
+        desc = "Hides health bar of the mounted entity."
+    ).childOf(::hideDropdown)
+    private val hideRegenBounce by switch(
+        "Regeneration bounce",
+        desc = "Stops hearts from bouncing when regenerating."
+    ).childOf(::hideDropdown)
     private val hideArmour by switch("Armour", desc = "Hides armour bar.").json("Hide armour").childOf(::hideDropdown)
     private val hideHunger by switch("Hunger", desc = "Hides hunger bar.").json("Hide hunger").childOf(::hideDropdown)
 
@@ -126,6 +133,7 @@ object PlayerDisplay : Module(
     ).childOf(::otherDropdown)
 
     private val speedPercent by switch("Render speed as a percentage").childOf(::otherDropdown)
+
     @Suppress("unused")
     private val speed by text(
         name = "Speed",
@@ -176,6 +184,7 @@ object PlayerDisplay : Module(
                 init {
                     usingCtx = true
                 }
+
                 override fun drawCtx() {
                     withScale {
                         ctx.pose().scale(2f, 2f)
@@ -262,10 +271,10 @@ object PlayerDisplay : Module(
     }
 
     fun bar(
-      name: String,
-      defaultColour: Colour,
-      current: () -> Int,
-      max: () -> Int
+        name: String,
+        defaultColour: Colour,
+        current: () -> Int,
+        max: () -> Int
     ) = resizableHud(name, BAR_WIDTH, BAR_HEIGHT, defaultColour, Colour.RGB(208, 208, 208), 1f) {
         visibleIf { inSkyblock }
         block(

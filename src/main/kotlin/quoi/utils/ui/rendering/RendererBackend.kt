@@ -38,11 +38,43 @@ interface RendererBackend {
 
     fun rect(x: Float, y: Float, w: Float, h: Float, color: Int, tl: Float, bl: Float, br: Float, tr: Float)
 
-    fun hollowRect(x: Float, y: Float, w: Float, h: Float, thickness: Float, color: Int, tl: Float, bl: Float, br: Float, tr: Float)
+    fun hollowRect(
+        x: Float,
+        y: Float,
+        w: Float,
+        h: Float,
+        thickness: Float,
+        color: Int,
+        tl: Float,
+        bl: Float,
+        br: Float,
+        tr: Float
+    )
 
-    fun gradientRect(x: Float, y: Float, w: Float, h: Float, color1: Int, color2: Int, direction: quoi.utils.ui.data.Gradient, tl: Float, bl: Float, br: Float, tr: Float)
+    fun gradientRect(
+        x: Float,
+        y: Float,
+        w: Float,
+        h: Float,
+        color1: Int,
+        color2: Int,
+        direction: quoi.utils.ui.data.Gradient,
+        tl: Float,
+        bl: Float,
+        br: Float,
+        tr: Float
+    )
 
-    fun dropShadow(x: Float, y: Float, width: Float, height: Float, blur: Float, spread: Float, radius: Float, colour: Int)
+    fun dropShadow(
+        x: Float,
+        y: Float,
+        width: Float,
+        height: Float,
+        blur: Float,
+        spread: Float,
+        radius: Float,
+        colour: Int
+    )
 
     fun circle(x: Float, y: Float, radius: Float, color: Int)
 
@@ -50,7 +82,18 @@ interface RendererBackend {
 
     fun textWidth(text: String, size: Float, font: Font): Float
 
-    fun image(image: Image, x: Float, y: Float, w: Float, h: Float, tl: Float, bl: Float, br: Float, tr: Float, color: Int?)
+    fun image(
+        image: Image,
+        x: Float,
+        y: Float,
+        w: Float,
+        h: Float,
+        tl: Float,
+        bl: Float,
+        br: Float,
+        tr: Float,
+        color: Int?
+    )
 
     /** Increments the reference count for [image], loading it if necessary. */
     fun registerImage(image: Image)

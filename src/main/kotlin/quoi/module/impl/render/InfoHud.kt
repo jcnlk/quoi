@@ -41,7 +41,7 @@ object InfoHud : Module(
     private val tpsType by selector("TPS type", TpsType.Average).visibleIf { showTps }
     private val pingType by selector("Ping type", PingType.Average).visibleIf { showPing }
 
-    private val hud: TextHud = textHud("Info HUD") hudScope@ {
+    private val hud: TextHud = textHud("Info HUD") hudScope@{
         visibleIf { preview || enabledMetrics().isNotEmpty() }
 
         object : Element(size(InfoSize(true), InfoSize(false))), InfoElement {
@@ -80,7 +80,14 @@ object InfoHud : Module(
                 drawMetrics { text, x, y, colour ->
                     if (shadow) {
                         val offset = lineHeight / 25f
-                        UIRenderer.formattedText(text, this.x + x + offset, this.y + y + offset, lineHeight, Colour.BLACK.rgb, font)
+                        UIRenderer.formattedText(
+                            text,
+                            this.x + x + offset,
+                            this.y + y + offset,
+                            lineHeight,
+                            Colour.BLACK.rgb,
+                            font
+                        )
                     }
                     UIRenderer.formattedText(text, this.x + x, this.y + y, lineHeight, colour.rgb, font)
                 }
@@ -125,7 +132,16 @@ object InfoHud : Module(
     }
 
     @Suppress("unused")
-    private val hudSetting by hud.withSettings(::nameColour, ::direction, ::showFps, ::showTps, ::showPing, ::showDay, ::tpsType, ::pingType).setting()
+    private val hudSetting by hud.withSettings(
+        ::nameColour,
+        ::direction,
+        ::showFps,
+        ::showTps,
+        ::showPing,
+        ::showDay,
+        ::tpsType,
+        ::pingType
+    ).setting()
 
     private val t12 = DateTimeFormatter.ofPattern("hh:mm a")
     private val t24 = DateTimeFormatter.ofPattern("HH:mm")
@@ -150,7 +166,8 @@ object InfoHud : Module(
         } else {
             clock(clockFormat, clockSpeed)
         }
-    }.withSettings(::clockType, ::clockFormat, ::clockColour, ::clockShadow, ::clockFont, ::clockAnchor, ::clockSpeed).setting()
+    }.withSettings(::clockType, ::clockFormat, ::clockColour, ::clockShadow, ::clockFont, ::clockAnchor, ::clockSpeed)
+        .setting()
 
     init {
         QuoiCommand.command.sub("tps") {

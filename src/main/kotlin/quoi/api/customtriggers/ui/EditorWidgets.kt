@@ -68,7 +68,8 @@ open class Paragraph(
             wrappedFor = key
             val available = width - padding * 2
             lines = if (key.first.isEmpty() || available <= 0f) emptyList()
-            else key.first.split('\n').flatMap { UIRenderer.wrapText(it, available, fontSize, UIRenderer.defaultFont).ifEmpty { listOf("") } }
+            else key.first.split('\n')
+                .flatMap { UIRenderer.wrapText(it, available, fontSize, UIRenderer.defaultFont).ifEmpty { listOf("") } }
         }
         return lines
     }
@@ -82,7 +83,14 @@ open class Paragraph(
         background?.let { UIRenderer.rect(x, y, width, height, it.rgb, 8f) }
         border?.let { UIRenderer.hollowRect(x, y, width, height, 1f, it.rgb, 8f) }
         current.forEachIndexed { index, line ->
-            UIRenderer.text(line, x + padding, y + padding + index * lineHeight, fontSize, textColour().rgb, UIRenderer.defaultFont)
+            UIRenderer.text(
+                line,
+                x + padding,
+                y + padding + index * lineHeight,
+                fontSize,
+                textColour().rgb,
+                UIRenderer.defaultFont
+            )
         }
     }
 }
@@ -110,7 +118,14 @@ class StatusLine(
         val rest = detail()
         if (rest.isEmpty()) return
         val restX = labelX + UIRenderer.textWidth(label, fontSize, font)
-        UIRenderer.text(ellipsize(rest, x + width - restX, fontSize), restX, y, fontSize, theme.onSurfaceVariant.rgb, font)
+        UIRenderer.text(
+            ellipsize(rest, x + width - restX, fontSize),
+            restX,
+            y,
+            fontSize,
+            theme.onSurfaceVariant.rgb,
+            font
+        )
     }
 }
 
@@ -204,7 +219,11 @@ fun ElementScope<*>.iconButton(
 ) = block(constraints, colour = fill, radius = 7.radius()) {
     if (glyph == MORE) row(at(Centre, Centre), gap = 3.px) {
         repeat(3) { block(size(3.5.px, 3.5.px), colour = theme.outline, radius = 2.radius()) }
-    } else if (glyph == PANEL_LEFT || glyph == PANEL_RIGHT) block(constrain(Centre, Centre, 18.px, 14.px), colour = Colour.TRANSPARENT, radius = 3.radius()) {
+    } else if (glyph == PANEL_LEFT || glyph == PANEL_RIGHT) block(
+        constrain(Centre, Centre, 18.px, 14.px),
+        colour = Colour.TRANSPARENT,
+        radius = 3.radius()
+    ) {
         outline(theme.onSurfaceVariant, 1.5.px)
         val x = if (glyph == PANEL_LEFT) 0.px else 0.px.alignOpposite
         block(constrain(x, 0.px, 7.px, 14.px), colour = theme.onSurfaceVariant, radius = 2.radius())

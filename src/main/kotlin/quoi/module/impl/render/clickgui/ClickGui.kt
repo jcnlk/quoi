@@ -60,9 +60,10 @@ object ClickGui : Module(
 ) {
     val forceSkyblock by switch("Force skyblock")
     val forceDungeons by switch("Force dungeon").onValueChanged { _, new -> if (new) Dungeon.setFloor(dungeonFloor.selected) }
-    val dungeonFloor: SelectorComponent<Floor> by selector("Floor", Floor.F7).childOf(::forceDungeons).onValueChanged { _, new ->
-        if (forceDungeons) Dungeon.setFloor(new.selected)
-    }
+    val dungeonFloor: SelectorComponent<Floor> by selector("Floor", Floor.F7).childOf(::forceDungeons)
+        .onValueChanged { _, new ->
+            if (forceDungeons) Dungeon.setFloor(new.selected)
+        }
 
     @Suppress("unused")
     private val sett = listOf(
@@ -203,9 +204,9 @@ object ClickGui : Module(
                         moduleScopes.forEach { (m, element) ->
                             element.enabled =
                                 query.isEmpty() ||
-                                        normaliseSearchText(m.name).contains(query) ||
-                                        normaliseSearchText(m.desc).contains(query) ||
-                                        m.settings.any { normaliseSearchText(it.name).contains(query) }
+                                    normaliseSearchText(m.name).contains(query) ||
+                                    normaliseSearchText(m.desc).contains(query) ||
+                                    m.settings.any { normaliseSearchText(it.name).contains(query) }
                         }
                     }
                 }

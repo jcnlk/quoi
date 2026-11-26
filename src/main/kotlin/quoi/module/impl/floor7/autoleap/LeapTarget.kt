@@ -22,7 +22,12 @@ class LeapTarget(
     private val prefix = "${group.component.jsonName}.$name"
     val toggle = parent ?: +switch(name, desc = if (group.automatic) autoDesc ?: desc else desc).json(prefix)
     private val label = if (parent == null) "Target" else name
-    private val targetName by textInput(label, defaultName, length = 16, desc = "Target player name. Leave empty to skip.")
+    private val targetName by textInput(
+        label,
+        defaultName,
+        length = 16,
+        desc = "Target player name. Leave empty to skip."
+    )
         .json("$prefix.Name").childOf(toggle).visibleIf { Leaps.byName }.suggests { allTeammatesNoSelf }
     private val targetClass by selector(label, DungeonClass.Unknown, desc = "Target class. Unknown skips this target.")
         .json("$prefix.Class").childOf(toggle).visibleIf { !Leaps.byName }

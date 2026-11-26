@@ -72,7 +72,10 @@ abstract class UIComponent<T>(
         this.onValueChanged = action
     }
 
-    fun render(scope: ElementScope<*>, asSub: Boolean = parent != null): ElementScope<*> { // todo recode this mess some day
+    fun render(
+        scope: ElementScope<*>,
+        asSub: Boolean = parent != null
+    ): ElementScope<*> { // todo recode this mess some day
         var chevronImage: ElementScope<*>? = null
 
         var gapAnim: Animatable? = null
@@ -204,7 +207,10 @@ abstract class UIComponent<T>(
          *
          * @param condition A visibility condition (defaults to checking if parent's value is true)
          */
-        fun <K : UIComponent<T>, T> K.childOf(parent: UIComponent<*>?, condition: () -> Boolean = { (parent?.value as? Boolean) ?: true }) = apply {
+        fun <K : UIComponent<T>, T> K.childOf(
+            parent: UIComponent<*>?,
+            condition: () -> Boolean = { (parent?.value as? Boolean) ?: true }
+        ) = apply {
             this.parent?.children?.remove(this)
             this.parent = parent
             parent?.children += this

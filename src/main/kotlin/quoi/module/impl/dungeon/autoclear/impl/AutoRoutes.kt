@@ -44,13 +44,21 @@ object AutoRoutes : Module(
     tag = Tag.BETA
 ) {
     val zeroTickDb by switch("Zero tick dungeon breaker")
-    private val pauseOnMimic by switch("Pause on mimic", true, desc = "Pauses the route and shows a title when opening a Mimic chest.")
+    private val pauseOnMimic by switch(
+        "Pause on mimic",
+        true,
+        desc = "Pauses the route and shows a title when opening a Mimic chest."
+    )
     private val style by selector("Style", "Box", listOf("Box", "Filled box", "Cylinder"))
     private val thickness by slider("Thickness", 4f, 1f, 8f, 0.5f)
 
     private val multicolour by switch("Multicolour")
     private val colour by colourPicker("Colour", Colour.CYAN).visibleIf { !multicolour }
-    private val fillColour by colourPicker("Fill colour", Colour.CYAN.withAlpha(0.5f), allowAlpha = true).visibleIf { style.selected == "Filled box" && !multicolour }
+    private val fillColour by colourPicker(
+        "Fill colour",
+        Colour.CYAN.withAlpha(0.5f),
+        allowAlpha = true
+    ).visibleIf { style.selected == "Filled box" && !multicolour }
     private val activeCol by colourPicker("Active colour", Colour.WHITE)
 
     private val colourDropdown by text("Colours").visibleIf { multicolour }
@@ -62,7 +70,8 @@ object AutoRoutes : Module(
 
     private val fillColourDropdown by text("Fill colours").visibleIf { style.selected == "Filled box" && multicolour }
     private val fillColours = RouteRegistry.nodeEntries.associate { (type, node) ->
-        val set = colourPicker(type, node().colour.withAlpha(0.5f), allowAlpha = true).json("$type fill").childOf(::fillColourDropdown)
+        val set = colourPicker(type, node().colour.withAlpha(0.5f), allowAlpha = true).json("$type fill")
+            .childOf(::fillColourDropdown)
         this.register(set)
         type to set
     }
@@ -81,8 +90,10 @@ object AutoRoutes : Module(
 
     val routeNodes: ConfigMap<String, MutableList<RouteNode>> by configMap("route_nodes.json")
     private var roomNodes: List<RouteNode> = emptyList()
+
     private data class PendingInteract(val direction: Direction, val slot: Int)
     private data class ForcedNode(val node: RouteNode, val onMissingItem: ((String) -> Unit)?)
+
     private var pendingInteract: PendingInteract? = null
     private var position: MutableVec3? = null
     private var interactDelay = 0
@@ -198,7 +209,8 @@ object AutoRoutes : Module(
         val pausedNode = mimicNode
         val pos = if (pausedNode != null) player.position().mutable() else position ?: player.position().mutable()
 
-        val nodes = (if (pausedNode != null) listOf(pausedNode) else roomNodes).filter { it.inside(pos) }.sortedByDescending { it.priority }
+        val nodes = (if (pausedNode != null) listOf(pausedNode) else roomNodes).filter { it.inside(pos) }
+            .sortedByDescending { it.priority }
         if (nodes.isEmpty()) {
             onUnavailable?.invoke("There's no route step at your current position.")
             return false
@@ -311,6 +323,9 @@ object AutoRoutes : Module(
     private val RouteNode.hasSecretAwait: Boolean
         get() = this.awaits?.any { it is SecretAwait } == true
 
-    private fun RouteNode.colour() = if (multicolour) colours[this.typeName]?.value ?: Colour.WHITE else AutoRoutes.colour
-    private fun RouteNode.fillColour() = if (multicolour) fillColours[this.typeName]?.value ?: Colour.WHITE else fillColour
+    private fun RouteNode.colour() =
+        if (multicolour) colours[this.typeName]?.value ?: Colour.WHITE else AutoRoutes.colour
+
+    private fun RouteNode.fillColour() =
+        if (multicolour) fillColours[this.typeName]?.value ?: Colour.WHITE else fillColour
 }

@@ -15,7 +15,10 @@ object ChatReplacements : ToggleableGroup(
     private val cleanDungeonMessages by switch("Cleaner dungeons")
     private val cleanPartyFinderMessages by switch("Cleaner PF")
     private val hideUselessMessages by switch("Hide useless messages")
-    private val hideNonRankInvites by switch("Hide non rank invites", desc = "Hides party invites from players without a rank.")
+    private val hideNonRankInvites by switch(
+        "Hide non rank invites",
+        desc = "Hides party invites from players without a rank."
+    )
 
     init {
         on<ChatEvent.Receive> {
@@ -142,14 +145,26 @@ object ChatReplacements : ToggleableGroup(
     )
 
     private val dungeonMessageReplacements = listOf(
-        MessageReplacement(Regex("^Your (.+) stats are doubled because you are the only player using this class!$"), "§7Recieved double class stats. (No dupe)"),
+        MessageReplacement(
+            Regex("^Your (.+) stats are doubled because you are the only player using this class!$"),
+            "§7Recieved double class stats. (No dupe)"
+        ),
         MessageReplacement(Regex("^Starting in (\\d) (.+)"), "§aStarting in $1..."),
         MessageReplacement(Regex("^(.+) Milestone (.+): You have (.+)$"), "§6Milestone $2"),
-        MessageReplacement(Regex("^DUNGEON BUFF! (.+) found a Blessing of (Power|Life|Stone|Wisdom) (.+)! ?(.+)?$"), "§7$2 $3"),
-        MessageReplacement(Regex("^DUNGEON BUFF! A Blessing of (Power|Life|Stone|Wisdom|Time) (.+) was found! (.+)$"), "§7$1 $2"),
+        MessageReplacement(
+            Regex("^DUNGEON BUFF! (.+) found a Blessing of (Power|Life|Stone|Wisdom) (.+)! ?(.+)?$"),
+            "§7$2 $3"
+        ),
+        MessageReplacement(
+            Regex("^DUNGEON BUFF! A Blessing of (Power|Life|Stone|Wisdom|Time) (.+) was found! (.+)$"),
+            "§7$1 $2"
+        ),
         MessageReplacement(Regex("^A Blessing of (Power|Life|Stone|Wisdom) (.+) was found! (.+)$"), "§7$1"),
         MessageReplacement(Regex("^ESSENCE! (.+) found x10 (Ice|Spider|Gold|Diamond) Essence!$"), "§b$2 Essence."),
-        MessageReplacement(Regex("^(.+) found a Wither Essence! Everyone gains an extra essence!$"), "§bWither Essence."),
+        MessageReplacement(
+            Regex("^(.+) found a Wither Essence! Everyone gains an extra essence!$"),
+            "§bWither Essence."
+        ),
         MessageReplacement(Regex("^You hear the sound of something opening\\.\\.\\.$"), "§7You used a lever."),
         MessageReplacement(Regex("^This lever has already been used\\.$"), "§cThis lever has been used."),
         MessageReplacement(Regex("^This chest has already been searched!$"), "§cThis chest has been searched!"),
@@ -159,7 +174,10 @@ object ChatReplacements : ToggleableGroup(
         MessageReplacement(Regex("^A Wither Key was picked up!$"), "§eWither Key picked up!"),
         MessageReplacement(Regex("^(.+) has obtained Blood Key!$"), "§cBlood Key picked up!"),
         MessageReplacement(Regex("^A Blood Key was picked up!$"), "§cBlood Key picked up"),
-        MessageReplacement(Regex("^◕ You picked up a (.+) from (.+) healing you for (.+) and granting you \\+(.+)% (.+) for 10 seconds.$"), "§e$1 picked up §7(§e+§c$3§7)§e!")
+        MessageReplacement(
+            Regex("^◕ You picked up a (.+) from (.+) healing you for (.+) and granting you \\+(.+)% (.+) for 10 seconds.$"),
+            "§e$1 picked up §7(§e+§c$3§7)§e!"
+        )
     )
 
     private val formattedUselessMessagePatterns = listOf(
@@ -331,10 +349,12 @@ object ChatReplacements : ToggleableGroup(
         Regex("\\[Berserk] .+"),
         Regex("\\[Mage] .+"),
         Regex("BONUS! Temporarily earn .+ more skill experience!"),
-        Regex("\n" +
+        Regex(
+            "\n" +
                 "➔ Welcome to the Prototype Lobby\n" +
                 "All games in this lobby are currently in development.\n" +
-                "Click here to leave feedback! ➤ https://hypixel.net/PTL\n"),
+                "Click here to leave feedback! ➤ https://hypixel.net/PTL\n"
+        ),
         Regex("You received .+ for killing .+"),
         Regex("SALT .+"),
         Regex("You caught a .+ Shard!"),
@@ -461,8 +481,10 @@ object ChatReplacements : ToggleableGroup(
         "Party Finder > This group is full!" to "§dPF > §cGroup Full."
     )
 
-    private val discordWarningRegex = Regex("""Please be mindful of Discord links in chat as they may pose a security risk""")
-    private val nonRankInviteRegex = Regex("^(.+?) has invited you to join their party!\\nYou have 60 seconds to accept\\. Click here to join!.*$")
+    private val discordWarningRegex =
+        Regex("""Please be mindful of Discord links in chat as they may pose a security risk""")
+    private val nonRankInviteRegex =
+        Regex("^(.+?) has invited you to join their party!\\nYou have 60 seconds to accept\\. Click here to join!.*$")
     private val microsoftWarningRegex = Regex(
         """-----------------------------------------------------
 You should NEVER enter your Microsoft account details anywhere but on official Microsoft services!

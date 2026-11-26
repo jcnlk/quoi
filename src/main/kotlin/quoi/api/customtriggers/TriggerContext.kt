@@ -23,6 +23,7 @@ sealed class TriggerContext(val kind: Kind) {
     ) : TriggerContext(Kind.DUNGEON) {
         enum class Event { ENTER, START, PHASE_COMPLETE, STAGE_COMPLETE }
     }
+
     class PartyMessage(val sender: String, val message: String) : TriggerContext(Kind.PARTY_MESSAGE)
     class Container(val title: String) : TriggerContext(Kind.CONTAINER)
 

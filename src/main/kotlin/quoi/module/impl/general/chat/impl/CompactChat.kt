@@ -15,12 +15,19 @@ object CompactChat : ToggleableGroup(
     "Compact chat",
     desc = "Compacts message duplicates."
 ) {
-    private val compactTime by slider("Compact time", 60, 5, 120, desc = "Time until compact chat no longer compacts the same message.", unit = "s")
+    private val compactTime by slider(
+        "Compact time",
+        60,
+        5,
+        120,
+        desc = "Time until compact chat no longer compacts the same message.",
+        unit = "s"
+    )
 
     val chatList = mutableMapOf<String, Pair<Int, Long>>()
 
     init {
-        on<ChatEvent.Receive> (Priority.LOWEST) {
+        on<ChatEvent.Receive>(Priority.LOWEST) {
             if (id != 0) return@on // don't compact messages with ids
 
             val msg = this.message.trim()
@@ -38,7 +45,8 @@ object CompactChat : ToggleableGroup(
 
                 Scheduler.scheduleTask {
                     val count = chatList[msg]?.first ?: return@scheduleTask
-                    val scrollBefore = mc.gui.hud.chat.chatScrollbarPos // without this scroll resets every time message gets compacted. visual bug: scroll bar changes colour for a split second. I can't be asked fixing it
+                    val scrollBefore =
+                        mc.gui.hud.chat.chatScrollbarPos // without this scroll resets every time message gets compacted. visual bug: scroll bar changes colour for a split second. I can't be asked fixing it
                     ChatUtils.removeLines(id, msg)
                     mc.gui.hud.chat.add(text.copy().append(literal(" &7($count)")), id)
                     mc.gui.hud.chat.chatScrollbarPos = scrollBefore

@@ -71,6 +71,7 @@ interface Colour {
 
         @Transient
         private var needsUpdate: Boolean = true
+
         @Transient
         private var _rgb: Int = 0
 
@@ -101,7 +102,11 @@ interface Colour {
         override val rgb: Int
             get() {
                 if (needsUpdate) {
-                    _rgb = (JavaColour.HSBtoRGB(hue, saturation, brightness) and 0X00FFFFFF) or ((alpha * 255).toInt() shl 24)
+                    _rgb = (JavaColour.HSBtoRGB(
+                        hue,
+                        saturation,
+                        brightness
+                    ) and 0X00FFFFFF) or ((alpha * 255).toInt() shl 24)
                     needsUpdate = false
                 }
                 return _rgb
@@ -116,9 +121,9 @@ interface Colour {
 
         override fun equals(other: Any?): Boolean {
             return other is HSB &&
-                    other.hue == hue && other.saturation == saturation &&
-                    other.brightness == brightness &&
-                    other.alpha == alpha && other.rgb == rgb
+                other.hue == hue && other.saturation == saturation &&
+                other.brightness == brightness &&
+                other.alpha == alpha && other.rgb == rgb
         }
 
         override fun hashCode(): Int {
@@ -267,19 +272,46 @@ interface Colour {
             (JavaColour.HSBtoRGB(hue, 1f, 1f) and 0x00FFFFFF) or (0xFF shl 24)
         }
 
-        @JvmField val MINECRAFT_DARK_BLUE = RGB(0, 0, 170)
-        @JvmField val MINECRAFT_DARK_GREEN = RGB(0, 170, 0)
-        @JvmField val MINECRAFT_DARK_AQUA = RGB(0, 170, 170)
-        @JvmField val MINECRAFT_DARK_RED = RGB(170, 0, 0)
-        @JvmField val MINECRAFT_DARK_PURPLE = RGB(170, 0, 170)
-        @JvmField val MINECRAFT_GOLD = RGB(255, 170, 0)
-        @JvmField val MINECRAFT_GRAY = RGB(170, 170, 170)
-        @JvmField val MINECRAFT_DARK_GRAY = RGB(85, 85, 85)
-        @JvmField val MINECRAFT_BLUE = RGB(85, 85, 255)
-        @JvmField val MINECRAFT_GREEN = RGB(85, 255, 85)
-        @JvmField val MINECRAFT_AQUA = RGB(85, 255, 255)
-        @JvmField val MINECRAFT_RED = RGB(255, 85, 85)
-        @JvmField val MINECRAFT_LIGHT_PURPLE = RGB(255, 85, 255)
-        @JvmField val MINECRAFT_YELLOW = RGB(255, 255, 85)
+        @JvmField
+        val MINECRAFT_DARK_BLUE = RGB(0, 0, 170)
+
+        @JvmField
+        val MINECRAFT_DARK_GREEN = RGB(0, 170, 0)
+
+        @JvmField
+        val MINECRAFT_DARK_AQUA = RGB(0, 170, 170)
+
+        @JvmField
+        val MINECRAFT_DARK_RED = RGB(170, 0, 0)
+
+        @JvmField
+        val MINECRAFT_DARK_PURPLE = RGB(170, 0, 170)
+
+        @JvmField
+        val MINECRAFT_GOLD = RGB(255, 170, 0)
+
+        @JvmField
+        val MINECRAFT_GRAY = RGB(170, 170, 170)
+
+        @JvmField
+        val MINECRAFT_DARK_GRAY = RGB(85, 85, 85)
+
+        @JvmField
+        val MINECRAFT_BLUE = RGB(85, 85, 255)
+
+        @JvmField
+        val MINECRAFT_GREEN = RGB(85, 255, 85)
+
+        @JvmField
+        val MINECRAFT_AQUA = RGB(85, 255, 255)
+
+        @JvmField
+        val MINECRAFT_RED = RGB(255, 85, 85)
+
+        @JvmField
+        val MINECRAFT_LIGHT_PURPLE = RGB(255, 85, 255)
+
+        @JvmField
+        val MINECRAFT_YELLOW = RGB(255, 255, 85)
     }
 }

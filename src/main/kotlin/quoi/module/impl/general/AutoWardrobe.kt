@@ -13,7 +13,10 @@ object AutoWardrobe : Module(
     "Auto Wardrobe",
     desc = "Automatically equips wardrobe slots through /quoi wardrobe."
 ) {
-    private val disableUnequip by switch("Disable unequip", desc = "Prevents clicking the currently equipped wardrobe slot.")
+    private val disableUnequip by switch(
+        "Disable unequip",
+        desc = "Prevents clicking the currently equipped wardrobe slot."
+    )
     private val containerSettings = ContainerSettings(this)
     private val keybinds by text("Keybinds")
 

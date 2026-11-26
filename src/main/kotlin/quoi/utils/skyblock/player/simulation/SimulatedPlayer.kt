@@ -37,7 +37,7 @@ class SimulatedPlayer(
     var onGround: Boolean,
     var horizontalCollision: Boolean,
     private var verticalCollision: Boolean
-)  {
+) {
     private var simulatedTicks: Int = 0
 
     fun tick() {
@@ -192,7 +192,9 @@ class SimulatedPlayer(
                 entityCollisionList
             ).add(stepUpMovement)
 
-            if (stepUpMovement.y < this.player.maxUpStep().toDouble() && stepDownMovement.horizontalDistanceSqr() > steppedMovement.horizontalDistanceSqr()) {
+            if (stepUpMovement.y < this.player.maxUpStep()
+                    .toDouble() && stepDownMovement.horizontalDistanceSqr() > steppedMovement.horizontalDistanceSqr()
+            ) {
                 steppedMovement = stepDownMovement
             }
 

@@ -33,12 +33,17 @@ object CustomMainMenu : Module(
         listOf(VANILLA_BACKGROUND),
         desc = "Images from config/quoi!/images."
     )
-    val autoMenuColour by switch("Auto menu colour", true, desc = "Picks the menu colour from the custom background image.")
+    val autoMenuColour by switch(
+        "Auto menu colour",
+        true,
+        desc = "Picks the menu colour from the custom background image."
+    )
     val menuColour by colourPicker(
         "Menu colour",
         Colour.RGB(255, 204, 134),
         desc = "Accent colour for custom main menu buttons and overlays."
     )
+
     @Suppress("unused")
     private val openBackgroundsFolder by button("Open backgrounds folder") {
         runCatching { Util.getPlatform().openPath(backgroundFolder.toPath()) }
@@ -57,7 +62,8 @@ object CustomMainMenu : Module(
             // Wait for every mod's initialization before collecting buttons and replacing the screen.
             mc.schedule {
                 if (enabled && mc.gui.screen() === screen) {
-                    val buttons = Screens.getWidgets(screen).filterIsInstance<AbstractButton>().filter(::isExternalTitleButton)
+                    val buttons =
+                        Screens.getWidgets(screen).filterIsInstance<AbstractButton>().filter(::isExternalTitleButton)
                     mc.gui.setScreen(CustomMainMenuScreen(buttons))
                 }
             }

@@ -29,9 +29,11 @@ object Floor7 : EventListener, Shortcuts {
                     Stage.resetAll()
                     updateState(newPhase = Phase.P1)
                 }
+
                 "[BOSS] Storm: Pathetic Maxor, just like expected." -> {
                     updateState(newPhase = Phase.P2)
                 }
+
                 "[BOSS] Goldor: Who dares trespass into my domain?" -> {
                     Stage.resetAll()
                     Stage.S1.start()
@@ -42,6 +44,7 @@ object Floor7 : EventListener, Shortcuts {
                 "[BOSS] Necron: You went further than any human before, congratulations." -> {
                     updateState(newPhase = Phase.P4, newStage = Stage.Unknown)
                 }
+
                 "The Core entrance is opening!" -> {
                     updateState(newStage = Stage.S5)
                 }
@@ -98,18 +101,19 @@ object Floor7 : EventListener, Shortcuts {
         val z = player.z
 
         return when (x) {
-            in 89.0..113.0 if z in 30.0..122.0  -> Stage.S1
+            in 89.0..113.0 if z in 30.0..122.0 -> Stage.S1
             in 19.0..111.0 if z in 121.0..145.0 -> Stage.S2
-            in -6.0..19.0  if z in 51.0..143.0  -> Stage.S3
-            in -2.0..90.0  if z in 27.0..51.0   -> Stage.S4
-            in 41.0..68.0  if z in 59.0..117.0  -> Stage.S5
+            in -6.0..19.0 if z in 51.0..143.0 -> Stage.S3
+            in -2.0..90.0 if z in 27.0..51.0 -> Stage.S4
+            in 41.0..68.0 if z in 59.0..117.0 -> Stage.S5
             else -> Stage.Unknown
         }
     }
 
     fun inPhase(vararg phases: Phase): Boolean = getPhase() in phases
 
-    fun inPhaseAt(vararg phases: Phase, player: AbstractClientPlayer? = mc.player): Boolean = player != null && getPhaseAt(player) in phases
+    fun inPhaseAt(vararg phases: Phase, player: AbstractClientPlayer? = mc.player): Boolean =
+        player != null && getPhaseAt(player) in phases
 
     fun inStage(vararg stages: Stage): Boolean = getStage() in stages
 

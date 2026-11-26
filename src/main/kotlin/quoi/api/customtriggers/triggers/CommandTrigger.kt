@@ -19,6 +19,7 @@ class CommandTrigger(var command: String = "", var cancel: Boolean = true) : Tri
         ctx.cancelled = ctx.cancelled || cancel
         return true
     }
+
     override fun displayString() = "Command /${command.removePrefix("/")}"
     override fun ElementScope<*>.draw() = settingRow(
         { textField("Command, without arguments", command) { command = it } },

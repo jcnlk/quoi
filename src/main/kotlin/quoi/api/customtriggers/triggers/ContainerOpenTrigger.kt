@@ -15,6 +15,7 @@ class ContainerOpenTrigger(var title: TextMatcher = TextMatcher()) : Trigger {
         ctx.data.putAll(captures)
         return true
     }
+
     override fun displayString() = "Container opened: ${title.pattern}"
     override fun ElementScope<*>.draw() = settingRow(
         { textField("Title", title.pattern) { title.pattern = it } },

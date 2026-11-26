@@ -61,7 +61,10 @@ stonecutter parameters {
     }
 
     replacements.string(v26_4) {
-        replace("net.minecraft.commands.SharedSuggestionProvider", "net.minecraft.commands.suggestions.SuggestionContext as SharedSuggestionProvider")
+        replace(
+            "net.minecraft.commands.SharedSuggestionProvider",
+            "net.minecraft.commands.suggestions.SuggestionContext as SharedSuggestionProvider"
+        )
         replace("mc.mouseHandler.xpos()", "mc.mouseHandler.xpos")
         replace("mc.mouseHandler.ypos()", "mc.mouseHandler.ypos")
         replace("isHoveredOrFocused", "(isHovered || isFocused)")
@@ -69,13 +72,21 @@ stonecutter parameters {
         replace("import net.minecraft.tags.FluidTags", "import net.minecraft.world.level.material.Fluids")
         replace("FluidTags.WATER", "Fluids.WATER")
         replace("FluidTags.LAVA", "Fluids.LAVA")
-        replace("net.minecraft.client.renderer.RenderPipelines", "net.minecraft.client.renderer.pipeline.RenderPipelines")
+        replace(
+            "net.minecraft.client.renderer.RenderPipelines",
+            "net.minecraft.client.renderer.pipeline.RenderPipelines"
+        )
         replace("RenderSetup.builder(pipeline)", "RenderSetup.nonOitBuilder(pipeline)")
         replace("RenderPipeline.builder(RenderPipelines.DEBUG_FILLED_SNIPPET)", "RenderPipeline.builder(filledSnippet)")
     }
 
     replacements.string(v26_4, "gui_extraction") {
-        listOf("extractRenderState", "extractBackground", "extractWidgetRenderState", "extractContents").forEach { method ->
+        listOf(
+            "extractRenderState",
+            "extractBackground",
+            "extractWidgetRenderState",
+            "extractContents"
+        ).forEach { method ->
             listOf("ctx", "guiGraphics").forEach { context ->
                 replace(
                     "override fun $method($context: GuiGraphicsExtractor, mouseX: Int, mouseY: Int, deltaTicks: Float)",
@@ -89,11 +100,20 @@ stonecutter parameters {
         replace("RenderEvent.Overlay(ctx, a)", "RenderEvent.Overlay(ctx, ctx.deltaTracker())")
     }
     replacements.string(v26_4, "screen_extraction") {
-        replace("GuiGraphicsExtractor context, int mouseX, int mouseY, float deltaTicks, CallbackInfo", "GuiGraphicsExtractor context, CallbackInfo")
+        replace(
+            "GuiGraphicsExtractor context, int mouseX, int mouseY, float deltaTicks, CallbackInfo",
+            "GuiGraphicsExtractor context, CallbackInfo"
+        )
     }
     replacements.string(v26_4, "container_extraction") {
-        replace("GuiGraphicsExtractor context, int mouseX, int mouseY, CallbackInfo", "GuiGraphicsExtractor context, CallbackInfo")
-        replace("GuiGraphicsExtractor context, Slot slot, int x, int y, CallbackInfo", "GuiGraphicsExtractor context, Slot slot, CallbackInfo")
+        replace(
+            "GuiGraphicsExtractor context, int mouseX, int mouseY, CallbackInfo",
+            "GuiGraphicsExtractor context, CallbackInfo"
+        )
+        replace(
+            "GuiGraphicsExtractor context, Slot slot, int x, int y, CallbackInfo",
+            "GuiGraphicsExtractor context, Slot slot, CallbackInfo"
+        )
     }
 
     // SDL input, swing and movement packet changes in Minecraft 26.3.
@@ -105,12 +125,21 @@ stonecutter parameters {
         replace("input.scancode()", "input.keycode()")
         replace("com.mojang.blaze3d.pipeline.BlendFunction", "com.mojang.renderpearl.api.pipeline.BlendFunction")
         replace("com.mojang.blaze3d.pipeline.ColorTargetState", "com.mojang.renderpearl.api.pipeline.ColorTargetState")
-        replace("com.mojang.blaze3d.pipeline.DepthStencilState", "com.mojang.renderpearl.api.pipeline.DepthStencilState")
+        replace(
+            "com.mojang.blaze3d.pipeline.DepthStencilState",
+            "com.mojang.renderpearl.api.pipeline.DepthStencilState"
+        )
         replace("com.mojang.blaze3d.platform.CompareOp", "com.mojang.renderpearl.api.pipeline.CompareOp")
         replace("com.mojang.blaze3d.PrimitiveTopology", "com.mojang.renderpearl.api.pipeline.PrimitiveTopology")
         replace("com.mojang.blaze3d.textures.FilterMode", "com.mojang.renderpearl.api.textures.FilterMode")
-        replace("player.swing(InteractionHand.MAIN_HAND)", "player.swing(InteractionHand.MAIN_HAND, net.minecraft.world.item.component.SwingAnimation.DEFAULT, false)")
-        replace("player.swing(hand)", "player.swing(hand, net.minecraft.world.item.component.SwingAnimation.DEFAULT, false)")
+        replace(
+            "player.swing(InteractionHand.MAIN_HAND)",
+            "player.swing(InteractionHand.MAIN_HAND, net.minecraft.world.item.component.SwingAnimation.DEFAULT, false)"
+        )
+        replace(
+            "player.swing(hand)",
+            "player.swing(hand, net.minecraft.world.item.component.SwingAnimation.DEFAULT, false)"
+        )
         replace("level.addBreakingBlockEffect(pos, direction)", "level.addBreakingBlockEffects(pos, direction, false)")
         replace("packet.values.position", "packet.position.endPosition()")
         replace("player.drop(false)", "gameMode.dropItem(player, false)")
@@ -127,7 +156,10 @@ stonecutter parameters {
         replace("import org.lwjgl.glfw.GLFW", "import org.lwjgl.sdl.SDLMouse")
     }
     replacements.string(sdl, "name_tag_rendering") {
-        replace("import net.minecraft.client.renderer.feature.NameTagFeatureRenderer;", "import net.minecraft.client.renderer.SubmitNodeCollection;")
+        replace(
+            "import net.minecraft.client.renderer.feature.NameTagFeatureRenderer;",
+            "import net.minecraft.client.renderer.SubmitNodeCollection;"
+        )
         replace("@Mixin(NameTagFeatureRenderer.class)", "@Mixin(SubmitNodeCollection.class)")
         replace("method = \"prepareText\"", "method = \"nameTag\"")
         replace(
@@ -142,7 +174,12 @@ stonecutter parameters {
         replace("\\bEnderMan\\b", "Enderman", "\\bEnderman\\b", "EnderMan")
     }
     replacements.regex(sdl, "swing_packet") {
-        replace("\\bServerboundSwingPacket\\b", "ServerboundPunchPacket", "\\bServerboundPunchPacket\\b", "ServerboundSwingPacket")
+        replace(
+            "\\bServerboundSwingPacket\\b",
+            "ServerboundPunchPacket",
+            "\\bServerboundPunchPacket\\b",
+            "ServerboundSwingPacket"
+        )
     }
     replacements.string(!pipelineInBlaze3d) {
         replace("com.mojang.blaze3d.pipeline.RenderPipeline", "com.mojang.renderpearl.api.pipeline.RenderPipeline")

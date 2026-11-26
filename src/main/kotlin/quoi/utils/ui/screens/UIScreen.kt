@@ -15,7 +15,8 @@ import quoi.api.input.Keybinds
 import quoi.utils.sf
 import quoi.utils.ui.rendering.UIRenderer
 
-class UIScreen(val instance: AbobaUI.Instance, val background: Boolean = true ) : Screen(Component.literal(instance.title)) {
+class UIScreen(val instance: AbobaUI.Instance, val background: Boolean = true) :
+    Screen(Component.literal(instance.title)) {
 
     override fun init() {
         instance.init(mc.window.width, mc.window.height)
