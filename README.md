@@ -57,7 +57,7 @@ Download the JAR for your Minecraft version from [Releases](https://github.com/j
 - **Dungeon Abilities**
   - Uses class ultimate abilities at specific boss dialogue and enrage messages.
 - **Dungeon Breaker**
-  - Tracks charges and mines saved blocks automatically or with a triggerbot, with optional zero ping.
+  - Tracks charges and mines saved blocks automatically or with a triggerbot, with immediate client-side block prediction.
 - **Dungeon ESP**
   - Highlights teammates, starred mobs, and Wither bosses.
 - **Dungeon Map** (Beta)

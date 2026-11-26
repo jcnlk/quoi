@@ -11,6 +11,7 @@ import quoi.api.events.core.EventListener
 import quoi.api.events.core.Priority
 import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.Dungeon
+import quoi.module.impl.dungeon.DungeonBreaker
 import quoi.utils.Shortcuts
 import quoi.utils.equalsOneOf
 import quoi.utils.skyblock.item.ItemUtils.skyblockId
@@ -48,8 +49,10 @@ object BreakerUtils : EventListener, Shortcuts {
             if (packet.action != ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK) return@on
             if (!Dungeon.inDungeons || !Dungeon.hasStarted) return@on
             if (player.mainHandItem.skyblockId != "DUNGEONBREAKER") return@on
-            if (!consumesCharge(packet.pos)) return@on
-            if (charges > 0) trackedCharges--
+            if (!consumesCharge(packet.pos) || charges <= 0) return@on
+            trackedCharges--
+
+            if (packet.sequence > 0) DungeonBreaker.predictBreak(packet.pos)
         }
     }
 

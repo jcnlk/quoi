@@ -1,6 +1,9 @@
 package quoi.module.impl.dungeon
 
 import net.minecraft.core.BlockPos
+import net.minecraft.world.level.ClipContext
+import net.minecraft.world.level.block.Block
+import net.minecraft.world.level.block.Blocks
 import net.minecraft.world.phys.BlockHitResult
 import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
@@ -11,8 +14,10 @@ import quoi.api.events.RenderEvent
 import quoi.api.events.TickEvent
 import quoi.api.events.core.on
 import quoi.api.input.Keybinds
+import quoi.api.skyblock.dungeon.Dungeon.currentRoom
 import quoi.api.skyblock.dungeon.Dungeon.isProtectedBlock
 import quoi.api.skyblock.dungeon.Floor7.inF7Boss
+import quoi.api.skyblock.dungeon.odonscanning.tiles.RoomType
 import quoi.api.skyblock.location.Island
 import quoi.config.configList
 import quoi.module.Module
@@ -23,6 +28,7 @@ import quoi.utils.ChatUtils.modMessage
 import quoi.utils.Scheduler.scheduleLoop
 import quoi.utils.WorldUtils.state
 import quoi.utils.aabb
+import quoi.utils.equalsOneOf
 import quoi.utils.isWithinFov
 import quoi.utils.minFovDot
 import quoi.utils.render.drawStyledBox
@@ -245,6 +251,19 @@ object DungeonBreaker : Module(
     }
 
     private fun disableInGUI() = disableInInventory && mc.gui.screen() != null
+
+    internal fun predictBreak(pos: BlockPos) {
+        if (!active || disableInGUI()) return
+        if (currentRoom?.data?.type.equalsOneOf(RoomType.PUZZLE, RoomType.FAIRY)) return
+        if (level.getBlockEntity(pos) != null) return
+
+        val hit = level.clip(
+            ClipContext(player.eyePosition(), Vec3.atCenterOf(pos), ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, player)
+        )
+        if (hit.type == HitResult.Type.BLOCK && hit.blockPos == pos) {
+            level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL)
+        }
+    }
 
     private fun tickTriggerBot() {
         val pos = lookedBlock()?.takeIf { it in dbBlocks && isMineableDbBlock(it) }
