@@ -49,7 +49,9 @@ object Config : EventListener {
                 for (modules in jsonArray) {
                     val moduleObj = modules?.asJsonObject ?: continue
                     val module = ModuleManager.getModuleByName(moduleObj.get("name").asString) ?: continue
-                    if (moduleObj.get("enabled").asBoolean != module.enabled) module.toggle()
+                    val enabled = (moduleObj.get("enabled") as? JsonPrimitive)
+                        ?.asString?.lowercase()?.toBooleanStrictOrNull() ?: module.enabled
+                    if (enabled != module.enabled) module.toggle()
                     val settingsElement = moduleObj.get("settings") ?: continue
 
                     when {
