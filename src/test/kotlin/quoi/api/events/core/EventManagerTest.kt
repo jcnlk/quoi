@@ -1,7 +1,10 @@
 package quoi.api.events.core
 
+import net.minecraft.network.protocol.common.ClientboundKeepAlivePacket
+import net.minecraft.network.protocol.common.ClientboundPingPacket
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
+import quoi.api.events.PacketEvent
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertFailsWith
@@ -173,6 +176,22 @@ class EventManagerTest {
 
         assertEquals(1, onceCalls)
         assertEquals(3, repeatedCalls)
+    }
+
+    @Test
+    fun `once packet handlers wait for the first matching packet`() {
+        val calls = mutableListOf<ClientboundPingPacket>()
+        val firstMatch = ClientboundPingPacket(1)
+        listener.once<PacketEvent.Received, ClientboundPingPacket> { calls.add(packet) }.track()
+
+        PacketEvent.Received(ClientboundKeepAlivePacket(0L)).post()
+        assertTrue(calls.isEmpty())
+
+        PacketEvent.Received(firstMatch).post()
+        assertEquals(listOf(firstMatch), calls)
+
+        PacketEvent.Received(ClientboundPingPacket(2)).post()
+        assertEquals(listOf(firstMatch), calls)
     }
 
     @Test

@@ -110,15 +110,16 @@ inline fun <reified E, reified P : Packet<*>> EventListener.until(
 }
 
 /**
- * [once] filtered to packets
+ * Subscribes to the first dispatch with a matching packet
  */
 @JvmName("oncePacket")
 inline fun <reified E, reified P : Packet<*>> EventListener.once(
     priority: Int = 0,
     acceptCancelled: Boolean = false,
     noinline block: PacketScope<E, P>.() -> Unit
-): Subscription<E> where E : Event, E : PacketEvent = once<E>(priority, acceptCancelled) {
-    if (packet is P) block(PacketScope(this, packet as P))
+): Subscription<E> where E : Event, E : PacketEvent = until<E, P>(priority, acceptCancelled) {
+    block(this)
+    true
 }
 
 /**
