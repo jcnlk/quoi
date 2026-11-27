@@ -114,7 +114,7 @@ class StringListComponent<T : MutableCollection<String>>(
         if (!element.isJsonArray) return
         value.clear()
         element.asJsonArray.forEach { entry ->
-            runCatching { entry.asString }.getOrNull()?.let(value::add)
+            runCatching { entry.asString }.getOrNull()?.let(::add)
         }
     }
 
