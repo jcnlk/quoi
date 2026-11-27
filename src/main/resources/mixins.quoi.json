@@ -4,7 +4,6 @@
   "minVersion": "0.8",
   "package": "quoi.mixins",
   "plugin": "quoi.init.AutoMixinDiscovery",
-  "refmap": "mixins.quoi.refmap.json",
   "injectors": {
     "maxShiftBy": 5
   },
