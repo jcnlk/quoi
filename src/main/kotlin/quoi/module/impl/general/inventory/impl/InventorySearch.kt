@@ -163,6 +163,15 @@ object InventorySearch : SettingGroup(Inventory, HudComponent("Search Bar", Hud(
             while (match != null) {
                 val (n1, op, n2) = match.destructured
 
+                if (op == "^") {
+                    val exponentStart = match.groups[3]!!.range.first
+                    val nextPower = eqRegex.matchAt(s, exponentStart)
+                    if (nextPower != null) {
+                        match = nextPower
+                        continue
+                    }
+                }
+
                 val num1 = n1.toDoubleOrNull() ?: return null
                 val num2 = n2.toDoubleOrNull() ?: return null
 
