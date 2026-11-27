@@ -23,7 +23,6 @@ object AutoJoinSkyBlock : Module(
             armed = true
             pendingJoin = false
             joinTicks = 0
-            lastJoinAt = System.currentTimeMillis()
         }
 
         on<ServerEvent.Disconnect> {
@@ -35,6 +34,7 @@ object AutoJoinSkyBlock : Module(
 
             if (!pendingJoin) {
                 if (!Location.onHypixel) return@on
+                lastJoinAt = System.currentTimeMillis()
                 pendingJoin = true
                 joinTicks = 0
             }
