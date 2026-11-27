@@ -35,10 +35,10 @@ object HotbarSwapperUtils {
 
     fun findPreset(presets: List<HotbarPreset>, name: String, fuzzy: Boolean = false): HotbarPreset? {
         val query = name.lowercase()
-        return presets.firstOrNull { preset ->
-            val presetName = preset.name.lowercase()
-            if (fuzzy) query in presetName else query == presetName
-        }
+        val exactMatch = presets.firstOrNull { it.name.lowercase() == query }
+        if (exactMatch != null || !fuzzy) return exactMatch
+
+        return presets.firstOrNull { query in it.name.lowercase() }
     }
 
     fun findMatchingInventorySlot(
