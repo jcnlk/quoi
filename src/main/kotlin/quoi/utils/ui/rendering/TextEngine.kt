@@ -95,7 +95,7 @@ object TextEngine {
                 if (measure(stripCodes(line)) <= maxWidth) {
                     currentLine = line
                 } else {
-                    lines.add(currentLine)
+                    if (currentLine.isNotEmpty()) lines.add(currentLine)
                     currentLine = word
                 }
             }
