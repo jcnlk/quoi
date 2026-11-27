@@ -2,6 +2,7 @@ package quoi.module.impl.general
 
 import quoi.api.events.TickEvent
 import quoi.api.events.core.on
+import quoi.api.input.Keyboard
 import quoi.module.Module
 
 object AutoSprint : Module(
@@ -19,6 +20,15 @@ object AutoSprint : Module(
                 mc.options.keySprint.isDown = true
                 wasUnderWater = false
             }
+        }
+    }
+
+    override fun onDisable() {
+        val options = mc.options
+        val sprintKey = options.keySprint
+        val physicallyDown = !sprintKey.isUnbound && Keyboard.isKeyDown(sprintKey.key)
+        if (sprintKey.isDown != physicallyDown) {
+            sprintKey.isDown = physicallyDown || options.toggleSprint().get()
         }
     }
 }
