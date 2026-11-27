@@ -103,9 +103,9 @@ object SkyblockPlayer : EventListener, Shortcuts {
                 this@SkyblockPlayer.maxMana = maxMana.toInt()
             }
 
-            VITALITY_REGEX.find(message)?.destructured?.let { (vitality, maxVitality) ->
-                this@SkyblockPlayer.vitality = vitality.toInt()
-                this@SkyblockPlayer.maxVitality = maxVitality.toInt()
+            VITALITY_REGEX.find(message)?.destructured?.let { (current, max) ->
+                vitality = current.toDoubleOrNull()?.toInt() ?: vitality
+                maxVitality = max.toDoubleOrNull()?.toInt() ?: maxVitality
             } ?: run {
                 vitality = 0
                 maxVitality = 0
