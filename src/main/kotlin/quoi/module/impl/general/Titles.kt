@@ -7,12 +7,16 @@ import quoi.api.events.PetEvent
 import quoi.api.events.core.on
 import quoi.api.skyblock.SkyblockPlayer.InvincibilityType
 import quoi.api.skyblock.dungeon.Dungeon
+import quoi.api.skyblock.location.Island
 import quoi.module.Module
 import quoi.module.settings.UIComponent.Companion.childOf
 import quoi.module.settings.group.SettingGroup.Companion.childOf
 import quoi.utils.skyblock.player.PlayerUtils
 
-object Titles : Module("Titles") {
+object Titles : Module(
+    "Titles",
+    area = Island.Skyblock
+) {
     private val autoPet by switch("Petrules", desc = "Show title upon petrule chat message")
     private val invincibilityProc by switch("Invincibility", desc = "Show title upon bonzo/spirit/phoenix proc")
     private val shadowAssassin by switch("Shadow Assassin")
@@ -59,7 +63,7 @@ object Titles : Module("Titles") {
         }
 
         on<PacketEvent.Received, ClientboundInitializeBorderPacket> {
-            if (!shadowAssassin) return@on
+            if (!shadowAssassin || !Dungeon.inDungeons) return@on
             if (Dungeon.isFloor(1, 2, 3) && Dungeon.inBoss) return@on
             PlayerUtils.setTitle("", "§aShadow Assassin!", playSound = true, stayAlive = 35, fadeOut = 0)
         }
