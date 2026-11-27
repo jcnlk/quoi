@@ -3,6 +3,7 @@ package quoi.utils.skyblock
 import quoi.annotations.Init
 import quoi.api.events.ChatEvent
 import quoi.api.events.PartyEvent
+import quoi.api.events.ServerEvent
 import quoi.api.events.core.EventListener
 import quoi.api.events.core.on
 import quoi.api.skyblock.dungeon.enums.DungeonClass
@@ -68,6 +69,8 @@ object PartyUtils : EventListener, Shortcuts {
         private set
 
     init {
+        on<ServerEvent.Disconnect> { disband() }
+
         on<ChatEvent.Packet> {
             joinedOther.find(unformatted)?.let { return@on addMember(it.groupValues[2]) }
 
