@@ -7,6 +7,8 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties
 import net.minecraft.world.phys.Vec3
 import quoi.api.events.BlockEvent
 import quoi.api.events.TickEvent
+import quoi.api.events.WorldEvent
+import quoi.api.events.core.Event
 import quoi.api.events.core.on
 import quoi.module.Module
 import quoi.utils.EntityUtils.getEntities
@@ -47,6 +49,14 @@ object AutoCarnival : Module(
                 else -> lamp
             }
         }
+
+        on<WorldEvent.Change> { lamp = null }
+    }
+
+    override fun shouldHandle(event: Event): Boolean = event is WorldEvent.Change || super.shouldHandle(event)
+
+    override fun onDisable() {
+        lamp = null
     }
 
     private fun getTargets(): List<Vec3> {
