@@ -65,6 +65,8 @@ public class ChatScreenMixin extends Screen implements ISearchMode {
         if (isSearchActive && input.input() == Keybinds.KEY_ESCAPE) {
             toggleSearch(false);
             cir.setReturnValue(true);
+        } else if (isSearchActive && input.isConfirmation()) {
+            cir.setReturnValue(true);
         }
     }
 
