@@ -12,6 +12,7 @@ import net.minecraft.world.phys.Vec3
 import quoi.QuoiMod.mc
 import quoi.annotations.Init
 import quoi.api.colour.Colour
+import quoi.api.colour.lerpColour
 
 @Init
 object EntityUtils {
@@ -62,19 +63,11 @@ object EntityUtils {
     fun colourFromDistance(distanceToCamera: Double): Colour {
         val percent = distanceToCamera / 60.0
 
-        if (percent !in 0.0..1.0) {
-            return Colour.RGB(255, 0, 0)
+        return when {
+            percent !in 0.0..1.0 -> Colour.RED
+            percent < 0.5 -> lerpColour(Colour.GREEN, Colour.YELLOW, (percent * 2).toFloat())
+            else -> lerpColour(Colour.YELLOW, Colour.RED, (percent * 2 - 1).toFloat())
         }
-
-        val (r, g) = if (percent < 0.5) {
-            val r = (255 - (255 * (percent - 0.5) / 0.5)).toInt()
-            r to 255
-        } else {
-            val g = (255 * percent / 0.5).toInt()
-            255 to g
-        }
-
-        return Colour.RGB(r, g, 0)
     }
 
     @JvmName("getAllEntities")
