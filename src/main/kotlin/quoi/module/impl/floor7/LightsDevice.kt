@@ -2,7 +2,6 @@ package quoi.module.impl.floor7
 
 import net.minecraft.core.BlockPos
 import net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket
-import net.minecraft.network.protocol.game.ClientboundSectionBlocksUpdatePacket
 import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket
 import net.minecraft.world.InteractionHand
 import net.minecraft.world.level.block.Blocks
@@ -80,7 +79,7 @@ object LightsDevice : Module(
 
     @JvmStatic
     fun shouldGhostLever(pos: BlockPos): Boolean {
-        return enabled && hideUselessLevers && Floor7.inPhaseAt(Phase.P3) && pos in uselessLevers
+        return enabled && hideUselessLevers && pos in uselessLevers && inArea() && Floor7.inPhaseAt(Phase.P3)
     }
 
     private fun BlockState.isUnpoweredDeviceLever(): Boolean {
@@ -139,20 +138,8 @@ object LightsDevice : Module(
             if (shouldGhostLever(packet.hitResult.blockPos)) cancel()
         }
 
-        on<PacketEvent.Received> {
-            when (packet) {
-                is ClientboundBlockUpdatePacket -> {
-                    if (shouldGhostLever(packet.pos)) cancel()
-                }
-
-                is ClientboundSectionBlocksUpdatePacket -> {
-                    var cancelPacket = false
-                    packet.runUpdates { pos, _ ->
-                        if (shouldGhostLever(pos.immutable())) cancelPacket = true
-                    }
-                    if (cancelPacket) cancel()
-                }
-            }
+        on<PacketEvent.Received, ClientboundBlockUpdatePacket> {
+            if (shouldGhostLever(packet.pos)) cancel()
         }
     }
 }

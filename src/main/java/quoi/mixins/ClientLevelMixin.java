@@ -1,9 +1,11 @@
 package quoi.mixins;
 
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -13,10 +15,16 @@ import quoi.api.skyblock.dungeon.Floor7;
 import quoi.api.skyblock.dungeon.enums.Phase;
 import quoi.api.skyblock.location.Island;
 import quoi.api.skyblock.location.Location;
+import quoi.module.impl.floor7.LightsDevice;
 import quoi.module.impl.render.RenderOptimiser;
 
 @Mixin(ClientLevel.class)
 public class ClientLevelMixin {
+
+    @Inject(method = "setServerVerifiedBlockState", at = @At("HEAD"), cancellable = true)
+    private void quoi$hideUselessLever(BlockPos pos, BlockState state, int flags, CallbackInfo ci) {
+        if (LightsDevice.shouldGhostLever(pos)) ci.cancel();
+    }
 
     @Inject(
             method = "addEntity",
