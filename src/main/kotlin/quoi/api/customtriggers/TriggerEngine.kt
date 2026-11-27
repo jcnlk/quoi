@@ -61,7 +61,7 @@ class TriggerEngine(
                 val local = trigger.trigger.createContext(context) ?: return@safely
                 if (!trigger.conditions.all { matches(it, local) == it.expected }) return@safely
                 onRun(trigger)
-                if (!resume(trigger, trigger.actions.toList(), 0, local, started)) return@safely
+                resume(trigger, trigger.actions.toList(), 0, local, started)
                 when (context) {
                     is TriggerContext.Chat if local is TriggerContext.Chat -> context.cancelled =
                         context.cancelled || local.cancelled
@@ -89,9 +89,9 @@ class TriggerEngine(
     private fun resume(
         trigger: TriggerRule, actions: List<TriggerAction>, nextIndex: Int,
         context: TriggerContext, started: Long
-    ): Boolean {
+    ) {
         for (index in nextIndex until actions.size) {
-            if (!isActive() || generation != started || !trigger.enabled) return false
+            if (!isActive() || generation != started || !trigger.enabled) return
             val action = actions[index]
             if (action is DelayAction) {
                 if (action.ticks > 0 && index < actions.lastIndex) {
@@ -106,17 +106,16 @@ class TriggerEngine(
                             action.server
                         )
                     )
-                    return true
+                    return
                 }
             } else if (action is ContainerTaskAction) {
                 checkPendingLimit()
                 val task = action.createTask(context).run()
                 // Let the task finish and release the container manager before continuing.
                 pending.add(PendingSequence(trigger, actions, index + 1, context.snapshot(), task = task))
-                return true
+                return
             } else execute(action, context)
         }
-        return true
     }
 
     /**
