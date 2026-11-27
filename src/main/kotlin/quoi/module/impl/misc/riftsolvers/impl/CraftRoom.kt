@@ -33,7 +33,7 @@ object CraftRoom : ToggleableGroup(MirrorverseSolvers, "Craft room") {
     init {
         on<RenderEvent.World> {
             if (!mobs) return@on
-            if (player.z > -100.0 && player.z < -140.0) return@on
+            if (player.z > -100.0 || player.z < -140.0) return@on
 
             ctx.drawWireFrameBox(BlockPos(-113, 52, -115).aabb, Colour.BROWN, depth = true)
 
