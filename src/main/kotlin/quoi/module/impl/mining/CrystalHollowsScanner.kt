@@ -76,7 +76,8 @@ object CrystalHollowsScanner : Module(
             val scanRoutes = routeScanner
             if (!scanStructures && !scanRoutes) return@on
             val chunkPos = chunk.pos
-            if (chunkPos.minBlockX !in X_MIN..X_MAX || chunkPos.minBlockZ !in Z_MIN..Z_MAX) return@on
+            if (chunkPos.maxBlockX < X_MIN || chunkPos.minBlockX > X_MAX) return@on
+            if (chunkPos.maxBlockZ < Z_MIN || chunkPos.minBlockZ > Z_MAX) return@on
             if (!scannedChunks.add(chunkPos.pack())) return@on
             isDirty = true
 
