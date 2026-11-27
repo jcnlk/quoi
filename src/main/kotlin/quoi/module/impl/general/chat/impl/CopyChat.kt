@@ -15,6 +15,7 @@ import quoi.utils.ChatUtils
 import quoi.utils.ChatUtils.getMessageLineIdx
 import quoi.utils.ChatUtils.toChatLineMX
 import quoi.utils.ChatUtils.toChatLineMY
+import quoi.utils.StringUtils.formattedString
 import quoi.utils.StringUtils.noControlCodes
 
 object CopyChat : ToggleableGroup(
@@ -51,8 +52,8 @@ object CopyChat : ToggleableGroup(
                     .plus(10)
             ) return@on
 
-            val fullText = mc.gui.hud.chat.getFullText(idx)?.string ?: return@on
-            val finalText = if (isCodeBtn) fullText else fullText.noControlCodes
+            val fullText = mc.gui.hud.chat.getFullText(idx) ?: return@on
+            val finalText = if (isCodeBtn) fullText.formattedString else fullText.string.noControlCodes
             mc.keyboardHandler.clipboard = finalText
             ChatUtils.modMessage(
                 "&aCopied message to clipboard",
