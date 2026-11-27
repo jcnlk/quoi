@@ -32,8 +32,6 @@ object PartyUtils : EventListener, Shortcuts {
     private val transferBy =
         Regex("^The party was transferred to ((?:\\[[^]]*?])? ?)?(\\w{1,16}) by ((?:\\[[^]]*?])? ?)?(\\w{1,16})$")
     private val partyChat = Regex("^Party > ((?:\\[[^]]*?])? ?)?(\\w{1,16}): (.+)$")
-    private val partyInvite =
-        Regex("^((?:\\[[^]]*?])? ?)?(\\w{1,16}) invited ((?:\\[[^]]*?])? ?)?(\\w{1,16}) to the party! They have 60 seconds to accept.$")
     private val leaderDisconnected =
         Regex("^The party leader, ((?:\\[[^]]*?])? ?)?(\\w{1,16}) has disconnected, they have 5 minutes to rejoin before the party is disbanded\\.$")
     private val leaderRejoined = Regex("^The party leader ((?:\\[[^]]*?])? ?)?(\\w{1,16}) has rejoined\\.$")
@@ -116,12 +114,6 @@ object PartyUtils : EventListener, Shortcuts {
                 val sender = match.groupValues[2]
                 addMember(sender)
                 PartyEvent.Message(sender, match.groupValues[3]).post()
-                return@on
-            }
-
-            partyInvite.find(unformatted)?.let {
-                addMember(it.groupValues[2])
-                if (partyLeader == null) partyLeader = it.groupValues[2]
                 return@on
             }
 
