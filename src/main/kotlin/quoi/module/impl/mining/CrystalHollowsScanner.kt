@@ -65,6 +65,8 @@ object CrystalHollowsScanner : Module(
     private val thickness by slider("Thickness", 4f, 1f, 8f, 1f).visibleIf { routeScanner }
 
     val scannedChunks = HashSet<Long>()
+    private val structureScannedChunks = HashSet<Long>()
+    private val routeScannedChunks = HashSet<Long>()
     val foundStructures = mutableMapOf<Structure, MutableList<BlockPos>>()
     val foundRouteBlocks = mutableListOf<BlockPos>()
     private var worldGeneration = 0L
@@ -72,14 +74,14 @@ object CrystalHollowsScanner : Module(
 
     init {
         on<WorldEvent.Chunk.Load> {
-            val scanStructures = structureScanner
-            val scanRoutes = routeScanner
-            if (!scanStructures && !scanRoutes) return@on
             val chunkPos = chunk.pos
             if (chunkPos.maxBlockX < X_MIN || chunkPos.minBlockX > X_MAX) return@on
             if (chunkPos.maxBlockZ < Z_MIN || chunkPos.minBlockZ > Z_MAX) return@on
-            if (!scannedChunks.add(chunkPos.pack())) return@on
-            isDirty = true
+            val chunkKey = chunkPos.pack()
+            val scanStructures = structureScanner && structureScannedChunks.add(chunkKey)
+            val scanRoutes = routeScanner && routeScannedChunks.add(chunkKey)
+            if (!scanStructures && !scanRoutes) return@on
+            if (scannedChunks.add(chunkKey)) isDirty = true
 
             val world = chunk.level
             val generation = worldGeneration
@@ -138,6 +140,8 @@ object CrystalHollowsScanner : Module(
         lifecycle.on<WorldEvent.Change> {
             worldGeneration++
             scannedChunks.clear()
+            structureScannedChunks.clear()
+            routeScannedChunks.clear()
             foundStructures.clear()
             foundRouteBlocks.clear()
             isDirty = true
