@@ -26,16 +26,19 @@ class Grid(
 
         var currX = 0f
         var currY = 0f
+        var rowHeight = 0f
 
         children?.forEach {
             if (it.constraints.x.undefined() && it.constraints.y.undefined() && it.enabled) {
                 if (currX + it.width + padding > width) {
                     currX = 0f
-                    currY += it.height + padding
+                    currY += rowHeight + padding
+                    rowHeight = 0f
                 }
                 it.internalX = currX
                 it.internalY = currY
                 currX += it.width + padding
+                rowHeight = maxOf(rowHeight, it.height)
             }
         }
     }
