@@ -42,7 +42,6 @@ object CopyChat : ToggleableGroup(
             val isCopyBtn = button == copyKey.key + 100 && copyKey.isModifierDown()
             val isCodeBtn = button == copyCodesKey.key + 100 && copyCodesKey.isModifierDown()
             if (!isCopyBtn && !isCodeBtn) return@on
-            cancel()
 
             val dx = mc.gui.hud.chat.toChatLineMX(mx)
             val dy = mc.gui.hud.chat.toChatLineMY(my)
@@ -54,6 +53,7 @@ object CopyChat : ToggleableGroup(
 
             val fullText = mc.gui.hud.chat.getFullText(idx) ?: return@on
             val finalText = if (isCodeBtn) fullText.formattedString else fullText.string.noControlCodes
+            cancel()
             mc.keyboardHandler.clipboard = finalText
             ChatUtils.modMessage(
                 "&aCopied message to clipboard",
