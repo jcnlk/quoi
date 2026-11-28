@@ -143,12 +143,11 @@ object AutoRoutesCommand : EventListener {
         ar.sub("restore") {
             val entries = removedNodes.removeLastOrNull() ?: return@sub modMessage("&cNo nodes to restore!")
 
+            entries.sortedBy { it.node.chain?.index }.forEach { entry ->
+                entry.node.chain?.let { shiftChain(entry.room, it.name, it.index, 1) }
+            }
             entries.forEach { entry ->
-                val nodes = routeNodes.getOrPut(entry.room) { mutableListOf() }
-                if (entries.size == 1) {
-                    entry.node.chain?.let { shiftChain(entry.room, it.name, it.index, 1) }
-                }
-                nodes.add(entry.node)
+                routeNodes.getOrPut(entry.room) { mutableListOf() }.add(entry.node)
             }
             save()
             modMessage("Restored &e${if (entries.size == 1) entries[0].node.typeName else "${entries.size} &rnodes"}&r!")
