@@ -1,5 +1,6 @@
 package quoi.utils.ui.hud
 
+import quoi.QuoiMod
 import quoi.api.abobaui.constraints.Constraint
 import quoi.api.abobaui.constraints.impl.measurements.Undefined
 import quoi.api.abobaui.constraints.impl.measurements.Pixel
@@ -53,6 +54,18 @@ open class Hud(
 
     fun rebuild() {
         scope?.let { element?.rebuild(it) }
+    }
+
+    /**
+     * Runs [builder], a failing hud stays empty instead of breaking the other huds.
+     */
+    fun build(scope: Scope) {
+        try {
+            builder(scope)
+        } catch (e: Exception) {
+            scope.element.removeAll()
+            QuoiMod.logger.warn("Failed to build HUD \"$name\" of ${module.name}", e)
+        }
     }
 
     fun container(): Hud {
@@ -159,7 +172,7 @@ open class Hud(
             this.constraints.x = this@Hud.x.value.percent
             this.constraints.y = this@Hud.y.value.percent
             removeAll()
-            builder.invoke(scope)
+            build(scope)
             scaleTransformation = this@Hud.scale.value
             redraw = true
         }

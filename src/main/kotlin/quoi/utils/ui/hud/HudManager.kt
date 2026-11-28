@@ -33,6 +33,7 @@ import quoi.module.settings.impl.ColourPickerComponent
 import quoi.utils.Scheduler.scheduleTask
 import quoi.utils.StringUtils.toFixed
 import quoi.utils.ThemeManager.theme
+import quoi.utils.inGame
 import quoi.utils.ui.popupX
 import quoi.utils.ui.popupY
 import quoi.utils.ui.rendering.UIRenderer
@@ -68,7 +69,7 @@ object HudManager : EventListener {
                         element.add()
                         val scope = Hud.Scope(element, preview = false)
                         hud.scope = scope
-                        hud.builder(scope)
+                        hud.build(scope)
                     }
                 }, cancelling = false).apply { open() }
             }
@@ -94,6 +95,10 @@ object HudManager : EventListener {
         }
 
         overlay?.close()
+        overlay = null
+        // huds can access the player while building, WorldEvent.Load.Start reinits once in game
+        if (!inGame) return
+
         overlay = UIOverlay(aloba {
             huds.forEach { hud ->
                 if (hud.inContainer) return@forEach
@@ -102,7 +107,7 @@ object HudManager : EventListener {
                 element.add()
                 val scope = Hud.Scope(element, preview = false)
                 hud.scope = scope
-                hud.builder(scope)
+                hud.build(scope)
             }
         }).apply { open() }
     }
@@ -156,7 +161,7 @@ object HudManager : EventListener {
             element.add()
 
             Hud.Scope(element, preview = true).apply {
-                hud.builder(this)
+                hud.build(this)
 
                 var dragging = false
                 var clickedX = 0f

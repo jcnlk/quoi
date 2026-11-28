@@ -56,7 +56,7 @@ object DungeonBreaker : Module(
         visibleIf { player.mainHandItem.skyblockId == "DUNGEONBREAKER" }
         textPair(
             string = "Charges:",
-            supplier = { mc.player?.mainHandItem?.let(::getBreakerCharges) ?: 0 },
+            supplier = { getBreakerCharges(player.mainHandItem) },
             labelColour = colour,
             shadow = shadow,
             font = font
